@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@agencyos/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@agencyos/db':
+        specifier: workspace:*
+        version: link:packages/db
+      '@agencyos/modules':
+        specifier: workspace:*
+        version: link:packages/modules
       '@types/pg':
         specifier: 8.23.1
         version: 8.23.1
@@ -27,6 +36,9 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.20.5
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(kysely@0.29.8)(pg@8.23.1)
       typescript:
         specifier: 5.9.3
         version: 5.9.3

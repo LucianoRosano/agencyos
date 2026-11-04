@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
   transpilePackages: ["@agencyos/ui", "@agencyos/core", "@agencyos/db", "@agencyos/modules", "@agencyos/pdf"],
   serverExternalPackages: ["pg", "pg-boss", "playwright-core"],

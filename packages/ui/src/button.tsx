@@ -38,11 +38,17 @@ export function buttonClass(variant: Variant = "secondary", size: Size = "md", e
 }
 
 export function Button({ variant = "secondary", size = "md", asChild, loading, className, children, disabled, ...props }: ButtonProps) {
-  const Comp = asChild ? Slot.Root : "button";
+  if (asChild) {
+    return (
+      <Slot.Root className={buttonClass(variant, size, className)} {...props}>
+        {children}
+      </Slot.Root>
+    );
+  }
   return (
-    <Comp className={buttonClass(variant, size, className)} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
+    <button className={buttonClass(variant, size, className)} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
       {loading ? <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden /> : null}
       {children}
-    </Comp>
+    </button>
   );
 }

@@ -1,10 +1,11 @@
 "use server";
 
-import { type Result, ok, toResultError, validation } from "@agencyos/core";
+import { type Result, toResultError, validation } from "@agencyos/core";
 import { getAuth } from "@agencyos/modules/auth/server";
 import { createOwner } from "@agencyos/modules/setup/service";
 import { timingSafeEqual } from "node:crypto";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const schema = z.object({
@@ -27,8 +28,8 @@ export async function setupAction(_prev: Result<null> | null, fd: FormData): Pro
     }
     await createOwner({ name: data.name, email: data.email, password: data.password });
     await getAuth().api.signInEmail({ body: { email: data.email, password: data.password }, headers: await headers() });
-    return ok(null);
   } catch (e) {
     return toResultError(e);
   }
+  redirect("/seguridad/2fa");
 }
