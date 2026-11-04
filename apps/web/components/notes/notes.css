@@ -1,0 +1,19 @@
+/* Notas: vista previa y editor (solo se carga en las páginas de notas). */
+.note-preview a.wikilink[href^="/notas/nueva"] {
+  color: var(--text-muted);
+  border-bottom: 1px dashed var(--text-faint);
+  cursor: copy;
+}
+.note-preview a.wikilink[href^="/notas/nueva"]::after {
+  content: " +";
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--accent);
+}
+.note-preview a.wikilink[href^="/notas/nueva"]:hover {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.note-preview { overflow-wrap: anywhere; }
+.note-preview pre { max-width: 100%; }
+.note-preview table { display: block; max-width: 100%; overflow-x: auto; }
