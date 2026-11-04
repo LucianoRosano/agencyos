@@ -143,6 +143,31 @@ importers:
         specifier: 4.3.4
         version: 4.3.4
 
+  apps/worker:
+    dependencies:
+      '@agencyos/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@agencyos/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@agencyos/modules':
+        specifier: workspace:*
+        version: link:../../packages/modules
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(kysely@0.29.8)(pg@8.23.1)
+      pg-boss:
+        specifier: 12.38.0
+        version: 12.38.0(@opentelemetry/api@1.10.0)
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.5
+
   packages/core:
     dependencies:
       '@agencyos/db':

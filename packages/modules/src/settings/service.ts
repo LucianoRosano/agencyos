@@ -81,7 +81,13 @@ export async function systemStatus(ctx: Ctx) {
     // el worker todavía no creó el esquema de pg-boss
   }
   const [lastBackup] = await db.select().from(schema.auditLog).where(and(eq(schema.auditLog.action, "backup.completed"), gte(schema.auditLog.at, new Date(Date.now() - 40 * 86_400_000)))).orderBy(desc(schema.auditLog.at)).limit(1);
-  const [lastWorker] = await db.select().from(schema.auditLog).where(eq(schema.auditLog.action, "worker.heartbeat")).orderBy(desc(schema.auditLog.at)).limit(1);
+  let workerSeenAt: Date | null = null;
+  try {
+    const [hb] = (await db.execute<{ at: Date | null }>(sql`select max(completed_on) as at from pgboss.job where name = 'heartbeat' and state = 'completed'`)).rows;
+    workerSeenAt = hb?.at ? new Date(hb.at) : null;
+  } catch {
+    workerSeenAt = null;
+  }
   return {
     version: process.env.APP_VERSION ?? "dev",
     node: process.version,
@@ -90,7 +96,7 @@ export async function systemStatus(ctx: Ctx) {
     queue,
     failedJobs,
     lastBackupAt: lastBackup?.at ?? null,
-    workerSeenAt: lastWorker?.at ?? null,
+    workerSeenAt,
     integrations: { brevo: Boolean(process.env.BREVO_API_KEY) },
   };
 }
