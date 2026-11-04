@@ -13,7 +13,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const ctx = await requireCtx();
   const [items, spaces, projects] = await Promise.all([listPending(ctx), spaceOpts(ctx), projectOpts(ctx)]);
-  const processing = sp.procesar === "1" && items.length > 0;
+  const processing = sp.procesar === "1";
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader

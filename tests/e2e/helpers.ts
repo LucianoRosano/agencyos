@@ -53,3 +53,11 @@ export async function shot(page: Page, name: string, project: string) {
   mkdirSync(dir, { recursive: true });
   await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
 }
+
+/** axe: sin violaciones serias o críticas (docs/09). */
+export async function expectAccessible(page: Page) {
+  const { default: AxeBuilder } = await import("@axe-core/playwright");
+  const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  const bad = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" | ")}`)).toEqual([]);
+}

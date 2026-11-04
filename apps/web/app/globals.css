@@ -81,3 +81,6 @@ body {
 }
 .prose-ag li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.3em; }
 .prose-ag input[type="checkbox"] { margin-right: 0.5em; accent-color: var(--accent); }
+
+/* Texto en color de acento: variante con contraste AA sobre superficies oscuras (sin cambiar el acento de fondos y gradientes). */
+.text-accent { color: var(--accent-text); }

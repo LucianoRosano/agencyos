@@ -22,7 +22,23 @@ export function useAction() {
       opts.onDone?.(r.data);
       if (opts.success) {
         const undo = opts.undo;
-        toast.success(opts.success, undo ? { duration: 8000, action: { label: "Deshacer", onClick: () => void undo().then(() => router.refresh()) } } : undefined);
+        toast.success(
+          opts.success,
+          undo
+            ? {
+                duration: 8000,
+                action: {
+                  label: "Deshacer",
+                  onClick: () =>
+                    void undo().then((u) => {
+                      if (u.ok) toast.success("Deshecho");
+                      else toast.error(u.error.message);
+                      router.refresh();
+                    }),
+                },
+              }
+            : undefined,
+        );
       }
       if (opts.redirectTo) router.push(opts.redirectTo);
     });

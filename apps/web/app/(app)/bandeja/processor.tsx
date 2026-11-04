@@ -5,7 +5,6 @@ import { Badge, Button, Card, Select } from "@agencyos/ui";
 import { CalendarPlus, FileText, FolderPlus, Trash2, Wallet, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
 import { deleteItemAction, discardAction, restoreItemAction, setSpaceAction, toNoteAction, toProjectAction, toTaskAction, undoProcessAction } from "./actions";
@@ -15,24 +14,34 @@ type Opt = { value: string; label: string };
 
 /** Procesar la Bandeja uno por uno (docs/02 N4). */
 export function Processor({ items, spaces, projects, financeEnabled }: { items: Item[]; spaces: Opt[]; projects: Opt[]; financeEnabled: boolean }) {
-  const [idx, setIdx] = useState(0);
+  // Los ítems procesados desaparecen al revalidar: siempre se muestra el primer pendiente no salteado.
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"choose" | "task">("choose");
   const { exec, pending } = useAction();
   const router = useRouter();
-  const item = items[idx];
-  const next = () => {
-    setMode("choose");
-    if (idx + 1 >= items.length) router.push("/bandeja");
-    else setIdx(idx + 1);
-  };
-  if (!item) return null;
+  const queue = items.filter((i) => !skipped.has(i.id));
+  const item = queue[0];
+  const next = () => setMode("choose");
+  if (!item) {
+    return (
+      <Card className="flex flex-col items-center gap-3 p-8 text-center">
+        <p className="text-[18px] font-medium">{items.length ? "Salteaste los que quedan" : "¡Bandeja procesada!"}</p>
+        <p className="text-[14px] text-text-muted">{items.length ? `Quedan ${items.length} para otro momento.` : "Todo quedó convertido, programado o descartado."}</p>
+        <div className="flex gap-2">
+          {items.length ? <Button onClick={() => setSkipped(new Set())}>Volver a empezar</Button> : null}
+          <Button variant="primary" onClick={() => router.push("/hoy")}>Ir a Hoy</Button>
+        </div>
+      </Card>
+    );
+  }
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between font-mono text-[12px] text-text-muted">
-        <span>{idx + 1} de {items.length}</span>
+        <span>{queue.length} {queue.length === 1 ? "pendiente" : "pendientes"}</span>
+        <button type="button" onClick={() => { setSkipped((s) => new Set(s).add(item.id)); setMode("choose"); }} className="hover:text-text">Saltear →</button>
         <button type="button" onClick={() => router.push("/bandeja")} className="flex items-center gap-1 hover:text-text"><X className="size-4" /> Salir</button>
       </div>
-      <Card className="p-5 md:p-6">
+      <Card className="p-5 md:p-6" key={item.id}>
         {item.suggestedType ? <Badge tone="info" className="mb-3">{L.inboxType[item.suggestedType as keyof typeof L.inboxType] ?? item.suggestedType}</Badge> : null}
         <p className="whitespace-pre-wrap break-words text-[18px] leading-relaxed text-text">{item.text}</p>
         <div className="mt-4 max-w-xs">
@@ -44,7 +53,14 @@ export function Processor({ items, spaces, projects, financeEnabled }: { items: 
       </Card>
       {mode === "task" ? (
         <Card className="p-5">
-          <ActionForm action={toTaskAction.bind(null, item.id)} successMessage="Convertido en tarea" onSuccess={next}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              exec(() => toTaskAction(item.id, null, fd), { success: "Convertido en tarea", onDone: next });
+            }}
+          >
             <TextField label="Título" name="title" defaultValue={item.text.split("\n")[0]?.slice(0, 300)} required />
             <div className="grid gap-4 md:grid-cols-3">
               <TextField label="Fecha" name="dueDate" type="date" defaultValue={todayAR()} />
@@ -54,9 +70,9 @@ export function Processor({ items, spaces, projects, financeEnabled }: { items: 
             <input type="hidden" name="descriptionMd" value={item.text} />
             <div className="flex justify-between">
               <Button type="button" variant="ghost" onClick={() => setMode("choose")}>Volver</Button>
-              <SubmitButton>Crear tarea</SubmitButton>
+              <Button type="submit" variant="primary" loading={pending}>Crear tarea</Button>
             </div>
-          </ActionForm>
+          </form>
         </Card>
       ) : (
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
