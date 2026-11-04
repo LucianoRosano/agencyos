@@ -1,0 +1,60 @@
+/* AGENCYOS · tokens "Centro de mando" (contexto C1). Oscuro es el principal. */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #06070a;
+  --bg-elevated: #0b0d12;
+  --surface: #11141b;
+  --surface-2: #171b24;
+  --surface-3: #1e2330;
+  --border: rgba(255, 255, 255, 0.075);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #e8ebf2;
+  --text-muted: #8a93a6;
+  --text-faint: #5d6576;
+  --accent: #7c5cff;
+  --accent-2: #22d3ee;
+  --accent-soft: rgba(124, 92, 255, 0.14);
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f43f5e;
+  --success-soft: rgba(52, 211, 153, 0.12);
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger-soft: rgba(244, 63, 94, 0.12);
+  --grid-dot: rgba(255, 255, 255, 0.045);
+  --glow: 0 0 0 1px rgba(124, 92, 255, 0.45), 0 0 24px -4px rgba(124, 92, 255, 0.45);
+  --shadow-pop: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e6e9ee;
+  --border: rgba(10, 12, 18, 0.1);
+  --border-strong: rgba(10, 12, 18, 0.18);
+  --text: #0b0d12;
+  --text-muted: #5a6275;
+  --text-faint: #8a93a6;
+  --accent: #5b3df5;
+  --accent-2: #0891b2;
+  --accent-soft: rgba(91, 61, 245, 0.1);
+  --success: #059669;
+  --warning: #b45309;
+  --danger: #e11d48;
+  --success-soft: rgba(5, 150, 105, 0.1);
+  --warning-soft: rgba(180, 83, 9, 0.1);
+  --danger-soft: rgba(225, 29, 72, 0.08);
+  --grid-dot: rgba(10, 12, 18, 0.06);
+  --glow: 0 0 0 1px rgba(91, 61, 245, 0.35), 0 0 20px -6px rgba(91, 61, 245, 0.35);
+  --shadow-pop: 0 12px 40px -16px rgba(10, 12, 18, 0.25);
+}
+
+:root {
+  --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

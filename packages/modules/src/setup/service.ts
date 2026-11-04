@@ -1,4 +1,4 @@
-import { audit } from "@agencyos/core";
+import { audit } from "@agencyos/core/events";
 import { getDb, schema, type Tx } from "@agencyos/db";
 import { count, eq } from "drizzle-orm";
 import { getAuth } from "../auth/server";

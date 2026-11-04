@@ -4,6 +4,6 @@ export * from "./dates";
 export * from "./cuit";
 export * from "./context";
 export * from "./permissions";
-export * from "./events";
 export * from "./validation";
 export * from "./labels";
+export * from "./recurrence";

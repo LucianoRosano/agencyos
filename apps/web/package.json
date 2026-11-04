@@ -13,11 +13,14 @@
     "@agencyos/core": "workspace:*",
     "@agencyos/db": "workspace:*",
     "@agencyos/modules": "workspace:*",
-    "@agencyos/ui": "workspace:*",
     "@agencyos/pdf": "workspace:*",
+    "@agencyos/ui": "workspace:*",
     "better-auth": "1.7.17",
     "cmdk": "1.1.1",
+    "drizzle-orm": "0.45.4",
     "geist": "1.9.0",
+    "graphology": "0.26.0",
+    "graphology-layout-forceatlas2": "0.10.1",
     "lucide-react": "1.68.0",
     "marked": "18.1.3",
     "next": "16.4.5",
@@ -26,18 +29,17 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "sanitize-html": "2.18.1",
-    "sonner": "2.0.8",
-    "zod": "4.6.7",
+    "server-only": "0.0.1",
     "sigma": "4.0.4",
-    "graphology": "0.26.0",
-    "graphology-layout-forceatlas2": "0.10.1"
+    "sonner": "2.0.8",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.4",
-    "tailwindcss": "4.3.4",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@types/qrcode": "1.5.6",
-    "@types/sanitize-html": "2.16.2"
+    "@types/sanitize-html": "2.16.2",
+    "tailwindcss": "4.3.4"
   }
 }

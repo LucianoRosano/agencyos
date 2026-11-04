@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "exports": { "./tokens.css": "./src/tokens.css", "./*": "./src/*.tsx", "./lib/*": "./src/lib/*.ts" },
+  "exports": { ".": "./src/index.tsx", "./tokens.css": "./src/tokens.css", "./*": "./src/*.tsx", "./lib/*": "./src/lib/*.ts" },
   "scripts": { "typecheck": "tsc -p tsconfig.json" },
   "dependencies": {
     "@agencyos/core": "workspace:*",
