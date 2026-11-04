@@ -77,3 +77,47 @@ export async function getItem(ctx: Ctx, id: string) {
   if (!row) throw notFound("El ítem");
   return row;
 }
+
+/** Convierte un ítem en tarea (y lo marca procesado) en una sola transacción. */
+export async function convertToTask(ctx: Ctx, id: string, raw: Record<string, unknown>) {
+  const { createTask } = await import("../tasks/service");
+  return getDb().transaction(async (t) => {
+    const [item] = await t.select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
+    if (!item) throw notFound("El ítem");
+    const task = await createTask(ctx, { title: item.text.slice(0, 300), spaceId: item.spaceId ?? undefined, ...raw }, t);
+    await t.update(schema.inboxItem).set({ processedAt: new Date(), resultEntityType: "task", resultEntityId: task.id }).where(eq(schema.inboxItem.id, id));
+    return task;
+  });
+}
+
+/** Convierte un ítem en nota (idea, link o nota). */
+export async function convertToNote(ctx: Ctx, id: string, title?: string) {
+  assertCan(ctx, "create", "note");
+  return getDb().transaction(async (t) => {
+    const [item] = await t.select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
+    if (!item) throw notFound("El ítem");
+    const noteTitle = (title?.trim() || item.text.split("\n")[0] || "Nota").slice(0, 160);
+    const slug = `${noteTitle.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60) || "nota"}-${id.slice(-6)}`;
+    const [note] = await t
+      .insert(schema.note)
+      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, title: noteTitle, slug, spaceId: item.spaceId, bodyMd: item.text, wordCount: item.text.split(/\s+/).filter(Boolean).length, frontmatter: item.suggestedType ? { tipo: item.suggestedType } : {} })
+      .returning();
+    if (!note) throw new Error("No se pudo crear la nota");
+    await t.update(schema.inboxItem).set({ processedAt: new Date(), resultEntityType: "note", resultEntityId: note.id }).where(eq(schema.inboxItem.id, id));
+    await recordEvent(t, ctx, { type: "nota.creada", entityType: "note", entityId: note.id, summary: `Convirtió en nota: «${noteTitle}»` });
+    return note;
+  });
+}
+
+export async function setItemSpace(ctx: Ctx, id: string, spaceId: string) {
+  const [row] = await getDb().update(schema.inboxItem).set({ spaceId }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
+  if (!row) throw notFound("El ítem");
+  return row;
+}
+
+export async function updateItemText(ctx: Ctx, id: string, text: string) {
+  const parsed = zRequired(2000, "El texto").parse(text);
+  const [row] = await getDb().update(schema.inboxItem).set({ text: parsed }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
+  if (!row) throw notFound("El ítem");
+  return row;
+}

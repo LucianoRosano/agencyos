@@ -18,3 +18,4 @@ blob-report/
 tsconfig.tsbuildinfo
 .DS_Store
 test-results/
+.claude/

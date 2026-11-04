@@ -15,6 +15,7 @@
     "@agencyos/modules": "workspace:*",
     "@agencyos/pdf": "workspace:*",
     "@agencyos/ui": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "better-auth": "1.7.17",
     "cmdk": "1.1.1",
     "drizzle-orm": "0.45.4",
