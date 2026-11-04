@@ -46,7 +46,11 @@ export function Sheet({
           <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-2 md:pt-5">
             <div>
               <D.Title className="text-[17px] font-semibold text-text">{title}</D.Title>
-              {description ? <D.Description className="mt-1 text-[13px] text-text-muted">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
+              {description ? (
+                <D.Description className="mt-1 text-[13px] text-text-muted">{description}</D.Description>
+              ) : (
+                <D.Description className="sr-only">{title}</D.Description>
+              )}
             </div>
             <D.Close className="grid size-9 place-items-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Cerrar">
               <X className="size-4" />

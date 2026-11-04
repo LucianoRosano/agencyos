@@ -30,7 +30,10 @@ function Tree({ nodes, sp, depth = 0 }: { nodes: FolderNode[]; sp: SP; depth?: n
             <Link
               href={qs(sp, { carpeta: f.path })}
               aria-current={active ? "page" : undefined}
-              className={cn("flex h-8 items-center gap-2 rounded-md px-2 text-[13px]", active ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2 hover:text-text")}
+              className={cn(
+                "flex h-8 items-center gap-2 rounded-md px-2 text-[13px]",
+                active ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2 hover:text-text",
+              )}
             >
               {open ? <FolderOpen className="size-3.5 shrink-0" /> : <Folder className="size-3.5 shrink-0" />}
               <span className="min-w-0 flex-1 truncate">{f.name}</span>
@@ -119,7 +122,13 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader eyebrow="Conocimiento" title="Notas" accent="#C9D1E0" description={`${tree.total.toLocaleString("es-AR")} notas · Markdown con [[enlaces]], backlinks e historial.`} actions={actions} />
+      <PageHeader
+        eyebrow="Conocimiento"
+        title="Notas"
+        accent="#C9D1E0"
+        description={`${tree.total.toLocaleString("es-AR")} notas · Markdown con [[enlaces]], backlinks e historial.`}
+        actions={actions}
+      />
 
       <div className="grid gap-6 md:grid-cols-[240px_minmax(0,1fr)]">
         <nav aria-label="Carpetas y etiquetas" className="hidden flex-col gap-5 md:flex">
@@ -128,7 +137,10 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
             <Link
               href={qs(sp, { carpeta: undefined })}
               aria-current={!sp.carpeta ? "page" : undefined}
-              className={cn("flex h-8 items-center gap-2 rounded-md px-2 text-[13px]", !sp.carpeta ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2 hover:text-text")}
+              className={cn(
+                "flex h-8 items-center gap-2 rounded-md px-2 text-[13px]",
+                !sp.carpeta ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2 hover:text-text",
+              )}
             >
               <FileText className="size-3.5" />
               <span className="flex-1">Todas las notas</span>
@@ -145,7 +157,10 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                     <Link
                       href={qs(sp, { etiqueta: sp.etiqueta === t.name ? undefined : t.name })}
                       aria-current={sp.etiqueta === t.name ? "page" : undefined}
-                      className={cn("inline-flex h-7 items-center gap-1 rounded-md border px-2 font-mono text-[12px]", sp.etiqueta === t.name ? "border-accent/40 bg-accent-soft text-text" : "border-border text-text-muted hover:text-text")}
+                      className={cn(
+                        "inline-flex h-7 items-center gap-1 rounded-md border px-2 font-mono text-[12px]",
+                        sp.etiqueta === t.name ? "border-accent/40 bg-accent-soft text-text" : "border-border text-text-muted hover:text-text",
+                      )}
                     >
                       #{t.name} <span className="text-text-faint">{t.n}</span>
                     </Link>
@@ -159,7 +174,11 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
         <div className="min-w-0">
           {sp.carpeta ? (
             <div className="mb-3 flex items-center gap-2 md:hidden">
-              <Link href={qs(sp, { carpeta: parent })} className="-ml-2 flex h-11 items-center gap-1 rounded-md px-2 text-[14px] text-text-muted" aria-label="Volver">
+              <Link
+                href={qs(sp, { carpeta: parent })}
+                className="-ml-2 flex h-11 items-center gap-1 rounded-md px-2 text-[14px] text-text-muted"
+                aria-label="Volver"
+              >
                 <ChevronLeft className="size-5" /> {parent ? parent.split("/").pop() : "Notas"}
               </Link>
             </div>
@@ -184,7 +203,14 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                 className="h-11 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated pr-3 pl-9 text-base md:h-10 md:text-sm"
               />
             </div>
-            <FilterSelect name="espacio" defaultValue={sp.espacio ?? ""} placeholder="Todos los espacios" options={spaces} aria-label="Filtrar por espacio" className="h-11 sm:w-48 md:h-10" />
+            <FilterSelect
+              name="espacio"
+              defaultValue={sp.espacio ?? ""}
+              placeholder="Todos los espacios"
+              options={spaces}
+              aria-label="Filtrar por espacio"
+              className="h-11 sm:w-48 md:h-10"
+            />
           </form>
 
           {sp.etiqueta ? (
@@ -270,7 +296,15 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                 description={filtered ? "Probá con otras palabras o quitá filtros." : undefined}
                 action={
                   <Button asChild variant="secondary" size="sm">
-                    <Link href={sp.q ? `/notas/nueva?titulo=${encodeURIComponent(sp.q)}` : "/notas"}>{sp.q ? <><Plus className="size-4" /> Crear «{sp.q}»</> : "Ver todas"}</Link>
+                    <Link href={sp.q ? `/notas/nueva?titulo=${encodeURIComponent(sp.q)}` : "/notas"}>
+                      {sp.q ? (
+                        <>
+                          <Plus className="size-4" /> Crear «{sp.q}»
+                        </>
+                      ) : (
+                        "Ver todas"
+                      )}
+                    </Link>
                   </Button>
                 }
               />

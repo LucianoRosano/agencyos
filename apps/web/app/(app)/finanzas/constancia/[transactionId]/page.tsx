@@ -89,7 +89,9 @@ export default async function ConstanciaPage({ params }: { params: Promise<{ tra
           </div>
         </div>
 
-        <p className="mt-6 border-2 border-black px-4 py-2.5 text-center font-mono text-[13px] font-semibold uppercase tracking-[0.18em]">Documento no válido como factura</p>
+        <p className="mt-6 border-2 border-black px-4 py-2.5 text-center font-mono text-[13px] font-semibold uppercase tracking-[0.18em]">
+          Documento no válido como factura
+        </p>
 
         <dl className="mt-8 grid gap-x-6 gap-y-5 text-[14px] sm:grid-cols-[160px_1fr]">
           <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Recibí de</dt>

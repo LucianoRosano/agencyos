@@ -18,38 +18,77 @@ async function seedGraph() {
     const days = (d: number) => new Date(Date.now() - d * 86_400_000);
     const one = async (sql: string, params: unknown[]) => (await c.query(sql, params)).rows[0]?.id as string;
     const client = (name: string, status: string, created: number, active: number) =>
-      one("insert into client (id, workspace_id, name, status, space_id, created_at, updated_at, last_activity_at) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $6) returning id", [ws, name, status, spaces.agency, days(created), days(active)]);
+      one(
+        "insert into client (id, workspace_id, name, status, space_id, created_at, updated_at, last_activity_at) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $6) returning id",
+        [ws, name, status, spaces.agency, days(created), days(active)],
+      );
     const project = (name: string, clientId: string | null, space: string, status: string, progress: number, created: number, active: number, next?: string) =>
       one(
         "insert into project (id, workspace_id, name, client_id, space_id, status, progress, next_action, created_at, updated_at, last_activity_at) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $9) returning id",
         [ws, name, clientId, space, status, progress, next ?? (status === "in_progress" ? "Revisar con el cliente" : null), days(created), days(active)],
       );
     const contact = async (name: string, clientId: string, created: number) => {
-      const id = await one("insert into contact (id, workspace_id, name, created_at, updated_at) values (gen_random_uuid(), $1, $2, $3, $3) returning id", [ws, name, days(created)]);
+      const id = await one("insert into contact (id, workspace_id, name, created_at, updated_at) values (gen_random_uuid(), $1, $2, $3, $3) returning id", [
+        ws,
+        name,
+        days(created),
+      ]);
       await c.query("insert into client_contact (id, workspace_id, client_id, contact_id) values (gen_random_uuid(), $1, $2, $3)", [ws, clientId, id]);
       return id;
     };
     const course = (name: string, created: number) =>
-      one("insert into course (id, workspace_id, name, status, space_id, created_at, updated_at) values (gen_random_uuid(), $1, $2, 'cursando', $3, $4, $4) returning id", [ws, name, spaces.study, days(created)]);
+      one(
+        "insert into course (id, workspace_id, name, status, space_id, created_at, updated_at) values (gen_random_uuid(), $1, $2, 'cursando', $3, $4, $4) returning id",
+        [ws, name, spaces.study, days(created)],
+      );
     const FOLDER: Record<string, string> = {
-      "Mails de pedido": "Clientes/Librería Uno", "Facturación AFIP": "Clientes/Librería Uno", "Catálogo de Sofía": "Clientes/Sofía",
-      "Arquitectura AGENCYOS": "Proyectos/AGENCYOS", SEÑAL: "Proyectos/AGENCYOS", Recursión: "Facultad/Programación", Matrices: "Facultad/Matemática",
-      "TLED · Unidad 2": "Facultad/TLED", "Parcial PSEC": "Facultad/PSEC",
+      "Mails de pedido": "Clientes/Librería Uno",
+      "Facturación AFIP": "Clientes/Librería Uno",
+      "Catálogo de Sofía": "Clientes/Sofía",
+      "Arquitectura AGENCYOS": "Proyectos/AGENCYOS",
+      SEÑAL: "Proyectos/AGENCYOS",
+      Recursión: "Facultad/Programación",
+      Matrices: "Facultad/Matemática",
+      "TLED · Unidad 2": "Facultad/TLED",
+      "Parcial PSEC": "Facultad/PSEC",
     };
     const note = (title: string, created: number, active: number, entity?: [string, string], space?: string) =>
       one(
         "insert into note (id, workspace_id, title, slug, space_id, folder_path, body_md, word_count, entity_type, entity_id, created_at, updated_at) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, 12, $7, $8, $9, $10) returning id",
-        [ws, title, `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Math.random().toString(36).slice(2, 7)}`, space ?? spaces.agency, FOLDER[title] ?? null, `Apuntes de ${title}: decisiones, pendientes y enlaces.`, entity?.[0] ?? null, entity?.[1] ?? null, days(created), days(active)],
+        [
+          ws,
+          title,
+          `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Math.random().toString(36).slice(2, 7)}`,
+          space ?? spaces.agency,
+          FOLDER[title] ?? null,
+          `Apuntes de ${title}: decisiones, pendientes y enlaces.`,
+          entity?.[0] ?? null,
+          entity?.[1] ?? null,
+          days(created),
+          days(active),
+        ],
       );
     const link = (ft: string, f: string, tt: string, t: string, kind = "wikilink") =>
-      c.query("insert into link (id, workspace_id, from_type, from_id, to_type, to_id, kind) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6) on conflict do nothing", [ws, ft, f, tt, t, kind]);
+      c.query(
+        "insert into link (id, workspace_id, from_type, from_id, to_type, to_id, kind) values (gen_random_uuid(), $1, $2, $3, $4, $5, $6) on conflict do nothing",
+        [ws, ft, f, tt, t, kind],
+      );
 
     const lib = await client("Librería Uno", "active", 170, 2);
     const sofia = await client("Sofía Casa Editorial", "active", 150, 3);
     const bella = await client("Bellezatecnia", "active", 90, 12);
     const adeh = await client("ADEH", "active", 60, 25);
     const pari = await client("Parinama", "finished", 160, 80);
-    const fiscal = await project("LibreríaOS Fiscal", lib, spaces.agency, "in_progress", 82, 120, 2, "Instalar en librerianuo.com y emitir las 4 facturas reales de prueba");
+    const fiscal = await project(
+      "LibreríaOS Fiscal",
+      lib,
+      spaces.agency,
+      "in_progress",
+      82,
+      120,
+      2,
+      "Instalar en librerianuo.com y emitir las 4 facturas reales de prueba",
+    );
     const panel = await project("LibreríaOS Panel", lib, spaces.agency, "in_progress", 64, 140, 5);
     const tienda = await project("Tienda WooCommerce", lib, spaces.agency, "in_progress", 40, 100, 9);
     await project("Caja del local", lib, spaces.agency, "planning", 10, 60, 20);

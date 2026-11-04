@@ -20,7 +20,12 @@ export default async function NewNotePage({ searchParams }: { searchParams: Prom
           spaces={spaces}
           entities={entities}
           folders={folders}
-          defaults={{ title: sp.titulo?.slice(0, 200) ?? "", folderPath: sp.carpeta ?? "", spaceId: sp.espacio ?? selected ?? "", entity: entities.some((e) => e.value === entity) ? entity : "" }}
+          defaults={{
+            title: sp.titulo?.slice(0, 200) ?? "",
+            folderPath: sp.carpeta ?? "",
+            spaceId: sp.espacio ?? selected ?? "",
+            entity: entities.some((e) => e.value === entity) ? entity : "",
+          }}
         />
       </Card>
     </div>

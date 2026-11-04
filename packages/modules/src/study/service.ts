@@ -1,4 +1,21 @@
-import { addDays, assertCan, type Ctx, diffDays, formatDate, L, label, notFound, todayAR, validation, zDate, zOptDate, zOptText, zOptTime, zOptUuid, zRequired } from "@agencyos/core";
+import {
+  addDays,
+  assertCan,
+  type Ctx,
+  diffDays,
+  formatDate,
+  L,
+  label,
+  notFound,
+  todayAR,
+  validation,
+  zDate,
+  zOptDate,
+  zOptText,
+  zOptTime,
+  zOptUuid,
+  zRequired,
+} from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, asc, eq } from "drizzle-orm";
@@ -24,7 +41,13 @@ export const zGrade = z.preprocess(
 );
 export const zOptGrade = z.preprocess(emptyToUndef, zGrade.optional());
 
-const zColor = z.preprocess(emptyToUndef, z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color inválido").optional());
+const zColor = z.preprocess(
+  emptyToUndef,
+  z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "Color inválido")
+    .optional(),
+);
 
 const scheduleSlot = z
   .object({
@@ -37,17 +60,20 @@ const scheduleSlot = z
 export type ScheduleSlot = z.infer<typeof scheduleSlot>;
 
 /** Horarios: llegan como JSON (desde el formulario) o como arreglo. */
-const zSchedule = z.preprocess((v) => {
-  if (v === undefined || v === null || v === "") return [];
-  if (typeof v === "string") {
-    try {
-      return JSON.parse(v);
-    } catch {
-      return "invalid";
+const zSchedule = z.preprocess(
+  (v) => {
+    if (v === undefined || v === null || v === "") return [];
+    if (typeof v === "string") {
+      try {
+        return JSON.parse(v);
+      } catch {
+        return "invalid";
+      }
     }
-  }
-  return v;
-}, z.array(scheduleSlot, { error: "Horarios inválidos" }).max(14, "Máximo 14 horarios"));
+    return v;
+  },
+  z.array(scheduleSlot, { error: "Horarios inválidos" }).max(14, "Máximo 14 horarios"),
+);
 
 export const courseInput = z.object({
   name: zRequired(160, "El nombre"),
@@ -84,7 +110,10 @@ async function studySpace(t: Tx, ctx: Ctx) {
 }
 
 async function findCourse(t: Tx, ctx: Ctx, id: string) {
-  const [row] = await t.select().from(schema.course).where(and(eq(schema.course.id, id), scoped(schema.course, ctx)));
+  const [row] = await t
+    .select()
+    .from(schema.course)
+    .where(and(eq(schema.course.id, id), scoped(schema.course, ctx)));
   if (!row) throw notFound("La materia");
   return row;
 }
@@ -173,7 +202,13 @@ export async function setCourseStatus(ctx: Ctx, id: string, status: (typeof COUR
   return getDb().transaction(async (t) => {
     const before = await findCourse(t, ctx, id);
     const [row] = await t.update(schema.course).set({ status: parsed }).where(eq(schema.course.id, id)).returning();
-    await recordEvent(t, ctx, { type: "materia.estado_cambiado", entityType: "course", entityId: id, summary: `Pasó «${before.name}» a ${label(L.courseStatus, parsed).toLowerCase()}`, payload: { from: before.status, to: parsed } });
+    await recordEvent(t, ctx, {
+      type: "materia.estado_cambiado",
+      entityType: "course",
+      entityId: id,
+      summary: `Pasó «${before.name}» a ${label(L.courseStatus, parsed).toLowerCase()}`,
+      payload: { from: before.status, to: parsed },
+    });
     return { course: row, previousStatus: before.status };
   });
 }
@@ -242,7 +277,14 @@ export async function updateAssessment(ctx: Ctx, id: string, raw: unknown) {
       .returning();
     if (!row) throw notFound("La evaluación");
     if (row.grade !== null && row.grade !== before.grade) await recordGraded(t, ctx, course.name, row);
-    else await recordEvent(t, ctx, { type: "evaluacion.actualizada", entityType: "course", entityId: row.courseId, summary: `Editó ${assessmentTitle(row)} de «${course.name}»`, payload: { assessmentId: id } });
+    else
+      await recordEvent(t, ctx, {
+        type: "evaluacion.actualizada",
+        entityType: "course",
+        entityId: row.courseId,
+        summary: `Editó ${assessmentTitle(row)} de «${course.name}»`,
+        payload: { assessmentId: id },
+      });
     return row;
   });
 }
@@ -256,7 +298,14 @@ export async function gradeAssessment(ctx: Ctx, id: string, rawGrade: unknown) {
     const [row] = await t.update(schema.assessment).set({ grade }).where(eq(schema.assessment.id, id)).returning();
     if (!row) throw notFound("La evaluación");
     if (grade !== null) await recordGraded(t, ctx, course.name, row);
-    else await recordEvent(t, ctx, { type: "evaluacion.actualizada", entityType: "course", entityId: row.courseId, summary: `Quitó la nota de ${assessmentTitle(row)} de «${course.name}»`, payload: { assessmentId: id } });
+    else
+      await recordEvent(t, ctx, {
+        type: "evaluacion.actualizada",
+        entityType: "course",
+        entityId: row.courseId,
+        summary: `Quitó la nota de ${assessmentTitle(row)} de «${course.name}»`,
+        payload: { assessmentId: id },
+      });
     return { assessment: row, previousGrade: before.grade };
   });
 }
@@ -303,7 +352,8 @@ export async function createStudyPlan(ctx: Ctx, assessmentId: string, raw: unkno
     const today = todayAR();
     if (a.date <= today) throw validation("La evaluación ya pasó o es hoy: no hay días para repartir el plan");
     const from = input.startDate && input.startDate > today ? input.startDate : today;
-    if (from >= a.date) throw validation("El inicio del plan tiene que ser anterior a la evaluación", { startDate: "Elegí una fecha anterior a la evaluación" });
+    if (from >= a.date)
+      throw validation("El inicio del plan tiene que ser anterior a la evaluación", { startDate: "Elegí una fecha anterior a la evaluación" });
     const dates = spreadDates(input.topics.length, from, a.date);
     const spaceId = course.spaceId ?? (await studySpace(t, ctx));
     const name = `${assessmentTitle(a)} · ${course.name}`;
@@ -318,7 +368,17 @@ export async function createStudyPlan(ctx: Ctx, assessmentId: string, raw: unkno
     }
     await t
       .insert(schema.link)
-      .values(tasks.map((task) => ({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, fromType: "task", fromId: task.id, toType: "assessment", toId: a.id, kind: "study_plan" })))
+      .values(
+        tasks.map((task) => ({
+          workspaceId: ctx.workspaceId,
+          createdBy: ctx.userId,
+          fromType: "task",
+          fromId: task.id,
+          toType: "assessment",
+          toId: a.id,
+          kind: "study_plan",
+        })),
+      )
       .onConflictDoNothing();
     await recordEvent(t, ctx, {
       type: "evaluacion.plan_creado",

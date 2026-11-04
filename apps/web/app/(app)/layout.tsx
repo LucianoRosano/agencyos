@@ -20,8 +20,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [spaces, inbox, [projects], [clients], selectedSpace, theme, unread] = await Promise.all([
     listSpacesWithCounts(ctx),
     pendingCount(ctx),
-    db.select({ n: count() }).from(schema.project).where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived"]))),
-    db.select({ n: count() }).from(schema.client).where(and(scoped(schema.client, ctx), inArray(schema.client.status, ["active", "prospect", "paused"]))),
+    db
+      .select({ n: count() })
+      .from(schema.project)
+      .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived"]))),
+    db
+      .select({ n: count() })
+      .from(schema.client)
+      .where(and(scoped(schema.client, ctx), inArray(schema.client.status, ["active", "prospect", "paused"]))),
     getSelectedSpace(),
     cookies().then((c) => c.get("ag-theme")?.value ?? "dark"),
     unreadCount(ctx),

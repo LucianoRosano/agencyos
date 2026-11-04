@@ -12,7 +12,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const base = process.env.APP_URL ?? new URL(request.url).origin;
   const body = await icalFeed(token, { baseUrl: base });
   if (!body) {
-    return new Response("Suscripción inválida o revocada.\n", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+    return new Response("Suscripción inválida o revocada.\n", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    });
   }
   return new Response(body, {
     status: 200,

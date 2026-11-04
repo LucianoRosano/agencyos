@@ -16,7 +16,11 @@ export default async function PorCobrarPage({ searchParams }: { searchParams: Pr
   const f = await financePage(sp);
   if (!f.allowed) return <NoFinanceAccess />;
   const view = (DEBT_VIEWS.find((v) => v.key === sp.ver)?.key ?? "abiertos") as DebtView;
-  const [rows, options, deep] = await Promise.all([f.showReceivables ? listReceivables(f.ctx, { view }) : Promise.resolve([]), formOptions(f.ctx), sp.cobrar ? getReceivable(f.ctx, sp.cobrar) : Promise.resolve(null)]);
+  const [rows, options, deep] = await Promise.all([
+    f.showReceivables ? listReceivables(f.ctx, { view }) : Promise.resolve([]),
+    formOptions(f.ctx),
+    sp.cobrar ? getReceivable(f.ctx, sp.cobrar) : Promise.resolve(null),
+  ]);
   const toData = (r: (typeof rows)[number]["r"], clientName: string | null): ReceivableData => ({
     id: r.id,
     clientId: r.clientId,
@@ -30,14 +34,22 @@ export default async function PorCobrarPage({ searchParams }: { searchParams: Pr
     clientName,
   });
   const pending = new Map<string, string>();
-  for (const { r } of rows) if (["pending", "partial", "overdue"].includes(r.status)) pending.set(r.currency, addMoney(pending.get(r.currency) ?? "0", subMoney(r.amount, r.paidAmount)));
+  for (const { r } of rows)
+    if (["pending", "partial", "overdue"].includes(r.status))
+      pending.set(r.currency, addMoney(pending.get(r.currency) ?? "0", subMoney(r.amount, r.paidAmount)));
   const totals = [...pending.entries()].map(([currency, total]) => ({
     currency,
     total,
   }));
   return (
     <div className="mx-auto max-w-5xl">
-      <FinanceHeader active="por-cobrar" title="Por cobrar" ledgers={f.ledgers} ledgerId={f.ledgerId} actions={f.showReceivables ? <NewReceivableButton options={options} /> : null} />
+      <FinanceHeader
+        active="por-cobrar"
+        title="Por cobrar"
+        ledgers={f.ledgers}
+        ledgerId={f.ledgerId}
+        actions={f.showReceivables ? <NewReceivableButton options={options} /> : null}
+      />
       {deep ? <CollectSheet key={deep.r.id} r={toData(deep.r, deep.clientName)} options={options} openInitially /> : null}
       {!f.showReceivables ? (
         <Card>

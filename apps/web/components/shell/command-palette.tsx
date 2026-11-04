@@ -127,7 +127,11 @@ export function CommandPalette({ enabledModules }: { enabledModules: string[] })
           {hits.length ? (
             <Command.Group heading="Resultados">
               {hits.map((h) => (
-                <Item key={`${h.type}-${h.id}`} onSelect={() => go(h.href)} icon={<span className="size-2.5 rounded-full" style={{ background: ENTITY_DOT[h.type] ?? "var(--text-muted)" }} />}>
+                <Item
+                  key={`${h.type}-${h.id}`}
+                  onSelect={() => go(h.href)}
+                  icon={<span className="size-2.5 rounded-full" style={{ background: ENTITY_DOT[h.type] ?? "var(--text-muted)" }} />}
+                >
                   <span className="truncate">{h.title}</span>
                   <span className="ml-auto shrink-0 font-mono text-[11px] text-text-faint">{label(L.entityType, h.type).toLowerCase()}</span>
                 </Item>
@@ -144,7 +148,13 @@ export function CommandPalette({ enabledModules }: { enabledModules: string[] })
                     {c.label}
                   </Item>
                 ))}
-                <Item icon={<Inbox />} onSelect={() => { setOpen(false); openCapture(); }}>
+                <Item
+                  icon={<Inbox />}
+                  onSelect={() => {
+                    setOpen(false);
+                    openCapture();
+                  }}
+                >
                   Capturar en la Bandeja <Kbd>C</Kbd>
                 </Item>
               </Command.Group>
@@ -161,7 +171,9 @@ export function CommandPalette({ enabledModules }: { enabledModules: string[] })
           ) : null}
         </Command.List>
         <div className="hidden items-center gap-4 border-t border-border px-4 py-2.5 font-mono text-[11px] text-text-faint md:flex">
-          <span className="flex items-center gap-1"><CornerDownLeft className="size-3" /> abrir</span>
+          <span className="flex items-center gap-1">
+            <CornerDownLeft className="size-3" /> abrir
+          </span>
           <span>↑↓ moverse</span>
           <span>esc cerrar</span>
         </div>
@@ -182,4 +194,6 @@ function Item({ children, onSelect, icon }: { children: React.ReactNode; onSelec
   );
 }
 
-const Kbd = ({ children }: { children: React.ReactNode }) => <kbd className="ml-auto rounded border border-border px-1.5 font-mono text-[11px] text-text-faint">{children}</kbd>;
+const Kbd = ({ children }: { children: React.ReactNode }) => (
+  <kbd className="ml-auto rounded border border-border px-1.5 font-mono text-[11px] text-text-faint">{children}</kbd>
+);

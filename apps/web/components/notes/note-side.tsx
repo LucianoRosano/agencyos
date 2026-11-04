@@ -44,14 +44,34 @@ export function NotePropsSheet({
     >
       <ActionForm action={updateNotePropsAction.bind(null, id)} successMessage="Propiedades guardadas" onSuccess={() => setOpen(false)}>
         <SelectField label="Espacio" name="spaceId" defaultValue={defaults.spaceId ?? ""} placeholder="Sin espacio" options={spaces} />
-        <TextField label="Carpeta" name="folderPath" defaultValue={defaults.folderPath ?? ""} placeholder="Ej.: Facultad/PSEC" list="note-folders" hint="Opcional. Usá / para subcarpetas." />
+        <TextField
+          label="Carpeta"
+          name="folderPath"
+          defaultValue={defaults.folderPath ?? ""}
+          placeholder="Ej.: Facultad/PSEC"
+          list="note-folders"
+          hint="Opcional. Usá / para subcarpetas."
+        />
         <datalist id="note-folders">
           {folders.map((f) => (
             <option key={f} value={f} />
           ))}
         </datalist>
-        <SelectField label="Vinculada a" name="entity" defaultValue={defaults.entity} placeholder="Nada" options={entities} hint="La nota aparece en la ficha y en su constelación del Cerebro." />
-        <TextField label="Alias" name="aliases" defaultValue={defaults.aliases} placeholder="Separados por coma" hint="Otros nombres con los que [[enlazarla]]." />
+        <SelectField
+          label="Vinculada a"
+          name="entity"
+          defaultValue={defaults.entity}
+          placeholder="Nada"
+          options={entities}
+          hint="La nota aparece en la ficha y en su constelación del Cerebro."
+        />
+        <TextField
+          label="Alias"
+          name="aliases"
+          defaultValue={defaults.aliases}
+          placeholder="Separados por coma"
+          hint="Otros nombres con los que [[enlazarla]]."
+        />
         <div className="flex justify-end">
           <SubmitButton>Guardar</SubmitButton>
         </div>
@@ -71,7 +91,10 @@ export function NoteMenu({ id, title, pinned }: { id: string; title: string; pin
         </Button>
       }
     >
-      <MenuItem icon={pinned ? <PinOff /> : <Pin />} onSelect={() => exec(() => setNotePinnedAction(id, !pinned), { success: pinned ? "Nota desfijada" : "Nota fijada", onDone: () => router.refresh() })}>
+      <MenuItem
+        icon={pinned ? <PinOff /> : <Pin />}
+        onSelect={() => exec(() => setNotePinnedAction(id, !pinned), { success: pinned ? "Nota desfijada" : "Nota fijada", onDone: () => router.refresh() })}
+      >
         {pinned ? "Desfijar" : "Fijar arriba"}
       </MenuItem>
       <MenuItem icon={<Download />} onSelect={() => window.location.assign("/notas/exportar")}>

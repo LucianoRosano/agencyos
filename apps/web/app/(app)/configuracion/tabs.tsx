@@ -16,6 +16,9 @@ const ITEMS = [
 
 export function SettingsTabs() {
   const path = usePathname();
-  const active = ITEMS.slice().reverse().find((i) => path.startsWith(i.href))?.key ?? "perfil";
+  const active =
+    ITEMS.slice()
+      .reverse()
+      .find((i) => path.startsWith(i.href))?.key ?? "perfil";
   return <Tabs items={ITEMS} active={active} />;
 }

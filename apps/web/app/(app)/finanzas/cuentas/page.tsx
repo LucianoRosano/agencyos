@@ -50,16 +50,24 @@ export default async function CuentasPage({ searchParams }: { searchParams: Prom
                     .filter((a) => (a.ledgerName ?? "") === g)
                     .map((a) => (
                       <li key={a.id} className="flex items-center gap-3 py-3" data-account={a.name}>
-                        <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-border bg-surface-2 font-mono text-[11px] text-text-muted">{a.currency}</span>
+                        <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-border bg-surface-2 font-mono text-[11px] text-text-muted">
+                          {a.currency}
+                        </span>
                         <div className="min-w-0 flex-1">
-                          <Link href={`/finanzas/movimientos${qs(undefined, { cuenta: a.id })}`} className="block truncate text-[15px] text-text hover:underline">
+                          <Link
+                            href={`/finanzas/movimientos${qs(undefined, { cuenta: a.id })}`}
+                            className="block truncate text-[15px] text-text hover:underline"
+                          >
                             {a.name}
                           </Link>
                           <p className="truncate text-[12px] text-text-muted">
-                            {label(L.accountKind, a.kind)} · inicial {formatMoney(a.openingBalance, a.currency)} al {formatDate(a.openingDate)} · {a.movements} mov.
+                            {label(L.accountKind, a.kind)} · inicial {formatMoney(a.openingBalance, a.currency)} al {formatDate(a.openingDate)} · {a.movements}{" "}
+                            mov.
                           </p>
                         </div>
-                        <span className={`font-mono text-[15px] tabular-nums ${Number(a.balance) < 0 ? "text-danger" : "text-text"}`}>{formatMoney(a.balance, a.currency)}</span>
+                        <span className={`font-mono text-[15px] tabular-nums ${Number(a.balance) < 0 ? "text-danger" : "text-text"}`}>
+                          {formatMoney(a.balance, a.currency)}
+                        </span>
                         <AccountMenu
                           ledgers={ledgerOpts}
                           account={{

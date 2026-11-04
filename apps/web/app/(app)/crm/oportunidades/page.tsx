@@ -19,9 +19,19 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
   const [rows, clients] = await Promise.all([listOpportunities(ctx, { q: sp.q }), clientOpts(ctx)]);
   const quotes = await quotesOfClients(ctx, [...new Set(rows.map((r) => r.o.clientId))]);
   const opps: PipelineOpp[] = rows.map(({ o, clientName }) => ({
-    id: o.id, title: o.title, stage: o.stage, clientId: o.clientId, clientName, lostReason: o.lostReason,
+    id: o.id,
+    title: o.title,
+    stage: o.stage,
+    clientId: o.clientId,
+    clientName,
+    lostReason: o.lostReason,
     hasQuote: quotes.some((q) => q.opportunityId === o.id),
-    valueAmount: o.valueAmount, valueCurrency: o.valueCurrency, probability: o.probability, nextAction: o.nextAction, nextActionDue: o.nextActionDue, expectedClose: o.expectedClose,
+    valueAmount: o.valueAmount,
+    valueCurrency: o.valueCurrency,
+    probability: o.probability,
+    nextAction: o.nextAction,
+    nextActionDue: o.nextActionDue,
+    expectedClose: o.expectedClose,
   }));
   const open = opps.filter((o) => OPEN_STAGES.includes(o.stage));
   const weighted = weightedByCurrency(open);
@@ -31,7 +41,11 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
       clients={clients}
       openInitially={sp.nueva === "1"}
       defaultClientId={sp.cliente}
-      trigger={<Button variant="primary" disabled={!clients.length}><Plus className="size-4" /> Nueva oportunidad</Button>}
+      trigger={
+        <Button variant="primary" disabled={!clients.length}>
+          <Plus className="size-4" /> Nueva oportunidad
+        </Button>
+      }
     />
   );
 
@@ -44,14 +58,17 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         description={
           open.length ? (
             <span className="font-mono text-[13px]">
-              {open.length} {open.length === 1 ? "abierta" : "abiertas"} · ponderado {weighted.length ? weighted.map(([cur, v]) => formatMoney(v, cur)).join(" + ") : "—"}
+              {open.length} {open.length === 1 ? "abierta" : "abiertas"} · ponderado{" "}
+              {weighted.length ? weighted.map(([cur, v]) => formatMoney(v, cur)).join(" + ") : "—"}
             </span>
           ) : undefined
         }
         actions={
           <>
             <Button asChild variant="ghost" aria-label={view === "kanban" ? "Ver como tabla" : "Ver como kanban"}>
-              <Link href={qs({ vista: view === "kanban" ? "tabla" : "kanban" })}>{view === "kanban" ? <List className="size-4" /> : <Columns3 className="size-4" />} {view === "kanban" ? "Tabla" : "Kanban"}</Link>
+              <Link href={qs({ vista: view === "kanban" ? "tabla" : "kanban" })}>
+                {view === "kanban" ? <List className="size-4" /> : <Columns3 className="size-4" />} {view === "kanban" ? "Tabla" : "Kanban"}
+              </Link>
             </Button>
             {newBtn}
           </>
@@ -65,8 +82,22 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         <EmptyState
           icon={<Handshake />}
           title={sp.q ? `Sin resultados para «${sp.q}»` : "El pipeline está vacío"}
-          description={clients.length ? "Cada oportunidad avanza de «Nuevo» a «Ganada» (y ahí creás el proyecto) o «Perdida» con su motivo." : "Primero creá un cliente o prospecto; después abrís su oportunidad."}
-          action={clients.length ? newBtn : <Button asChild variant="primary"><Link href="/crm/clientes/nuevo"><Plus className="size-4" /> Nuevo cliente</Link></Button>}
+          description={
+            clients.length
+              ? "Cada oportunidad avanza de «Nuevo» a «Ganada» (y ahí creás el proyecto) o «Perdida» con su motivo."
+              : "Primero creá un cliente o prospecto; después abrís su oportunidad."
+          }
+          action={
+            clients.length ? (
+              newBtn
+            ) : (
+              <Button asChild variant="primary">
+                <Link href="/crm/clientes/nuevo">
+                  <Plus className="size-4" /> Nuevo cliente
+                </Link>
+              </Button>
+            )
+          }
         />
       )}
     </div>

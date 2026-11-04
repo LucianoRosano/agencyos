@@ -70,7 +70,9 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                   </div>
                   {t.clientName || t.projectName || (t.counterpart && t.description) ? (
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-6">
-                      {t.counterpart && t.description && !t.kind.startsWith("transfer") ? <span className="truncate text-[12px] text-text-faint">{t.counterpart}</span> : null}
+                      {t.counterpart && t.description && !t.kind.startsWith("transfer") ? (
+                        <span className="truncate text-[12px] text-text-faint">{t.counterpart}</span>
+                      ) : null}
                       {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
                       {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
                     </div>

@@ -25,7 +25,11 @@ export function CalendarCreateProvider({ children, projects, spaces, today }: { 
     <Ctx.Provider value={open}>
       {children}
       <Sheet open={state.open} onOpenChange={(o) => (o ? undefined : close())} title={`Nuevo · ${formatDate(state.date)}`} wide>
-        <div role="tablist" aria-label="Qué querés crear" className="mb-4 grid grid-cols-2 gap-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-1">
+        <div
+          role="tablist"
+          aria-label="Qué querés crear"
+          className="mb-4 grid grid-cols-2 gap-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-1"
+        >
           {(["task", "reminder"] as const).map((m) => (
             <button
               key={m}
@@ -42,19 +46,37 @@ export function CalendarCreateProvider({ children, projects, spaces, today }: { 
         {state.mode === "task" ? (
           <ActionForm key={`t-${state.date}`} action={createTaskAction} successMessage="Tarea creada" onSuccess={close}>
             <TaskFields projects={projects} spaces={spaces} defaults={{ dueDate: state.date }} />
-            <div className="flex justify-end"><SubmitButton>Crear tarea</SubmitButton></div>
+            <div className="flex justify-end">
+              <SubmitButton>Crear tarea</SubmitButton>
+            </div>
           </ActionForm>
         ) : (
           <ActionForm key={`r-${state.date}`} action={createReminderAction} successMessage="Vencimiento agendado" onSuccess={close}>
             <TextField label="Título" name="title" required autoFocus maxLength={200} placeholder="Ej.: Renovar dominio de un cliente" />
             <div className="grid gap-4 md:grid-cols-2">
               <TextField label="Vence el" name="dueDate" type="date" required defaultValue={state.date} />
-              <SelectField label="Tipo" name="kind" defaultValue="deadline" options={Object.entries(L.reminderKind).map(([value, label]) => ({ value, label }))} />
-              <TextField label="Avisar días antes" name="notifyDaysBefore" type="number" inputMode="numeric" min={0} max={365} defaultValue="7" hint="Aparece en «Ponerse al día» de Hoy." />
+              <SelectField
+                label="Tipo"
+                name="kind"
+                defaultValue="deadline"
+                options={Object.entries(L.reminderKind).map(([value, label]) => ({ value, label }))}
+              />
+              <TextField
+                label="Avisar días antes"
+                name="notifyDaysBefore"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={365}
+                defaultValue="7"
+                hint="Aparece en «Ponerse al día» de Hoy."
+              />
             </div>
             <CheckField label="Se repite cada año" name="recurring" hint="Al marcarlo hecho, se agenda el del año siguiente." />
             <TextAreaField label="Notas (opcional)" name="notesMd" rows={3} />
-            <div className="flex justify-end"><SubmitButton>Agendar</SubmitButton></div>
+            <div className="flex justify-end">
+              <SubmitButton>Agendar</SubmitButton>
+            </div>
           </ActionForm>
         )}
       </Sheet>
@@ -69,7 +91,10 @@ export function AddOnDayButton({ date, className, label = "Agregar" }: { date: s
       type="button"
       onClick={() => open(date)}
       aria-label={`${label} el ${formatDate(date)}`}
-      className={cn("grid size-8 shrink-0 place-items-center rounded-md text-text-faint transition-colors hover:bg-surface-2 hover:text-text focus-visible:text-text", className)}
+      className={cn(
+        "grid size-8 shrink-0 place-items-center rounded-md text-text-faint transition-colors hover:bg-surface-2 hover:text-text focus-visible:text-text",
+        className,
+      )}
     >
       <Plus className="size-4" />
     </button>

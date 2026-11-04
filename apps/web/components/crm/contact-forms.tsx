@@ -5,8 +5,14 @@ import { Link2, MoreHorizontal, Pencil, Star, Trash2, Unlink } from "lucide-reac
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import {
-  createContactAction, deleteContactAction, linkContactAction, relinkContactAction, restoreContactAction, setPrimaryContactAction,
-  unlinkContactAction, updateContactAction,
+  createContactAction,
+  deleteContactAction,
+  linkContactAction,
+  relinkContactAction,
+  restoreContactAction,
+  setPrimaryContactAction,
+  unlinkContactAction,
+  updateContactAction,
 } from "@/app/(app)/crm/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { CheckField, SelectField, TextAreaField, TextField } from "@/components/fields";
@@ -42,10 +48,16 @@ export function NewContactSheet({ clientId, clients, trigger, redirect }: { clie
         onSuccess={() => setOpen(false)}
         redirectTo={redirect ? (c) => `/crm/contactos/${(c as { id: string }).id}` : undefined}
       >
-        {clientId ? <input type="hidden" name="clientId" value={clientId} /> : clients ? <SelectField label="Cliente" name="clientId" options={clients} placeholder="Sin cliente" /> : null}
+        {clientId ? (
+          <input type="hidden" name="clientId" value={clientId} />
+        ) : clients ? (
+          <SelectField label="Cliente" name="clientId" options={clients} placeholder="Sin cliente" />
+        ) : null}
         <ContactFields />
         {clientId || clients ? <CheckField label="Contacto principal del cliente" name="isPrimary" /> : null}
-        <div className="flex justify-end"><SubmitButton>Crear contacto</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>Crear contacto</SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );
@@ -54,10 +66,22 @@ export function NewContactSheet({ clientId, clients, trigger, redirect }: { clie
 export function EditContactSheet({ id, defaults }: { id: string; defaults: Defaults }) {
   const [open, setOpen] = useState(false);
   return (
-    <Sheet open={open} onOpenChange={setOpen} title="Editar contacto" wide trigger={<Button variant="secondary"><Pencil className="size-4" /> Editar</Button>}>
+    <Sheet
+      open={open}
+      onOpenChange={setOpen}
+      title="Editar contacto"
+      wide
+      trigger={
+        <Button variant="secondary">
+          <Pencil className="size-4" /> Editar
+        </Button>
+      }
+    >
       <ActionForm action={updateContactAction.bind(null, id)} successMessage="Contacto actualizado" onSuccess={() => setOpen(false)}>
         <ContactFields d={defaults} />
-        <div className="flex justify-end"><SubmitButton>Guardar</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>Guardar</SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );
@@ -72,31 +96,62 @@ export function LinkContactSheet({ clientId, contacts, trigger }: { clientId: st
       onOpenChange={setOpen}
       title="Vincular contacto existente"
       description="Un contacto puede estar en varios clientes."
-      trigger={trigger ?? <Button variant="ghost"><Link2 className="size-4" /> Vincular existente</Button>}
+      trigger={
+        trigger ?? (
+          <Button variant="ghost">
+            <Link2 className="size-4" /> Vincular existente
+          </Button>
+        )
+      }
     >
       <ActionForm action={linkContactAction.bind(null, clientId)} successMessage="Contacto vinculado" onSuccess={() => setOpen(false)}>
         <SelectField label="Contacto" name="contactId" options={contacts} placeholder="Elegí un contacto" required />
         <TextField label="Rol en este cliente" name="roleInClient" placeholder="Opcional" />
         <CheckField label="Contacto principal" name="isPrimary" />
-        <div className="flex justify-end"><SubmitButton>Vincular</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>Vincular</SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );
 }
 
 /** Acciones de un contacto dentro de la ficha del cliente. */
-export function ClientContactMenu({ clientId, contactId, name, isPrimary, roleInClient }: { clientId: string; contactId: string; name: string; isPrimary: boolean; roleInClient: string | null }) {
+export function ClientContactMenu({
+  clientId,
+  contactId,
+  name,
+  isPrimary,
+  roleInClient,
+}: {
+  clientId: string;
+  contactId: string;
+  name: string;
+  isPrimary: boolean;
+  roleInClient: string | null;
+}) {
   const { exec } = useAction();
   return (
-    <Menu trigger={<Button variant="ghost" size="icon" aria-label={`Acciones de ${name}`}><MoreHorizontal className="size-4" /></Button>}>
+    <Menu
+      trigger={
+        <Button variant="ghost" size="icon" aria-label={`Acciones de ${name}`}>
+          <MoreHorizontal className="size-4" />
+        </Button>
+      }
+    >
       {!isPrimary ? (
-        <MenuItem icon={<Star />} onSelect={() => exec(() => setPrimaryContactAction(clientId, contactId), { success: `${name} es el contacto principal` })}>Hacer principal</MenuItem>
+        <MenuItem icon={<Star />} onSelect={() => exec(() => setPrimaryContactAction(clientId, contactId), { success: `${name} es el contacto principal` })}>
+          Hacer principal
+        </MenuItem>
       ) : null}
       <MenuItem
         icon={<Unlink />}
         onSelect={() => {
           if (!confirm(`¿Desvincular a ${name} de este cliente? El contacto no se borra.`)) return;
-          exec(() => unlinkContactAction(clientId, contactId), { success: "Contacto desvinculado", undo: () => relinkContactAction(clientId, contactId, isPrimary, roleInClient) });
+          exec(() => unlinkContactAction(clientId, contactId), {
+            success: "Contacto desvinculado",
+            undo: () => relinkContactAction(clientId, contactId, isPrimary, roleInClient),
+          });
         }}
       >
         Desvincular
@@ -109,13 +164,23 @@ export function ContactMenu({ id, name }: { id: string; name: string }) {
   const { exec } = useAction();
   const router = useRouter();
   return (
-    <Menu trigger={<Button variant="ghost" size="icon" aria-label="Más acciones"><MoreHorizontal className="size-4" /></Button>}>
+    <Menu
+      trigger={
+        <Button variant="ghost" size="icon" aria-label="Más acciones">
+          <MoreHorizontal className="size-4" />
+        </Button>
+      }
+    >
       <MenuItem
         danger
         icon={<Trash2 />}
         onSelect={() => {
           if (!confirm(`¿Mandar a ${name} a la papelera? Se quita de las listas; las interacciones quedan. Restaurable 30 días.`)) return;
-          exec(() => deleteContactAction(id), { success: "Contacto en la papelera", undo: () => restoreContactAction(id), onDone: () => router.push("/crm/contactos") });
+          exec(() => deleteContactAction(id), {
+            success: "Contacto en la papelera",
+            undo: () => restoreContactAction(id),
+            onDone: () => router.push("/crm/contactos"),
+          });
         }}
       >
         Eliminar

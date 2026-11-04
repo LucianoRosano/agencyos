@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, uniqueIndex, uuid, check, date } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, jsonb, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { baseColumns, pk, tz } from "./_common";
 
 export const workspace = pgTable("workspace", {
@@ -38,10 +38,7 @@ export const membership = pgTable(
     status: text("status").notNull().default("active"),
     createdAt: tz("created_at").notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex("membership_ws_user").on(t.workspaceId, t.userId),
-    check("membership_role", sql`${t.role} in ('owner','admin','member','client')`),
-  ],
+  (t) => [uniqueIndex("membership_ws_user").on(t.workspaceId, t.userId), check("membership_role", sql`${t.role} in ('owner','admin','member','client')`)],
 );
 
 export const space = pgTable(
@@ -76,10 +73,7 @@ export const tagging = pgTable(
     entityType: text("entity_type").notNull(),
     entityId: uuid("entity_id").notNull(),
   },
-  (t) => [
-    uniqueIndex("tagging_unique").on(t.tagId, t.entityType, t.entityId),
-    index("tagging_entity").on(t.entityType, t.entityId),
-  ],
+  (t) => [uniqueIndex("tagging_unique").on(t.tagId, t.entityType, t.entityId), index("tagging_entity").on(t.entityType, t.entityId)],
 );
 
 export const link = pgTable(
@@ -233,20 +227,17 @@ export const inboxItem = pgTable(
   (t) => [index("inbox_pending").on(t.workspaceId, t.createdAt).where(sql`${t.processedAt} is null and ${t.deletedAt} is null`)],
 );
 
-export const mcpToken = pgTable(
-  "mcp_token",
-  {
-    ...baseColumns(),
-    name: text("name").notNull(),
-    tokenHash: text("token_hash").notNull().unique(),
-    prefix: text("prefix").notNull(),
-    scopes: text("scopes").array().notNull(),
-    userId: text("user_id").notNull(),
-    lastUsedAt: tz("last_used_at"),
-    expiresAt: tz("expires_at"),
-    revokedAt: tz("revoked_at"),
-  },
-);
+export const mcpToken = pgTable("mcp_token", {
+  ...baseColumns(),
+  name: text("name").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  prefix: text("prefix").notNull(),
+  scopes: text("scopes").array().notNull(),
+  userId: text("user_id").notNull(),
+  lastUsedAt: tz("last_used_at"),
+  expiresAt: tz("expires_at"),
+  revokedAt: tz("revoked_at"),
+});
 
 /** Recordatorios con fecha sueltos (renovaciones, vencimientos) hasta que exista Activos técnicos (F2). */
 export const reminder = pgTable(

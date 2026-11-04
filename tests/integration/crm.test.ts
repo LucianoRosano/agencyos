@@ -2,8 +2,19 @@ import { type Ctx, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getClient, getContact, listClients, listOpportunities } from "@agencyos/modules/crm/queries";
 import {
-  addFiscalHolder, archiveClient, createClient, createContact, createOpportunity, deleteClient, linkContact, logInteraction,
-  mergeClients, moveOpportunity, revealFiscalHolders, unarchiveClient, updateClient,
+  addFiscalHolder,
+  archiveClient,
+  createClient,
+  createContact,
+  createOpportunity,
+  deleteClient,
+  linkContact,
+  logInteraction,
+  mergeClients,
+  moveOpportunity,
+  revealFiscalHolders,
+  unarchiveClient,
+  updateClient,
 } from "@agencyos/modules/crm/service";
 import { createProject } from "@agencyos/modules/projects/service";
 import { getToday } from "@agencyos/modules/today/queries";
@@ -15,7 +26,10 @@ import { agentCtx, makeWorkspace } from "./helpers";
 const member = (c: Ctx): Ctx => ({ ...c, role: "member" });
 
 async function insertQuote(ctx: Ctx, clientId: string, number: string) {
-  const [q] = await getDb().insert(schema.quote).values({ workspaceId: ctx.workspaceId, number, clientId, title: `Presupuesto ${number}` }).returning();
+  const [q] = await getDb()
+    .insert(schema.quote)
+    .values({ workspaceId: ctx.workspaceId, number, clientId, title: `Presupuesto ${number}` })
+    .returning();
   if (!q) throw new Error("quote");
   return q;
 }
@@ -23,7 +37,14 @@ async function insertQuote(ctx: Ctx, clientId: string, number: string) {
 describe("CRM", () => {
   it("crea cliente con contacto principal en el espacio Agencia y registra el evento", async () => {
     const ctx = await makeWorkspace();
-    const c = await createClient(ctx, { name: "Bellezatecnia", industry: "Estética", website: "bellezatecnia.com.ar", contactName: "Sofía", contactEmail: "sofia@example.com", contactPhone: "+54 9 341 555-1234" });
+    const c = await createClient(ctx, {
+      name: "Bellezatecnia",
+      industry: "Estética",
+      website: "bellezatecnia.com.ar",
+      contactName: "Sofía",
+      contactEmail: "sofia@example.com",
+      contactPhone: "+54 9 341 555-1234",
+    });
     const agency = ctx.spaces.find((s) => s.kind === "agency");
     expect(c.spaceId).toBe(agency?.id);
     expect(c.status).toBe("prospect");
@@ -32,7 +53,10 @@ describe("CRM", () => {
     expect(data?.contacts).toHaveLength(1);
     expect(data?.contacts[0]?.isPrimary).toBe(true);
     expect(data?.contacts[0]?.ct.whatsapp).toBe("+54 9 341 555-1234");
-    const ev = await getDb().select().from(schema.domainEvent).where(and(eq(schema.domainEvent.workspaceId, ctx.workspaceId), eq(schema.domainEvent.type, "cliente.creado")));
+    const ev = await getDb()
+      .select()
+      .from(schema.domainEvent)
+      .where(and(eq(schema.domainEvent.workspaceId, ctx.workspaceId), eq(schema.domainEvent.type, "cliente.creado")));
     expect(ev).toHaveLength(1);
   });
 
@@ -56,7 +80,10 @@ describe("CRM", () => {
     expect(JSON.stringify(data)).not.toContain("Con CUIT SRL");
     const holders = await revealFiscalHolders(ctx, c.id);
     expect(holders[0]?.legalName).toBe("Con CUIT SRL");
-    const logs = await getDb().select().from(schema.auditLog).where(and(eq(schema.auditLog.workspaceId, ctx.workspaceId), eq(schema.auditLog.action, "fiscal.viewed")));
+    const logs = await getDb()
+      .select()
+      .from(schema.auditLog)
+      .where(and(eq(schema.auditLog.workspaceId, ctx.workspaceId), eq(schema.auditLog.action, "fiscal.viewed")));
     expect(logs).toHaveLength(1);
     await expect(revealFiscalHolders(member(ctx), c.id)).rejects.toThrow(/permiso/);
     expect((await getClient(member(ctx), c.id))?.canSeeFiscal).toBe(false);
@@ -68,7 +95,16 @@ describe("CRM", () => {
     const ct = await createContact(ctx, { name: "Ana", clientId: c.id, whatsapp: "+5493415551234" });
     const before = (await getClient(ctx, c.id))?.c.lastActivityAt;
     await new Promise((r) => setTimeout(r, 10));
-    await logInteraction(ctx, { clientId: c.id, contactId: ct.id, kind: "call", date: "2026-11-01", time: "10:30", summaryMd: "Charlamos del **catálogo**", nextStep: "Mandar propuesta", nextStepDue: todayAR() });
+    await logInteraction(ctx, {
+      clientId: c.id,
+      contactId: ct.id,
+      kind: "call",
+      date: "2026-11-01",
+      time: "10:30",
+      summaryMd: "Charlamos del **catálogo**",
+      nextStep: "Mandar propuesta",
+      nextStepDue: todayAR(),
+    });
     const data = await getClient(ctx, c.id);
     expect(data?.interactions).toHaveLength(1);
     expect(data?.interactions[0]?.i.occurredAt.toISOString()).toBe("2026-11-01T13:30:00.000Z");
@@ -85,7 +121,15 @@ describe("CRM", () => {
   it("pipeline: nuevo → … → ganada; propuesta exige presupuesto; prospecto pasa a activo", async () => {
     const ctx = await makeWorkspace();
     const c = await createClient(ctx, { name: "Tienda Sur", contactName: "Juan" });
-    const o = await createOpportunity(ctx, { clientId: c.id, title: "Tienda online", valueAmount: "1.500.000,50", valueCurrency: "ARS", probability: "40", nextAction: "Llamar", nextActionDue: "2026-11-05" });
+    const o = await createOpportunity(ctx, {
+      clientId: c.id,
+      title: "Tienda online",
+      valueAmount: "1.500.000,50",
+      valueCurrency: "ARS",
+      probability: "40",
+      nextAction: "Llamar",
+      nextActionDue: "2026-11-05",
+    });
     expect(o.valueAmount).toBe("1500000.50");
     for (const stage of ["contacted", "meeting"]) await moveOpportunity(ctx, o.id, { stage });
     await expect(moveOpportunity(ctx, o.id, { stage: "proposal_sent" })).rejects.toThrow(/presupuesto/);
@@ -132,7 +176,10 @@ describe("CRM", () => {
     const o = await createOpportunity(ctx, { clientId: dup.id, title: "SEO" });
     const p = await createProject(ctx, { name: "Sitio", clientId: dup.id });
     const q = await insertQuote(ctx, dup.id, "P-0100");
-    const [r] = await getDb().insert(schema.receivable).values({ workspaceId: ctx.workspaceId, clientId: dup.id, concept: "Anticipo", amount: "1000.00", currency: "ARS" }).returning();
+    const [r] = await getDb()
+      .insert(schema.receivable)
+      .values({ workspaceId: ctx.workspaceId, clientId: dup.id, concept: "Anticipo", amount: "1000.00", currency: "ARS" })
+      .returning();
     await addFiscalHolder(ctx, dup.id, { legalName: "Belleza SRL" });
 
     const res = await mergeClients(ctx, dup.id, target.id);
@@ -146,10 +193,16 @@ describe("CRM", () => {
     expect(data?.quotes[0]?.id).toBe(q.id);
     expect(data?.c.city).toBe("Rosario");
     expect(data?.c.notesMd).toContain("Nota del duplicado");
-    const [rr] = await getDb().select().from(schema.receivable).where(eq(schema.receivable.id, r?.id ?? ""));
+    const [rr] = await getDb()
+      .select()
+      .from(schema.receivable)
+      .where(eq(schema.receivable.id, r?.id ?? ""));
     expect(rr?.clientId).toBe(target.id);
     expect(await getClient(ctx, dup.id)).toBeNull();
-    const logs = await getDb().select().from(schema.auditLog).where(and(eq(schema.auditLog.workspaceId, ctx.workspaceId), eq(schema.auditLog.action, "client.merged")));
+    const logs = await getDb()
+      .select()
+      .from(schema.auditLog)
+      .where(and(eq(schema.auditLog.workspaceId, ctx.workspaceId), eq(schema.auditLog.action, "client.merged")));
     expect(logs).toHaveLength(1);
     await expect(mergeClients(ctx, target.id, target.id)).rejects.toThrow();
   });
@@ -180,7 +233,10 @@ describe("CRM", () => {
     const ctx = await makeWorkspace();
     const c = await createClient(ctx, { name: "Estado" });
     await updateClient(ctx, c.id, { name: "Estado", status: "paused", relationship: "family" });
-    const ev = await getDb().select().from(schema.activity).where(and(eq(schema.activity.workspaceId, ctx.workspaceId), eq(schema.activity.verb, "cliente.estado_cambiado")));
+    const ev = await getDb()
+      .select()
+      .from(schema.activity)
+      .where(and(eq(schema.activity.workspaceId, ctx.workspaceId), eq(schema.activity.verb, "cliente.estado_cambiado")));
     expect(ev[0]?.summary).toContain("en pausa");
   });
 
@@ -206,7 +262,21 @@ describe("CRM", () => {
 
   it("los campos opcionales vacíos de un formulario se aceptan como ausentes", async () => {
     const ctx = await makeWorkspace();
-    const c = await createClient(ctx, { name: "Desde form", tradeName: "", industry: "", website: "", city: "", province: "", source: "", spaceId: "", notesMd: "", contactName: "", contactRole: "", contactEmail: "", contactPhone: "" });
+    const c = await createClient(ctx, {
+      name: "Desde form",
+      tradeName: "",
+      industry: "",
+      website: "",
+      city: "",
+      province: "",
+      source: "",
+      spaceId: "",
+      notesMd: "",
+      contactName: "",
+      contactRole: "",
+      contactEmail: "",
+      contactPhone: "",
+    });
     expect(c.tradeName).toBeNull();
     const o = await createOpportunity(ctx, { clientId: c.id, title: "X", valueAmount: "", nextAction: "", nextActionDue: "", expectedClose: "" });
     expect(o.valueAmount).toBeNull();

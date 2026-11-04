@@ -30,9 +30,11 @@ export const restoreTransactionAction = async (id: string) => run((ctx) => svc.d
 // Suscripciones
 export const createSubscriptionAction = async (_: S, fd: FormData) => run((ctx) => svc.createSubscription(ctx, obj(fd)));
 export const updateSubscriptionAction = async (id: string, _: S, fd: FormData) => run((ctx) => svc.updateSubscription(ctx, id, obj(fd)));
-export const setSubscriptionStatusAction = async (id: string, status: (typeof svc.SUB_STATUSES)[number]) => run((ctx) => svc.setSubscriptionStatus(ctx, id, status));
+export const setSubscriptionStatusAction = async (id: string, status: (typeof svc.SUB_STATUSES)[number]) =>
+  run((ctx) => svc.setSubscriptionStatus(ctx, id, status));
 export const paySubscriptionAction = async (id: string, _: S, fd: FormData) => run((ctx) => svc.registerSubscriptionPayment(ctx, id, obj(fd)));
-export const undoSubscriptionPaymentAction = async (id: string, txId: string, previousDue: string) => run((ctx) => svc.undoSubscriptionPayment(ctx, id, txId, previousDue));
+export const undoSubscriptionPaymentAction = async (id: string, txId: string, previousDue: string) =>
+  run((ctx) => svc.undoSubscriptionPayment(ctx, id, txId, previousDue));
 export const deleteSubscriptionAction = async (id: string) => run((ctx) => moveToTrash(ctx, "subscription", id));
 export const restoreSubscriptionAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "subscription", id));
 

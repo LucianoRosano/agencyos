@@ -15,7 +15,13 @@ export function previewHtml(doc: QuoteDocData) {
 export function previewState(doc: QuoteDocData): PreviewState {
   return {
     html: previewHtml(doc),
-    totals: { lines: doc.calc.lines.map((l) => l.lineTotal), subtotal: doc.calc.subtotal, itemsDiscount: doc.calc.itemsDiscount, globalDiscount: doc.calc.globalDiscount, total: doc.calc.total },
+    totals: {
+      lines: doc.calc.lines.map((l) => l.lineTotal),
+      subtotal: doc.calc.subtotal,
+      itemsDiscount: doc.calc.itemsDiscount,
+      globalDiscount: doc.calc.globalDiscount,
+      total: doc.calc.total,
+    },
     issues: doc.calc.issues,
   };
 }
@@ -59,7 +65,15 @@ export function draftFromVersion(q: Quote, v: Version, items: Item[]): QuoteDraf
     globalDiscountValue: v.globalDiscountType === "none" ? "" : plain(v.globalDiscountValue),
     plan: {
       kind: plan.kind,
-      items: plan.kind === "milestones" ? plan.items.map((m) => ({ key: key(), label: m.label, percent: String(m.percent), offsetDays: m.offsetDays !== undefined ? String(m.offsetDays) : "" })) : [],
+      items:
+        plan.kind === "milestones"
+          ? plan.items.map((m) => ({
+              key: key(),
+              label: m.label,
+              percent: String(m.percent),
+              offsetDays: m.offsetDays !== undefined ? String(m.offsetDays) : "",
+            }))
+          : [],
       amount: plan.kind === "monthly" ? plain(plan.amount) : "",
       months: plan.kind === "monthly" && plan.months ? String(plan.months) : "",
     },

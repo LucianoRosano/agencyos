@@ -46,7 +46,11 @@ export async function setModules(ctx: Ctx, modules: string[]) {
   assertCan(ctx, "manage", "settings");
   const valid = modules.filter((m) => OPTIONAL_MODULES.some((o) => o.key === m));
   return getDb().transaction(async (t) => {
-    const [row] = await t.update(schema.workspace).set({ enabledModules: valid, updatedAt: new Date() }).where(eq(schema.workspace.id, ctx.workspaceId)).returning();
+    const [row] = await t
+      .update(schema.workspace)
+      .set({ enabledModules: valid, updatedAt: new Date() })
+      .where(eq(schema.workspace.id, ctx.workspaceId))
+      .returning();
     await audit(t, ctx, { action: "workspace.modules_updated", targetType: "workspace", targetId: ctx.workspaceId, after: { modules: valid } });
     return row;
   });
@@ -63,27 +67,50 @@ export async function listAudit(ctx: Ctx, opts: { action?: string; limit?: numbe
   assertCan(ctx, "read", "audit");
   const where = [eq(schema.auditLog.workspaceId, ctx.workspaceId)];
   if (opts.action) where.push(sql`${schema.auditLog.action} like ${`${opts.action}%`}`);
-  return getDb().select().from(schema.auditLog).where(and(...where)).orderBy(desc(schema.auditLog.at)).limit(opts.limit ?? 200);
+  return getDb()
+    .select()
+    .from(schema.auditLog)
+    .where(and(...where))
+    .orderBy(desc(schema.auditLog.at))
+    .limit(opts.limit ?? 200);
 }
 
 /** Estado del sistema: versión, base, cola, outbox pendiente, último backup (marcado por el worker). */
 export async function systemStatus(ctx: Ctx) {
   assertCan(ctx, "read", "settings");
   const db = getDb();
-  const [dbSize] = (await db.execute<{ size: string; version: string }>(sql`select pg_size_pretty(pg_database_size(current_database())) as size, current_setting('server_version') as version`)).rows;
-  const [outbox] = (await db.execute<{ pending: number; oldest: string | null }>(sql`select count(*)::int as pending, min(occurred_at)::text as oldest from domain_event where dispatched_at is null`)).rows;
+  const [dbSize] = (
+    await db.execute<{ size: string; version: string }>(
+      sql`select pg_size_pretty(pg_database_size(current_database())) as size, current_setting('server_version') as version`,
+    )
+  ).rows;
+  const [outbox] = (
+    await db.execute<{ pending: number; oldest: string | null }>(
+      sql`select count(*)::int as pending, min(occurred_at)::text as oldest from domain_event where dispatched_at is null`,
+    )
+  ).rows;
   let queue: { state: string; n: number }[] = [];
   let failedJobs: { name: string; n: number }[] = [];
   try {
     queue = (await db.execute<{ state: string; n: number }>(sql`select state::text, count(*)::int as n from pgboss.job group by 1 order by 1`)).rows;
-    failedJobs = (await db.execute<{ name: string; n: number }>(sql`select name, count(*)::int as n from pgboss.job where state = 'failed' and created_on > now() - interval '7 days' group by 1`)).rows;
+    failedJobs = (
+      await db.execute<{ name: string; n: number }>(
+        sql`select name, count(*)::int as n from pgboss.job where state = 'failed' and created_on > now() - interval '7 days' group by 1`,
+      )
+    ).rows;
   } catch {
     // el worker todavía no creó el esquema de pg-boss
   }
-  const [lastBackup] = await db.select().from(schema.auditLog).where(and(eq(schema.auditLog.action, "backup.completed"), gte(schema.auditLog.at, new Date(Date.now() - 40 * 86_400_000)))).orderBy(desc(schema.auditLog.at)).limit(1);
+  const [lastBackup] = await db
+    .select()
+    .from(schema.auditLog)
+    .where(and(eq(schema.auditLog.action, "backup.completed"), gte(schema.auditLog.at, new Date(Date.now() - 40 * 86_400_000))))
+    .orderBy(desc(schema.auditLog.at))
+    .limit(1);
   let workerSeenAt: Date | null = null;
   try {
-    const [hb] = (await db.execute<{ at: Date | null }>(sql`select max(completed_on) as at from pgboss.job where name = 'heartbeat' and state = 'completed'`)).rows;
+    const [hb] = (await db.execute<{ at: Date | null }>(sql`select max(completed_on) as at from pgboss.job where name = 'heartbeat' and state = 'completed'`))
+      .rows;
     workerSeenAt = hb?.at ? new Date(hb.at) : null;
   } catch {
     workerSeenAt = null;

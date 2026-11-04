@@ -18,7 +18,14 @@ export function WorkspaceForm({ s }: { s: Record<string, unknown> }) {
       <TextAreaField label="Pie de los presupuestos (opcional)" name="quoteFooter" defaultValue={v("quoteFooter")} rows={2} />
       <div className="grid gap-4 md:grid-cols-2">
         <TextField label="Días sin actividad para marcar «frenado»" name="stalledDays" type="number" min={3} max={90} defaultValue={v("stalledDays") || "14"} />
-        <TextField label="Límite sugerido de proyectos activos" name="maxActiveProjects" type="number" min={1} max={50} defaultValue={v("maxActiveProjects") || "8"} />
+        <TextField
+          label="Límite sugerido de proyectos activos"
+          name="maxActiveProjects"
+          type="number"
+          min={1}
+          max={50}
+          defaultValue={v("maxActiveProjects") || "8"}
+        />
       </div>
       <SubmitButton className="self-start">Guardar</SubmitButton>
     </ActionForm>

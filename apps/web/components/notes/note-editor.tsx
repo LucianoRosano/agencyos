@@ -97,7 +97,9 @@ export function NoteEditor({ note, initialPreview }: NoteEditorProps) {
       setWords(r.data.wordCount);
       if (titleChanged || (r.data.linkSig && linkSig.current !== null && r.data.linkSig !== linkSig.current)) router.refresh();
       if (r.data.linkSig) linkSig.current = r.data.linkSig;
-      const pending = latest.current.body !== saved.current.body || (latest.current.title.trim() !== saved.current.title && latest.current.title.trim() !== badTitle.current && latest.current.title.trim() !== "");
+      const pending =
+        latest.current.body !== saved.current.body ||
+        (latest.current.title.trim() !== saved.current.title && latest.current.title.trim() !== badTitle.current && latest.current.title.trim() !== "");
       setStatus(pending ? "dirty" : "saved");
       if (pending) timer.current = setTimeout(() => void flush(), SAVE_DELAY);
     })();
@@ -212,18 +214,23 @@ export function NoteEditor({ note, initialPreview }: NoteEditorProps) {
           ))}
         </div>
         <div role="radiogroup" aria-label="Disposición" className="hidden rounded-[var(--radius-control)] border border-border bg-bg-elevated p-0.5 md:flex">
-          {([
-            ["edit", "Editor", <PenLine key="e" className="size-3.5" />],
-            ["split", "Dividido", <Columns2 key="s" className="size-3.5" />],
-            ["view", "Vista", <Eye key="v" className="size-3.5" />],
-          ] as const).map(([k, l, icon]) => (
+          {(
+            [
+              ["edit", "Editor", <PenLine key="e" className="size-3.5" />],
+              ["split", "Dividido", <Columns2 key="s" className="size-3.5" />],
+              ["view", "Vista", <Eye key="v" className="size-3.5" />],
+            ] as const
+          ).map(([k, l, icon]) => (
             <button
               key={k}
               type="button"
               role="radio"
               aria-checked={mode === k}
               onClick={() => changeMode(k)}
-              className={cn("flex h-8 items-center gap-1.5 rounded-[6px] px-3 text-[13px]", mode === k ? "bg-surface-2 text-text" : "text-text-muted hover:text-text")}
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-[6px] px-3 text-[13px]",
+                mode === k ? "bg-surface-2 text-text" : "text-text-muted hover:text-text",
+              )}
             >
               {icon}
               {l}
@@ -250,7 +257,10 @@ export function NoteEditor({ note, initialPreview }: NoteEditorProps) {
         <section aria-label="Editor" className={cn("min-w-0", showEditor)}>
           <MarkdownEditor value={note.bodyMd} replace={replace} onChange={onBody} onBlur={() => void flush()} />
         </section>
-        <section aria-label="Vista previa" className={cn("min-w-0 md:border-l md:border-border md:pl-6", mode !== "split" && "md:border-l-0 md:pl-0", showPreview)}>
+        <section
+          aria-label="Vista previa"
+          className={cn("min-w-0 md:border-l md:border-border md:pl-6", mode !== "split" && "md:border-l-0 md:pl-0", showPreview)}
+        >
           <NotePreviewPane html={preview.html} frontmatter={preview.frontmatter} onCreate={createFromLink} />
         </section>
       </div>
@@ -273,7 +283,12 @@ function SaveStatus({ status, words, onRetry }: { status: Status; words: number;
       ) : status === "dirty" ? (
         <span data-testid="save-status">Sin guardar</span>
       ) : (
-        <button type="button" onClick={onRetry} className="flex h-8 items-center gap-1 rounded-md px-2 text-danger hover:bg-danger-soft" data-testid="save-status">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="flex h-8 items-center gap-1 rounded-md px-2 text-danger hover:bg-danger-soft"
+          data-testid="save-status"
+        >
           <AlertCircle className="size-3.5" /> Error · Reintentar
         </button>
       )}
@@ -327,7 +342,10 @@ function VersionsSheet({ noteId, beforeOpen, onRestored }: { noteId: string; bef
                   type="button"
                   onClick={() => setSel(v)}
                   aria-pressed={sel?.id === v.id}
-                  className={cn("flex min-h-11 w-full flex-col items-start rounded-md px-3 py-1.5 text-left text-[13px]", sel?.id === v.id ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2")}
+                  className={cn(
+                    "flex min-h-11 w-full flex-col items-start rounded-md px-3 py-1.5 text-left text-[13px]",
+                    sel?.id === v.id ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface-2",
+                  )}
                 >
                   <span className="font-mono">{fmt.format(v.createdAt)}</span>
                   <span className="truncate text-[12px] text-text-faint">{v.bodyMd.slice(0, 60) || "(vacía)"}</span>
@@ -338,7 +356,9 @@ function VersionsSheet({ noteId, beforeOpen, onRestored }: { noteId: string; bef
           <div className="min-w-0">
             {sel ? (
               <>
-                <pre className="max-h-[42vh] overflow-auto rounded-md border border-border bg-bg-elevated p-3 font-mono text-[13px] whitespace-pre-wrap text-text">{sel.bodyMd || "(vacía)"}</pre>
+                <pre className="max-h-[42vh] overflow-auto rounded-md border border-border bg-bg-elevated p-3 font-mono text-[13px] whitespace-pre-wrap text-text">
+                  {sel.bodyMd || "(vacía)"}
+                </pre>
                 <div className="mt-3 flex justify-end">
                   <Button
                     variant="primary"

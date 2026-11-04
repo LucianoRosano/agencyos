@@ -62,7 +62,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 key={v.key}
                 href={calHref(p, { vista: v.key })}
                 aria-current={p.vista === v.key ? "page" : undefined}
-                className={cn("grid h-9 place-items-center rounded-md px-3 text-sm transition-colors", p.vista === v.key ? "bg-surface-3 text-text" : "text-text-muted hover:text-text")}
+                className={cn(
+                  "grid h-9 place-items-center rounded-md px-3 text-sm transition-colors",
+                  p.vista === v.key ? "bg-surface-3 text-text" : "text-text-muted hover:text-text",
+                )}
               >
                 {v.label}
               </Link>
@@ -70,13 +73,17 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           </nav>
           <div className="flex items-center gap-1">
             <Button asChild variant="ghost" size="icon" aria-label="Anterior">
-              <Link href={calHref(p, { fecha: shift(p.vista, p.fecha, -1) })}><ChevronLeft className="size-4" /></Link>
+              <Link href={calHref(p, { fecha: shift(p.vista, p.fecha, -1) })}>
+                <ChevronLeft className="size-4" />
+              </Link>
             </Button>
             <Button asChild variant="secondary">
               <Link href={calHref(p, { fecha: today })}>Hoy</Link>
             </Button>
             <Button asChild variant="ghost" size="icon" aria-label="Siguiente">
-              <Link href={calHref(p, { fecha: shift(p.vista, p.fecha, 1) })}><ChevronRight className="size-4" /></Link>
+              <Link href={calHref(p, { fecha: shift(p.vista, p.fecha, 1) })}>
+                <ChevronRight className="size-4" />
+              </Link>
             </Button>
           </div>
         </div>

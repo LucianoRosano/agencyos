@@ -6,8 +6,25 @@
 import { formatDate, formatMoney, L, label } from "@agencyos/core";
 import { marked } from "marked";
 
-export type QuoteDocBrand = { name: string; initials: string; email: string | null; phone: string | null; website: string | null; city: string | null; footer: string | null };
-export type QuoteDocItem = { description: string; quantity: string; unit: string | null; unitPrice: string; discountType: string; discountValue: string; discount: string; lineTotal: string };
+export type QuoteDocBrand = {
+  name: string;
+  initials: string;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  city: string | null;
+  footer: string | null;
+};
+export type QuoteDocItem = {
+  description: string;
+  quantity: string;
+  unit: string | null;
+  unitPrice: string;
+  discountType: string;
+  discountValue: string;
+  discount: string;
+  lineTotal: string;
+};
 export type QuoteDocPlanRow = { label: string; percent: number | null; amount: string; offsetDays: number };
 export type QuoteDoc = {
   brand: QuoteDocBrand;
@@ -175,7 +192,13 @@ table.plan .r { text-align:right; }
 
 export function renderQuoteHtml(doc: QuoteDoc, opts: RenderOptions = {}): string {
   const cur = doc.currency;
-  const hasCents = [...doc.items.flatMap((i) => [i.unitPrice, i.lineTotal, i.discount]), doc.totals.subtotal, doc.totals.total, doc.totals.globalDiscount, ...doc.plan.rows.map((r) => r.amount)].some((v) => !/\.00$/.test(Number(v).toFixed(2)));
+  const hasCents = [
+    ...doc.items.flatMap((i) => [i.unitPrice, i.lineTotal, i.discount]),
+    doc.totals.subtotal,
+    doc.totals.total,
+    doc.totals.globalDiscount,
+    ...doc.plan.rows.map((r) => r.amount),
+  ].some((v) => !/\.00$/.test(Number(v).toFixed(2)));
   const m = (v: string) => `<span class="num">${esc(formatMoney(v, cur, { decimals: hasCents }))}</span>`;
   const b = doc.brand;
   const contactLines = [b.email, b.phone ? `WhatsApp ${b.phone}` : null, b.website, b.city].filter(Boolean) as string[];
@@ -217,12 +240,16 @@ export function renderQuoteHtml(doc: QuoteDoc, opts: RenderOptions = {}): string
     planHtml = `<p><strong>Abono mensual de ${m(doc.plan.monthlyAmount ?? "0")}</strong> ${doc.plan.months ? `durante ${doc.plan.months} ${doc.plan.months === 1 ? "mes" : "meses"}` : "por tiempo indeterminado"}, con vencimiento mensual a partir de la aceptación.</p>`;
   } else {
     planHtml = `<table class="plan"><thead><tr><th>Concepto</th><th class="r">%</th><th>Vencimiento</th><th class="r">Importe</th></tr></thead><tbody>${doc.plan.rows
-      .map((r) => `<tr><td>${esc(r.label)}</td><td class="r num">${r.percent !== null ? fmtPct(r.percent) : "—"}</td><td>${whenText(r.offsetDays)}</td><td class="r">${m(r.amount)}</td></tr>`)
+      .map(
+        (r) =>
+          `<tr><td>${esc(r.label)}</td><td class="r num">${r.percent !== null ? fmtPct(r.percent) : "—"}</td><td>${whenText(r.offsetDays)}</td><td class="r">${m(r.amount)}</td></tr>`,
+      )
       .join("")}</tbody></table>`;
   }
 
   const validDays = Math.round((Date.parse(doc.validUntil) - Date.parse(doc.issueDate)) / 86_400_000);
-  const section = (title: string, md: string | null) => (md?.trim() ? `<section class="block">${h2(title)}<div class="md">${mdToHtml(md)}</div></section>` : "");
+  const section = (title: string, md: string | null) =>
+    md?.trim() ? `<section class="block">${h2(title)}<div class="md">${mdToHtml(md)}</div></section>` : "";
 
   const intro = mdToHtml(doc.introMd);
   return `<!doctype html><html lang="es-AR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(doc.number)} · ${esc(doc.title)}</title>

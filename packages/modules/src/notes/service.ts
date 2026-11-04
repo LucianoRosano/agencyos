@@ -5,8 +5,17 @@ import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { assertOwned, getDb, scoped } from "../shared/db";
 import {
-  countWords, frontmatterAliases, frontmatterTags, linkFirstPlainMention, normalizeFolder, normName, parseFrontmatter, parseMentions, parseWikilinks,
-  renameWikilinks, slugify,
+  countWords,
+  frontmatterAliases,
+  frontmatterTags,
+  linkFirstPlainMention,
+  normalizeFolder,
+  normName,
+  parseFrontmatter,
+  parseMentions,
+  parseWikilinks,
+  renameWikilinks,
+  slugify,
 } from "./parse";
 
 /** Entidades a las que se puede vincular una nota. */
@@ -15,10 +24,7 @@ export const NOTE_ENTITY_TYPES = ["project", "client", "contact", "course", "tas
 export const VERSION_INTERVAL_MS = 5 * 60_000;
 
 const emptyToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
-const zAliases = z.preprocess(
-  (v) => (typeof v === "string" ? v.split(",") : v),
-  z.array(z.string().trim().max(120)).max(30).optional(),
-);
+const zAliases = z.preprocess((v) => (typeof v === "string" ? v.split(",") : v), z.array(z.string().trim().max(120)).max(30).optional());
 const zFlag = z.preprocess((v) => (v === undefined ? undefined : v === "on" || v === "true" || v === true || v === "1"), z.boolean().optional());
 
 export const noteInput = z
@@ -63,7 +69,11 @@ const titleNorm = sql`f_search_norm(${schema.note.title})`;
 async function assertUniqueTitle(t: Tx, ctx: Ctx, title: string, exceptId?: string) {
   const where = [scoped(schema.note, ctx), eq(titleNorm, normName(title))];
   if (exceptId) where.push(ne(schema.note.id, exceptId));
-  const [dup] = await t.select({ id: schema.note.id }).from(schema.note).where(and(...where)).limit(1);
+  const [dup] = await t
+    .select({ id: schema.note.id })
+    .from(schema.note)
+    .where(and(...where))
+    .limit(1);
   if (dup) throw validation("Ya existe una nota con ese título", { title: "Ya existe una nota con ese título" });
 }
 
@@ -81,9 +91,14 @@ async function uniqueSlug(t: Tx, ctx: Ctx, title: string, exceptId?: string) {
 
 async function assertEntity(t: Tx, ctx: Ctx, type: string | null | undefined, id: string | null | undefined) {
   if (!type || !id) return;
-  const table = { project: schema.project, client: schema.client, contact: schema.contact, course: schema.course, task: schema.task }[type as (typeof NOTE_ENTITY_TYPES)[number]];
+  const table = { project: schema.project, client: schema.client, contact: schema.contact, course: schema.course, task: schema.task }[
+    type as (typeof NOTE_ENTITY_TYPES)[number]
+  ];
   if (!table) throw validation("Tipo de vínculo inválido");
-  const [row] = await t.select({ id: table.id }).from(table).where(and(eq(table.id, id), scoped(table, ctx)));
+  const [row] = await t
+    .select({ id: table.id })
+    .from(table)
+    .where(and(eq(table.id, id), scoped(table, ctx)));
   if (!row) throw notFound("El elemento vinculado");
 }
 
@@ -92,7 +107,10 @@ export async function resolveNoteTitles(t: Tx | ReturnType<typeof getDb>, ctx: C
   const norms = [...new Set(titles.map(normName).filter(Boolean))];
   const out = new Map<string, { id: string; title: string }>();
   if (!norms.length) return out;
-  const aliasMatch = sql`exists (select 1 from unnest(${schema.note.aliases}) a where f_search_norm(a) in (${sql.join(norms.map((n) => sql`${n}`), sql`, `)}))`;
+  const aliasMatch = sql`exists (select 1 from unnest(${schema.note.aliases}) a where f_search_norm(a) in (${sql.join(
+    norms.map((n) => sql`${n}`),
+    sql`, `,
+  )}))`;
   const rows = await t
     .select({ id: schema.note.id, title: schema.note.title, aliases: schema.note.aliases })
     .from(schema.note)
@@ -111,14 +129,27 @@ async function resolveMentions(t: Tx, ctx: Ctx, md: string) {
   const hash = [...new Set(mentions.filter((m) => m.sigil === "#").flatMap((m) => m.candidates.map(normName)))];
   // Secuencial: dentro de una transacción hay un solo cliente de Postgres.
   const clients = at.length
-    ? await t.select({ id: schema.client.id, name: schema.client.name, trade: schema.client.tradeName }).from(schema.client)
-        .where(and(scoped(schema.client, ctx), sql`(${inArray(sql`f_search_norm(${schema.client.name})`, at)} or ${inArray(sql`f_search_norm(coalesce(${schema.client.tradeName}, ''))`, at)})`))
+    ? await t
+        .select({ id: schema.client.id, name: schema.client.name, trade: schema.client.tradeName })
+        .from(schema.client)
+        .where(
+          and(
+            scoped(schema.client, ctx),
+            sql`(${inArray(sql`f_search_norm(${schema.client.name})`, at)} or ${inArray(sql`f_search_norm(coalesce(${schema.client.tradeName}, ''))`, at)})`,
+          ),
+        )
     : [];
   const contacts = at.length
-    ? await t.select({ id: schema.contact.id, name: schema.contact.name }).from(schema.contact).where(and(scoped(schema.contact, ctx), inArray(sql`f_search_norm(${schema.contact.name})`, at)))
+    ? await t
+        .select({ id: schema.contact.id, name: schema.contact.name })
+        .from(schema.contact)
+        .where(and(scoped(schema.contact, ctx), inArray(sql`f_search_norm(${schema.contact.name})`, at)))
     : [];
   const projects = hash.length
-    ? await t.select({ id: schema.project.id, name: schema.project.name }).from(schema.project).where(and(scoped(schema.project, ctx), inArray(sql`f_search_norm(${schema.project.name})`, hash)))
+    ? await t
+        .select({ id: schema.project.id, name: schema.project.name })
+        .from(schema.project)
+        .where(and(scoped(schema.project, ctx), inArray(sql`f_search_norm(${schema.project.name})`, hash)))
     : [];
   const byName = new Map<string, { type: "client" | "contact" | "project"; id: string }>();
   for (const c of contacts) byName.set(`@${normName(c.name)}`, { type: "contact", id: c.id });
@@ -139,7 +170,11 @@ async function resolveMentions(t: Tx, ctx: Ctx, md: string) {
 async function syncLinks(t: Tx, ctx: Ctx, note: Pick<NoteRow, "id" | "bodyMd">) {
   const body = parseFrontmatter(note.bodyMd).body;
   const wikis = parseWikilinks(body);
-  const targets = await resolveNoteTitles(t, ctx, wikis.map((w) => w.target));
+  const targets = await resolveNoteTitles(
+    t,
+    ctx,
+    wikis.map((w) => w.target),
+  );
   const rows = new Map<string, { toType: string; toId: string; kind: string }>();
   for (const w of wikis) {
     const hit = targets.get(normName(w.target));
@@ -148,23 +183,46 @@ async function syncLinks(t: Tx, ctx: Ctx, note: Pick<NoteRow, "id" | "bodyMd">) 
   for (const m of await resolveMentions(t, ctx, body)) rows.set(`${m.type}:${m.id}:mention`, { toType: m.type, toId: m.id, kind: "mention" });
   await t
     .delete(schema.link)
-    .where(and(eq(schema.link.workspaceId, ctx.workspaceId), eq(schema.link.fromType, "note"), eq(schema.link.fromId, note.id), inArray(schema.link.kind, ["wikilink", "mention"])));
+    .where(
+      and(
+        eq(schema.link.workspaceId, ctx.workspaceId),
+        eq(schema.link.fromType, "note"),
+        eq(schema.link.fromId, note.id),
+        inArray(schema.link.kind, ["wikilink", "mention"]),
+      ),
+    );
   if (rows.size) {
     await t
       .insert(schema.link)
       .values([...rows.values()].map((r) => ({ workspaceId: ctx.workspaceId, fromType: "note", fromId: note.id, ...r, createdBy: ctx.userId })))
       .onConflictDoNothing();
   }
-  return { wikilinks: wikis.length, resolved: [...rows.values()].filter((r) => r.kind === "wikilink").length, mentions: [...rows.values()].filter((r) => r.kind === "mention").length };
+  return {
+    wikilinks: wikis.length,
+    resolved: [...rows.values()].filter((r) => r.kind === "wikilink").length,
+    mentions: [...rows.values()].filter((r) => r.kind === "mention").length,
+  };
 }
 
 /** Etiquetas del frontmatter → `tag` + `tagging` (compartidas en el workspace, N6). */
 async function syncTags(t: Tx, ctx: Ctx, noteId: string, names: string[]) {
-  await t.delete(schema.tagging).where(and(eq(schema.tagging.workspaceId, ctx.workspaceId), eq(schema.tagging.entityType, "note"), eq(schema.tagging.entityId, noteId)));
+  await t
+    .delete(schema.tagging)
+    .where(and(eq(schema.tagging.workspaceId, ctx.workspaceId), eq(schema.tagging.entityType, "note"), eq(schema.tagging.entityId, noteId)));
   if (!names.length) return;
-  await t.insert(schema.tag).values(names.map((name) => ({ workspaceId: ctx.workspaceId, name, createdBy: ctx.userId }))).onConflictDoNothing();
-  const tags = await t.select({ id: schema.tag.id }).from(schema.tag).where(and(eq(schema.tag.workspaceId, ctx.workspaceId), inArray(schema.tag.name, names)));
-  if (tags.length) await t.insert(schema.tagging).values(tags.map((g) => ({ workspaceId: ctx.workspaceId, tagId: g.id, entityType: "note", entityId: noteId }))).onConflictDoNothing();
+  await t
+    .insert(schema.tag)
+    .values(names.map((name) => ({ workspaceId: ctx.workspaceId, name, createdBy: ctx.userId })))
+    .onConflictDoNothing();
+  const tags = await t
+    .select({ id: schema.tag.id })
+    .from(schema.tag)
+    .where(and(eq(schema.tag.workspaceId, ctx.workspaceId), inArray(schema.tag.name, names)));
+  if (tags.length)
+    await t
+      .insert(schema.tagging)
+      .values(tags.map((g) => ({ workspaceId: ctx.workspaceId, tagId: g.id, entityType: "note", entityId: noteId })))
+      .onConflictDoNothing();
 }
 
 /**
@@ -176,13 +234,24 @@ async function resyncNotesMentioning(t: Tx, ctx: Ctx, titles: string[], exceptId
   const rows = await t
     .select({ id: schema.note.id, bodyMd: schema.note.bodyMd })
     .from(schema.note)
-    .where(and(scoped(schema.note, ctx), ne(schema.note.id, exceptId), sql`(${sql.join(pats.map((p) => sql`f_search_norm(${schema.note.bodyMd}) like ${p}`), sql` or `)})`))
+    .where(
+      and(
+        scoped(schema.note, ctx),
+        ne(schema.note.id, exceptId),
+        sql`(${sql.join(
+          pats.map((p) => sql`f_search_norm(${schema.note.bodyMd}) like ${p}`),
+          sql` or `,
+        )})`,
+      ),
+    )
     .limit(500);
   for (const r of rows) await syncLinks(t, ctx, r);
 }
 
 async function snapshot(t: Tx, ctx: Ctx, note: Pick<NoteRow, "id" | "title" | "bodyMd">) {
-  await t.insert(schema.noteVersion).values({ workspaceId: ctx.workspaceId, noteId: note.id, title: note.title, bodyMd: note.bodyMd, createdBy: ctx.userId ?? ctx.actor.id });
+  await t
+    .insert(schema.noteVersion)
+    .values({ workspaceId: ctx.workspaceId, noteId: note.id, title: note.title, bodyMd: note.bodyMd, createdBy: ctx.userId ?? ctx.actor.id });
 }
 
 function derived(bodyMd: string, extraAliases: string[] = []) {
@@ -220,7 +289,7 @@ async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>) {
       aliases: d.aliases,
       wordCount: d.wordCount,
       isDaily: input.isDaily ?? false,
-      dailyDate: input.isDaily ? input.dailyDate ?? todayAR() : null,
+      dailyDate: input.isDaily ? (input.dailyDate ?? todayAR()) : null,
       entityType: input.entityType ?? null,
       entityId: input.entityId ?? null,
       pinned: input.pinned ?? false,
@@ -244,7 +313,11 @@ export async function createNote(ctx: Ctx, raw: unknown) {
 export type SaveResult = { note: NoteRow; versioned: boolean; links: { wikilinks: number; resolved: number; mentions: number } | null };
 
 async function applyPatch(t: Tx, ctx: Ctx, id: string, input: z.infer<typeof notePatch>): Promise<SaveResult> {
-  const [before] = await t.select().from(schema.note).where(and(eq(schema.note.id, id), scoped(schema.note, ctx))).for("update");
+  const [before] = await t
+    .select()
+    .from(schema.note)
+    .where(and(eq(schema.note.id, id), scoped(schema.note, ctx)))
+    .for("update");
   if (!before) throw notFound("La nota");
   await assertOwned(t, ctx, schema.space, input.spaceId ?? null, "El espacio");
   const title = input.title ?? before.title;
@@ -288,7 +361,16 @@ async function applyPatch(t: Tx, ctx: Ctx, id: string, input: z.infer<typeof not
       .select({ id: schema.note.id, bodyMd: schema.note.bodyMd })
       .from(schema.link)
       .innerJoin(schema.note, eq(schema.note.id, schema.link.fromId))
-      .where(and(eq(schema.link.workspaceId, ctx.workspaceId), eq(schema.link.toType, "note"), eq(schema.link.toId, id), eq(schema.link.kind, "wikilink"), eq(schema.link.fromType, "note"), scoped(schema.note, ctx)));
+      .where(
+        and(
+          eq(schema.link.workspaceId, ctx.workspaceId),
+          eq(schema.link.toType, "note"),
+          eq(schema.link.toId, id),
+          eq(schema.link.kind, "wikilink"),
+          eq(schema.link.fromType, "note"),
+          scoped(schema.note, ctx),
+        ),
+      );
     for (const s of sources) {
       const next = renameWikilinks(s.bodyMd, before.title, title);
       if (next !== s.bodyMd) await t.update(schema.note).set({ bodyMd: next }).where(eq(schema.note.id, s.id));
@@ -297,7 +379,12 @@ async function applyPatch(t: Tx, ctx: Ctx, id: string, input: z.infer<typeof not
   }
   let versioned = false;
   if (bodyChanged || renamed) {
-    const [last] = await t.select({ at: schema.noteVersion.createdAt }).from(schema.noteVersion).where(eq(schema.noteVersion.noteId, id)).orderBy(desc(schema.noteVersion.createdAt)).limit(1);
+    const [last] = await t
+      .select({ at: schema.noteVersion.createdAt })
+      .from(schema.noteVersion)
+      .where(eq(schema.noteVersion.noteId, id))
+      .orderBy(desc(schema.noteVersion.createdAt))
+      .limit(1);
     if (!last || Date.now() - last.at.getTime() >= VERSION_INTERVAL_MS) {
       await snapshot(t, ctx, row);
       versioned = true;
@@ -324,7 +411,11 @@ export async function updateNote(ctx: Ctx, id: string, raw: unknown): Promise<Sa
 
 export async function setNotePinned(ctx: Ctx, id: string, pinned: boolean) {
   assertCan(ctx, "update", "note");
-  const [row] = await getDb().update(schema.note).set({ pinned }).where(and(eq(schema.note.id, id), scoped(schema.note, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.note)
+    .set({ pinned })
+    .where(and(eq(schema.note.id, id), scoped(schema.note, ctx)))
+    .returning();
   if (!row) throw notFound("La nota");
   return row;
 }
@@ -334,15 +425,26 @@ export async function restoreVersion(ctx: Ctx, versionId: string) {
   assertCan(ctx, "update", "note");
   z.string().uuid("Versión inválida").parse(versionId);
   return getDb().transaction(async (t) => {
-    const [v] = await t.select().from(schema.noteVersion).where(and(eq(schema.noteVersion.id, versionId), eq(schema.noteVersion.workspaceId, ctx.workspaceId)));
+    const [v] = await t
+      .select()
+      .from(schema.noteVersion)
+      .where(and(eq(schema.noteVersion.id, versionId), eq(schema.noteVersion.workspaceId, ctx.workspaceId)));
     if (!v) throw notFound("La versión");
-    const [cur] = await t.select().from(schema.note).where(and(eq(schema.note.id, v.noteId), scoped(schema.note, ctx)));
+    const [cur] = await t
+      .select()
+      .from(schema.note)
+      .where(and(eq(schema.note.id, v.noteId), scoped(schema.note, ctx)));
     if (!cur) throw notFound("La nota");
     if (cur.bodyMd === v.bodyMd) throw conflict("La nota ya tiene ese contenido.");
     await snapshot(t, ctx, cur);
     // Se restaura el contenido; el título actual se conserva (renombrar reescribe enlaces en otras notas).
     const res = await applyPatch(t, ctx, cur.id, { bodyMd: v.bodyMd });
-    await recordEvent(t, ctx, { type: "nota.version_restaurada", entityType: "note", entityId: cur.id, summary: `Restauró una versión de «${res.note.title}»` });
+    await recordEvent(t, ctx, {
+      type: "nota.version_restaurada",
+      entityType: "note",
+      entityId: cur.id,
+      summary: `Restauró una versión de «${res.note.title}»`,
+    });
     return res.note;
   });
 }
@@ -351,8 +453,14 @@ export async function restoreVersion(ctx: Ctx, versionId: string) {
 export async function linkUnlinkedMention(ctx: Ctx, sourceNoteId: string, targetNoteId: string) {
   assertCan(ctx, "update", "note");
   return getDb().transaction(async (t) => {
-    const [target] = await t.select().from(schema.note).where(and(eq(schema.note.id, targetNoteId), scoped(schema.note, ctx)));
-    const [source] = await t.select().from(schema.note).where(and(eq(schema.note.id, sourceNoteId), scoped(schema.note, ctx)));
+    const [target] = await t
+      .select()
+      .from(schema.note)
+      .where(and(eq(schema.note.id, targetNoteId), scoped(schema.note, ctx)));
+    const [source] = await t
+      .select()
+      .from(schema.note)
+      .where(and(eq(schema.note.id, sourceNoteId), scoped(schema.note, ctx)));
     if (!target || !source) throw notFound("La nota");
     const next = [target.title, ...target.aliases].map((name) => linkFirstPlainMention(source.bodyMd, name)).find((x): x is string => Boolean(x));
     if (!next) throw validation(`No se encontró «${target.title}» como texto en «${source.title}».`);
@@ -365,13 +473,21 @@ export async function linkUnlinkedMention(ctx: Ctx, sourceNoteId: string, target
 export async function getOrCreateDaily(ctx: Ctx, date: string = todayAR()) {
   const day = zDate.parse(date);
   const db = getDb();
-  const [existing] = await db.select().from(schema.note).where(and(scoped(schema.note, ctx), eq(schema.note.isDaily, true), eq(schema.note.dailyDate, day))).limit(1);
+  const [existing] = await db
+    .select()
+    .from(schema.note)
+    .where(and(scoped(schema.note, ctx), eq(schema.note.isDaily, true), eq(schema.note.dailyDate, day)))
+    .limit(1);
   if (existing) return existing;
   assertCan(ctx, "create", "note");
   return db.transaction(async (t) => {
     const spaces = await t.select().from(schema.space).where(scoped(schema.space, ctx)).orderBy(asc(schema.space.sort));
     const space = spaces.find((s) => s.kind === "personal") ?? spaces[0];
-    const [clash] = await t.select({ id: schema.note.id }).from(schema.note).where(and(scoped(schema.note, ctx), eq(titleNorm, normName(day)))).limit(1);
+    const [clash] = await t
+      .select({ id: schema.note.id })
+      .from(schema.note)
+      .where(and(scoped(schema.note, ctx), eq(titleNorm, normName(day))))
+      .limit(1);
     return insertNote(t, ctx, {
       title: clash ? `${day} (diaria)` : day,
       spaceId: space?.id,
@@ -392,7 +508,11 @@ export async function createNoteInTx(t: Tx, ctx: Ctx, raw: unknown) {
   const input = noteInput.parse(raw);
   for (let i = 1; i <= 50; i++) {
     const title = i === 1 ? input.title : `${input.title.slice(0, 190)} (${i})`;
-    const [dup] = await t.select({ id: schema.note.id }).from(schema.note).where(and(scoped(schema.note, ctx), eq(titleNorm, normName(title)))).limit(1);
+    const [dup] = await t
+      .select({ id: schema.note.id })
+      .from(schema.note)
+      .where(and(scoped(schema.note, ctx), eq(titleNorm, normName(title))))
+      .limit(1);
     if (!dup) return insertNote(t, ctx, { ...input, title });
   }
   throw conflict("No se pudo encontrar un título libre para la nota.");

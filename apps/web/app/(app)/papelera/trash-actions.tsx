@@ -8,8 +8,20 @@ export function TrashActions({ type, id, title }: { type: string; id: string; ti
   const { exec, pending } = useAction();
   return (
     <div className="flex gap-2">
-      <Button size="sm" loading={pending} onClick={() => exec(() => restoreAction(type, id), { success: "Restaurado" })}>Restaurar</Button>
-      <Button size="sm" variant="danger" loading={pending} onClick={() => { if (confirm(`¿Eliminar «${title}» definitivamente? No se puede deshacer.`)) exec(() => purgeAction(type, id), { success: "Eliminado definitivamente" }); }}>Eliminar definitivamente</Button>
+      <Button size="sm" loading={pending} onClick={() => exec(() => restoreAction(type, id), { success: "Restaurado" })}>
+        Restaurar
+      </Button>
+      <Button
+        size="sm"
+        variant="danger"
+        loading={pending}
+        onClick={() => {
+          if (confirm(`¿Eliminar «${title}» definitivamente? No se puede deshacer.`))
+            exec(() => purgeAction(type, id), { success: "Eliminado definitivamente" });
+        }}
+      >
+        Eliminar definitivamente
+      </Button>
     </div>
   );
 }

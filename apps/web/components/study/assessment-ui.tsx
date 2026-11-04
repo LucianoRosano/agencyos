@@ -6,8 +6,16 @@ import { CalendarPlus, GraduationCap, MoreHorizontal, Pencil, Plus, Trash2 } fro
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import {
-  createAssessmentAction, createStudyPlanAction, deleteAssessmentAction, deleteCourseAction, gradeAssessmentFormAction, restoreAssessmentAction, restoreCourseAction,
-  setCourseStatusAction, setGradeAction, updateAssessmentAction,
+  createAssessmentAction,
+  createStudyPlanAction,
+  deleteAssessmentAction,
+  deleteCourseAction,
+  gradeAssessmentFormAction,
+  restoreAssessmentAction,
+  restoreCourseAction,
+  setCourseStatusAction,
+  setGradeAction,
+  updateAssessmentAction,
 } from "@/app/(app)/facultad/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";
@@ -41,7 +49,14 @@ function AssessmentFields({ a, defaultDate }: { a?: AssessmentData; defaultDate?
         <TextField label="Nota objetivo" name="targetGrade" inputMode="decimal" defaultValue={gradeInput(a?.targetGrade)} placeholder="De 0 a 10" />
         <TextField label="Nota obtenida" name="grade" inputMode="decimal" defaultValue={gradeInput(a?.grade)} placeholder="Cuando la tengas" />
       </div>
-      <TextAreaField label="Temas (Markdown)" name="topicsMd" defaultValue={a?.topicsMd ?? ""} rows={5} className="font-mono" hint="Un tema por línea o como lista (- tema). El plan de estudio usa esta lista." />
+      <TextAreaField
+        label="Temas (Markdown)"
+        name="topicsMd"
+        defaultValue={a?.topicsMd ?? ""}
+        rows={5}
+        className="font-mono"
+        hint="Un tema por línea o como lista (- tema). El plan de estudio usa esta lista."
+      />
     </>
   );
 }
@@ -54,11 +69,19 @@ export function NewAssessmentSheet({ courseId, trigger }: { courseId: string; tr
       onOpenChange={setOpen}
       title="Nueva evaluación"
       wide
-      trigger={trigger ?? <Button variant="secondary"><Plus className="size-4" /> Nueva evaluación</Button>}
+      trigger={
+        trigger ?? (
+          <Button variant="secondary">
+            <Plus className="size-4" /> Nueva evaluación
+          </Button>
+        )
+      }
     >
       <ActionForm action={createAssessmentAction.bind(null, courseId)} successMessage="Evaluación agendada" onSuccess={() => setOpen(false)}>
         <AssessmentFields />
-        <div className="flex justify-end"><SubmitButton>Agendar evaluación</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>Agendar evaluación</SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );
@@ -75,11 +98,25 @@ export function AssessmentActions({ a, name, canPlan, topics }: { a: AssessmentD
       <Button size="md" variant={a.grade === null ? "secondary" : "ghost"} onClick={() => setSheet("grade")} aria-label={`Cargar nota de ${name}`}>
         {a.grade === null ? "Cargar nota" : "Cambiar nota"}
       </Button>
-      <Menu trigger={<Button variant="ghost" size="icon" aria-label={`Más acciones de ${name}`}><MoreHorizontal className="size-4" /></Button>}>
-        <MenuItem icon={<Pencil />} onSelect={() => later(() => setSheet("edit"))}>Editar</MenuItem>
-        {canPlan ? <MenuItem icon={<CalendarPlus />} onSelect={() => later(() => setSheet("plan"))}>Armar plan de estudio</MenuItem> : null}
+      <Menu
+        trigger={
+          <Button variant="ghost" size="icon" aria-label={`Más acciones de ${name}`}>
+            <MoreHorizontal className="size-4" />
+          </Button>
+        }
+      >
+        <MenuItem icon={<Pencil />} onSelect={() => later(() => setSheet("edit"))}>
+          Editar
+        </MenuItem>
+        {canPlan ? (
+          <MenuItem icon={<CalendarPlus />} onSelect={() => later(() => setSheet("plan"))}>
+            Armar plan de estudio
+          </MenuItem>
+        ) : null}
         {a.grade !== null ? (
-          <MenuItem onSelect={() => exec(() => setGradeAction(a.id, null), { success: "Nota quitada", undo: () => setGradeAction(a.id, a.grade) })}>Quitar nota</MenuItem>
+          <MenuItem onSelect={() => exec(() => setGradeAction(a.id, null), { success: "Nota quitada", undo: () => setGradeAction(a.id, a.grade) })}>
+            Quitar nota
+          </MenuItem>
         ) : null}
         <MenuSeparator />
         <MenuItem
@@ -94,17 +131,34 @@ export function AssessmentActions({ a, name, canPlan, topics }: { a: AssessmentD
         </MenuItem>
       </Menu>
 
-      <Sheet open={sheet === "grade"} onOpenChange={onOpen} title={`Nota · ${name}`} description={a.targetGrade ? `Objetivo: ${formatGrade(a.targetGrade)}` : undefined}>
+      <Sheet
+        open={sheet === "grade"}
+        onOpenChange={onOpen}
+        title={`Nota · ${name}`}
+        description={a.targetGrade ? `Objetivo: ${formatGrade(a.targetGrade)}` : undefined}
+      >
         <ActionForm action={gradeAssessmentFormAction.bind(null, a.id)} successMessage="Nota guardada" onSuccess={close}>
-          <TextField label="Nota obtenida" name="grade" inputMode="decimal" defaultValue={gradeInput(a.grade)} placeholder="De 0 a 10" autoFocus hint="Dejala vacía para quitarla." />
-          <div className="flex justify-end"><SubmitButton>Guardar nota</SubmitButton></div>
+          <TextField
+            label="Nota obtenida"
+            name="grade"
+            inputMode="decimal"
+            defaultValue={gradeInput(a.grade)}
+            placeholder="De 0 a 10"
+            autoFocus
+            hint="Dejala vacía para quitarla."
+          />
+          <div className="flex justify-end">
+            <SubmitButton>Guardar nota</SubmitButton>
+          </div>
         </ActionForm>
       </Sheet>
 
       <Sheet open={sheet === "edit"} onOpenChange={onOpen} title="Editar evaluación" wide>
         <ActionForm action={updateAssessmentAction.bind(null, a.id)} successMessage="Evaluación actualizada" onSuccess={close}>
           <AssessmentFields a={a} />
-          <div className="flex justify-end"><SubmitButton>Guardar</SubmitButton></div>
+          <div className="flex justify-end">
+            <SubmitButton>Guardar</SubmitButton>
+          </div>
         </ActionForm>
       </Sheet>
 
@@ -115,8 +169,22 @@ export function AssessmentActions({ a, name, canPlan, topics }: { a: AssessmentD
 
 /** "Plan de estudio": una tarea por tema, repartidas hasta la fecha de la evaluación. */
 export function StudyPlanSheet({
-  a, name, topics, open, onOpenChange, onDone, trigger,
-}: { a: AssessmentData; name: string; topics: string[]; open?: boolean; onOpenChange?: (o: boolean) => void; onDone?: () => void; trigger?: ReactNode }) {
+  a,
+  name,
+  topics,
+  open,
+  onOpenChange,
+  onDone,
+  trigger,
+}: {
+  a: AssessmentData;
+  name: string;
+  topics: string[];
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onDone?: () => void;
+  trigger?: ReactNode;
+}) {
   const [own, setOwn] = useState(false);
   const isOpen = open ?? own;
   const setOpen = onOpenChange ?? setOwn;
@@ -137,9 +205,21 @@ export function StudyPlanSheet({
           onDone?.();
         }}
       >
-        <TextAreaField label="Temas (uno por línea)" name="topics" defaultValue={topics.map((t) => `- ${t}`).join("\n")} rows={8} className="font-mono" required hint="Podés editarlos: cada línea es una tarea." />
+        <TextAreaField
+          label="Temas (uno por línea)"
+          name="topics"
+          defaultValue={topics.map((t) => `- ${t}`).join("\n")}
+          rows={8}
+          className="font-mono"
+          required
+          hint="Podés editarlos: cada línea es una tarea."
+        />
         <TextField label="Empezar el" name="startDate" type="date" hint="Por defecto, hoy." />
-        <div className="flex justify-end"><SubmitButton><GraduationCap className="size-4" /> Crear tareas</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>
+            <GraduationCap className="size-4" /> Crear tareas
+          </SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );
@@ -149,19 +229,39 @@ export function CourseMenu({ id, name, status }: { id: string; name: string; sta
   const { exec } = useAction();
   const router = useRouter();
   return (
-    <Menu trigger={<Button variant="ghost" size="icon" aria-label="Más acciones"><MoreHorizontal className="size-4" /></Button>}>
-      {(Object.keys(L.courseStatus) as (keyof typeof L.courseStatus)[]).filter((s) => s !== status).map((s) => (
-        <MenuItem key={s} onSelect={() => exec(() => setCourseStatusAction(id, s), { success: `Materia: ${L.courseStatus[s].toLowerCase()}`, undo: () => setCourseStatusAction(id, status as "cursando") })}>
-          Pasar a {L.courseStatus[s].toLowerCase()}
-        </MenuItem>
-      ))}
+    <Menu
+      trigger={
+        <Button variant="ghost" size="icon" aria-label="Más acciones">
+          <MoreHorizontal className="size-4" />
+        </Button>
+      }
+    >
+      {(Object.keys(L.courseStatus) as (keyof typeof L.courseStatus)[])
+        .filter((s) => s !== status)
+        .map((s) => (
+          <MenuItem
+            key={s}
+            onSelect={() =>
+              exec(() => setCourseStatusAction(id, s), {
+                success: `Materia: ${L.courseStatus[s].toLowerCase()}`,
+                undo: () => setCourseStatusAction(id, status as "cursando"),
+              })
+            }
+          >
+            Pasar a {L.courseStatus[s].toLowerCase()}
+          </MenuItem>
+        ))}
       <MenuSeparator />
       <MenuItem
         danger
         icon={<Trash2 />}
         onSelect={() => {
           if (!confirm(`¿Mandar «${name}» a la papelera? Sus evaluaciones dejan de verse en Facultad y en el calendario. Restaurable 30 días.`)) return;
-          exec(() => deleteCourseAction(id), { success: "Materia en la papelera", undo: () => restoreCourseAction(id), onDone: () => router.push("/facultad") });
+          exec(() => deleteCourseAction(id), {
+            success: "Materia en la papelera",
+            undo: () => restoreCourseAction(id),
+            onDone: () => router.push("/facultad"),
+          });
         }}
       >
         Eliminar

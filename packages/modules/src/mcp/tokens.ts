@@ -10,7 +10,10 @@ const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 export const tokenInput = z.object({
   name: zRequired(80, "El nombre"),
-  scopes: z.array(z.enum(MCP_SCOPES as [string, ...string[]])).min(1, "Elegí al menos un alcance").default(DEFAULT_MCP_SCOPES),
+  scopes: z
+    .array(z.enum(MCP_SCOPES as [string, ...string[]]))
+    .min(1, "Elegí al menos un alcance")
+    .default(DEFAULT_MCP_SCOPES),
   expiresDays: z.coerce.number().int().min(1).max(365).default(90),
 });
 
@@ -35,7 +38,12 @@ export async function createMcpToken(ctx: Ctx, raw: unknown) {
       })
       .returning();
     if (!row) throw new Error("No se pudo crear el token");
-    await audit(t, ctx, { action: "mcp_token.created", targetType: "mcp_token", targetId: row.id, after: { name: row.name, scopes: row.scopes, expiresAt: row.expiresAt } });
+    await audit(t, ctx, {
+      action: "mcp_token.created",
+      targetType: "mcp_token",
+      targetId: row.id,
+      after: { name: row.name, scopes: row.scopes, expiresAt: row.expiresAt },
+    });
     return { token: plain, row };
   });
 }
@@ -43,7 +51,11 @@ export async function createMcpToken(ctx: Ctx, raw: unknown) {
 export async function revokeMcpToken(ctx: Ctx, id: string) {
   assertCan(ctx, "manage", "mcp_token");
   return getDb().transaction(async (t) => {
-    const [row] = await t.update(schema.mcpToken).set({ revokedAt: new Date() }).where(and(eq(schema.mcpToken.id, id), scoped(schema.mcpToken, ctx))).returning();
+    const [row] = await t
+      .update(schema.mcpToken)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(schema.mcpToken.id, id), scoped(schema.mcpToken, ctx)))
+      .returning();
     if (!row) throw notFound("El token");
     await audit(t, ctx, { action: "mcp_token.revoked", targetType: "mcp_token", targetId: id });
     return row;

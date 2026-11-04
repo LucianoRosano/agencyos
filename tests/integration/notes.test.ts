@@ -1,3 +1,4 @@
+import { inflateRawSync } from "node:zlib";
 import { todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getBrainGraph, getLayout, getLocalGraph } from "@agencyos/modules/brain/queries";
@@ -8,12 +9,15 @@ import { createNote, getOrCreateDaily, linkUnlinkedMention, restoreVersion, upda
 import { createProject } from "@agencyos/modules/projects/service";
 import { moveToTrash } from "@agencyos/modules/trash/service";
 import { and, eq } from "drizzle-orm";
-import { inflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { agentCtx, makeWorkspace } from "./helpers";
 
 const db = () => getDb();
-const linksFrom = (noteId: string) => db().select().from(schema.link).where(and(eq(schema.link.fromType, "note"), eq(schema.link.fromId, noteId)));
+const linksFrom = (noteId: string) =>
+  db()
+    .select()
+    .from(schema.link)
+    .where(and(eq(schema.link.fromType, "note"), eq(schema.link.fromId, noteId)));
 
 /** Lector mínimo de ZIP (directorio central + deflate) para verificar la exportación. */
 function readZip(buf: Uint8Array): Map<string, string> {
@@ -40,7 +44,10 @@ function readZip(buf: Uint8Array): Map<string, string> {
 }
 
 async function makeClient(ws: { workspaceId: string }, name: string, extra: Partial<typeof schema.client.$inferInsert> = {}) {
-  const [c] = await db().insert(schema.client).values({ workspaceId: ws.workspaceId, name, status: "active", ...extra }).returning();
+  const [c] = await db()
+    .insert(schema.client)
+    .values({ workspaceId: ws.workspaceId, name, status: "active", ...extra })
+    .returning();
   if (!c) throw new Error("client");
   return c;
 }
@@ -163,7 +170,10 @@ describe("notas: historial de versiones", () => {
     const r2 = await updateNote(ctx, n.id, { bodyMd: "v2" });
     expect(r2.versioned).toBe(false);
     // simular que pasaron 6 minutos desde la última versión
-    await db().update(schema.noteVersion).set({ createdAt: new Date(Date.now() - 6 * 60_000) }).where(eq(schema.noteVersion.noteId, n.id));
+    await db()
+      .update(schema.noteVersion)
+      .set({ createdAt: new Date(Date.now() - 6 * 60_000) })
+      .where(eq(schema.noteVersion.noteId, n.id));
     const r3 = await updateNote(ctx, n.id, { bodyMd: "v3" });
     expect(r3.versioned).toBe(true);
     const versions = await listVersions(ctx, n.id);

@@ -32,8 +32,18 @@ export function NewTokenForm({ base }: { base: string }) {
         <p className="mt-3 mb-1 text-[13px] text-text-muted">Para Claude Code:</p>
         <code className="block break-all rounded bg-bg-elevated p-2 font-mono text-[12px]">{cmd}</code>
         <div className="mt-3 flex gap-2">
-          <Button size="sm" onClick={() => { void navigator.clipboard.writeText(token); toast.success("Token copiado"); }}><Copy className="size-4" /> Copiar token</Button>
-          <Button size="sm" variant="ghost" onClick={() => setToken(null)}>Listo, lo guardé</Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              void navigator.clipboard.writeText(token);
+              toast.success("Token copiado");
+            }}
+          >
+            <Copy className="size-4" /> Copiar token
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setToken(null)}>
+            Listo, lo guardé
+          </Button>
         </div>
       </div>
     );
@@ -42,7 +52,16 @@ export function NewTokenForm({ base }: { base: string }) {
     <ActionForm action={createTokenAction} onSuccess={(d) => setToken((d as { token: string }).token)} successMessage="Token creado">
       <div className="grid gap-4 md:grid-cols-2">
         <TextField label="Nombre" name="name" placeholder="Claude Code en mi PC" required />
-        <SelectField label="Vence en" name="expiresDays" defaultValue="90" options={[{ value: "30", label: "30 días" }, { value: "90", label: "90 días" }, { value: "365", label: "1 año" }]} />
+        <SelectField
+          label="Vence en"
+          name="expiresDays"
+          defaultValue="90"
+          options={[
+            { value: "30", label: "30 días" },
+            { value: "90", label: "90 días" },
+            { value: "365", label: "1 año" },
+          ]}
+        />
       </div>
       <fieldset className="grid gap-1 md:grid-cols-2">
         <legend className="mb-1 text-[13px] font-medium text-text-muted">Alcances</legend>
@@ -62,7 +81,14 @@ export function NewTokenForm({ base }: { base: string }) {
 export function RevokeButton({ id, name }: { id: string; name: string }) {
   const { exec, pending } = useAction();
   return (
-    <Button size="sm" variant="danger" loading={pending} onClick={() => { if (confirm(`¿Revocar «${name}»? Claude deja de poder usarlo al instante.`)) exec(() => revokeTokenAction(id), { success: "Token revocado" }); }}>
+    <Button
+      size="sm"
+      variant="danger"
+      loading={pending}
+      onClick={() => {
+        if (confirm(`¿Revocar «${name}»? Claude deja de poder usarlo al instante.`)) exec(() => revokeTokenAction(id), { success: "Token revocado" });
+      }}
+    >
       Revocar
     </Button>
   );

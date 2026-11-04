@@ -1,8 +1,8 @@
 import { can } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
-import { createProject, addDeliverable, addPhase } from "@agencyos/modules/projects/service";
-import { createTask, setTaskStatus, updateTask } from "@agencyos/modules/tasks/service";
 import { capture } from "@agencyos/modules/inbox/service";
+import { addDeliverable, addPhase, createProject } from "@agencyos/modules/projects/service";
+import { createTask, setTaskStatus, updateTask } from "@agencyos/modules/tasks/service";
 import { describe, expect, it } from "vitest";
 import { agentCtx, makeWorkspace } from "./helpers";
 

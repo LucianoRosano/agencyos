@@ -27,7 +27,12 @@ export function TaskFields({
       <div className="grid gap-4 md:grid-cols-2">
         <TextField label="Fecha" name="dueDate" type="date" defaultValue={v("dueDate")} />
         <TextField label="Hora (opcional)" name="dueTime" type="time" defaultValue={v("dueTime")} />
-        <SelectField label="Prioridad" name="priority" defaultValue={v("priority") || "3"} options={[1, 2, 3, 4].map((p) => ({ value: String(p), label: L.priority[p] ?? `P${p}` }))} />
+        <SelectField
+          label="Prioridad"
+          name="priority"
+          defaultValue={v("priority") || "3"}
+          options={[1, 2, 3, 4].map((p) => ({ value: String(p), label: L.priority[p] ?? `P${p}` }))}
+        />
         <SelectField label="Se repite" name="rrule" defaultValue={v("rrule")} options={RECURRENCE_PRESETS.map((r) => ({ value: r.value, label: r.label }))} />
         <SelectField label="Proyecto" name="projectId" defaultValue={v("projectId")} placeholder="Sin proyecto" options={projects} />
         {phases?.length ? <SelectField label="Etapa" name="phaseId" defaultValue={v("phaseId")} placeholder="Sin etapa" options={phases} /> : null}

@@ -1,6 +1,27 @@
 import {
-  assertCan, type Ctx, conflict, formatCuit, L, label, notFound, todayAR, validation,
-  zBool, zCuit, zCurrency, zEmail, zInt, zOptDate, zOptMoney, zOptText, zOptTime, zOptUuid, zPhone, zRequired, zUrl, zUuid,
+  assertCan,
+  type Ctx,
+  conflict,
+  formatCuit,
+  L,
+  label,
+  notFound,
+  todayAR,
+  validation,
+  zBool,
+  zCuit,
+  zCurrency,
+  zEmail,
+  zInt,
+  zOptDate,
+  zOptMoney,
+  zOptText,
+  zOptTime,
+  zOptUuid,
+  zPhone,
+  zRequired,
+  zUrl,
+  zUuid,
 } from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
@@ -56,13 +77,19 @@ async function agencySpace(t: Tx, ctx: Ctx) {
 }
 
 async function getClientRow(t: Tx, ctx: Ctx, id: string) {
-  const [c] = await t.select().from(schema.client).where(and(eq(schema.client.id, id), scoped(schema.client, ctx, { withArchived: true })));
+  const [c] = await t
+    .select()
+    .from(schema.client)
+    .where(and(eq(schema.client.id, id), scoped(schema.client, ctx, { withArchived: true })));
   if (!c) throw notFound("El cliente");
   return c;
 }
 
 async function assertSpace(t: Tx, ctx: Ctx, spaceId: string) {
-  const [s] = await t.select({ id: schema.space.id }).from(schema.space).where(and(eq(schema.space.id, spaceId), scoped(schema.space, ctx)));
+  const [s] = await t
+    .select({ id: schema.space.id })
+    .from(schema.space)
+    .where(and(eq(schema.space.id, spaceId), scoped(schema.space, ctx)));
   if (!s) throw validation("El espacio no existe", { spaceId: "Elegí un espacio válido" });
 }
 
@@ -86,11 +113,27 @@ export async function createClient(ctx: Ctx, raw: unknown) {
     if (contactName) {
       const [c] = await t
         .insert(schema.contact)
-        .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: contactName, role: contactRole, email: contactEmail, phone: contactPhone, whatsapp: contactPhone })
+        .values({
+          workspaceId: ctx.workspaceId,
+          createdBy: ctx.userId,
+          name: contactName,
+          role: contactRole,
+          email: contactEmail,
+          phone: contactPhone,
+          whatsapp: contactPhone,
+        })
         .returning();
-      if (c) await t.insert(schema.clientContact).values({ workspaceId: ctx.workspaceId, clientId: row.id, contactId: c.id, isPrimary: true, roleInClient: contactRole });
+      if (c)
+        await t
+          .insert(schema.clientContact)
+          .values({ workspaceId: ctx.workspaceId, clientId: row.id, contactId: c.id, isPrimary: true, roleInClient: contactRole });
     }
-    await recordEvent(t, ctx, { type: "cliente.creado", entityType: "client", entityId: row.id, summary: `Creó el cliente «${row.name}»${contactName ? ` con el contacto ${contactName}` : ""}` });
+    await recordEvent(t, ctx, {
+      type: "cliente.creado",
+      entityType: "client",
+      entityId: row.id,
+      summary: `Creó el cliente «${row.name}»${contactName ? ` con el contacto ${contactName}` : ""}`,
+    });
     return row;
   });
 }
@@ -125,7 +168,9 @@ export async function updateClient(ctx: Ctx, id: string, raw: unknown) {
       type: statusChanged ? "cliente.estado_cambiado" : "cliente.actualizado",
       entityType: "client",
       entityId: id,
-      summary: statusChanged ? `Pasó a «${row.name}» de ${label(L.clientStatus, before.status).toLowerCase()} a ${label(L.clientStatus, row.status).toLowerCase()}` : `Editó el cliente «${row.name}»`,
+      summary: statusChanged
+        ? `Pasó a «${row.name}» de ${label(L.clientStatus, before.status).toLowerCase()} a ${label(L.clientStatus, row.status).toLowerCase()}`
+        : `Editó el cliente «${row.name}»`,
       payload: statusChanged ? { from: before.status, to: row.status } : undefined,
     });
     return row;
@@ -243,7 +288,13 @@ export async function revealFiscalHolders(ctx: Ctx, clientId: string) {
       .where(and(eq(schema.clientFiscalHolder.clientId, clientId), scoped(schema.clientFiscalHolder, ctx)))
       .orderBy(sql`${schema.clientFiscalHolder.isDefault} desc`, asc(schema.clientFiscalHolder.createdAt));
     await audit(t, ctx, { action: "fiscal.viewed", targetType: "client", targetId: clientId, after: { holders: rows.length } });
-    return rows.map((r) => ({ id: r.id, legalName: r.legalName, taxId: r.taxId ? formatCuit(r.taxId) : null, vatCondition: r.vatCondition, isDefault: r.isDefault }));
+    return rows.map((r) => ({
+      id: r.id,
+      legalName: r.legalName,
+      taxId: r.taxId ? formatCuit(r.taxId) : null,
+      vatCondition: r.vatCondition,
+      isDefault: r.isDefault,
+    }));
   });
 }
 
@@ -267,7 +318,15 @@ export async function addFiscalHolder(ctx: Ctx, clientId: string, raw: unknown) 
     if (isDefault) await clearDefault(t, ctx, clientId);
     const [row] = await t
       .insert(schema.clientFiscalHolder)
-      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, clientId, legalName: input.legalName, taxId: input.taxId?.replace(/\D/g, "") ?? null, vatCondition: input.vatCondition ?? null, isDefault })
+      .values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        clientId,
+        legalName: input.legalName,
+        taxId: input.taxId?.replace(/\D/g, "") ?? null,
+        vatCondition: input.vatCondition ?? null,
+        isDefault,
+      })
       .returning();
     if (!row) throw new Error("No se pudo guardar el titular");
     await audit(t, ctx, { action: "fiscal.created", targetType: "client", targetId: clientId, after: { holderId: row.id } });
@@ -280,12 +339,20 @@ export async function updateFiscalHolder(ctx: Ctx, holderId: string, raw: unknow
   assertCan(ctx, "update", "fiscal");
   const input = fiscalInput.parse(raw);
   return getDb().transaction(async (t) => {
-    const [h] = await t.select().from(schema.clientFiscalHolder).where(and(eq(schema.clientFiscalHolder.id, holderId), scoped(schema.clientFiscalHolder, ctx)));
+    const [h] = await t
+      .select()
+      .from(schema.clientFiscalHolder)
+      .where(and(eq(schema.clientFiscalHolder.id, holderId), scoped(schema.clientFiscalHolder, ctx)));
     if (!h) throw notFound("El titular");
     if (input.isDefault) await clearDefault(t, ctx, h.clientId);
     await t
       .update(schema.clientFiscalHolder)
-      .set({ legalName: input.legalName, taxId: input.taxId?.replace(/\D/g, "") ?? null, vatCondition: input.vatCondition ?? null, isDefault: input.isDefault ? true : h.isDefault })
+      .set({
+        legalName: input.legalName,
+        taxId: input.taxId?.replace(/\D/g, "") ?? null,
+        vatCondition: input.vatCondition ?? null,
+        isDefault: input.isDefault ? true : h.isDefault,
+      })
       .where(eq(schema.clientFiscalHolder.id, holderId));
     await audit(t, ctx, { action: "fiscal.updated", targetType: "client", targetId: h.clientId, after: { holderId } });
     return { id: holderId };
@@ -325,15 +392,24 @@ async function link(t: Tx, ctx: Ctx, clientId: string, contactId: string, isPrim
   const [existing] = await t
     .select()
     .from(schema.clientContact)
-    .where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)));
+    .where(
+      and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)),
+    );
   const [{ n } = { n: 0 }] = await t
     .select({ n: sql<number>`count(*)::int` })
     .from(schema.clientContact)
     .where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.workspaceId, ctx.workspaceId), eq(schema.clientContact.isPrimary, true)));
   const primary = isPrimary || n === 0;
-  if (primary) await t.update(schema.clientContact).set({ isPrimary: false }).where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.workspaceId, ctx.workspaceId)));
+  if (primary)
+    await t
+      .update(schema.clientContact)
+      .set({ isPrimary: false })
+      .where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.workspaceId, ctx.workspaceId)));
   if (existing) {
-    await t.update(schema.clientContact).set({ isPrimary: primary || existing.isPrimary, roleInClient: roleInClient ?? existing.roleInClient }).where(eq(schema.clientContact.id, existing.id));
+    await t
+      .update(schema.clientContact)
+      .set({ isPrimary: primary || existing.isPrimary, roleInClient: roleInClient ?? existing.roleInClient })
+      .where(eq(schema.clientContact.id, existing.id));
   } else {
     await t.insert(schema.clientContact).values({ workspaceId: ctx.workspaceId, clientId, contactId, isPrimary: primary, roleInClient: roleInClient ?? null });
   }
@@ -345,7 +421,10 @@ export async function createContact(ctx: Ctx, raw: unknown) {
   return getDb().transaction(async (t) => {
     const client = input.clientId ? await getClientRow(t, ctx, input.clientId) : null;
     const { clientId: _c, isPrimary, ...fields } = input;
-    const [row] = await t.insert(schema.contact).values({ ...fields, workspaceId: ctx.workspaceId, createdBy: ctx.userId }).returning();
+    const [row] = await t
+      .insert(schema.contact)
+      .values({ ...fields, workspaceId: ctx.workspaceId, createdBy: ctx.userId })
+      .returning();
     if (!row) throw new Error("No se pudo crear el contacto");
     if (client) {
       await link(t, ctx, client.id, row.id, Boolean(isPrimary), input.role);
@@ -368,7 +447,14 @@ export async function updateContact(ctx: Ctx, id: string, raw: unknown) {
   return getDb().transaction(async (t) => {
     const [row] = await t
       .update(schema.contact)
-      .set({ name: input.name, role: input.role ?? null, email: input.email ?? null, phone: input.phone ?? null, whatsapp: input.whatsapp ?? null, notesMd: input.notesMd ?? null })
+      .set({
+        name: input.name,
+        role: input.role ?? null,
+        email: input.email ?? null,
+        phone: input.phone ?? null,
+        whatsapp: input.whatsapp ?? null,
+        notesMd: input.notesMd ?? null,
+      })
       .where(and(eq(schema.contact.id, id), scoped(schema.contact, ctx)))
       .returning();
     if (!row) throw notFound("El contacto");
@@ -379,14 +465,25 @@ export async function updateContact(ctx: Ctx, id: string, raw: unknown) {
 
 export async function linkContact(ctx: Ctx, clientId: string, raw: unknown) {
   assertCan(ctx, "update", "crm");
-  const input = z.object({ contactId: z.string({ error: "Elegí un contacto" }).uuid("Elegí un contacto"), isPrimary: zBool.optional(), roleInClient: zOptText(120) }).parse(raw);
+  const input = z
+    .object({ contactId: z.string({ error: "Elegí un contacto" }).uuid("Elegí un contacto"), isPrimary: zBool.optional(), roleInClient: zOptText(120) })
+    .parse(raw);
   return getDb().transaction(async (t) => {
     const c = await getClientRow(t, ctx, clientId);
-    const [ct] = await t.select().from(schema.contact).where(and(eq(schema.contact.id, input.contactId), scoped(schema.contact, ctx)));
+    const [ct] = await t
+      .select()
+      .from(schema.contact)
+      .where(and(eq(schema.contact.id, input.contactId), scoped(schema.contact, ctx)));
     if (!ct) throw notFound("El contacto");
     await link(t, ctx, clientId, ct.id, Boolean(input.isPrimary), input.roleInClient);
     await touchClient(t, clientId);
-    await recordEvent(t, ctx, { type: "contacto.vinculado", entityType: "client", entityId: clientId, summary: `Vinculó a ${ct.name} con «${c.name}»`, payload: { contactId: ct.id } });
+    await recordEvent(t, ctx, {
+      type: "contacto.vinculado",
+      entityType: "client",
+      entityId: clientId,
+      summary: `Vinculó a ${ct.name} con «${c.name}»`,
+      payload: { contactId: ct.id },
+    });
     return { clientId, contactId: ct.id };
   });
 }
@@ -397,10 +494,18 @@ export async function unlinkContact(ctx: Ctx, clientId: string, contactId: strin
     const c = await getClientRow(t, ctx, clientId);
     const [del] = await t
       .delete(schema.clientContact)
-      .where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)))
+      .where(
+        and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)),
+      )
       .returning();
     if (!del) throw notFound("El vínculo");
-    await recordEvent(t, ctx, { type: "contacto.desvinculado", entityType: "client", entityId: clientId, summary: `Desvinculó un contacto de «${c.name}»`, payload: { contactId } });
+    await recordEvent(t, ctx, {
+      type: "contacto.desvinculado",
+      entityType: "client",
+      entityId: clientId,
+      summary: `Desvinculó un contacto de «${c.name}»`,
+      payload: { contactId },
+    });
     return { isPrimary: del.isPrimary, roleInClient: del.roleInClient };
   });
 }
@@ -412,7 +517,9 @@ export async function setPrimaryContact(ctx: Ctx, clientId: string, contactId: s
     const [l] = await t
       .select()
       .from(schema.clientContact)
-      .where(and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)));
+      .where(
+        and(eq(schema.clientContact.clientId, clientId), eq(schema.clientContact.contactId, contactId), eq(schema.clientContact.workspaceId, ctx.workspaceId)),
+      );
     if (!l) throw notFound("El vínculo");
     await link(t, ctx, clientId, contactId, true);
     return { clientId, contactId };
@@ -455,7 +562,10 @@ export async function logInteraction(ctx: Ctx, raw: unknown) {
     const c = await getClientRow(t, ctx, input.clientId);
     let contactName: string | null = null;
     if (input.contactId) {
-      const [ct] = await t.select().from(schema.contact).where(and(eq(schema.contact.id, input.contactId), scoped(schema.contact, ctx)));
+      const [ct] = await t
+        .select()
+        .from(schema.contact)
+        .where(and(eq(schema.contact.id, input.contactId), scoped(schema.contact, ctx)));
       if (!ct) throw validation("El contacto no existe", { contactId: "Elegí un contacto válido" });
       contactName = ct.name;
     }
@@ -490,12 +600,21 @@ export async function logInteraction(ctx: Ctx, raw: unknown) {
 export async function completeNextStep(ctx: Ctx, interactionId: string) {
   assertCan(ctx, "update", "crm");
   return getDb().transaction(async (t) => {
-    const [before] = await t.select().from(schema.interaction).where(and(eq(schema.interaction.id, interactionId), scoped(schema.interaction, ctx)));
+    const [before] = await t
+      .select()
+      .from(schema.interaction)
+      .where(and(eq(schema.interaction.id, interactionId), scoped(schema.interaction, ctx)));
     if (!before) throw notFound("La interacción");
     if (!before.nextStep) throw validation("Esta interacción no tiene próximo paso");
     await t.update(schema.interaction).set({ nextStep: null, nextStepDue: null }).where(eq(schema.interaction.id, interactionId));
     await touchClient(t, before.clientId);
-    await recordEvent(t, ctx, { type: "interaccion.paso_completado", entityType: "client", entityId: before.clientId, summary: `Completó el próximo paso: ${before.nextStep}`, payload: { interactionId } });
+    await recordEvent(t, ctx, {
+      type: "interaccion.paso_completado",
+      entityType: "client",
+      entityId: before.clientId,
+      summary: `Completó el próximo paso: ${before.nextStep}`,
+      payload: { interactionId },
+    });
     return { id: interactionId, nextStep: before.nextStep, nextStepDue: before.nextStepDue };
   });
 }
@@ -535,7 +654,10 @@ export const opportunityInput = z
   });
 
 async function getOppRow(t: Tx, ctx: Ctx, id: string) {
-  const [o] = await t.select().from(schema.opportunity).where(and(eq(schema.opportunity.id, id), scoped(schema.opportunity, ctx)));
+  const [o] = await t
+    .select()
+    .from(schema.opportunity)
+    .where(and(eq(schema.opportunity.id, id), scoped(schema.opportunity, ctx)));
   if (!o) throw notFound("La oportunidad");
   return o;
 }
@@ -568,7 +690,13 @@ export async function createOpportunity(ctx: Ctx, raw: unknown) {
       .returning();
     if (!row) throw new Error("No se pudo crear la oportunidad");
     await touchClient(t, c.id);
-    await recordEvent(t, ctx, { type: "oportunidad.creada", entityType: "opportunity", entityId: row.id, summary: `Abrió la oportunidad «${row.title}» con «${c.name}»`, payload: { clientId: c.id } });
+    await recordEvent(t, ctx, {
+      type: "oportunidad.creada",
+      entityType: "opportunity",
+      entityId: row.id,
+      summary: `Abrió la oportunidad «${row.title}» con «${c.name}»`,
+      payload: { clientId: c.id },
+    });
     return row;
   });
 }
@@ -595,7 +723,13 @@ export async function updateOpportunity(ctx: Ctx, id: string, raw: unknown) {
       .returning();
     if (!row) throw notFound("La oportunidad");
     await touchClient(t, row.clientId);
-    await recordEvent(t, ctx, { type: "oportunidad.actualizada", entityType: "opportunity", entityId: id, summary: `Editó la oportunidad «${row.title}»`, payload: { clientId: row.clientId } });
+    await recordEvent(t, ctx, {
+      type: "oportunidad.actualizada",
+      entityType: "opportunity",
+      entityId: id,
+      summary: `Editó la oportunidad «${row.title}»`,
+      payload: { clientId: row.clientId },
+    });
     return row;
   });
 }
@@ -621,20 +755,29 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     const stage = input.stage;
 
     if (input.quoteId) {
-      const [q] = await t.select().from(schema.quote).where(and(eq(schema.quote.id, input.quoteId), scoped(schema.quote, ctx)));
+      const [q] = await t
+        .select()
+        .from(schema.quote)
+        .where(and(eq(schema.quote.id, input.quoteId), scoped(schema.quote, ctx)));
       if (!q || q.clientId !== o.clientId) throw validation("El presupuesto no es de este cliente", { quoteId: "Elegí un presupuesto del cliente" });
-      if (q.opportunityId && q.opportunityId !== o.id) throw validation("Ese presupuesto ya está vinculado a otra oportunidad", { quoteId: "Ya vinculado a otra oportunidad" });
+      if (q.opportunityId && q.opportunityId !== o.id)
+        throw validation("Ese presupuesto ya está vinculado a otra oportunidad", { quoteId: "Ya vinculado a otra oportunidad" });
       await t.update(schema.quote).set({ opportunityId: o.id }).where(eq(schema.quote.id, q.id));
     }
     if (stage === "proposal_sent") {
-      const [linked] = await t.select({ id: schema.quote.id }).from(schema.quote).where(and(eq(schema.quote.opportunityId, o.id), scoped(schema.quote, ctx))).limit(1);
+      const [linked] = await t
+        .select({ id: schema.quote.id })
+        .from(schema.quote)
+        .where(and(eq(schema.quote.opportunityId, o.id), scoped(schema.quote, ctx)))
+        .limit(1);
       if (!linked) throw validation("Para pasar a «Propuesta enviada» vinculá un presupuesto (o crealo).", { quoteId: "Vinculá un presupuesto" });
     }
     if (stage === "lost" && !input.lostReason) throw validation("Para marcarla perdida elegí un motivo.", { lostReason: "Elegí un motivo" });
 
     const patch: Partial<typeof schema.opportunity.$inferInsert> = { stage };
     if (stage === "won") Object.assign(patch, { wonAt: o.stage === "won" ? o.wonAt : now(), lostAt: null, lostReason: null, probability: 100 });
-    else if (stage === "lost") Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0 });
+    else if (stage === "lost")
+      Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0 });
     else Object.assign(patch, { wonAt: null, lostAt: null, lostReason: null, ...(o.stage === "won" || o.stage === "lost" ? { probability: 50 } : {}) });
     if (o.stage !== stage) {
       const [{ s } = { s: 0 }] = await t
@@ -652,15 +795,33 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
       const from = label(L.stage, o.stage);
       const to = label(L.stage, stage);
       if (stage === "won") {
-        await recordEvent(t, ctx, { type: "oportunidad.ganada", entityType: "opportunity", entityId: id, summary: `Ganó la oportunidad «${o.title}» con «${c.name}»`, payload: { clientId: c.id, from: o.stage, value: o.valueAmount, currency: o.valueCurrency } });
+        await recordEvent(t, ctx, {
+          type: "oportunidad.ganada",
+          entityType: "opportunity",
+          entityId: id,
+          summary: `Ganó la oportunidad «${o.title}» con «${c.name}»`,
+          payload: { clientId: c.id, from: o.stage, value: o.valueAmount, currency: o.valueCurrency },
+        });
         if (c.status === "prospect") {
           await changeStatus(t, ctx, c.id, "active");
           clientActivated = true;
         }
       } else if (stage === "lost") {
-        await recordEvent(t, ctx, { type: "oportunidad.perdida", entityType: "opportunity", entityId: id, summary: `Perdió la oportunidad «${o.title}» (${label(L.lostReason, input.lostReason).toLowerCase()})`, payload: { clientId: c.id, from: o.stage, reason: input.lostReason } });
+        await recordEvent(t, ctx, {
+          type: "oportunidad.perdida",
+          entityType: "opportunity",
+          entityId: id,
+          summary: `Perdió la oportunidad «${o.title}» (${label(L.lostReason, input.lostReason).toLowerCase()})`,
+          payload: { clientId: c.id, from: o.stage, reason: input.lostReason },
+        });
       } else {
-        await recordEvent(t, ctx, { type: "oportunidad.etapa_cambiada", entityType: "opportunity", entityId: id, summary: `Movió «${o.title}» de ${from.toLowerCase()} a ${to.toLowerCase()}`, payload: { clientId: c.id, from: o.stage, to: stage } });
+        await recordEvent(t, ctx, {
+          type: "oportunidad.etapa_cambiada",
+          entityType: "opportunity",
+          entityId: id,
+          summary: `Movió «${o.title}» de ${from.toLowerCase()} a ${to.toLowerCase()}`,
+          payload: { clientId: c.id, from: o.stage, to: stage },
+        });
       }
     }
     return { ...row, clientActivated, clientName: c.name, previousStage: o.stage };
@@ -692,13 +853,23 @@ export async function mergeClients(ctx: Ctx, duplicateId: string, targetId: stri
   assertCan(ctx, "delete", "crm");
   assertCan(ctx, "update", "finance");
   assertCan(ctx, "update", "fiscal");
-  const ids = z.object({ duplicateId: zUuid, targetId: z.string({ error: "Elegí el cliente destino" }).uuid("Elegí el cliente destino") }).parse({ duplicateId, targetId });
+  const ids = z
+    .object({ duplicateId: zUuid, targetId: z.string({ error: "Elegí el cliente destino" }).uuid("Elegí el cliente destino") })
+    .parse({ duplicateId, targetId });
   if (ids.duplicateId === ids.targetId) throw validation("Elegí otro cliente: no se puede fusionar consigo mismo", { targetId: "Elegí otro cliente" });
   return getDb().transaction(async (t) => {
     const dup = await getClientRow(t, ctx, ids.duplicateId);
     const target = await getClientRow(t, ctx, ids.targetId);
     const ws = ctx.workspaceId;
-    const moveTo = async (table: typeof schema.interaction | typeof schema.opportunity | typeof schema.project | typeof schema.quote | typeof schema.receivable | typeof schema.transaction) => {
+    const moveTo = async (
+      table:
+        | typeof schema.interaction
+        | typeof schema.opportunity
+        | typeof schema.project
+        | typeof schema.quote
+        | typeof schema.receivable
+        | typeof schema.transaction,
+    ) => {
       const res = await t
         .update(table)
         .set({ clientId: target.id })
@@ -718,21 +889,35 @@ export async function mergeClients(ctx: Ctx, duplicateId: string, targetId: stri
     };
 
     // Contactos: los que ya están en el destino no se duplican; el principal del destino se conserva.
-    const targetLinks = await t.select().from(schema.clientContact).where(and(eq(schema.clientContact.clientId, target.id), eq(schema.clientContact.workspaceId, ws)));
+    const targetLinks = await t
+      .select()
+      .from(schema.clientContact)
+      .where(and(eq(schema.clientContact.clientId, target.id), eq(schema.clientContact.workspaceId, ws)));
     const already = new Set(targetLinks.map((l) => l.contactId));
     const hasPrimary = targetLinks.some((l) => l.isPrimary);
-    const dupLinks = await t.select().from(schema.clientContact).where(and(eq(schema.clientContact.clientId, dup.id), eq(schema.clientContact.workspaceId, ws)));
+    const dupLinks = await t
+      .select()
+      .from(schema.clientContact)
+      .where(and(eq(schema.clientContact.clientId, dup.id), eq(schema.clientContact.workspaceId, ws)));
     for (const l of dupLinks) {
       if (already.has(l.contactId)) {
         await t.delete(schema.clientContact).where(eq(schema.clientContact.id, l.id));
       } else {
-        await t.update(schema.clientContact).set({ clientId: target.id, isPrimary: hasPrimary ? false : l.isPrimary }).where(eq(schema.clientContact.id, l.id));
+        await t
+          .update(schema.clientContact)
+          .set({ clientId: target.id, isPrimary: hasPrimary ? false : l.isPrimary })
+          .where(eq(schema.clientContact.id, l.id));
         counts.contacts++;
       }
     }
     if (!hasPrimary) {
       // si el duplicado aportaba más de un principal, queda uno solo
-      const prim = (await t.select().from(schema.clientContact).where(and(eq(schema.clientContact.clientId, target.id), eq(schema.clientContact.workspaceId, ws), eq(schema.clientContact.isPrimary, true)))).slice(1);
+      const prim = (
+        await t
+          .select()
+          .from(schema.clientContact)
+          .where(and(eq(schema.clientContact.clientId, target.id), eq(schema.clientContact.workspaceId, ws), eq(schema.clientContact.isPrimary, true)))
+      ).slice(1);
       for (const p of prim) await t.update(schema.clientContact).set({ isPrimary: false }).where(eq(schema.clientContact.id, p.id));
     }
 
@@ -747,7 +932,9 @@ export async function mergeClients(ctx: Ctx, duplicateId: string, targetId: stri
       .returning({ id: schema.clientFiscalHolder.id });
     counts.fiscalHolders = movedFiscal.length;
 
-    const mergedNotes = dup.notesMd?.trim() ? `${target.notesMd?.trim() ? `${target.notesMd.trim()}\n\n` : ""}---\n_Fusionado desde «${dup.name}» el ${todayAR()}_\n\n${dup.notesMd.trim()}` : target.notesMd;
+    const mergedNotes = dup.notesMd?.trim()
+      ? `${target.notesMd?.trim() ? `${target.notesMd.trim()}\n\n` : ""}---\n_Fusionado desde «${dup.name}» el ${todayAR()}_\n\n${dup.notesMd.trim()}`
+      : target.notesMd;
     const lastActivity = [dup.lastActivityAt, target.lastActivityAt, now()].filter(Boolean) as Date[];
     await t
       .update(schema.client)
@@ -764,8 +951,20 @@ export async function mergeClients(ctx: Ctx, duplicateId: string, targetId: stri
       .where(eq(schema.client.id, target.id));
     await t.update(schema.client).set({ deletedAt: now() }).where(eq(schema.client.id, dup.id));
 
-    await recordEvent(t, ctx, { type: "cliente.fusionado", entityType: "client", entityId: target.id, summary: `Fusionó «${dup.name}» en «${target.name}»`, payload: { duplicateId: dup.id, counts } });
-    await audit(t, ctx, { action: "client.merged", targetType: "client", targetId: target.id, before: { duplicate: { id: dup.id, name: dup.name } }, after: { counts } });
+    await recordEvent(t, ctx, {
+      type: "cliente.fusionado",
+      entityType: "client",
+      entityId: target.id,
+      summary: `Fusionó «${dup.name}» en «${target.name}»`,
+      payload: { duplicateId: dup.id, counts },
+    });
+    await audit(t, ctx, {
+      action: "client.merged",
+      targetType: "client",
+      targetId: target.id,
+      before: { duplicate: { id: dup.id, name: dup.name } },
+      after: { counts },
+    });
     return { targetId: target.id, counts };
   });
 }

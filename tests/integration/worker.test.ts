@@ -17,19 +17,34 @@ describe("worker", () => {
     await dispatchOutbox();
     const notes = await getDb().select().from(schema.notification).where(eq(schema.notification.workspaceId, owner.workspaceId));
     expect(notes.some((n) => n.title.includes("Idea desde Claude"))).toBe(true);
-    const pending = await getDb().select().from(schema.domainEvent).where(and(eq(schema.domainEvent.workspaceId, owner.workspaceId)));
+    const pending = await getDb()
+      .select()
+      .from(schema.domainEvent)
+      .where(and(eq(schema.domainEvent.workspaceId, owner.workspaceId)));
     expect(pending.every((e) => e.dispatchedAt)).toBe(true);
   });
 
   it("marca vencidos los cobros con fecha pasada y arma el resumen diario", async () => {
     const owner = await makeWorkspace();
     const [c] = await getDb().insert(schema.client).values({ workspaceId: owner.workspaceId, name: "Cliente X", status: "active" }).returning();
-    await getDb().insert(schema.receivable).values({ workspaceId: owner.workspaceId, clientId: c?.id as string, concept: "Anticipo", amount: "1000.00", currency: "ARS", dueDate: addDays(todayAR(), -2) });
+    await getDb()
+      .insert(schema.receivable)
+      .values({
+        workspaceId: owner.workspaceId,
+        clientId: c?.id as string,
+        concept: "Anticipo",
+        amount: "1000.00",
+        currency: "ARS",
+        dueDate: addDays(todayAR(), -2),
+      });
     await dailyDueDates();
     const [rec] = await getDb().select().from(schema.receivable).where(eq(schema.receivable.workspaceId, owner.workspaceId));
     expect(rec?.status).toBe("overdue");
     await dailySummary();
-    const n = await getDb().select().from(schema.notification).where(and(eq(schema.notification.workspaceId, owner.workspaceId), eq(schema.notification.type, "resumen.diario")));
+    const n = await getDb()
+      .select()
+      .from(schema.notification)
+      .where(and(eq(schema.notification.workspaceId, owner.workspaceId), eq(schema.notification.type, "resumen.diario")));
     expect(n.length).toBe(1);
   });
 });

@@ -22,13 +22,22 @@ export default async function NotificationsPage() {
           <section key={d} className="mb-5">
             <h2 className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">{d === today ? "Hoy" : formatDate(d)}</h2>
             <Card className="divide-y divide-border">
-              {items.filter((n) => toISODateAR(n.createdAt) === d).map((n) => (
-                <Link key={n.id} href={n.entityType && n.entityId ? entityHref(n.entityType, n.entityId) : "/hoy"} className="flex items-start gap-3 p-4 hover:bg-surface-2">
-                  <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-accent")} aria-label={n.readAt ? undefined : "Sin leer"} />
-                  <span className="flex-1 text-[14px] text-text">{n.title}</span>
-                  <span className="font-mono text-[12px] text-text-faint">{relativeFromDate(n.createdAt)}</span>
-                </Link>
-              ))}
+              {items
+                .filter((n) => toISODateAR(n.createdAt) === d)
+                .map((n) => (
+                  <Link
+                    key={n.id}
+                    href={n.entityType && n.entityId ? entityHref(n.entityType, n.entityId) : "/hoy"}
+                    className="flex items-start gap-3 p-4 hover:bg-surface-2"
+                  >
+                    <span
+                      className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-accent")}
+                      aria-label={n.readAt ? undefined : "Sin leer"}
+                    />
+                    <span className="flex-1 text-[14px] text-text">{n.title}</span>
+                    <span className="font-mono text-[12px] text-text-faint">{relativeFromDate(n.createdAt)}</span>
+                  </Link>
+                ))}
             </Card>
           </section>
         ))

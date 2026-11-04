@@ -11,7 +11,12 @@ export const toNoteAction = async (id: string) => run((ctx) => svc.convertToNote
 export const toProjectAction = async (id: string) =>
   run(async (ctx) => {
     const item = await svc.getItem(ctx, id);
-    const p = await createProject(ctx, { name: item.text.split("\n")[0]?.slice(0, 160), spaceId: item.spaceId ?? undefined, status: "idea", notesMd: item.text });
+    const p = await createProject(ctx, {
+      name: item.text.split("\n")[0]?.slice(0, 160),
+      spaceId: item.spaceId ?? undefined,
+      status: "idea",
+      notesMd: item.text,
+    });
     await svc.markProcessed(ctx, id, { type: "project", id: p.id });
     return p;
   });

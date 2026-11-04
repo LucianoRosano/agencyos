@@ -18,17 +18,27 @@ export default async function ApprovalsPage() {
           {items.map((a) => (
             <Card key={a.id} className="p-5">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{a.requestedByType === "agent" ? "Claude (MCP)" : "Sistema"} · {formatDateTime(a.createdAt)}</p>
-                <Badge tone={a.status === "pending" ? "warning" : a.status === "approved" ? "success" : "neutral"}>{a.status === "pending" ? "Pendiente" : a.status === "approved" ? "Aprobada" : "Rechazada"}</Badge>
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  {a.requestedByType === "agent" ? "Claude (MCP)" : "Sistema"} · {formatDateTime(a.createdAt)}
+                </p>
+                <Badge tone={a.status === "pending" ? "warning" : a.status === "approved" ? "success" : "neutral"}>
+                  {a.status === "pending" ? "Pendiente" : a.status === "approved" ? "Aprobada" : "Rechazada"}
+                </Badge>
               </div>
               <p className="text-[16px] font-medium">{a.title}</p>
-              <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-surface-2 p-3 font-mono text-[12px] text-text-muted">{String((a.proposal as { detalle?: string }).detalle ?? "")}</pre>
+              <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-surface-2 p-3 font-mono text-[12px] text-text-muted">
+                {String((a.proposal as { detalle?: string }).detalle ?? "")}
+              </pre>
               {a.status === "pending" ? <ApprovalButtons id={a.id} /> : null}
             </Card>
           ))}
         </div>
       ) : (
-        <EmptyState icon={<ShieldCheck />} title="Sin propuestas" description="Cuando Claude proponga un cambio fuera de sus permisos, aparece acá para que lo apruebes o rechaces." />
+        <EmptyState
+          icon={<ShieldCheck />}
+          title="Sin propuestas"
+          description="Cuando Claude proponga un cambio fuera de sus permisos, aparece acá para que lo apruebes o rechaces."
+        />
       )}
     </div>
   );

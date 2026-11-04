@@ -3,8 +3,8 @@ import { type CourseListItem, listCourses, studyOverview } from "@agencyos/modul
 import { Badge, Button, Card, cn, Dot, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
 import { CalendarClock, GraduationCap, Plus } from "lucide-react";
 import Link from "next/link";
-import { CourseSheet } from "@/components/study/course-form";
 import { Countdown } from "@/components/study/countdown";
+import { CourseSheet } from "@/components/study/course-form";
 import { countdownLabel, formatGrade } from "@/components/study/shared";
 import { requireCtx } from "@/lib/session";
 
@@ -25,9 +25,20 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
   const filter = FILTERS.find((f) => f.key === sp.estado)?.key ?? "activas";
   // Facultad no aplica el selector global de espacio: las materias viven en el espacio Facultad.
   const [all, overview] = await Promise.all([listCourses(ctx, { includeAll: true }), studyOverview(ctx)]);
-  const rows = filter === "todas" ? all : filter === "activas" ? all.filter((c) => ["cursando", "regular", "final_pendiente"].includes(c.status)) : all.filter((c) => c.status === filter);
+  const rows =
+    filter === "todas"
+      ? all
+      : filter === "activas"
+        ? all.filter((c) => ["cursando", "regular", "final_pendiente"].includes(c.status))
+        : all.filter((c) => c.status === filter);
   const newButton = (
-    <CourseSheet trigger={<Button variant="primary"><Plus className="size-4" /> Nueva materia</Button>} />
+    <CourseSheet
+      trigger={
+        <Button variant="primary">
+          <Plus className="size-4" /> Nueva materia
+        </Button>
+      }
+    />
   );
 
   if (!all.length) {
@@ -57,7 +68,9 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
 
       <div className="mb-6 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <Card className="flex flex-col p-4 md:p-5">
-          <SectionLabel icon={<GraduationCap />} className="mb-4">Próxima evaluación</SectionLabel>
+          <SectionLabel icon={<GraduationCap />} className="mb-4">
+            Próxima evaluación
+          </SectionLabel>
           {next ? (
             <>
               <Link href={`/facultad/${next.a.courseId}`} className="group flex items-center gap-5 rounded-[var(--radius-control)]">
@@ -78,10 +91,15 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
                 <ul className="mt-5 flex flex-col border-t border-border pt-3">
                   {overview.upcoming.slice(1, 5).map((u) => (
                     <li key={u.a.id}>
-                      <Link href={`/facultad/${u.a.courseId}`} className="flex min-h-11 items-center justify-between gap-3 text-[14px] text-text-muted hover:text-text">
+                      <Link
+                        href={`/facultad/${u.a.courseId}`}
+                        className="flex min-h-11 items-center justify-between gap-3 text-[14px] text-text-muted hover:text-text"
+                      >
                         <span className="flex min-w-0 items-center gap-2">
                           <Dot color={u.courseColor ?? ACCENT} />
-                          <span className="truncate">{u.courseName} · {u.a.title?.trim() || label(L.assessmentKind, u.a.kind)}</span>
+                          <span className="truncate">
+                            {u.courseName} · {u.a.title?.trim() || label(L.assessmentKind, u.a.kind)}
+                          </span>
                         </span>
                         <span className="shrink-0 font-mono text-[13px] text-text">{countdownLabel(u.a.date, overview.today)}</span>
                       </Link>
@@ -91,7 +109,12 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
               ) : null}
             </>
           ) : (
-            <EmptyState compact icon={<CalendarClock />} title="Sin evaluaciones próximas" description="Agendá parciales, TPs y finales desde la ficha de cada materia." />
+            <EmptyState
+              compact
+              icon={<CalendarClock />}
+              title="Sin evaluaciones próximas"
+              description="Agendá parciales, TPs y finales desde la ficha de cada materia."
+            />
           )}
         </Card>
 
@@ -104,7 +127,10 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
             </div>
             <div>
               <dt className="text-[12px] text-text-muted">Rendidas</dt>
-              <dd className="font-mono text-[22px] text-text">{taken}<span className="text-[14px] text-text-faint">/{total}</span></dd>
+              <dd className="font-mono text-[22px] text-text">
+                {taken}
+                <span className="text-[14px] text-text-faint">/{total}</span>
+              </dd>
             </div>
             <div>
               <dt className="text-[12px] text-text-muted">Activas</dt>
@@ -115,7 +141,10 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
             <ul className="flex flex-col gap-1">
               {active.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/facultad/${c.id}`} className="grid min-h-9 grid-cols-[1fr_96px_40px] items-center gap-3 text-[14px] text-text hover:text-text md:grid-cols-[1fr_120px_44px]">
+                  <Link
+                    href={`/facultad/${c.id}`}
+                    className="grid min-h-9 grid-cols-[1fr_96px_40px] items-center gap-3 text-[14px] text-text hover:text-text md:grid-cols-[1fr_120px_44px]"
+                  >
                     <span className="truncate">{c.name}</span>
                     <Progress value={c.stats.progress} tone="warning" label={`Avance de ${c.name}`} />
                     <span className="text-right font-mono text-[13px] text-text-muted">{c.stats.progress}%</span>
@@ -129,13 +158,22 @@ export default async function FacultadPage({ searchParams }: { searchParams: Pro
         </Card>
       </div>
 
-      <Tabs active={filter} items={FILTERS.map((f) => ({ key: f.key, label: f.label, href: f.key === "activas" ? "/facultad" : `/facultad?estado=${f.key}` }))} />
+      <Tabs
+        active={filter}
+        items={FILTERS.map((f) => ({ key: f.key, label: f.label, href: f.key === "activas" ? "/facultad" : `/facultad?estado=${f.key}` }))}
+      />
       {rows.length ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {rows.map((c) => <CourseCard key={c.id} c={c} today={overview.today} />)}
+          {rows.map((c) => (
+            <CourseCard key={c.id} c={c} today={overview.today} />
+          ))}
         </div>
       ) : (
-        <EmptyState icon={<GraduationCap />} title={`No hay materias ${FILTERS.find((f) => f.key === filter)?.label.toLowerCase()}`} description="Cambiá el filtro para ver el resto." />
+        <EmptyState
+          icon={<GraduationCap />}
+          title={`No hay materias ${FILTERS.find((f) => f.key === filter)?.label.toLowerCase()}`}
+          description="Cambiá el filtro para ver el resto."
+        />
       )}
     </div>
   );
@@ -147,27 +185,37 @@ function CourseCard({ c, today }: { c: CourseListItem; today: string }) {
   return (
     <Link
       href={`/facultad/${c.id}`}
-      className={cn("group relative flex min-h-44 flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5", dim && "opacity-55")}
+      className={cn(
+        "group relative flex min-h-44 flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5",
+        dim && "opacity-55",
+      )}
     >
       <span aria-hidden className="absolute inset-y-0 left-0 w-0.5" style={{ background: color }} />
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[16px] font-medium text-text">{c.name}</h3>
-        <Badge tone={c.status === "aprobada" ? "success" : c.status === "final_pendiente" ? "warning" : "neutral"} className="shrink-0">{label(L.courseStatus, c.status)}</Badge>
+        <Badge tone={c.status === "aprobada" ? "success" : c.status === "final_pendiente" ? "warning" : "neutral"} className="shrink-0">
+          {label(L.courseStatus, c.status)}
+        </Badge>
       </div>
       <p className="mt-1 flex items-center gap-2 text-[13px] text-text-muted">
         <Dot color={color} />
-        <span className="truncate">{[c.term, c.commission ? `Comisión ${c.commission}` : null].filter(Boolean).join(" · ") || c.program || "Sin cuatrimestre"}</span>
+        <span className="truncate">
+          {[c.term, c.commission ? `Comisión ${c.commission}` : null].filter(Boolean).join(" · ") || c.program || "Sin cuatrimestre"}
+        </span>
       </p>
       <Progress value={c.stats.progress} tone="warning" className="mt-4" label={`Avance de ${c.name}`} />
       <div className="mt-2 flex items-center justify-between font-mono text-[12px] text-text-faint">
-        <span>{c.stats.taken}/{c.stats.total} rendidas</span>
+        <span>
+          {c.stats.taken}/{c.stats.total} rendidas
+        </span>
         <span>{c.stats.average ? `prom. ${formatGrade(c.stats.average)}` : c.finalGrade ? `final ${formatGrade(c.finalGrade)}` : `${c.stats.progress}%`}</span>
       </div>
       <p className="mt-auto flex items-center gap-2 pt-4 text-[14px] text-text">
         <CalendarClock className="size-4 shrink-0 text-warning" />
         {c.stats.next ? (
           <span className="truncate">
-            {c.stats.next.title?.trim() || label(L.assessmentKind, c.stats.next.kind)} <span className="font-mono text-text-muted">· {countdownLabel(c.stats.next.date, today)}</span>
+            {c.stats.next.title?.trim() || label(L.assessmentKind, c.stats.next.kind)}{" "}
+            <span className="font-mono text-text-muted">· {countdownLabel(c.stats.next.date, today)}</span>
           </span>
         ) : (
           <span className="text-text-faint">Sin evaluaciones próximas</span>

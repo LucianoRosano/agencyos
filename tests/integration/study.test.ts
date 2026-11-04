@@ -2,7 +2,15 @@ import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getCourse, listCourses, studyOverview } from "@agencyos/modules/study/queries";
 import {
-  createAssessment, createCourse, createStudyPlan, gradeAssessment, setCourseStatus, spreadDates, topicsFromMarkdown, updateAssessment, updateCourse,
+  createAssessment,
+  createCourse,
+  createStudyPlan,
+  gradeAssessment,
+  setCourseStatus,
+  spreadDates,
+  topicsFromMarkdown,
+  updateAssessment,
+  updateCourse,
 } from "@agencyos/modules/study/service";
 import { getToday } from "@agencyos/modules/today/queries";
 import { moveToTrash, restoreFromTrash } from "@agencyos/modules/trash/service";
@@ -11,7 +19,10 @@ import { describe, expect, it } from "vitest";
 import { agentCtx, makeWorkspace } from "./helpers";
 
 const events = async (workspaceId: string, type: string) =>
-  getDb().select().from(schema.domainEvent).where(and(eq(schema.domainEvent.workspaceId, workspaceId), eq(schema.domainEvent.type, type)));
+  getDb()
+    .select()
+    .from(schema.domainEvent)
+    .where(and(eq(schema.domainEvent.workspaceId, workspaceId), eq(schema.domainEvent.type, type)));
 
 describe("facultad: materias y evaluaciones", () => {
   it("arranca vacía: un workspace nuevo no tiene materias", async () => {
@@ -48,7 +59,18 @@ describe("facultad: materias y evaluaciones", () => {
     const c = await createCourse(ctx, { name: "Mate", finalGrade: "8,5", status: "aprobada" });
     expect(c.finalGrade).toBe("8.50");
     // un formulario con todos los opcionales vacíos (FormData → "")
-    const empty = await createCourse(ctx, { name: "Vacía", program: "", term: "", commission: "", teachers: "", status: "cursando", finalGrade: "", color: "", schedule: "[]", notesMd: "" });
+    const empty = await createCourse(ctx, {
+      name: "Vacía",
+      program: "",
+      term: "",
+      commission: "",
+      teachers: "",
+      status: "cursando",
+      finalGrade: "",
+      color: "",
+      schedule: "[]",
+      notesMd: "",
+    });
     expect(empty.program).toBeNull();
     const a = await createAssessment(ctx, empty.id, { kind: "tp", title: "", date: "2030-01-01", time: "", topicsMd: "", targetGrade: "", grade: "" });
     expect(a.title).toBeNull();
@@ -73,7 +95,14 @@ describe("facultad: materias y evaluaciones", () => {
     const today = todayAR();
     const c = await createCourse(ctx, { name: "PSEC" });
     const past = await createAssessment(ctx, c.id, { kind: "tp", title: "TP 1", date: addDays(today, -10) });
-    const next = await createAssessment(ctx, c.id, { kind: "parcial", title: "Parcial 1", date: addDays(today, 6), time: "18:00", targetGrade: "9", topicsMd: "- Recursión\n- Listas" });
+    const next = await createAssessment(ctx, c.id, {
+      kind: "parcial",
+      title: "Parcial 1",
+      date: addDays(today, 6),
+      time: "18:00",
+      targetGrade: "9",
+      topicsMd: "- Recursión\n- Listas",
+    });
     await createAssessment(ctx, c.id, { kind: "final", date: addDays(today, 40) });
     expect((await events(ctx.workspaceId, "evaluacion.creada")).length).toBe(3);
     await expect(createAssessment(ctx, c.id, { kind: "parcial", date: "mañana" })).rejects.toThrow();
@@ -126,8 +155,12 @@ describe("facultad: materias y evaluaciones", () => {
   it("ficha: apuntes = notas vinculadas a la materia", async () => {
     const ctx = await makeWorkspace();
     const c = await createCourse(ctx, { name: "TLED" });
-    await getDb().insert(schema.note).values({ workspaceId: ctx.workspaceId, title: "Resumen módulo I", slug: `resumen-${c.id}`, entityType: "course", entityId: c.id });
-    await getDb().insert(schema.note).values({ workspaceId: ctx.workspaceId, title: "Otra nota", slug: `otra-${c.id}` });
+    await getDb()
+      .insert(schema.note)
+      .values({ workspaceId: ctx.workspaceId, title: "Resumen módulo I", slug: `resumen-${c.id}`, entityType: "course", entityId: c.id });
+    await getDb()
+      .insert(schema.note)
+      .values({ workspaceId: ctx.workspaceId, title: "Otra nota", slug: `otra-${c.id}` });
     const d = await getCourse(ctx, c.id);
     expect(d?.notes.map((n) => n.title)).toEqual(["Resumen módulo I"]);
   });

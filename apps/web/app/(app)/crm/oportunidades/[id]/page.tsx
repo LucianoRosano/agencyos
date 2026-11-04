@@ -35,7 +35,13 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
       <PageHeader
         eyebrow={
           <span className="flex flex-wrap items-center gap-x-2">
-            <Link href="/crm/oportunidades" className="hover:text-text">Oportunidad</Link>· <Link href={`/crm/clientes/${o.clientId}`} className="hover:text-text">{clientName}</Link>
+            <Link href="/crm/oportunidades" className="hover:text-text">
+              Oportunidad
+            </Link>
+            ·{" "}
+            <Link href={`/crm/clientes/${o.clientId}`} className="hover:text-text">
+              {clientName}
+            </Link>
           </span>
         }
         title={o.title}
@@ -45,7 +51,16 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
             <EditOpportunitySheet
               id={o.id}
               clients={clients}
-              defaults={{ clientId: o.clientId, title: o.title, valueAmount: o.valueAmount, valueCurrency: o.valueCurrency, probability: o.probability, expectedClose: o.expectedClose, nextAction: o.nextAction, nextActionDue: o.nextActionDue }}
+              defaults={{
+                clientId: o.clientId,
+                title: o.title,
+                valueAmount: o.valueAmount,
+                valueCurrency: o.valueCurrency,
+                probability: o.probability,
+                expectedClose: o.expectedClose,
+                nextAction: o.nextAction,
+                nextActionDue: o.nextActionDue,
+              }}
             />
             <OpportunityMenu id={o.id} title={o.title} />
           </>
@@ -53,7 +68,9 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
       />
 
       <Card className="mb-5 p-4 md:p-5">
-        <SectionLabel icon={<Route />} className="mb-4">Etapa · {label(L.stage, o.stage)}</SectionLabel>
+        <SectionLabel icon={<Route />} className="mb-4">
+          Etapa · {label(L.stage, o.stage)}
+        </SectionLabel>
         <OpportunityStage opp={lite} quotes={quotes} />
       </Card>
 
@@ -64,7 +81,13 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
               {o.nextAction ? (
                 <p className="flex flex-wrap items-baseline gap-x-3 text-[15px] text-text">
                   {o.nextAction}
-                  {due ? <span className={cn("font-mono text-[13px]", due.cls)}>{due.text} · {formatDate(o.nextActionDue)}</span> : <span className="text-[13px] text-text-faint">sin fecha</span>}
+                  {due ? (
+                    <span className={cn("font-mono text-[13px]", due.cls)}>
+                      {due.text} · {formatDate(o.nextActionDue)}
+                    </span>
+                  ) : (
+                    <span className="text-[13px] text-text-faint">sin fecha</span>
+                  )}
                 </p>
               ) : (
                 <p className="text-[14px] text-text-faint">Sin próxima acción. Editala: con fecha, aparece en Hoy.</p>
@@ -79,19 +102,44 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
           </BlockCard>
         </div>
         <Card className="h-fit p-5">
-          <SectionLabel icon={<Info />} className="mb-4">Propiedades</SectionLabel>
+          <SectionLabel icon={<Info />} className="mb-4">
+            Propiedades
+          </SectionLabel>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]">
             <dt className="text-text-muted">Etapa</dt>
-            <dd><Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{label(L.stage, o.stage)}</Badge></dd>
+            <dd>
+              <Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{label(L.stage, o.stage)}</Badge>
+            </dd>
             <dt className="text-text-muted">Cliente</dt>
-            <dd className="min-w-0 truncate"><Link href={`/crm/clientes/${o.clientId}`} className="text-text hover:underline">{clientName}</Link></dd>
-            <dt className="text-text-muted">Valor</dt><dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</dd>
-            <dt className="text-text-muted">Probabilidad</dt><dd className="font-mono text-[13px]">{o.probability}%</dd>
-            <dt className="text-text-muted">Ponderado</dt><dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(percentOf(o.valueAmount, o.probability), o.valueCurrency) : "—"}</dd>
-            <dt className="text-text-muted">Cierre est.</dt><dd className="font-mono text-[13px]">{formatDate(o.expectedClose)}</dd>
-            {o.wonAt ? (<><dt className="text-text-muted">Ganada</dt><dd className="font-mono text-[13px]">{formatDateTime(o.wonAt)}</dd></>) : null}
-            {o.lostAt ? (<><dt className="text-text-muted">Perdida</dt><dd className="font-mono text-[13px]">{formatDateTime(o.lostAt)}</dd><dt className="text-text-muted">Motivo</dt><dd>{label(L.lostReason, o.lostReason)}</dd></>) : null}
-            <dt className="text-text-muted">Alta</dt><dd className="font-mono text-[13px]">{formatDate(o.createdAt)}</dd>
+            <dd className="min-w-0 truncate">
+              <Link href={`/crm/clientes/${o.clientId}`} className="text-text hover:underline">
+                {clientName}
+              </Link>
+            </dd>
+            <dt className="text-text-muted">Valor</dt>
+            <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</dd>
+            <dt className="text-text-muted">Probabilidad</dt>
+            <dd className="font-mono text-[13px]">{o.probability}%</dd>
+            <dt className="text-text-muted">Ponderado</dt>
+            <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(percentOf(o.valueAmount, o.probability), o.valueCurrency) : "—"}</dd>
+            <dt className="text-text-muted">Cierre est.</dt>
+            <dd className="font-mono text-[13px]">{formatDate(o.expectedClose)}</dd>
+            {o.wonAt ? (
+              <>
+                <dt className="text-text-muted">Ganada</dt>
+                <dd className="font-mono text-[13px]">{formatDateTime(o.wonAt)}</dd>
+              </>
+            ) : null}
+            {o.lostAt ? (
+              <>
+                <dt className="text-text-muted">Perdida</dt>
+                <dd className="font-mono text-[13px]">{formatDateTime(o.lostAt)}</dd>
+                <dt className="text-text-muted">Motivo</dt>
+                <dd>{label(L.lostReason, o.lostReason)}</dd>
+              </>
+            ) : null}
+            <dt className="text-text-muted">Alta</dt>
+            <dd className="font-mono text-[13px]">{formatDate(o.createdAt)}</dd>
           </dl>
         </Card>
       </div>

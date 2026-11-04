@@ -248,7 +248,15 @@ export async function getReceipt(ctx: Ctx, transactionId: string) {
     const [r] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(T)
-      .where(and(eq(T.workspaceId, ctx.workspaceId), isNotNull(T.receivableId), eq(T.kind, "income"), sql`extract(year from ${T.date}) = ${Number(tx.date.slice(0, 4))}`, sql`${T.id} <= ${tx.id}`));
+      .where(
+        and(
+          eq(T.workspaceId, ctx.workspaceId),
+          isNotNull(T.receivableId),
+          eq(T.kind, "income"),
+          sql`extract(year from ${T.date}) = ${Number(tx.date.slice(0, 4))}`,
+          sql`${T.id} <= ${tx.id}`,
+        ),
+      );
     number = `C-${tx.date.slice(0, 4)}-${String(r?.n ?? 1).padStart(4, "0")}`;
   }
   return {
@@ -281,7 +289,9 @@ export async function listSubscriptions(ctx: Ctx, opts: { ledgerId?: string; sta
       accountName: schema.moneyAccount.name,
       categoryName: schema.category.name,
       ledgerName: schema.ledger.name,
-      lastPaid: sql<string | null>`(select max(t.date)::text from "transaction" t where t.subscription_id = ${schema.subscription.id} and t.deleted_at is null)`,
+      lastPaid: sql<
+        string | null
+      >`(select max(t.date)::text from "transaction" t where t.subscription_id = ${schema.subscription.id} and t.deleted_at is null)`,
     })
     .from(schema.subscription)
     .leftJoin(schema.moneyAccount, eq(schema.moneyAccount.id, schema.subscription.accountId))
@@ -500,12 +510,26 @@ export async function financeOverview(
     db
       .select()
       .from(schema.subscription)
-      .where(and(scoped(schema.subscription, ctx), eq(schema.subscription.status, "active"), lte(schema.subscription.nextDue, in30), L ? eq(schema.subscription.ledgerId, L) : undefined))
+      .where(
+        and(
+          scoped(schema.subscription, ctx),
+          eq(schema.subscription.status, "active"),
+          lte(schema.subscription.nextDue, in30),
+          L ? eq(schema.subscription.ledgerId, L) : undefined,
+        ),
+      )
       .orderBy(asc(schema.subscription.nextDue)),
     db
       .select()
       .from(schema.payable)
-      .where(and(scoped(schema.payable, ctx), inArray(schema.payable.status, open), lte(schema.payable.dueDate, in30), L ? eq(schema.payable.ledgerId, L) : undefined))
+      .where(
+        and(
+          scoped(schema.payable, ctx),
+          inArray(schema.payable.status, open),
+          lte(schema.payable.dueDate, in30),
+          L ? eq(schema.payable.ledgerId, L) : undefined,
+        ),
+      )
       .orderBy(asc(schema.payable.dueDate)),
     withRec
       ? db
@@ -672,7 +696,9 @@ export async function monthlyReport(ctx: Ctx, o: ReportOpts) {
     .from(T)
     .leftJoin(schema.category, eq(schema.category.id, T.categoryId))
     .leftJoin(ParentCat, eq(ParentCat.id, schema.category.parentId))
-    .where(and(scoped(T, ctx), gte(T.date, o.from), lte(T.date, o.to), inArray(T.kind, ["income", "expense"]), o.ledgerId ? eq(T.ledgerId, o.ledgerId) : undefined))
+    .where(
+      and(scoped(T, ctx), gte(T.date, o.from), lte(T.date, o.to), inArray(T.kind, ["income", "expense"]), o.ledgerId ? eq(T.ledgerId, o.ledgerId) : undefined),
+    )
     .groupBy(sql`1`, T.kind, T.currency, T.categoryId, schema.category.name, ParentCat.name);
 
   const months = new Map<string, { month: string; income: string; expense: string }>();
@@ -723,7 +749,13 @@ export async function profitability(ctx: Ctx, o: ReportOpts) {
   can(ctx);
   const c = conv(o.currency);
   const db = getDb();
-  const base = and(scoped(T, ctx), gte(T.date, o.from), lte(T.date, o.to), inArray(T.kind, ["income", "expense"]), o.ledgerId ? eq(T.ledgerId, o.ledgerId) : undefined);
+  const base = and(
+    scoped(T, ctx),
+    gte(T.date, o.from),
+    lte(T.date, o.to),
+    inArray(T.kind, ["income", "expense"]),
+    o.ledgerId ? eq(T.ledgerId, o.ledgerId) : undefined,
+  );
   const clientExpr = sql<string | null>`coalesce(${T.clientId}, ${schema.project.clientId})`;
   const [byClient, byProject] = await Promise.all([
     db

@@ -78,7 +78,10 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
             <Stat title="Resultado del mes" hint="Ingresos − gastos, por moneda">
               <MoneyLines items={o.result} empty="$ 0" />
             </Stat>
-            <Stat title="Herramientas / mes" hint={`${o.monthlyCost.count} suscripción${o.monthlyCost.count === 1 ? "" : "es"} activa${o.monthlyCost.count === 1 ? "" : "s"}`}>
+            <Stat
+              title="Herramientas / mes"
+              hint={`${o.monthlyCost.count} suscripción${o.monthlyCost.count === 1 ? "" : "es"} activa${o.monthlyCost.count === 1 ? "" : "s"}`}
+            >
               <MoneyLines items={o.monthlyCost.byCurrency} empty="—" />
             </Stat>
           </section>
@@ -99,7 +102,9 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                   <ul className="divide-y divide-border">
                     {o.accounts.map((a) => (
                       <li key={a.id} className="flex items-center gap-3 py-2.5">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-border bg-surface-2 font-mono text-[10px] text-text-muted">{a.currency}</span>
+                        <span className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-border bg-surface-2 font-mono text-[10px] text-text-muted">
+                          {a.currency}
+                        </span>
                         <div className="min-w-0 flex-1">
                           <Link href={L_("/finanzas/movimientos", { cuenta: a.id })} className="block truncate text-[14px] text-text hover:underline">
                             {a.name}
@@ -109,7 +114,9 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                             {f.ledgerId ? "" : ` · ${a.ledgerName}`}
                           </p>
                         </div>
-                        <span className={cn("font-mono text-[15px] tabular-nums", Number(a.balance) < 0 ? "text-danger" : "text-text")}>{formatMoney(a.balance, a.currency)}</span>
+                        <span className={cn("font-mono text-[15px] tabular-nums", Number(a.balance) < 0 ? "text-danger" : "text-text")}>
+                          {formatMoney(a.balance, a.currency)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -132,7 +139,11 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
               )}
             </BlockCard>
 
-            <BlockCard icon={<CalendarClock />} title="Próximos 30 días" action={o.upcoming.length ? <span className="font-mono text-[12px] text-text-faint">{o.upcoming.length}</span> : undefined}>
+            <BlockCard
+              icon={<CalendarClock />}
+              title="Próximos 30 días"
+              action={o.upcoming.length ? <span className="font-mono text-[12px] text-text-faint">{o.upcoming.length}</span> : undefined}
+            >
               {o.upcoming.length ? (
                 <ul className="flex flex-col">
                   {o.upcoming.slice(0, 10).map((u) => {
@@ -140,7 +151,12 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                     return (
                       <li key={u.key}>
                         <Link href={u.href} className="-mx-2 flex min-h-12 items-center gap-3 rounded-md px-2 py-2 hover:bg-surface-2">
-                          <span className={cn("w-12 shrink-0 font-mono text-[11px] uppercase leading-tight", u.overdue ? "text-danger" : d === 0 ? "text-warning" : "text-text-muted")}>
+                          <span
+                            className={cn(
+                              "w-12 shrink-0 font-mono text-[11px] uppercase leading-tight",
+                              u.overdue ? "text-danger" : d === 0 ? "text-warning" : "text-text-muted",
+                            )}
+                          >
                             {u.overdue ? "vencido" : d === 0 ? "hoy" : `${dowShort(u.date)} ${Number(u.date.slice(8, 10))}`}
                           </span>
                           <span aria-hidden className="h-8 w-0.5 shrink-0 rounded-full" style={{ background: KIND_COLOR[u.kind] }} />
@@ -210,7 +226,12 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                   ))}
                 </div>
               ) : (
-                <EmptyState compact icon={<ChartColumn />} title="Sin movimientos en los últimos 6 meses" description="Cuando registres ingresos y gastos, acá ves la evolución por moneda." />
+                <EmptyState
+                  compact
+                  icon={<ChartColumn />}
+                  title="Sin movimientos en los últimos 6 meses"
+                  description="Cuando registres ingresos y gastos, acá ves la evolución por moneda."
+                />
               )}
             </BlockCard>
 
@@ -222,7 +243,12 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                       Te deben
                       {o.receivable.length ? ` · ${o.receivable.reduce((a, r) => a + r.n, 0)} cobro(s)` : ""}
                     </p>
-                    <MoneyLines items={o.receivable} className="text-[20px] font-semibold text-success" empty="Nada pendiente" emptyClassName="text-[14px] font-sans" />
+                    <MoneyLines
+                      items={o.receivable}
+                      className="text-[20px] font-semibold text-success"
+                      empty="Nada pendiente"
+                      emptyClassName="text-[14px] font-sans"
+                    />
                   </Link>
                 ) : null}
                 <Link href={L_("/finanzas/por-pagar")} className="-mx-2 rounded-md px-2 py-1.5 hover:bg-surface-2">
@@ -230,7 +256,12 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                     Debés
                     {o.payable.length ? ` · ${o.payable.reduce((a, r) => a + r.n, 0)} pago(s)` : ""}
                   </p>
-                  <MoneyLines items={o.payable} className="text-[20px] font-semibold text-warning" empty="Nada pendiente" emptyClassName="text-[14px] font-sans" />
+                  <MoneyLines
+                    items={o.payable}
+                    className="text-[20px] font-semibold text-warning"
+                    empty="Nada pendiente"
+                    emptyClassName="text-[14px] font-sans"
+                  />
                 </Link>
                 <p className="text-[12px] text-text-faint">Montos en ARS y USD por separado: nunca se convierten con cotizaciones inventadas.</p>
               </div>

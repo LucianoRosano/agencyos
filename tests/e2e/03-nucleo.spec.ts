@@ -7,7 +7,12 @@ test("Bandeja → procesar → tarea con fecha → aparece en Hoy → completarl
   const text = `Llamar a Sofía por el panel ${info.project.name}`;
   await login(page);
   await page.keyboard.press("c").catch(() => undefined);
-  if (!(await page.getByRole("dialog", { name: "Capturar" }).isVisible().catch(() => false))) {
+  if (
+    !(await page
+      .getByRole("dialog", { name: "Capturar" })
+      .isVisible()
+      .catch(() => false))
+  ) {
     await page.getByRole("button", { name: "Capturar" }).first().click();
   }
   await page.getByPlaceholder("Una tarea, una idea, un gasto, un link…").fill(text);
@@ -75,7 +80,11 @@ test("papelera: eliminar → deshacer; eliminar → restaurar", async ({ page },
   await page.getByRole("menuitem", { name: "Eliminar" }).click();
   await page.waitForURL("**/tareas");
   await page.goto("/papelera");
-  const item = page.locator("div").filter({ hasText: `Revisión del catálogo ${info.project.name}` }).filter({ has: page.getByRole("button", { name: "Restaurar" }) }).last();
+  const item = page
+    .locator("div")
+    .filter({ hasText: `Revisión del catálogo ${info.project.name}` })
+    .filter({ has: page.getByRole("button", { name: "Restaurar" }) })
+    .last();
   await item.getByRole("button", { name: "Restaurar" }).click();
   await expect(page.getByText("Restaurado")).toBeVisible();
   await page.goto("/tareas?ver=hoy");
@@ -96,7 +105,15 @@ test("MCP: token de alcance limitado → crear_tarea funciona y eliminar es rech
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json, text/event-stream" },
       data: { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } },
     });
-  const init = await request.post("/mcp", { headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json, text/event-stream" }, data: { jsonrpc: "2.0", id: 0, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "e2e", version: "1" } } } });
+  const init = await request.post("/mcp", {
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json, text/event-stream" },
+    data: {
+      jsonrpc: "2.0",
+      id: 0,
+      method: "initialize",
+      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "e2e", version: "1" } },
+    },
+  });
   expect(init.ok()).toBe(true);
   const ok = await call("crear_tarea", { titulo: `Tarea MCP ${info.project.name}` });
   const okBody = await ok.json();
@@ -111,7 +128,22 @@ test("MCP: token de alcance limitado → crear_tarea funciona y eliminar es rech
 
 test("pantallas del núcleo sin scroll horizontal y accesibles @visual", async ({ page }, info) => {
   await login(page);
-  for (const path of ["/hoy", "/negocio", "/bandeja", "/proyectos", "/tareas", "/espacios", "/papelera", "/aprobaciones", "/notificaciones", "/foco", "/configuracion", "/configuracion/seguridad", "/configuracion/integraciones", "/configuracion/estado"]) {
+  for (const path of [
+    "/hoy",
+    "/negocio",
+    "/bandeja",
+    "/proyectos",
+    "/tareas",
+    "/espacios",
+    "/papelera",
+    "/aprobaciones",
+    "/notificaciones",
+    "/foco",
+    "/configuracion",
+    "/configuracion/seguridad",
+    "/configuracion/integraciones",
+    "/configuracion/estado",
+  ]) {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expectNoHorizontalScroll(page);

@@ -1,5 +1,5 @@
-import { ctxFromToken } from "@agencyos/modules/mcp/tokens";
 import { buildMcpServer } from "@agencyos/modules/mcp/server";
+import { ctxFromToken } from "@agencyos/modules/mcp/tokens";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 
 export const dynamic = "force-dynamic";

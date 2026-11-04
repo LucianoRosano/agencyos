@@ -44,9 +44,7 @@ export function slugify(s: string): string {
 /** Reemplaza bloques de código (``` y ~~~) y código en línea por espacios, conservando las posiciones. */
 export function maskCode(md: string): string {
   const blank = (m: string) => m.replace(/[^\n]/g, " ");
-  return md
-    .replace(/^(```|~~~)[^\n]*\n[\s\S]*?(?:^\1[^\n]*$|(?![\s\S]))/gm, blank)
-    .replace(/`[^`\n]+`/g, blank);
+  return md.replace(/^(```|~~~)[^\n]*\n[\s\S]*?(?:^\1[^\n]*$|(?![\s\S]))/gm, blank).replace(/`[^`\n]+`/g, blank);
 }
 
 /** `[[Nota]]`, `[[Nota|alias]]`, `[[Nota#Sección]]`, `[[Carpeta/Nota.md#Sección|alias]]` y `![[embebida]]`. Ignora adjuntos y código. */
@@ -73,7 +71,9 @@ export function parseWikilinks(md: string): Wikilink[] {
 
 /** Texto sin wikilinks ni código (para buscar menciones de texto plano). */
 export function maskLinksAndCode(md: string): string {
-  return maskCode(md).replace(/!?\[\[[^[\]\n]+?\]\]/g, (m) => " ".repeat(m.length)).replace(/\[[^\]\n]*\]\([^)\n]*\)/g, (m) => " ".repeat(m.length));
+  return maskCode(md)
+    .replace(/!?\[\[[^[\]\n]+?\]\]/g, (m) => " ".repeat(m.length))
+    .replace(/\[[^\]\n]*\]\([^)\n]*\)/g, (m) => " ".repeat(m.length));
 }
 
 const WORD = /^[\p{L}\p{N}][\p{L}\p{N}_\-.'’&]*/u;
@@ -89,7 +89,7 @@ export function parseMentions(md: string, maxWords = 5): MentionCandidate[] {
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (ch !== "@" && ch !== "#") continue;
-    const prev = i > 0 ? text[i - 1] ?? "" : "";
+    const prev = i > 0 ? (text[i - 1] ?? "") : "";
     if (prev && !/[\s([{"'«¿¡,;]/.test(prev)) continue;
     const rest = text.slice(i + 1, i + 1 + 200);
     if (rest.startsWith("[")) {
@@ -196,7 +196,14 @@ export function stringifyFrontmatter(data: Frontmatter): string {
 }
 
 const asList = (v: FrontmatterValue | undefined): string[] =>
-  Array.isArray(v) ? v : typeof v === "string" ? v.split(",").map((x) => x.trim()).filter(Boolean) : [];
+  Array.isArray(v)
+    ? v
+    : typeof v === "string"
+      ? v
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean)
+      : [];
 
 /** Etiquetas del frontmatter (`tags`/`etiquetas`), en minúsculas y sin `#`. */
 export function frontmatterTags(fm: Frontmatter): string[] {
@@ -266,7 +273,13 @@ export function linkFirstPlainMention(md: string, title: string): string | null 
 
 /** Nombre de archivo seguro para Obsidian/Windows. */
 export function safeFileName(title: string): string {
-  return title.replace(/[\\/:*?"<>|#^[\]]/g, "-").replace(/\s+/g, " ").trim().slice(0, 120) || "Sin título";
+  return (
+    title
+      .replace(/[\\/:*?"<>|#^[\]]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 120) || "Sin título"
+  );
 }
 
 /** Normaliza una ruta de carpeta: "/Facultad//PSEC/" → "Facultad/PSEC". Rechaza "..". */

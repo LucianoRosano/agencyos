@@ -3,8 +3,8 @@ import { listTasks } from "@agencyos/modules/tasks/queries";
 import { getToday } from "@agencyos/modules/today/queries";
 import { getTodayLayout, type TodayBlock } from "@agencyos/modules/today/service";
 import { Pill } from "@agencyos/ui";
-import { CatchUpBlock } from "@/components/today/catchup-block";
 import { AgendaBlock, MoneyBlock, NotesBlock, ProjectsBlock, StudyBlock } from "@/components/today/blocks";
+import { CatchUpBlock } from "@/components/today/catchup-block";
 import { CustomizeToday } from "@/components/today/customize";
 import { FocusBlock } from "@/components/today/focus-block";
 import { getSelectedSpace } from "@/lib/prefs";
@@ -44,12 +44,28 @@ export default async function HoyPage() {
           <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">
             {dowName(today)} · {Number(d)} {monthShort(Number(m))} {y} <span className="hidden md:inline">· {formatTime(now)}</span>
           </p>
-          <h1 className="mt-2 text-[30px] font-semibold tracking-tight md:text-[40px]">{greeting(now)}, {firstName(ctx.user.name)}</h1>
+          <h1 className="mt-2 text-[30px] font-semibold tracking-tight md:text-[40px]">
+            {greeting(now)}, {firstName(ctx.user.name)}
+          </h1>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Pill color="#7C5CFF" href="/tareas?ver=hoy">{counts.forToday} para hoy</Pill>
-            {counts.overdue ? <Pill color="#F43F5E" href="/tareas?ver=hoy">{counts.overdue} {counts.overdue === 1 ? "vencida" : "vencidas"}</Pill> : null}
-            {counts.paymentsSoon ? <Pill color="#FBBF24" href="/finanzas">{counts.paymentsSoon} {counts.paymentsSoon === 1 ? "pago por vencer" : "pagos por vencer"}</Pill> : null}
-            {counts.inbox ? <Pill color="#22D3EE" href="/bandeja">{counts.inbox} en la bandeja</Pill> : null}
+            <Pill color="#7C5CFF" href="/tareas?ver=hoy">
+              {counts.forToday} para hoy
+            </Pill>
+            {counts.overdue ? (
+              <Pill color="#F43F5E" href="/tareas?ver=hoy">
+                {counts.overdue} {counts.overdue === 1 ? "vencida" : "vencidas"}
+              </Pill>
+            ) : null}
+            {counts.paymentsSoon ? (
+              <Pill color="#FBBF24" href="/finanzas">
+                {counts.paymentsSoon} {counts.paymentsSoon === 1 ? "pago por vencer" : "pagos por vencer"}
+              </Pill>
+            ) : null}
+            {counts.inbox ? (
+              <Pill color="#22D3EE" href="/bandeja">
+                {counts.inbox} en la bandeja
+              </Pill>
+            ) : null}
           </div>
         </div>
         <div className="flex items-end justify-between gap-4 md:flex-col md:items-end">

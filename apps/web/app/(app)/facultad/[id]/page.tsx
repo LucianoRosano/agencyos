@@ -9,8 +9,8 @@ import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { MarkdownView } from "@/components/markdown";
 import { AssessmentActions, CourseMenu, NewAssessmentSheet, StudyPlanSheet } from "@/components/study/assessment-ui";
-import { CourseSheet } from "@/components/study/course-form";
 import { Countdown } from "@/components/study/countdown";
+import { CourseSheet } from "@/components/study/course-form";
 import { countdownLabel, dayName, formatGrade } from "@/components/study/shared";
 import { TaskRow } from "@/components/tasks/task-row";
 import { renderMarkdown } from "@/lib/markdown";
@@ -41,7 +41,9 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       <PageHeader
         eyebrow={
           <span className="flex flex-wrap items-center gap-2">
-            <Link href="/facultad" className="hover:text-text">Facultad</Link>
+            <Link href="/facultad" className="hover:text-text">
+              Facultad
+            </Link>
             <span aria-hidden>·</span>
             <span>{label(L.courseStatus, c.status)}</span>
             {c.term ? (
@@ -64,8 +66,23 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <>
             <CourseSheet
               id={c.id}
-              defaults={{ name: c.name, program: c.program, term: c.term, commission: c.commission, teachers: c.teachers, status: c.status, finalGrade: c.finalGrade, color: c.color, notesMd: c.notesMd, schedule: c.schedule }}
-              trigger={<Button variant="secondary"><Pencil className="size-4" /> Editar</Button>}
+              defaults={{
+                name: c.name,
+                program: c.program,
+                term: c.term,
+                commission: c.commission,
+                teachers: c.teachers,
+                status: c.status,
+                finalGrade: c.finalGrade,
+                color: c.color,
+                notesMd: c.notesMd,
+                schedule: c.schedule,
+              }}
+              trigger={
+                <Button variant="secondary">
+                  <Pencil className="size-4" /> Editar
+                </Button>
+              }
             />
             <CourseMenu id={c.id} name={c.name} status={c.status} />
           </>
@@ -124,26 +141,45 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                             <p className="text-[15px] font-medium text-text">{nameOf(a)}</p>
                           </div>
                           <p className="mt-1 font-mono text-[13px] text-text-muted">
-                            {formatDate(a.date)}{a.time ? ` · ${a.time.slice(0, 5)}` : ""}
+                            {formatDate(a.date)}
+                            {a.time ? ` · ${a.time.slice(0, 5)}` : ""}
                             {" · "}
-                            <span className={a.grade === null && !taken ? "text-warning" : undefined}>{a.grade !== null ? "rendida" : countdownLabel(a.date, today)}</span>
+                            <span className={a.grade === null && !taken ? "text-warning" : undefined}>
+                              {a.grade !== null ? "rendida" : countdownLabel(a.date, today)}
+                            </span>
                           </p>
                           <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-text-muted">
-                            <span>Objetivo <span className="font-mono text-text">{formatGrade(a.targetGrade)}</span></span>
+                            <span>
+                              Objetivo <span className="font-mono text-text">{formatGrade(a.targetGrade)}</span>
+                            </span>
                             <span>
                               Nota{" "}
-                              <span className={a.grade !== null && a.targetGrade !== null && Number(a.grade) < Number(a.targetGrade) ? "font-mono text-danger" : a.grade !== null ? "font-mono text-success" : "font-mono text-text-faint"}>
+                              <span
+                                className={
+                                  a.grade !== null && a.targetGrade !== null && Number(a.grade) < Number(a.targetGrade)
+                                    ? "font-mono text-danger"
+                                    : a.grade !== null
+                                      ? "font-mono text-success"
+                                      : "font-mono text-text-faint"
+                                }
+                              >
                                 {formatGrade(a.grade)}
                               </span>
                             </span>
-                            {topics.length ? <span>{topics.length} {topics.length === 1 ? "tema" : "temas"}</span> : null}
+                            {topics.length ? (
+                              <span>
+                                {topics.length} {topics.length === 1 ? "tema" : "temas"}
+                              </span>
+                            ) : null}
                           </p>
                         </div>
                         <AssessmentActions a={a} name={nameOf(a)} canPlan={a.date > today} topics={topics} />
                       </div>
                       {a.topicsMd ? (
                         <details className="mt-2">
-                          <summary className="flex min-h-9 cursor-pointer items-center font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">Temas</summary>
+                          <summary className="flex min-h-9 cursor-pointer items-center font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
+                            Temas
+                          </summary>
                           <MarkdownView html={renderMarkdown(a.topicsMd)} className="mt-1 text-[14px]" />
                         </details>
                       ) : null}
@@ -153,7 +189,9 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                             Plan de estudio · {planDone}/{plan.length}
                           </summary>
                           <ul className="mt-1 overflow-hidden rounded-[var(--radius-card)] border border-border">
-                            {plan.map((t) => <TaskRow key={t.id} task={t} showProject={false} />)}
+                            {plan.map((t) => (
+                              <TaskRow key={t.id} task={t} showProject={false} />
+                            ))}
                           </ul>
                         </details>
                       ) : null}
@@ -162,7 +200,12 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                 })}
               </ul>
             ) : (
-              <EmptyState compact icon={<CalendarClock />} title="Sin evaluaciones" description="Agendá parciales, TPs, finales y recuperatorios con su fecha, temas y la nota que buscás." />
+              <EmptyState
+                compact
+                icon={<CalendarClock />}
+                title="Sin evaluaciones"
+                description="Agendá parciales, TPs, finales y recuperatorios con su fecha, temas y la nota que buscás."
+              />
             )}
           </Card>
 
@@ -170,15 +213,23 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <SectionLabel icon={<NotebookPen />}>Apuntes</SectionLabel>
               <Button asChild variant="secondary">
-                <Link href={`/notas/nueva?materia=${c.id}`}><Plus className="size-4" /> Nueva nota</Link>
+                <Link href={`/notas/nueva?materia=${c.id}`}>
+                  <Plus className="size-4" /> Nueva nota
+                </Link>
               </Button>
             </div>
             {data.notes.length ? (
               <ul className="flex flex-col">
                 {data.notes.map((n) => (
                   <li key={n.id}>
-                    <Link href={`/notas/${n.id}`} className="flex min-h-11 items-center justify-between gap-3 border-b border-border text-[14px] text-text last:border-0 hover:text-accent-2">
-                      <span className="flex min-w-0 items-center gap-2"><FileText className="size-4 shrink-0 text-text-muted" /><span className="truncate">{n.title}</span></span>
+                    <Link
+                      href={`/notas/${n.id}`}
+                      className="flex min-h-11 items-center justify-between gap-3 border-b border-border text-[14px] text-text last:border-0 hover:text-accent-2"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <FileText className="size-4 shrink-0 text-text-muted" />
+                        <span className="truncate">{n.title}</span>
+                      </span>
                       <span className="shrink-0 font-mono text-[12px] text-text-faint">{relativeFromDate(n.updatedAt)}</span>
                     </Link>
                   </li>
@@ -191,7 +242,10 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
           <Card className="p-4 md:p-5">
             <SectionLabel className="mb-3">Notas de la materia</SectionLabel>
-            <MarkdownView html={renderMarkdown(c.notesMd)} empty="Sin notas. Editá la materia para agregar bibliografía, criterios de aprobación o links (Markdown)." />
+            <MarkdownView
+              html={renderMarkdown(c.notesMd)}
+              empty="Sin notas. Editá la materia para agregar bibliografía, criterios de aprobación o links (Markdown)."
+            />
           </Card>
         </div>
 
@@ -202,23 +256,38 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
               <dt className="text-text-muted">Avance</dt>
               <dd>
                 <span className="font-mono text-warning">{stats.progress}%</span>
-                <span className="ml-2 font-mono text-[12px] text-text-faint">{stats.taken}/{stats.total} rendidas</span>
+                <span className="ml-2 font-mono text-[12px] text-text-faint">
+                  {stats.taken}/{stats.total} rendidas
+                </span>
                 <Progress value={stats.progress} tone="warning" className="mt-1.5" label="Avance de la materia" />
               </dd>
               <dt className="text-text-muted">Estado</dt>
-              <dd><Badge tone={c.status === "aprobada" ? "success" : c.status === "final_pendiente" ? "warning" : "neutral"}>{label(L.courseStatus, c.status)}</Badge></dd>
-              <dt className="text-text-muted">Promedio</dt><dd className="font-mono">{formatGrade(stats.average)}</dd>
-              <dt className="text-text-muted">Nota final</dt><dd className="font-mono">{formatGrade(c.finalGrade)}</dd>
-              <dt className="text-text-muted">Carrera</dt><dd className="min-w-0 break-words">{c.program ?? "—"}</dd>
-              <dt className="text-text-muted">Cuatrimestre</dt><dd>{c.term ?? "—"}</dd>
-              <dt className="text-text-muted">Comisión</dt><dd>{c.commission ?? "—"}</dd>
-              <dt className="text-text-muted">Docentes</dt><dd className="min-w-0 break-words">{c.teachers ?? "—"}</dd>
-              <dt className="text-text-muted">Espacio</dt><dd>{data.spaceName ?? "—"}</dd>
+              <dd>
+                <Badge tone={c.status === "aprobada" ? "success" : c.status === "final_pendiente" ? "warning" : "neutral"}>
+                  {label(L.courseStatus, c.status)}
+                </Badge>
+              </dd>
+              <dt className="text-text-muted">Promedio</dt>
+              <dd className="font-mono">{formatGrade(stats.average)}</dd>
+              <dt className="text-text-muted">Nota final</dt>
+              <dd className="font-mono">{formatGrade(c.finalGrade)}</dd>
+              <dt className="text-text-muted">Carrera</dt>
+              <dd className="min-w-0 break-words">{c.program ?? "—"}</dd>
+              <dt className="text-text-muted">Cuatrimestre</dt>
+              <dd>{c.term ?? "—"}</dd>
+              <dt className="text-text-muted">Comisión</dt>
+              <dd>{c.commission ?? "—"}</dd>
+              <dt className="text-text-muted">Docentes</dt>
+              <dd className="min-w-0 break-words">{c.teachers ?? "—"}</dd>
+              <dt className="text-text-muted">Espacio</dt>
+              <dd>{data.spaceName ?? "—"}</dd>
             </dl>
           </Card>
 
           <Card className="p-4 md:p-5">
-            <SectionLabel icon={<Clock />} className="mb-3">Horarios</SectionLabel>
+            <SectionLabel icon={<Clock />} className="mb-3">
+              Horarios
+            </SectionLabel>
             {schedule.length ? (
               <ul className="flex flex-col gap-2">
                 {schedule.map((s, i) => (
@@ -226,7 +295,8 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   <li key={i} className="flex items-baseline justify-between gap-3 text-[14px]">
                     <span className="text-text">{dayName(s.day)}</span>
                     <span className="text-right font-mono text-[13px] text-text-muted">
-                      {s.from}–{s.to}{s.room ? ` · ${s.room}` : ""}
+                      {s.from}–{s.to}
+                      {s.room ? ` · ${s.room}` : ""}
                     </span>
                   </li>
                 ))}

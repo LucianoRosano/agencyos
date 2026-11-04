@@ -42,7 +42,10 @@ test("finanzas: suscripción que vence en 3 días → Hoy → «Registrar pago»
 
   // 3. Suscripción que vence en 3 días
   await page.goto("/finanzas/suscripciones");
-  await page.getByRole("button", { name: /Nueva suscripción|Agregar la primera/ }).first().click();
+  await page
+    .getByRole("button", { name: /Nueva suscripción|Agregar la primera/ })
+    .first()
+    .click();
   const sub = page.getByRole("dialog");
   await sub.locator("#vendor").fill(vendor);
   await sub.locator("#amount").fill("15000");

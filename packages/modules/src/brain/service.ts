@@ -20,7 +20,10 @@ export async function saveLayout(ctx: Ctx, raw: unknown) {
   const [row] = await getDb()
     .insert(schema.graphLayout)
     .values({ workspaceId: ctx.workspaceId, viewKey: input.viewKey, positions: input.positions, nodeCount, computedAt: new Date() })
-    .onConflictDoUpdate({ target: [schema.graphLayout.workspaceId, schema.graphLayout.viewKey], set: { positions: input.positions, nodeCount, computedAt: new Date() } })
+    .onConflictDoUpdate({
+      target: [schema.graphLayout.workspaceId, schema.graphLayout.viewKey],
+      set: { positions: input.positions, nodeCount, computedAt: new Date() },
+    })
     .returning({ viewKey: schema.graphLayout.viewKey, nodeCount: schema.graphLayout.nodeCount });
   return row;
 }

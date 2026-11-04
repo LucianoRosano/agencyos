@@ -13,7 +13,11 @@ export type NotePreview = { html: string; frontmatter: Record<string, unknown> }
  */
 export async function renderNote(ctx: Ctx, md: string): Promise<NotePreview> {
   const { data, body } = parseFrontmatter(md);
-  const targets = await resolveNoteTitles(getDb(), ctx, parseWikilinks(body).map((w) => w.target));
+  const targets = await resolveNoteTitles(
+    getDb(),
+    ctx,
+    parseWikilinks(body).map((w) => w.target),
+  );
   const html = renderMarkdown(body, (title) => {
     const hit = targets.get(normName(title.replace(/\.md$/i, "").split("/").pop() ?? title));
     return hit ? `/notas/${hit.id}` : `/notas/nueva?titulo=${encodeURIComponent(title.trim())}`;

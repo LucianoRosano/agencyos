@@ -11,7 +11,12 @@ export default async function NewClientPage() {
   const spaces = await spaceOpts(ctx);
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow="CRM · Clientes" title="Nuevo cliente" description="Solo el nombre es obligatorio. Si cargás el contacto principal, queda vinculado y listo para escribirle." accent={CRM_ACCENT} />
+      <PageHeader
+        eyebrow="CRM · Clientes"
+        title="Nuevo cliente"
+        description="Solo el nombre es obligatorio. Si cargás el contacto principal, queda vinculado y listo para escribirle."
+        accent={CRM_ACCENT}
+      />
       <Card className="p-5 md:p-6">
         <NewClientForm spaces={spaces} />
       </Card>

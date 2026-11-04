@@ -18,7 +18,7 @@ async function connect(token: string) {
   await client.connect(b);
   return { client, ctx };
 }
-const textOf = (r: unknown) => ((r as { content: { text: string }[] }).content[0]?.text ?? "");
+const textOf = (r: unknown) => (r as { content: { text: string }[] }).content[0]?.text ?? "";
 
 describe("servidor MCP", () => {
   it("con alcance limitado: lee Hoy, crea tarea y decisión; eliminar es rechazado y auditado", async () => {
@@ -36,7 +36,10 @@ describe("servidor MCP", () => {
 
     const t = await client.callTool({ name: "crear_tarea", arguments: { titulo: "Tarea desde Claude", proyecto_id: p.id } });
     expect(t.isError).toBeFalsy();
-    const created = await getDb().select().from(schema.task).where(and(eq(schema.task.workspaceId, owner.workspaceId), eq(schema.task.title, "Tarea desde Claude")));
+    const created = await getDb()
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.workspaceId, owner.workspaceId), eq(schema.task.title, "Tarea desde Claude")));
     expect(created[0]?.projectId).toBe(p.id);
 
     const d = await client.callTool({ name: "registrar_decision", arguments: { proyecto_id: p.id, decision: "Usar Next.js", motivo: "Un solo lenguaje" } });
@@ -44,7 +47,10 @@ describe("servidor MCP", () => {
 
     const del = await client.callTool({ name: "eliminar_elemento", arguments: { tipo: "project", id: p.id } });
     expect(del.isError).toBe(true);
-    const denied = await getDb().select().from(schema.auditLog).where(and(eq(schema.auditLog.workspaceId, owner.workspaceId), eq(schema.auditLog.action, "mcp.denied")));
+    const denied = await getDb()
+      .select()
+      .from(schema.auditLog)
+      .where(and(eq(schema.auditLog.workspaceId, owner.workspaceId), eq(schema.auditLog.action, "mcp.denied")));
     expect(denied.length).toBe(1);
 
     const fin = await client.callTool({ name: "ver_finanzas_resumen", arguments: {} });

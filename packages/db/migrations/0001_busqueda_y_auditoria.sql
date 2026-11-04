@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION f_unaccent(text) RETURNS text
 --> statement-breakpoint
 CREATE OR REPLACE FUNCTION f_search_norm(text) RETURNS text
   LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT
-  AS $$ SELECT lower(f_unaccent($1)) $$;
+  AS $$ SELECT lower(public.f_unaccent($1)) $$;
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS client_search_trgm ON client USING gin (f_search_norm(coalesce(name,'') || ' ' || coalesce(trade_name,'')) gin_trgm_ops);
 --> statement-breakpoint

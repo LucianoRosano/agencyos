@@ -2,20 +2,54 @@ import type { Ctx } from "./context";
 import { forbidden } from "./errors";
 
 export type Resource =
-  | "workspace" | "space" | "inbox" | "project" | "task" | "crm" | "fiscal" | "quote" | "service"
-  | "finance" | "note" | "study" | "settings" | "audit" | "mcp_token" | "approval" | "tag" | "link" | "comment" | "reminder" | "export";
+  | "workspace"
+  | "space"
+  | "inbox"
+  | "project"
+  | "task"
+  | "crm"
+  | "fiscal"
+  | "quote"
+  | "service"
+  | "finance"
+  | "note"
+  | "study"
+  | "settings"
+  | "audit"
+  | "mcp_token"
+  | "approval"
+  | "tag"
+  | "link"
+  | "comment"
+  | "reminder"
+  | "export";
 export type Action = "read" | "create" | "update" | "delete" | "manage";
 
 /** Mapa de alcances MCP → permisos (docs/14 §3). */
 const SCOPE_GRANTS: Record<string, [Resource, Action[]][]> = {
   "read:all": [
-    ["space", ["read"]], ["inbox", ["read"]], ["project", ["read"]], ["task", ["read"]], ["crm", ["read"]],
-    ["quote", ["read"]], ["service", ["read"]], ["finance", ["read"]], ["note", ["read"]], ["study", ["read"]],
-    ["tag", ["read"]], ["link", ["read"]], ["comment", ["read"]], ["reminder", ["read"]], ["approval", ["read"]],
+    ["space", ["read"]],
+    ["inbox", ["read"]],
+    ["project", ["read"]],
+    ["task", ["read"]],
+    ["crm", ["read"]],
+    ["quote", ["read"]],
+    ["service", ["read"]],
+    ["finance", ["read"]],
+    ["note", ["read"]],
+    ["study", ["read"]],
+    ["tag", ["read"]],
+    ["link", ["read"]],
+    ["comment", ["read"]],
+    ["reminder", ["read"]],
+    ["approval", ["read"]],
   ],
   "write:inbox": [["inbox", ["create"]]],
   "write:tasks": [["task", ["create", "update"]]],
-  "write:notes": [["note", ["create", "update"]], ["link", ["create"]]],
+  "write:notes": [
+    ["note", ["create", "update"]],
+    ["link", ["create"]],
+  ],
   "write:decisions": [["project", ["update"]]],
   "write:crm": [["crm", ["create", "update"]]],
   "write:finance": [["finance", ["create"]]],
@@ -52,9 +86,7 @@ export function can(ctx: Ctx, action: Action, resource: Resource): boolean {
 export function assertCan(ctx: Ctx, action: Action, resource: Resource): void {
   if (!can(ctx, action, resource)) {
     throw forbidden(
-      ctx.actor.type === "agent"
-        ? `El token no tiene alcance para ${action} en ${resource}. Usá proponer_cambio para pedir aprobación.`
-        : undefined,
+      ctx.actor.type === "agent" ? `El token no tiene alcance para ${action} en ${resource}. Usá proponer_cambio para pedir aprobación.` : undefined,
     );
   }
 }

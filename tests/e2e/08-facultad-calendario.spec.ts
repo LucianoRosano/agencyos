@@ -1,13 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { expectNoHorizontalScroll, login, shot } from "./helpers";
 
-const todayAR = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Buenos_Aires", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const todayAR = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Buenos_Aires", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const addDays = (iso: string, n: number) => {
   const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 };
 
-test("Facultad: materia + evaluación en 6 días → cuenta regresiva en /facultad y en el calendario; iCal con token revocable @visual", async ({ page }, info) => {
+test("Facultad: materia + evaluación en 6 días → cuenta regresiva en /facultad y en el calendario; iCal con token revocable @visual", async ({
+  page,
+}, info) => {
   const project = info.project.name;
   const course = `Int. a la Programación ${project}`;
   const exam = `Parcial 1 · ${course}`;

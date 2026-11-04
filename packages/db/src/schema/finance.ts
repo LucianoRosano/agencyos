@@ -26,7 +26,6 @@ export const moneyAccount = pgTable(
   (t) => [check("account_kind", sql`${t.kind} in ('cash','bank','wallet','usd','other')`)],
 );
 
-
 export const category = pgTable(
   "category",
   {

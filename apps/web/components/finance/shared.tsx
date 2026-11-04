@@ -53,7 +53,13 @@ export function MoneyLines({
   className,
   emptyClassName,
   tone,
-}: { items: { currency: string; total: string }[]; empty?: string; className?: string; emptyClassName?: string; tone?: string }) {
+}: {
+  items: { currency: string; total: string }[];
+  empty?: string;
+  className?: string;
+  emptyClassName?: string;
+  tone?: string;
+}) {
   if (!items.length) return <span className={cn("block font-mono text-text-faint", emptyClassName ?? className)}>{empty}</span>;
   return (
     <span className={cn("flex flex-col gap-0.5", className)}>
@@ -95,7 +101,14 @@ export function frequencyLabel(frequency: string, interval: number) {
 export function PaidBar({ paid, amount }: { paid: string; amount: string }) {
   const pct = Math.max(0, Math.min(100, (Number(paid) / Math.max(Number(amount), 0.01)) * 100));
   return (
-    <span className="block h-1.5 w-full overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Cobrado">
+    <span
+      className="block h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
+      role="progressbar"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Cobrado"
+    >
       <span className="block h-full rounded-full bg-success" style={{ width: `${pct}%` }} />
     </span>
   );

@@ -1,11 +1,11 @@
 "use client";
 
 import Graph from "graphology";
-import FA2Layout from "graphology-layout-forceatlas2/worker";
 import { inferSettings } from "graphology-layout-forceatlas2";
+import FA2Layout from "graphology-layout-forceatlas2/worker";
+import { useEffect, useRef } from "react";
 import Sigma from "sigma";
 import { sdfCircle } from "sigma/rendering";
-import { useEffect, useRef } from "react";
 import { type BrainGraph, type BrainNode, hash01, isPulsing, TYPE_COLOR } from "./model";
 
 /**
@@ -18,7 +18,12 @@ import { type BrainGraph, type BrainNode, hash01, isPulsing, TYPE_COLOR } from "
 
 /** Zonas tapadas por paneles (px): la cámara centra el contenido en el área libre. */
 export type Insets = { right?: number; top?: number; bottom?: number };
-export type GraphApi = { zoomIn: () => void; zoomOut: () => void; fit: (keys?: string[], insets?: Insets) => void; flyTo: (key: string, insets?: Insets) => void };
+export type GraphApi = {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  fit: (keys?: string[], insets?: Insets) => void;
+  flyTo: (key: string, insets?: Insets) => void;
+};
 
 export type GraphCanvasProps = {
   graph: BrainGraph;
@@ -85,7 +90,18 @@ const rgba = (hex: string, a: number) => {
 
 type NodeAttrs = { x: number; y: number; size: number; label: string; color: string; coreR: number; fixed?: boolean };
 
-export default function GraphCanvas({ graph: data, positions, visible, selected, onSelect, onReady, onLayout, onLayoutState, compact, className }: GraphCanvasProps) {
+export default function GraphCanvas({
+  graph: data,
+  positions,
+  visible,
+  selected,
+  onSelect,
+  onReady,
+  onLayout,
+  onLayoutState,
+  compact,
+  className,
+}: GraphCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const state = useRef({ visible, selected, hover: null as string | null, onSelect, onLayout, onLayoutState });
   state.current.onSelect = onSelect;
@@ -128,15 +144,17 @@ export default function GraphCanvas({ graph: data, positions, visible, selected,
     const placed = new Set(data.nodes.filter((n) => positions?.[n.key]).map((n) => n.key));
     const spread = Math.max(20, Math.sqrt(data.nodes.length) * 12);
     const clusterKeys = [...new Set(data.nodes.map((n) => n.cluster).filter((c): c is string => Boolean(c)))].sort();
-    const centerOf = new Map(clusterKeys.map((c, i) => {
-      const a = (i / Math.max(1, clusterKeys.length)) * Math.PI * 2;
-      return [c, { x: Math.cos(a) * spread, y: Math.sin(a) * spread }] as const;
-    }));
+    const centerOf = new Map(
+      clusterKeys.map((c, i) => {
+        const a = (i / Math.max(1, clusterKeys.length)) * Math.PI * 2;
+        return [c, { x: Math.cos(a) * spread, y: Math.sin(a) * spread }] as const;
+      }),
+    );
     for (const k of missing) {
       const anchor = g.neighbors(k).find((nb) => placed.has(nb));
       const a = hash01(k) * Math.PI * 2;
       const r = 2 + hash01(`${k}r`) * spread * 0.25;
-      const base = anchor ? g.getNodeAttributes(anchor) : centerOf.get(m.get(k)?.cluster ?? "") ?? { x: 0, y: 0 };
+      const base = anchor ? g.getNodeAttributes(anchor) : (centerOf.get(m.get(k)?.cluster ?? "") ?? { x: 0, y: 0 });
       g.mergeNodeAttributes(k, { x: base.x + Math.cos(a) * (anchor ? 4 : r), y: base.y + Math.sin(a) * (anchor ? 4 : r) });
       placed.add(k);
     }
@@ -323,7 +341,7 @@ export default function GraphCanvas({ graph: data, positions, visible, selected,
         const color = TYPE_COLOR[m.get(k)?.type ?? "note"];
         const focus = st.hover ?? st.selected;
         const faded = focus && k !== focus && !g.areNeighbors(k, focus);
-        const phase = reduced ? 0.25 : ((t / 1800 + hash01(k)) % 1);
+        const phase = reduced ? 0.25 : (t / 1800 + hash01(k)) % 1;
         ctx.strokeStyle = rgba(color, (reduced ? 0.45 : 0.6 * (1 - phase)) * (faded ? 0.25 : 1));
         ctx.lineWidth = 1.2;
         ctx.beginPath();
@@ -382,7 +400,10 @@ export default function GraphCanvas({ graph: data, positions, visible, selected,
       return { dx: ((ins.right ?? 0) / 2) * k, dy: (((ins.bottom ?? 0) - (ins.top ?? 0)) / 2) * k };
     };
     const fit = (keys?: string[], ins: Insets = {}) => {
-      const list = (keys ?? [...state.current.visible]).filter((k) => m.get(k)?.type !== "space").map(framed).filter((d): d is { x: number; y: number } => Boolean(d));
+      const list = (keys ?? [...state.current.visible])
+        .filter((k) => m.get(k)?.type !== "space")
+        .map(framed)
+        .filter((d): d is { x: number; y: number } => Boolean(d));
       if (!list.length) {
         void cam.animate({ x: 0.5, y: 0.5, ratio: 1, angle: 0 }, { duration: dur });
         return;
@@ -415,7 +436,15 @@ export default function GraphCanvas({ graph: data, positions, visible, selected,
     if (missing.length && realCount > 1) {
       const fewNew = positions && missing.length < data.nodes.length * 0.3;
       if (fewNew) g.forEachNode((k) => !missing.includes(k) && g.setNodeAttribute(k, "fixed", true));
-      const settings = { ...inferSettings(g), linLogMode: true, adjustSizes: false, barnesHutOptimize: g.order > 400, gravity: 1, scalingRatio: 4, slowDown: 1 + Math.log(Math.max(1, g.order)) };
+      const settings = {
+        ...inferSettings(g),
+        linLogMode: true,
+        adjustSizes: false,
+        barnesHutOptimize: g.order > 400,
+        gravity: 1,
+        scalingRatio: 4,
+        slowDown: 1 + Math.log(Math.max(1, g.order)),
+      };
       fa2 = new FA2Layout(g, { settings, getEdgeWeight: "weight" });
       fa2.start();
       state.current.onLayoutState?.(true);

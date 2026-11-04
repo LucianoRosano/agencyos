@@ -3,7 +3,7 @@ import { getDb, schema } from "@agencyos/db";
 import { buildIcs, escapeText, foldLine } from "@agencyos/modules/calendar/ical";
 import { getCalendarItems } from "@agencyos/modules/calendar/queries";
 import { getIcalStatus, icalFeed, resolveIcalToken, revokeIcalToken, rotateIcalToken } from "@agencyos/modules/calendar/service";
-import { createProject, addDeliverable, addPhase } from "@agencyos/modules/projects/service";
+import { addDeliverable, addPhase, createProject } from "@agencyos/modules/projects/service";
 import { createAssessment, createCourse } from "@agencyos/modules/study/service";
 import { createTask, setTaskStatus } from "@agencyos/modules/tasks/service";
 import { createReminder } from "@agencyos/modules/today/service";
@@ -25,15 +25,22 @@ async function seedAllSources(ctx: WS, d: string) {
   await addDeliverable(ctx, p.id, { title: "Maqueta", dueDate: d });
   const c = await createCourse(ctx, { name: "Int. a la Programación" });
   await createAssessment(ctx, c.id, { kind: "parcial", title: "Parcial 1", date: d, time: "18:00" });
-  const [client] = await db.insert(schema.client).values({ ...base, name: "Cliente Cal" }).returning();
+  const [client] = await db
+    .insert(schema.client)
+    .values({ ...base, name: "Cliente Cal" })
+    .returning();
   const ledger = ctx.ledgers[0];
   if (!client || !ledger) throw new Error("seed");
   await db.insert(schema.receivable).values({ ...base, clientId: client.id, concept: "Anticipo", amount: "1000.00", currency: "ARS", dueDate: d });
-  await db.insert(schema.payable).values({ ...base, ledgerId: ledger.id, counterpart: "Hostinger", concept: "VPS", amount: "15.00", currency: "USD", dueDate: d });
+  await db
+    .insert(schema.payable)
+    .values({ ...base, ledgerId: ledger.id, counterpart: "Hostinger", concept: "VPS", amount: "15.00", currency: "USD", dueDate: d });
   await db.insert(schema.subscription).values({ ...base, ledgerId: ledger.id, vendor: "Claude Pro", amount: "20.00", currency: "USD", nextDue: d });
   await createReminder(ctx, { title: "Renovar dominio", kind: "domain", dueDate: d });
   await db.insert(schema.opportunity).values({ ...base, clientId: client.id, title: "Web nueva", nextAction: "Llamar", nextActionDue: d });
-  await db.insert(schema.interaction).values({ ...base, clientId: client.id, kind: "call", occurredAt: new Date(), summaryMd: "Charla", nextStep: "Mandar propuesta", nextStepDue: d });
+  await db
+    .insert(schema.interaction)
+    .values({ ...base, clientId: client.id, kind: "call", occurredAt: new Date(), summaryMd: "Charla", nextStep: "Mandar propuesta", nextStepDue: d });
   return { project: p, course: c, client };
 }
 
@@ -87,7 +94,10 @@ describe("calendario", () => {
     const { token } = await rotateIcalToken(ctx);
     expect(token.length).toBeGreaterThanOrEqual(40);
     // se guarda hasheado, nunca en claro
-    const [pref] = await getDb().select().from(schema.userPreference).where(and(eq(schema.userPreference.userId, ctx.userId ?? ""), eq(schema.userPreference.key, "ical_token")));
+    const [pref] = await getDb()
+      .select()
+      .from(schema.userPreference)
+      .where(and(eq(schema.userPreference.userId, ctx.userId ?? ""), eq(schema.userPreference.key, "ical_token")));
     const v = pref?.value as { hash: string; createdAt: string };
     expect(v.hash).toMatch(/^[0-9a-f]{64}$/);
     expect(JSON.stringify(pref?.value)).not.toContain(token);
@@ -139,8 +149,16 @@ describe("calendario", () => {
     const long = `SUMMARY:${"á".repeat(80)}`;
     const folded = foldLine(long);
     for (const line of folded.split("\r\n")) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
-    expect(folded.split("\r\n").map((l, i) => (i === 0 ? l : l.slice(1))).join("")).toBe(long);
-    const ics = buildIcs([{ key: "task-1", source: "task", date: "2030-01-01", time: "23:30", title: "Tarde", subtitle: null, href: "/tareas/1", color: "#fff" }], { now: new Date("2030-01-01T00:00:00Z") });
+    expect(
+      folded
+        .split("\r\n")
+        .map((l, i) => (i === 0 ? l : l.slice(1)))
+        .join(""),
+    ).toBe(long);
+    const ics = buildIcs(
+      [{ key: "task-1", source: "task", date: "2030-01-01", time: "23:30", title: "Tarde", subtitle: null, href: "/tareas/1", color: "#fff" }],
+      { now: new Date("2030-01-01T00:00:00Z") },
+    );
     expect(ics).toContain("DTEND;TZID=America/Buenos_Aires:20300102T003000");
     expect(ics).toContain("DTSTAMP:20300101T000000Z");
   });

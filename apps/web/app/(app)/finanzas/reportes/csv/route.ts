@@ -75,7 +75,22 @@ export async function GET(req: Request) {
       q: p.get("q") || undefined,
     };
     const rows = await exportTransactions(ctx, f);
-    lines.push(row(["Fecha", "Tipo", "Libro", "Cuenta", "Moneda", "Monto", "Cotización (ARS por US$ 1)", "Categoría", "Cliente", "Proyecto", "Contraparte", "Descripción"]));
+    lines.push(
+      row([
+        "Fecha",
+        "Tipo",
+        "Libro",
+        "Cuenta",
+        "Moneda",
+        "Monto",
+        "Cotización (ARS por US$ 1)",
+        "Categoría",
+        "Cliente",
+        "Proyecto",
+        "Contraparte",
+        "Descripción",
+      ]),
+    );
     for (const t of rows) {
       const signed = t.kind === "expense" || t.kind === "transfer_out" ? `-${t.amount}` : t.amount;
       const cat = t.categoryName ? (t.parentCategoryName ? `${t.parentCategoryName} › ${t.categoryName}` : t.categoryName) : "";

@@ -1,14 +1,23 @@
+import { writeFileSync } from "node:fs";
 import { addDays, type Ctx, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
-import { closeBrowser, renderQuoteHtml, renderQuotePdf } from "../../packages/pdf/src/index"; // @agencyos/pdf no es dependencia de la raíz
 import { listTemplates } from "@agencyos/modules/projects/queries";
 import { getQuote, getQuoteDocument, listQuotes, previewDocument } from "@agencyos/modules/quotes/queries";
 import {
-  acceptQuote, createNewVersion, createQuote, createService, expireQuotes, markSent, markViewed, rejectQuote, updateQuote, voidQuote,
+  acceptQuote,
+  createNewVersion,
+  createQuote,
+  createService,
+  expireQuotes,
+  markSent,
+  markViewed,
+  rejectQuote,
+  updateQuote,
+  voidQuote,
 } from "@agencyos/modules/quotes/service";
-import { writeFileSync } from "node:fs";
 import { and, eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
+import { closeBrowser, renderQuoteHtml, renderQuotePdf } from "../../packages/pdf/src/index"; // @agencyos/pdf no es dependencia de la raíz
 import { agentCtx, makeWorkspace } from "./helpers";
 
 async function makeClient(ctx: Ctx, name = "Bellezatecnia") {
@@ -37,7 +46,13 @@ const baseQuote = (clientId: string, extra: Record<string, unknown> = {}) => ({
   ],
   globalDiscountType: "percent",
   globalDiscountValue: "5",
-  paymentPlan: { kind: "milestones", items: [{ label: "Anticipo", percent: 50, offsetDays: 0 }, { label: "Saldo a la entrega", percent: 50, offsetDays: 30 }] },
+  paymentPlan: {
+    kind: "milestones",
+    items: [
+      { label: "Anticipo", percent: 50, offsetDays: 0 },
+      { label: "Saldo a la entrega", percent: 50, offsetDays: 30 },
+    ],
+  },
   ...extra,
 });
 
@@ -69,7 +84,10 @@ describe("presupuestos", () => {
     expect(d?.current?.discountTotal).toBe("60250.00");
     expect(d?.current?.total).toBe("384750.00");
     expect(d?.versions[0]?.items.map((i) => i.lineTotal)).toEqual(["270000.00", "90000.00", "45000.00"]);
-    const ev = await getDb().select().from(schema.domainEvent).where(and(eq(schema.domainEvent.entityId, q.id), eq(schema.domainEvent.type, "presupuesto.creado")));
+    const ev = await getDb()
+      .select()
+      .from(schema.domainEvent)
+      .where(and(eq(schema.domainEvent.entityId, q.id), eq(schema.domainEvent.type, "presupuesto.creado")));
     expect(ev).toHaveLength(1);
   });
 
@@ -80,7 +98,18 @@ describe("presupuestos", () => {
     await expect(createQuote(ctx, baseQuote(c.id, { items: [{ description: "X", quantity: "1", unitPrice: "-5" }] }))).rejects.toThrow();
     await expect(createQuote(ctx, baseQuote(c.id, { globalDiscountType: "amount", globalDiscountValue: "999999" }))).rejects.toThrow(/supera el subtotal/);
     await expect(
-      createQuote(ctx, baseQuote(c.id, { paymentPlan: { kind: "milestones", items: [{ label: "A", percent: 50 }, { label: "B", percent: 40 }] } })),
+      createQuote(
+        ctx,
+        baseQuote(c.id, {
+          paymentPlan: {
+            kind: "milestones",
+            items: [
+              { label: "A", percent: 50 },
+              { label: "B", percent: 40 },
+            ],
+          },
+        }),
+      ),
     ).rejects.toThrow(/sumar 100/);
     await expect(createQuote(ctx, baseQuote(c.id, { clientId: "" }))).rejects.toThrow();
   });
@@ -129,10 +158,16 @@ describe("presupuestos", () => {
     expect(r.receivables.map((x) => x.amount)).toEqual(["192375.00", "192375.00"]);
     expect(r.receivables.map((x) => x.dueDate)).toEqual([today, addDays(today, 30)]);
     expect(r.receivables.every((x) => x.projectId === r.projectId && x.status === "pending" && x.currency === "ARS")).toBe(true);
-    const [p] = await getDb().select().from(schema.project).where(eq(schema.project.id, r.projectId ?? ""));
+    const [p] = await getDb()
+      .select()
+      .from(schema.project)
+      .where(eq(schema.project.id, r.projectId ?? ""));
     expect(p?.quoteId).toBe(q.id);
     expect(p?.definitionOfDone).toBe(q.title);
-    const tasks = await getDb().select().from(schema.task).where(eq(schema.task.projectId, p?.id ?? ""));
+    const tasks = await getDb()
+      .select()
+      .from(schema.task)
+      .where(eq(schema.task.projectId, p?.id ?? ""));
     expect(tasks.some((t) => t.title === "Kickoff con el cliente" && t.dueDate === today)).toBe(true);
     const [o2] = await getDb().select().from(schema.opportunity).where(eq(schema.opportunity.id, opp.id));
     expect(o2?.stage).toBe("won");
@@ -145,7 +180,15 @@ describe("presupuestos", () => {
     const ctx = await makeWorkspace();
     const c = await makeClient(ctx);
     const tpl = (await listTemplates(ctx)).find((t) => t.key === "tienda-online");
-    const svc = await createService(ctx, { name: "Tienda online", unit: "project", priceArs: "300000", priceUsd: "", descriptionMd: "", projectTemplateId: tpl?.id, active: "on" });
+    const svc = await createService(ctx, {
+      name: "Tienda online",
+      unit: "project",
+      priceArs: "300000",
+      priceUsd: "",
+      descriptionMd: "",
+      projectTemplateId: tpl?.id,
+      active: "on",
+    });
     const q = await createQuote(
       ctx,
       baseQuote(c.id, {
@@ -156,7 +199,10 @@ describe("presupuestos", () => {
     );
     await markSent(ctx, q.id);
     const r = await acceptQuote(ctx, q.id, { createProject: "on", createReceivables: "on" });
-    const [p] = await getDb().select().from(schema.project).where(eq(schema.project.id, r.projectId ?? ""));
+    const [p] = await getDb()
+      .select()
+      .from(schema.project)
+      .where(eq(schema.project.id, r.projectId ?? ""));
     expect(p?.templateId).toBe(tpl?.id);
     expect(r.receivables).toHaveLength(12);
     expect(r.receivables[11]?.amount).toBe("45000.00");
@@ -237,7 +283,11 @@ describe("presupuestos", () => {
       writeFileSync(`${process.env.QUOTE_PDF_OUT}.html`, html);
     }
     // vista previa a partir de un borrador sin validar
-    const prev = await previewDocument(ctx, { ...baseQuote(c.id), globalDiscountType: "none", items: [{ description: "", quantity: "abc", unitPrice: "1.000,50" }] });
+    const prev = await previewDocument(ctx, {
+      ...baseQuote(c.id),
+      globalDiscountType: "none",
+      items: [{ description: "", quantity: "abc", unitPrice: "1.000,50" }],
+    });
     expect(prev.totals.total).toBe("1000.50");
   }, 60_000);
 });

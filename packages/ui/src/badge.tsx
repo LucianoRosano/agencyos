@@ -26,7 +26,12 @@ export function Dot({ color, className }: { color: string; className?: string })
 /** Chip con punto de color (entidad vinculada: cliente, proyecto…). */
 export function EntityChip({ color, children, className }: { color: string; children: ReactNode; className?: string }) {
   return (
-    <span className={cn("inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-border bg-bg-elevated px-2 text-[12px] text-text-muted", className)}>
+    <span
+      className={cn(
+        "inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-border bg-bg-elevated px-2 text-[12px] text-text-muted",
+        className,
+      )}
+    >
       <Dot color={color} />
       <span className="truncate">{children}</span>
     </span>
@@ -35,7 +40,8 @@ export function EntityChip({ color, children, className }: { color: string; chil
 
 /** Píldora de estado del saludo de Hoy. */
 export function Pill({ color, children, href }: { color: string; children: ReactNode; href?: string }) {
-  const cls = "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-[14px] text-text hover:bg-surface-2 transition-colors";
+  const cls =
+    "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-[14px] text-text hover:bg-surface-2 transition-colors";
   const inner = (
     <>
       <Dot color={color} />

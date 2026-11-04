@@ -67,17 +67,32 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
                 return (
                   <tr key={o.id} className="border-b border-border last:border-0 hover:bg-surface-2/50">
                     <td className="max-w-[280px] px-4 py-2.5">
-                      <Link href={`/crm/oportunidades/${o.id}`} className="block truncate text-text hover:underline">{o.title}</Link>
-                      <Link href={`/crm/clientes/${o.clientId}`} className="block truncate text-[12px] text-text-muted hover:text-text">{o.clientName}</Link>
+                      <Link href={`/crm/oportunidades/${o.id}`} className="block truncate text-text hover:underline">
+                        {o.title}
+                      </Link>
+                      <Link href={`/crm/clientes/${o.clientId}`} className="block truncate text-[12px] text-text-muted hover:text-text">
+                        {o.clientName}
+                      </Link>
                     </td>
-                    <td className="px-3 py-2.5"><StageSelect opp={o} request={request} disabled={pending} className="h-9 w-44" /></td>
-                    <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</td>
+                    <td className="px-3 py-2.5">
+                      <StageSelect opp={o} request={request} disabled={pending} className="h-9 w-44" />
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text">
+                      {o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}
+                    </td>
                     <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text-muted">{o.probability}%</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text-muted"><Money items={[o]} /></td>
+                    <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text-muted">
+                      <Money items={[o]} />
+                    </td>
                     <td className="max-w-[240px] px-3 py-2.5">
                       {o.nextAction && OPEN_STAGES.includes(o.stage) ? (
-                        <span className="flex items-baseline gap-2"><span className="truncate text-text">{o.nextAction}</span>{due ? <span className={cn("shrink-0 font-mono text-[12px]", due.cls)}>{due.text}</span> : null}</span>
-                      ) : <span className="text-text-faint">—</span>}
+                        <span className="flex items-baseline gap-2">
+                          <span className="truncate text-text">{o.nextAction}</span>
+                          {due ? <span className={cn("shrink-0 font-mono text-[12px]", due.cls)}>{due.text}</span> : null}
+                        </span>
+                      ) : (
+                        <span className="text-text-faint">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-[13px] text-text-muted">{formatDate(o.expectedClose)}</td>
                   </tr>
@@ -86,8 +101,12 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
             </tbody>
             <tfoot>
               <tr className="border-t border-border bg-bg-elevated font-mono text-[12px] text-text-muted">
-                <td className="px-4 py-3" colSpan={4}>{items.length} oportunidades · ponderado abierto</td>
-                <td className="px-3 py-3 text-right text-text"><Money items={items.filter((o) => !["won", "lost"].includes(o.stage))} /></td>
+                <td className="px-4 py-3" colSpan={4}>
+                  {items.length} oportunidades · ponderado abierto
+                </td>
+                <td className="px-3 py-3 text-right text-text">
+                  <Money items={items.filter((o) => !["won", "lost"].includes(o.stage))} />
+                </td>
                 <td colSpan={2} />
               </tr>
             </tfoot>
@@ -95,7 +114,9 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
         </div>
         {/* Celular: tarjetas */}
         <ul className="flex flex-col gap-2.5 md:hidden">
-          {items.map((o) => <OppCard key={o.id} o={o} request={request} pending={pending} showStage />)}
+          {items.map((o) => (
+            <OppCard key={o.id} o={o} request={request} pending={pending} showStage />
+          ))}
         </ul>
         {dialogs}
       </>
@@ -116,7 +137,15 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
               <span className="font-mono text-text-faint">{n}</span>
             </>
           );
-          return n ? <a key={stage} href={`#etapa-${stage}`} className={cls}>{inner}</a> : <span key={stage} className={cn(cls, "opacity-60")}>{inner}</span>;
+          return n ? (
+            <a key={stage} href={`#etapa-${stage}`} className={cls}>
+              {inner}
+            </a>
+          ) : (
+            <span key={stage} className={cn(cls, "opacity-60")}>
+              {inner}
+            </span>
+          );
         })}
       </nav>
       <div className="-mx-4 flex snap-x items-start gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:thin] md:mx-0 md:px-0 xl:grid xl:grid-cols-10 xl:items-stretch xl:overflow-visible xl:pb-0">
@@ -159,9 +188,15 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
                 </p>
               </header>
               <ul className={cn("flex flex-col gap-2", closed && "xl:grid xl:grid-cols-2")}>
-                {list.map((o) => <OppCard key={o.id} o={o} request={request} pending={pending} draggable />)}
+                {list.map((o) => (
+                  <OppCard key={o.id} o={o} request={request} pending={pending} draggable />
+                ))}
               </ul>
-              {list.length === 0 ? <p className={cn("px-1 text-center text-[12px] text-text-faint", closed ? "py-3" : "py-6")}>{closed ? `Sin oportunidades ${stage === "won" ? "ganadas" : "perdidas"} en los últimos 90 días` : "Vacía"}</p> : null}
+              {list.length === 0 ? (
+                <p className={cn("px-1 text-center text-[12px] text-text-faint", closed ? "py-3" : "py-6")}>
+                  {closed ? `Sin oportunidades ${stage === "won" ? "ganadas" : "perdidas"} en los últimos 90 días` : "Vacía"}
+                </p>
+              ) : null}
             </section>
           );
         })}
@@ -171,7 +206,19 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
   );
 }
 
-function OppCard({ o, request, pending, draggable, showStage }: { o: PipelineOpp; request: (o: OppLite, s: StageKey) => void; pending: boolean; draggable?: boolean; showStage?: boolean }) {
+function OppCard({
+  o,
+  request,
+  pending,
+  draggable,
+  showStage,
+}: {
+  o: PipelineOpp;
+  request: (o: OppLite, s: StageKey) => void;
+  pending: boolean;
+  draggable?: boolean;
+  showStage?: boolean;
+}) {
   const due = dueTone(o.nextActionDue);
   return (
     <li
@@ -180,8 +227,15 @@ function OppCard({ o, request, pending, draggable, showStage }: { o: PipelineOpp
       className={cn("rounded-[10px] border border-border bg-surface p-3", draggable && "cursor-grab active:cursor-grabbing")}
     >
       <div className="flex items-start justify-between gap-2">
-        <Link href={`/crm/oportunidades/${o.id}`} className="min-w-0 text-[14px] leading-snug font-medium text-text hover:underline">{o.title}</Link>
-        {showStage ? <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-text-muted"><Dot color={STAGE_COLOR[o.stage] ?? "#8A93A6"} />{L.stage[o.stage as StageKey]}</span> : null}
+        <Link href={`/crm/oportunidades/${o.id}`} className="min-w-0 text-[14px] leading-snug font-medium text-text hover:underline">
+          {o.title}
+        </Link>
+        {showStage ? (
+          <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-text-muted">
+            <Dot color={STAGE_COLOR[o.stage] ?? "#8A93A6"} />
+            {L.stage[o.stage as StageKey]}
+          </span>
+        ) : null}
       </div>
       <p className="mt-0.5 truncate text-[12px] text-text-muted">{o.clientName}</p>
       {o.valueAmount ? (
@@ -197,7 +251,9 @@ function OppCard({ o, request, pending, draggable, showStage }: { o: PipelineOpp
           {due ? <span className={cn("shrink-0 font-mono", due.cls)}>{due.text}</span> : null}
         </p>
       ) : null}
-      {o.stage === "lost" && o.lostReason ? <p className="mt-2 text-[12px] text-danger">Motivo: {L.lostReason[o.lostReason as keyof typeof L.lostReason] ?? o.lostReason}</p> : null}
+      {o.stage === "lost" && o.lostReason ? (
+        <p className="mt-2 text-[12px] text-danger">Motivo: {L.lostReason[o.lostReason as keyof typeof L.lostReason] ?? o.lostReason}</p>
+      ) : null}
       <StageSelect opp={o} request={request} disabled={pending} className="mt-2.5 h-9 md:text-[13px]" />
     </li>
   );

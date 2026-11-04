@@ -178,7 +178,8 @@ export async function updateAccount(ctx: Ctx, id: string, raw: unknown) {
         .from(schema.transaction)
         .where(and(eq(schema.transaction.accountId, id), scoped(schema.transaction, ctx)));
       if (n > 0) {
-        if (before.currency !== input.currency) throw validation("La cuenta ya tiene movimientos: no se puede cambiar la moneda", { currency: "Tiene movimientos" });
+        if (before.currency !== input.currency)
+          throw validation("La cuenta ya tiene movimientos: no se puede cambiar la moneda", { currency: "Tiene movimientos" });
         throw validation("La cuenta ya tiene movimientos: no se puede cambiar de libro", { ledgerId: "Tiene movimientos" });
       }
     }
@@ -369,7 +370,8 @@ export async function updateTransaction(ctx: Ctx, id: string, raw: unknown) {
       .where(and(eq(schema.transaction.id, id), scoped(schema.transaction, ctx)));
     if (!before) throw notFound("El movimiento");
     if (before.transferPairId) throw validation("Las transferencias no se editan: eliminala y registrala de nuevo");
-    if (before.kind !== input.kind && (before.receivableId || before.payableId || before.subscriptionId)) throw validation("Este movimiento está vinculado a un cobro, pago o suscripción: no se puede cambiar el tipo");
+    if (before.kind !== input.kind && (before.receivableId || before.payableId || before.subscriptionId))
+      throw validation("Este movimiento está vinculado a un cobro, pago o suscripción: no se puede cambiar el tipo");
     const account = await getAccount(t, ctx, input.accountId);
     await checkCategory(t, ctx, input.categoryId, input.kind);
     const project = await checkLinks(t, ctx, input.clientId, input.projectId);
@@ -430,7 +432,8 @@ export async function createTransfer(ctx: Ctx, raw: unknown) {
       });
     });
     const sameCurrency = from.currency === to.currency;
-    if (!sameCurrency && !input.toAmount) throw validation("Las cuentas tienen distinta moneda: indicá cuánto llega", { toAmount: `Monto acreditado en ${to.currency}` });
+    if (!sameCurrency && !input.toAmount)
+      throw validation("Las cuentas tienen distinta moneda: indicá cuánto llega", { toAmount: `Monto acreditado en ${to.currency}` });
     const toAmount = sameCurrency ? input.amount : (input.toAmount as string);
     // Cotización implícita ARS por US$ 1 (4 decimales), si es un cambio ARS↔USD.
     let rate: string | null = null;
@@ -494,7 +497,9 @@ export async function deleteTransaction(ctx: Ctx, id: string, restore = false) {
       .from(schema.transaction)
       .where(and(eq(schema.transaction.id, id), eq(schema.transaction.workspaceId, ctx.workspaceId)));
     if (!tx) throw notFound("El movimiento");
-    const where = tx.transferPairId ? and(eq(schema.transaction.workspaceId, ctx.workspaceId), eq(schema.transaction.transferPairId, tx.transferPairId)) : eq(schema.transaction.id, id);
+    const where = tx.transferPairId
+      ? and(eq(schema.transaction.workspaceId, ctx.workspaceId), eq(schema.transaction.transferPairId, tx.transferPairId))
+      : eq(schema.transaction.id, id);
     await t
       .update(schema.transaction)
       .set({ deletedAt: restore ? null : new Date() })
@@ -613,7 +618,8 @@ export async function updateReceivable(ctx: Ctx, id: string, raw: unknown) {
       .from(schema.receivable)
       .where(and(eq(schema.receivable.id, id), scoped(schema.receivable, ctx)));
     if (!before) throw notFound("El cobro");
-    if (before.currency !== input.currency && cmpMoney(before.paidAmount, 0) > 0) throw validation("Ya tiene cobros registrados: no se puede cambiar la moneda", { currency: "Tiene cobros" });
+    if (before.currency !== input.currency && cmpMoney(before.paidAmount, 0) > 0)
+      throw validation("Ya tiene cobros registrados: no se puede cambiar la moneda", { currency: "Tiene cobros" });
     await checkLinks(t, ctx, input.clientId, input.projectId);
     await t
       .update(schema.receivable)
@@ -678,9 +684,13 @@ export async function registerCollection(ctx: Ctx, receivableId: string, raw: un
     if (r.status === "void") throw validation("El cobro está anulado");
     const remaining = subMoney(r.amount, r.paidAmount);
     if (cmpMoney(remaining, 0) <= 0) throw validation("Este cobro ya está saldado");
-    if (cmpMoney(input.amount, remaining) > 0) throw validation(`El monto supera el saldo pendiente (${formatMoney(remaining, r.currency)})`, { amount: `Máximo ${formatMoney(remaining, r.currency)}` });
+    if (cmpMoney(input.amount, remaining) > 0)
+      throw validation(`El monto supera el saldo pendiente (${formatMoney(remaining, r.currency)})`, {
+        amount: `Máximo ${formatMoney(remaining, r.currency)}`,
+      });
     const account = await getAccount(t, ctx, input.accountId);
-    if (account.currency !== r.currency) throw validation(`El cobro es en ${r.currency}: elegí una cuenta en ${r.currency}`, { accountId: `Cuenta en ${r.currency}` });
+    if (account.currency !== r.currency)
+      throw validation(`El cobro es en ${r.currency}: elegí una cuenta en ${r.currency}`, { accountId: `Cuenta en ${r.currency}` });
     const date = input.date ?? todayAR();
     const number = await nextReceiptNumber(t, ctx, date);
     const { row } = await insertTx(
@@ -763,7 +773,8 @@ export async function updatePayable(ctx: Ctx, id: string, raw: unknown) {
       .from(schema.payable)
       .where(and(eq(schema.payable.id, id), scoped(schema.payable, ctx)));
     if (!before) throw notFound("El pago");
-    if (before.currency !== input.currency && cmpMoney(before.paidAmount, 0) > 0) throw validation("Ya tiene pagos registrados: no se puede cambiar la moneda", { currency: "Tiene pagos" });
+    if (before.currency !== input.currency && cmpMoney(before.paidAmount, 0) > 0)
+      throw validation("Ya tiene pagos registrados: no se puede cambiar la moneda", { currency: "Tiene pagos" });
     await checkLedger(t, ctx, input.ledgerId);
     await t
       .update(schema.payable)
@@ -824,9 +835,13 @@ export async function registerPayablePayment(ctx: Ctx, payableId: string, raw: u
     if (p.status === "void") throw validation("El pago está anulado");
     const remaining = subMoney(p.amount, p.paidAmount);
     if (cmpMoney(remaining, 0) <= 0) throw validation("Este pago ya está saldado");
-    if (cmpMoney(input.amount, remaining) > 0) throw validation(`El monto supera el saldo pendiente (${formatMoney(remaining, p.currency)})`, { amount: `Máximo ${formatMoney(remaining, p.currency)}` });
+    if (cmpMoney(input.amount, remaining) > 0)
+      throw validation(`El monto supera el saldo pendiente (${formatMoney(remaining, p.currency)})`, {
+        amount: `Máximo ${formatMoney(remaining, p.currency)}`,
+      });
     const account = await getAccount(t, ctx, input.accountId);
-    if (account.currency !== p.currency) throw validation(`El pago es en ${p.currency}: elegí una cuenta en ${p.currency}`, { accountId: `Cuenta en ${p.currency}` });
+    if (account.currency !== p.currency)
+      throw validation(`El pago es en ${p.currency}: elegí una cuenta en ${p.currency}`, { accountId: `Cuenta en ${p.currency}` });
     const { row } = await insertTx(
       t,
       ctx,
@@ -889,7 +904,8 @@ async function checkSubRefs(t: Tx, ctx: Ctx, input: z.infer<typeof subscriptionI
   await checkLedger(t, ctx, input.ledgerId);
   if (input.accountId) {
     const a = await getAccount(t, ctx, input.accountId);
-    if (a.currency !== input.currency) throw validation(`La cuenta es en ${a.currency} y la suscripción en ${input.currency}`, { accountId: `Elegí una cuenta en ${input.currency}` });
+    if (a.currency !== input.currency)
+      throw validation(`La cuenta es en ${a.currency} y la suscripción en ${input.currency}`, { accountId: `Elegí una cuenta en ${input.currency}` });
   }
   await checkCategory(t, ctx, input.categoryId, "expense");
 }
@@ -985,7 +1001,8 @@ export async function registerSubscriptionPayment(ctx: Ctx, id: string, raw: unk
     if (!s) throw notFound("La suscripción");
     if (s.status === "cancelled") throw validation("La suscripción está cancelada");
     const account = await getAccount(t, ctx, input.accountId);
-    if (account.currency !== s.currency) throw validation(`La suscripción es en ${s.currency}: elegí una cuenta en ${s.currency}`, { accountId: `Cuenta en ${s.currency}` });
+    if (account.currency !== s.currency)
+      throw validation(`La suscripción es en ${s.currency}: elegí una cuenta en ${s.currency}`, { accountId: `Cuenta en ${s.currency}` });
     const { row } = await insertTx(
       t,
       ctx,

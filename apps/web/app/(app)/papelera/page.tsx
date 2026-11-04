@@ -20,7 +20,9 @@ export default async function TrashPage() {
             <div key={`${it.type}-${it.id}`} className="flex flex-col gap-2 p-4 md:flex-row md:items-center">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px]">{it.title || "(sin título)"}</p>
-                <p className="text-[12px] text-text-muted">{label(L.entityType, it.type)} · se purga en {Math.max(0, 30 - diffDays(today, toISODateAR(it.deletedAt)))} días</p>
+                <p className="text-[12px] text-text-muted">
+                  {label(L.entityType, it.type)} · se purga en {Math.max(0, 30 - diffDays(today, toISODateAR(it.deletedAt)))} días
+                </p>
               </div>
               <TrashActions type={it.type} id={it.id} title={it.title} />
             </div>

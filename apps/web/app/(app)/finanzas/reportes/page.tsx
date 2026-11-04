@@ -7,7 +7,8 @@ import { financePage, qs, type SP } from "@/components/finance/server";
 
 export const metadata = { title: "Reportes · Finanzas" };
 
-const ctl = "h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base text-text md:text-sm select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9";
+const ctl =
+  "h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base text-text md:text-sm select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9";
 const money = (v: string, c: string) => formatMoney(v, c);
 
 export default async function ReportesPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -112,11 +113,14 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
                 <ul className="mt-1.5 flex flex-col gap-0.5 text-text-muted">
                   {allUnconverted.map((u) => (
                     <li key={`${u.currency}-${u.kind}`}>
-                      {label(L.txKind, u.kind)}s en {u.currency}: <span className="font-mono tabular-nums text-text">{formatMoney(u.total, u.currency)}</span> ({u.n} mov.)
+                      {label(L.txKind, u.kind)}s en {u.currency}: <span className="font-mono tabular-nums text-text">{formatMoney(u.total, u.currency)}</span> (
+                      {u.n} mov.)
                     </li>
                   ))}
                 </ul>
-                <p className="mt-1.5 text-text-muted">Para incluirlos, cargá la cotización (ARS por US$ 1) en cada movimiento. Nunca se usan tasas inventadas.</p>
+                <p className="mt-1.5 text-text-muted">
+                  Para incluirlos, cargá la cotización (ARS por US$ 1) en cada movimiento. Nunca se usan tasas inventadas.
+                </p>
               </div>
             </div>
           ) : null}
@@ -244,7 +248,9 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
                 ) : (
                   <EmptyState compact title="Sin datos en el período" description={b.empty} />
                 )}
-                {b.rows.some((r) => r.unconverted) ? <p className="mt-2 text-[12px] text-warning">* Tiene movimientos en otra moneda sin cotización, fuera del cálculo.</p> : null}
+                {b.rows.some((r) => r.unconverted) ? (
+                  <p className="mt-2 text-[12px] text-warning">* Tiene movimientos en otra moneda sin cotización, fuera del cálculo.</p>
+                ) : null}
               </BlockCard>
             ))}
           </div>

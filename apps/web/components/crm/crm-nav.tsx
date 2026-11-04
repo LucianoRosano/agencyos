@@ -1,7 +1,13 @@
 import { Tabs } from "@agencyos/ui";
 
 /** Sub-navegación del CRM como pestañas del encabezado (docs/06 §1). */
-export function CrmNav({ active, counts }: { active: "clientes" | "contactos" | "oportunidades"; counts?: Partial<Record<"clientes" | "contactos" | "oportunidades", number>> }) {
+export function CrmNav({
+  active,
+  counts,
+}: {
+  active: "clientes" | "contactos" | "oportunidades";
+  counts?: Partial<Record<"clientes" | "contactos" | "oportunidades", number>>;
+}) {
   return (
     <Tabs
       active={active}
@@ -37,7 +43,17 @@ export function FilterChips({ items, active }: { items: { key: string; label: st
   );
 }
 
-export function SearchBox({ action, q, placeholder, hidden }: { action: string; q?: string; placeholder: string; hidden?: Record<string, string | undefined> }) {
+export function SearchBox({
+  action,
+  q,
+  placeholder,
+  hidden,
+}: {
+  action: string;
+  q?: string;
+  placeholder: string;
+  hidden?: Record<string, string | undefined>;
+}) {
   return (
     <form className="mb-5" action={action}>
       {Object.entries(hidden ?? {}).map(([k, v]) => (v ? <input key={k} type="hidden" name={k} value={v} /> : null))}

@@ -14,7 +14,13 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
     <div className="mx-auto max-w-2xl">
       <PageHeader eyebrow="Asistente de arranque · 5 pasos" title="Nuevo proyecto" accent="#7C5CFF" />
       <Wizard
-        templates={templates.map((t) => ({ id: t.id, name: t.name, description: t.description ?? "", phases: t.definition.phases.length, tasks: t.definition.phases.reduce((a, p) => a + p.tasks.length, 0) }))}
+        templates={templates.map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description ?? "",
+          phases: t.definition.phases.length,
+          tasks: t.definition.phases.reduce((a, p) => a + p.tasks.length, 0),
+        }))}
         clients={clients}
         spaces={spaces}
         initialClientId={sp.cliente}

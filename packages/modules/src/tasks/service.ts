@@ -1,6 +1,24 @@
-import { addDays, assertCan, type Ctx, L, label, nextOccurrence, notFound, todayAR, validation, zDate, zInt, zOptDate, zOptText, zOptTime, zOptUuid, zRequired, zUuid } from "@agencyos/core";
+import {
+  addDays,
+  assertCan,
+  type Ctx,
+  L,
+  label,
+  nextOccurrence,
+  notFound,
+  todayAR,
+  validation,
+  zDate,
+  zInt,
+  zOptDate,
+  zOptText,
+  zOptTime,
+  zOptUuid,
+  zRequired,
+  zUuid,
+} from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
-import { schema, type DbOrTx } from "@agencyos/db";
+import { type DbOrTx, schema } from "@agencyos/db";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { assertOwned, getDb, scoped } from "../shared/db";
@@ -38,7 +56,14 @@ export async function recalcProjectProgress(t: DbOrTx, projectId: string) {
       done: sql<number>`count(*) filter (where ${schema.task.status} = 'done')::int`,
     })
     .from(schema.task)
-    .where(and(eq(schema.task.projectId, projectId), sql`${schema.task.deletedAt} is null`, sql`${schema.task.status} <> 'cancelled'`, sql`${schema.task.parentTaskId} is null`))
+    .where(
+      and(
+        eq(schema.task.projectId, projectId),
+        sql`${schema.task.deletedAt} is null`,
+        sql`${schema.task.status} <> 'cancelled'`,
+        sql`${schema.task.parentTaskId} is null`,
+      ),
+    )
     .groupBy(schema.task.phaseId);
   const ratios = rows.filter((r) => r.total > 0).map((r) => r.done / r.total);
   const progress = ratios.length ? Math.round((ratios.reduce((a, b) => a + b, 0) / ratios.length) * 100) : 0;
@@ -47,12 +72,18 @@ export async function recalcProjectProgress(t: DbOrTx, projectId: string) {
 
 async function resolveSpace(t: DbOrTx, ctx: Ctx, input: { spaceId?: string; projectId?: string; parentTaskId?: string }): Promise<string> {
   if (input.projectId) {
-    const [p] = await t.select({ spaceId: schema.project.spaceId }).from(schema.project).where(and(eq(schema.project.id, input.projectId), scoped(schema.project, ctx)));
+    const [p] = await t
+      .select({ spaceId: schema.project.spaceId })
+      .from(schema.project)
+      .where(and(eq(schema.project.id, input.projectId), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
     return p.spaceId;
   }
   if (input.parentTaskId) {
-    const [p] = await t.select({ spaceId: schema.task.spaceId }).from(schema.task).where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
+    const [p] = await t
+      .select({ spaceId: schema.task.spaceId })
+      .from(schema.task)
+      .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
     if (!p) throw notFound("La tarea padre");
     return p.spaceId;
   }
@@ -68,7 +99,10 @@ async function resolveSpace(t: DbOrTx, ctx: Ctx, input: { spaceId?: string; proj
 /** La etapa debe ser del mismo workspace y del proyecto de la tarea. */
 async function assertPhase(t: DbOrTx, ctx: Ctx, phaseId: string | null | undefined, projectId: string | null | undefined) {
   if (!phaseId) return;
-  const [ph] = await t.select({ projectId: schema.projectPhase.projectId }).from(schema.projectPhase).where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx)));
+  const [ph] = await t
+    .select({ projectId: schema.projectPhase.projectId })
+    .from(schema.projectPhase)
+    .where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx)));
   if (!ph || ph.projectId !== projectId) throw validation("La etapa no pertenece al proyecto de la tarea", { phaseId: "Etapa inválida" });
 }
 
@@ -78,7 +112,10 @@ export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
   if (input.rrule && !input.dueDate) throw validation("Una tarea recurrente necesita fecha", { dueDate: "Elegí la primera fecha" });
   const run = async (t: DbOrTx) => {
     if (input.parentTaskId) {
-      const [parent] = await t.select().from(schema.task).where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
+      const [parent] = await t
+        .select()
+        .from(schema.task)
+        .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
       if (!parent) throw notFound("La tarea padre");
       if (parent.parentTaskId) throw validation("Las subtareas tienen un solo nivel");
       input.projectId = input.projectId ?? parent.projectId ?? undefined;
@@ -107,7 +144,13 @@ export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
       })
       .returning();
     if (!row) throw new Error("No se pudo crear la tarea");
-    await recordEvent(t, ctx, { type: "tarea.creada", entityType: "task", entityId: row.id, summary: `Creó la tarea «${row.title}»`, payload: { projectId: row.projectId } });
+    await recordEvent(t, ctx, {
+      type: "tarea.creada",
+      entityType: "task",
+      entityId: row.id,
+      summary: `Creó la tarea «${row.title}»`,
+      payload: { projectId: row.projectId },
+    });
     await touchProject(t, row.projectId);
     return row;
   };
@@ -120,7 +163,10 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "task");
   const patch = taskPatch.parse(raw);
   return getDb().transaction(async (t) => {
-    const [before] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+    const [before] = await t
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
     if (!before) throw notFound("La tarea");
     const values: Partial<typeof schema.task.$inferInsert> = {};
     for (const k of Object.keys(patch) as (keyof typeof patch)[]) {
@@ -133,10 +179,17 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
     }
     if (values.parentTaskId !== undefined && values.parentTaskId !== null) {
       if (values.parentTaskId === id) throw validation("Una tarea no puede ser subtarea de sí misma");
-      const [parent] = await t.select().from(schema.task).where(and(eq(schema.task.id, values.parentTaskId), scoped(schema.task, ctx)));
+      const [parent] = await t
+        .select()
+        .from(schema.task)
+        .where(and(eq(schema.task.id, values.parentTaskId), scoped(schema.task, ctx)));
       if (!parent) throw notFound("La tarea padre");
       if (parent.parentTaskId) throw validation("Las subtareas tienen un solo nivel");
-      const [child] = await t.select({ id: schema.task.id }).from(schema.task).where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx))).limit(1);
+      const [child] = await t
+        .select({ id: schema.task.id })
+        .from(schema.task)
+        .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx)))
+        .limit(1);
       if (child) throw validation("Una tarea con subtareas no puede ser subtarea");
     }
     if (values.spaceId) await assertOwned(t, ctx, schema.space, values.spaceId, "El espacio");
@@ -159,7 +212,11 @@ export async function setTaskStatus(ctx: Ctx, id: string, rawStatus: (typeof TAS
   const status = z.enum(TASK_STATUSES).parse(rawStatus);
   return getDb().transaction(async (t) => {
     // FOR UPDATE: dos "completar" simultáneos no duplican la próxima ocurrencia.
-    const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx))).for("update");
+    const [task] = await t
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)))
+      .for("update");
     if (!task) throw notFound("La tarea");
     const [row] = await t
       .update(schema.task)
@@ -193,12 +250,21 @@ export async function snoozeTask(ctx: Ctx, id: string, rawDays = 1) {
   assertCan(ctx, "update", "task");
   const days = zInt(1, 365).parse(rawDays);
   return getDb().transaction(async (t) => {
-    const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+    const [task] = await t
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
     if (!task) throw notFound("La tarea");
     const base = !task.dueDate || task.dueDate < todayAR() ? todayAR() : task.dueDate;
     const due = addDays(base, days);
     const [row] = await t.update(schema.task).set({ dueDate: due, snoozedFrom: task.dueDate }).where(eq(schema.task.id, id)).returning();
-    await recordEvent(t, ctx, { type: "tarea.pospuesta", entityType: "task", entityId: id, summary: `Pospuso «${task.title}»`, payload: { from: task.dueDate, to: due } });
+    await recordEvent(t, ctx, {
+      type: "tarea.pospuesta",
+      entityType: "task",
+      entityId: id,
+      summary: `Pospuso «${task.title}»`,
+      payload: { from: task.dueDate, to: due },
+    });
     return { task: row, previousDue: task.dueDate };
   });
 }
@@ -206,7 +272,11 @@ export async function snoozeTask(ctx: Ctx, id: string, rawDays = 1) {
 export async function setTaskDue(ctx: Ctx, id: string, rawDue: string | null) {
   assertCan(ctx, "update", "task");
   const due = rawDue === null ? null : zDate.parse(rawDue);
-  const [row] = await getDb().update(schema.task).set({ dueDate: due }).where(and(eq(schema.task.id, id), scoped(schema.task, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.task)
+    .set({ dueDate: due })
+    .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)))
+    .returning();
   if (!row) throw notFound("La tarea");
   return row;
 }
@@ -214,11 +284,22 @@ export async function setTaskDue(ctx: Ctx, id: string, rawDue: string | null) {
 export async function convertTaskToProject(ctx: Ctx, id: string) {
   assertCan(ctx, "create", "project");
   return getDb().transaction(async (t) => {
-    const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+    const [task] = await t
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
     if (!task) throw notFound("La tarea");
     const [p] = await t
       .insert(schema.project)
-      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: task.title, spaceId: task.spaceId, goal: task.descriptionMd?.slice(0, 300), status: "planning", ownerId: ctx.userId })
+      .values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        name: task.title,
+        spaceId: task.spaceId,
+        goal: task.descriptionMd?.slice(0, 300),
+        status: "planning",
+        ownerId: ctx.userId,
+      })
       .returning();
     if (!p) throw new Error("No se pudo crear el proyecto");
     await t.update(schema.task).set({ projectId: p.id, parentTaskId: null }).where(eq(schema.task.parentTaskId, id));
@@ -233,9 +314,15 @@ export async function addChecklistItem(ctx: Ctx, taskId: string, text: string) {
   assertCan(ctx, "update", "task");
   const parsed = zRequired(300, "El ítem").parse(text);
   const db = getDb();
-  const [task] = await db.select({ id: schema.task.id }).from(schema.task).where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx)));
+  const [task] = await db
+    .select({ id: schema.task.id })
+    .from(schema.task)
+    .where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx)));
   if (!task) throw notFound("La tarea");
-  const [{ n } = { n: 0 }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.taskChecklistItem).where(eq(schema.taskChecklistItem.taskId, taskId));
+  const [{ n } = { n: 0 }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.taskChecklistItem)
+    .where(eq(schema.taskChecklistItem.taskId, taskId));
   const [row] = await db.insert(schema.taskChecklistItem).values({ workspaceId: ctx.workspaceId, taskId, text: parsed, sort: n }).returning();
   return row;
 }
@@ -253,7 +340,9 @@ export async function toggleChecklistItem(ctx: Ctx, itemId: string) {
 
 export async function removeChecklistItem(ctx: Ctx, itemId: string) {
   assertCan(ctx, "update", "task");
-  await getDb().delete(schema.taskChecklistItem).where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId)));
+  await getDb()
+    .delete(schema.taskChecklistItem)
+    .where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId)));
 }
 
 export const zTaskId = zUuid;

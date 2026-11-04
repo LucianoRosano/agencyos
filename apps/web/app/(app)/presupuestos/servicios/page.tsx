@@ -13,7 +13,11 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const ctx = await requireCtx();
   const all = sp.ver === "todos";
-  const [rows, templates, everything] = await Promise.all([listServices(ctx, { includeInactive: all, q: sp.q?.trim() || undefined }), listTemplates(ctx), listServices(ctx, { includeInactive: true })]);
+  const [rows, templates, everything] = await Promise.all([
+    listServices(ctx, { includeInactive: all, q: sp.q?.trim() || undefined }),
+    listTemplates(ctx),
+    listServices(ctx, { includeInactive: true }),
+  ]);
   const tplOpts = templates.map((t) => ({ value: t.id, label: t.name }));
   const inactive = everything.filter((r) => !r.s.active).length;
   return (
@@ -45,7 +49,13 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
           />
           <form className="mb-5" action="/presupuestos/servicios" role="search">
             {all ? <input type="hidden" name="ver" value="todos" /> : null}
-            <input name="q" defaultValue={sp.q} placeholder="Buscar servicios…" aria-label="Buscar servicios" className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm" />
+            <input
+              name="q"
+              defaultValue={sp.q}
+              placeholder="Buscar servicios…"
+              aria-label="Buscar servicios"
+              className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm"
+            />
           </form>
         </>
       ) : null}
@@ -62,7 +72,16 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                   <ServiceActions
                     id={s.id}
                     templates={tplOpts}
-                    d={{ name: s.name, unit: s.unit, priceArs: s.priceArs, priceUsd: s.priceUsd, projectTemplateId: s.projectTemplateId, descriptionMd: s.descriptionMd, deliverablesMd: s.deliverablesMd, active: s.active }}
+                    d={{
+                      name: s.name,
+                      unit: s.unit,
+                      priceArs: s.priceArs,
+                      priceUsd: s.priceUsd,
+                      projectTemplateId: s.projectTemplateId,
+                      descriptionMd: s.descriptionMd,
+                      deliverablesMd: s.deliverablesMd,
+                      active: s.active,
+                    }}
                   />
                 </div>
                 {s.descriptionMd ? <p className="line-clamp-3 text-[13px] text-text-muted">{s.descriptionMd}</p> : null}
@@ -90,7 +109,18 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
               ? "Probá con otra búsqueda o mirá también los inactivos."
               : "Cargá los servicios que vendés (sitio web, tienda, mantenimiento…) con su unidad y precio de referencia. Después los elegís al armar un presupuesto."
           }
-          action={everything.length ? undefined : <NewServiceSheet templates={tplOpts} trigger={<Button variant="primary"><Plus className="size-4" /> Cargar el primer servicio</Button>} />}
+          action={
+            everything.length ? undefined : (
+              <NewServiceSheet
+                templates={tplOpts}
+                trigger={
+                  <Button variant="primary">
+                    <Plus className="size-4" /> Cargar el primer servicio
+                  </Button>
+                }
+              />
+            )
+          }
         />
       )}
     </div>

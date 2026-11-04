@@ -75,7 +75,10 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await page.getByLabel(`Etapa de «${opp}»`).selectOption("proposal_sent");
   const qd = page.getByRole("dialog", { name: "Vincular un presupuesto" });
   await expect(qd).toBeVisible();
-  await expect(qd.getByRole("link", { name: "Crear presupuesto" })).toHaveAttribute("href", /\/presupuestos\/nuevo\?cliente=[0-9a-f-]{36}&oportunidad=[0-9a-f-]{36}/);
+  await expect(qd.getByRole("link", { name: "Crear presupuesto" })).toHaveAttribute(
+    "href",
+    /\/presupuestos\/nuevo\?cliente=[0-9a-f-]{36}&oportunidad=[0-9a-f-]{36}/,
+  );
   await qd.getByRole("button", { name: "Cancelar" }).click();
   await expect(page.getByLabel(`Etapa de «${opp}»`)).toHaveValue("meeting");
 

@@ -45,7 +45,13 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
   });
   return (
     <div className="mx-auto max-w-6xl">
-      <FinanceHeader active="suscripciones" title="Suscripciones y gastos fijos" ledgers={f.ledgers} ledgerId={f.ledgerId} actions={<NewSubscriptionButton options={options} defaultLedgerId={f.defaultLedgerId} />} />
+      <FinanceHeader
+        active="suscripciones"
+        title="Suscripciones y gastos fijos"
+        ledgers={f.ledgers}
+        ledgerId={f.ledgerId}
+        actions={<NewSubscriptionButton options={options} defaultLedgerId={f.defaultLedgerId} />}
+      />
       {deep ? <PaySubscriptionSheet key={deep.id} sub={toData(deep)} accounts={options.accounts} openInitially /> : null}
 
       {rows.length ? (
@@ -82,7 +88,9 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
                         <h3 className="truncate text-[15px] font-medium text-text">{s.vendor}</h3>
                         {s.status !== "active" ? <SubStatus status={s.status} /> : null}
                       </div>
-                      <p className="mt-0.5 truncate text-[13px] text-text-muted">{[s.description, categoryName, accountName ?? "sin cuenta asignada", !f.ledgerId ? ledgerName : null].filter(Boolean).join(" · ")}</p>
+                      <p className="mt-0.5 truncate text-[13px] text-text-muted">
+                        {[s.description, categoryName, accountName ?? "sin cuenta asignada", !f.ledgerId ? ledgerName : null].filter(Boolean).join(" · ")}
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3 md:flex md:items-center md:gap-6">
                       <div>
@@ -93,7 +101,9 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
                         </p>
                       </div>
                       <div className="text-right md:w-40 md:text-left">
-                        <p className={cn("text-[13px]", s.status === "active" ? due.tone : "text-text-muted")}>{s.status === "active" ? due.text : `próx. ${formatDate(s.nextDue)}`}</p>
+                        <p className={cn("text-[13px]", s.status === "active" ? due.tone : "text-text-muted")}>
+                          {s.status === "active" ? due.text : `próx. ${formatDate(s.nextDue)}`}
+                        </p>
                         <p className="font-mono text-[11px] text-text-faint">{lastPaid ? `último pago ${formatDate(lastPaid)}` : "sin pagos registrados"}</p>
                       </div>
                     </div>

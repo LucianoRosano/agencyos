@@ -31,7 +31,9 @@ function NewPassword() {
       <Field label="Repetir" name="password2" error={error ?? undefined}>
         <Input id="password2" name="password2" type="password" autoComplete="new-password" required />
       </Field>
-      <Button type="submit" variant="primary" loading={pending}>Guardar</Button>
+      <Button type="submit" variant="primary" loading={pending}>
+        Guardar
+      </Button>
     </form>
   );
 }

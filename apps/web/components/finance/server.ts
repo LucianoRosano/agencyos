@@ -30,7 +30,13 @@ export async function financePage(sp: SP) {
 }
 
 export async function formOptions(ctx: AppCtx): Promise<FormOptions> {
-  const [accounts, categories, clients, projects, ledgers] = await Promise.all([listAccounts(ctx), listCategories(ctx), clientOpts(ctx), projectOpts(ctx), listLedgers(ctx)]);
+  const [accounts, categories, clients, projects, ledgers] = await Promise.all([
+    listAccounts(ctx),
+    listCategories(ctx),
+    clientOpts(ctx),
+    projectOpts(ctx),
+    listLedgers(ctx),
+  ]);
   return {
     accounts: accounts.map((a) => ({
       id: a.id,

@@ -68,7 +68,12 @@ export function CategoryManager({ categories }: { categories: Cat[] }) {
               className="size-11 text-text-muted hover:text-danger md:size-9"
               aria-label={`Eliminar ${c.name}`}
               onClick={() => {
-                if (!confirm(`¿Mandar «${c.name}» a la papelera?${c.depth ? "" : " También sus subcategorías."} Los movimientos ya cargados conservan la categoría.`)) return;
+                if (
+                  !confirm(
+                    `¿Mandar «${c.name}» a la papelera?${c.depth ? "" : " También sus subcategorías."} Los movimientos ya cargados conservan la categoría.`,
+                  )
+                )
+                  return;
                 exec(() => deleteCategoryAction(c.id), {
                   success: "Categoría en la papelera",
                   undo: () => restoreCategoryAction(c.id),
@@ -79,7 +84,9 @@ export function CategoryManager({ categories }: { categories: Cat[] }) {
             </Button>
           </li>
         ))}
-        {!list.length ? <li className="px-4 py-6 text-center text-[13px] text-text-muted">Sin categorías de {kind === "expense" ? "gastos" : "ingresos"}.</li> : null}
+        {!list.length ? (
+          <li className="px-4 py-6 text-center text-[13px] text-text-muted">Sin categorías de {kind === "expense" ? "gastos" : "ingresos"}.</li>
+        ) : null}
       </ul>
     </div>
   );

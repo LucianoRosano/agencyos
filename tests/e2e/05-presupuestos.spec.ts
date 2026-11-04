@@ -18,12 +18,14 @@ async function sql<T = Record<string, unknown>>(text: string, params: unknown[] 
 async function seedClient(project: string) {
   const [ws] = await sql<{ id: string }>("select id from workspace order by created_at limit 1");
   if (!ws) throw new Error("sin workspace");
-  const [c] = await sql<{ id: string }>("insert into client (id, workspace_id, name, status) values (gen_random_uuid(), $1, $2, 'prospect') returning id", [ws.id, `Cliente e2e ${project}`]);
-  const [o] = await sql<{ id: string }>("insert into opportunity (id, workspace_id, client_id, title, stage) values (gen_random_uuid(), $1, $2, $3, 'meeting') returning id", [
+  const [c] = await sql<{ id: string }>("insert into client (id, workspace_id, name, status) values (gen_random_uuid(), $1, $2, 'prospect') returning id", [
     ws.id,
-    c?.id,
-    `Tienda online ${project}`,
+    `Cliente e2e ${project}`,
   ]);
+  const [o] = await sql<{ id: string }>(
+    "insert into opportunity (id, workspace_id, client_id, title, stage) values (gen_random_uuid(), $1, $2, $3, 'meeting') returning id",
+    [ws.id, c?.id, `Tienda online ${project}`],
+  );
   return { clientId: c?.id as string, oppId: o?.id as string };
 }
 
@@ -38,7 +40,10 @@ test("presupuesto: 3 ítems con descuentos → PDF → enviado → v2 → acepta
 
   // Catálogo: un servicio con plantilla de proyecto
   await page.goto("/presupuestos/servicios");
-  await page.getByRole("button", { name: /Nuevo servicio|Cargar el primer servicio/ }).first().click();
+  await page
+    .getByRole("button", { name: /Nuevo servicio|Cargar el primer servicio/ })
+    .first()
+    .click();
   await page.fill("#name", `Tienda WooCommerce ${p}`);
   await page.fill("#priceArs", "300000");
   await page.locator("#projectTemplateId").selectOption({ label: "Tienda online (WooCommerce)" });

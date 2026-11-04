@@ -29,7 +29,8 @@ export function IcalSubscribe({ active, createdAt }: { active: boolean; createdA
     });
   };
   const revoke = () => {
-    if (!confirm("¿Revocar la suscripción? Los calendarios que la usan dejan de actualizarse. No se puede deshacer: después podés generar una URL nueva.")) return;
+    if (!confirm("¿Revocar la suscripción? Los calendarios que la usan dejan de actualizarse. No se puede deshacer: después podés generar una URL nueva."))
+      return;
     exec(() => revokeIcalAction(), { success: "Suscripción revocada", onDone: () => setUrl(null) });
   };
   const copy = async () => {
@@ -52,16 +53,26 @@ export function IcalSubscribe({ active, createdAt }: { active: boolean; createdA
       }}
       title="Suscribirme desde el celular"
       description="Una URL privada de solo lectura con todas tus fechas (iCal). Agregala en Google Calendar, Apple Calendar u Outlook como «calendario por URL»."
-      trigger={<Button variant="secondary"><Smartphone className="size-4" /> Suscribirme desde el celular</Button>}
+      trigger={
+        <Button variant="secondary">
+          <Smartphone className="size-4" /> Suscribirme desde el celular
+        </Button>
+      }
     >
       <div className="flex flex-col gap-4">
         {url ? (
           <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-warning/40 bg-warning-soft p-3.5">
-            <p className="text-[13px] text-text">Copiala ahora: <strong>por seguridad no se vuelve a mostrar</strong>. Quien tenga esta URL ve tus fechas.</p>
-            <label htmlFor="ical-url" className="sr-only">URL de suscripción</label>
+            <p className="text-[13px] text-text">
+              Copiala ahora: <strong>por seguridad no se vuelve a mostrar</strong>. Quien tenga esta URL ve tus fechas.
+            </p>
+            <label htmlFor="ical-url" className="sr-only">
+              URL de suscripción
+            </label>
             <Input id="ical-url" readOnly value={url} onFocus={(e) => e.currentTarget.select()} className="font-mono text-[13px] md:text-[12px]" />
             <div className="flex flex-wrap gap-2">
-              <Button variant="primary" onClick={copy}>{copied ? <Check className="size-4" /> : <Copy className="size-4" />} {copied ? "Copiada" : "Copiar URL"}</Button>
+              <Button variant="primary" onClick={copy}>
+                {copied ? <Check className="size-4" /> : <Copy className="size-4" />} {copied ? "Copiada" : "Copiar URL"}
+              </Button>
               <Button asChild variant="secondary">
                 <a href={url.replace(/^https?:/, "webcal:")}>Abrir en el calendario</a>
               </Button>
@@ -69,12 +80,25 @@ export function IcalSubscribe({ active, createdAt }: { active: boolean; createdA
           </div>
         ) : null}
         <p className="text-[14px] text-text-muted">
-          {active ? <>Tenés una suscripción activa desde el <span className="font-mono text-text">{formatDate(createdAt ? new Date(createdAt) : null)}</span>. Si perdiste la URL, generá una nueva (la anterior deja de funcionar).</> : "Todavía no generaste una URL de suscripción."}
+          {active ? (
+            <>
+              Tenés una suscripción activa desde el <span className="font-mono text-text">{formatDate(createdAt ? new Date(createdAt) : null)}</span>. Si
+              perdiste la URL, generá una nueva (la anterior deja de funcionar).
+            </>
+          ) : (
+            "Todavía no generaste una URL de suscripción."
+          )}
         </p>
         <p className="text-[13px] text-text-faint">Incluye desde 60 días atrás hasta un año adelante. Los calendarios suelen actualizar cada algunas horas.</p>
         <div className="flex flex-wrap justify-end gap-2">
-          {active || url ? <Button variant="danger" onClick={revoke} loading={pending}>Revocar</Button> : null}
-          <Button variant={url ? "secondary" : "primary"} onClick={generate} loading={pending}>{active || url ? "Generar URL nueva" : "Generar URL"}</Button>
+          {active || url ? (
+            <Button variant="danger" onClick={revoke} loading={pending}>
+              Revocar
+            </Button>
+          ) : null}
+          <Button variant={url ? "secondary" : "primary"} onClick={generate} loading={pending}>
+            {active || url ? "Generar URL nueva" : "Generar URL"}
+          </Button>
         </div>
       </div>
     </Sheet>

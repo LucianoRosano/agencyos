@@ -24,10 +24,14 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const ctx = await requireCtx();
   const active = FILTERS.some((f) => f.key === sp.estado) ? (sp.estado as string) : "todos";
-  const [rows, counts] = await Promise.all([listQuotes(ctx, { status: active === "todos" ? undefined : active, q: sp.q?.trim() || undefined }), quoteCounts(ctx)]);
+  const [rows, counts] = await Promise.all([
+    listQuotes(ctx, { status: active === "todos" ? undefined : active, q: sp.q?.trim() || undefined }),
+    quoteCounts(ctx),
+  ]);
   const total = Object.values(counts).reduce((a, n) => a + n, 0);
   const today = todayAR();
-  const countFor = (k: string) => (k === "todos" ? total : k === "abiertos" ? (counts.draft ?? 0) + (counts.sent ?? 0) + (counts.viewed ?? 0) : (counts[k] ?? 0));
+  const countFor = (k: string) =>
+    k === "todos" ? total : k === "abiertos" ? (counts.draft ?? 0) + (counts.sent ?? 0) + (counts.viewed ?? 0) : (counts[k] ?? 0);
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
@@ -97,8 +101,12 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                     <span className="col-start-2 row-start-1 justify-self-end md:col-start-auto md:row-start-auto md:justify-self-start">
                       <QuoteStatusBadge status={q.status} />
                     </span>
-                    <span className="row-start-3 font-mono text-[15px] text-text md:row-start-auto md:text-right">{amount ? formatMoney(amount, currency ?? "ARS") : "—"}</span>
-                    <span className={`row-start-3 self-center text-right font-mono text-[12px] md:row-start-auto md:text-[13px] ${open && validUntil && validUntil < today ? "text-warning" : "text-text-muted"}`}>
+                    <span className="row-start-3 font-mono text-[15px] text-text md:row-start-auto md:text-right">
+                      {amount ? formatMoney(amount, currency ?? "ARS") : "—"}
+                    </span>
+                    <span
+                      className={`row-start-3 self-center text-right font-mono text-[12px] md:row-start-auto md:text-[13px] ${open && validUntil && validUntil < today ? "text-warning" : "text-text-muted"}`}
+                    >
                       {validUntil ? (open ? `${formatDate(validUntil)} · ${relativeDays(validUntil, today)}` : formatDate(validUntil)) : "—"}
                     </span>
                   </Link>

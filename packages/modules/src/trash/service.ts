@@ -7,12 +7,28 @@ import { getDb } from "../shared/db";
 import { ENTITIES, type EntityType, isEntityType } from "../shared/entities";
 
 const RESOURCE: Partial<Record<EntityType, Resource>> = {
-  client: "crm", contact: "crm", opportunity: "crm", interaction: "crm",
-  project: "project", task: "task", decision: "project", deliverable: "project", project_template: "project",
-  quote: "quote", service: "service",
-  note: "note", course: "study", assessment: "study",
-  transaction: "finance", receivable: "finance", payable: "finance", subscription: "finance", account: "finance",
-  reminder: "reminder", inbox_item: "inbox", space: "space",
+  client: "crm",
+  contact: "crm",
+  opportunity: "crm",
+  interaction: "crm",
+  project: "project",
+  task: "task",
+  decision: "project",
+  deliverable: "project",
+  project_template: "project",
+  quote: "quote",
+  service: "service",
+  note: "note",
+  course: "study",
+  assessment: "study",
+  transaction: "finance",
+  receivable: "finance",
+  payable: "finance",
+  subscription: "finance",
+  account: "finance",
+  reminder: "reminder",
+  inbox_item: "inbox",
+  space: "space",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: acceso genérico a columnas comunes
@@ -35,7 +51,12 @@ async function setColumn(ctx: Ctx, type: string, id: string, column: "deletedAt"
       .returning();
     if (!row) throw notFound();
     const title = String(row[ENTITIES[type as EntityType].title] ?? "").slice(0, 80);
-    await recordEvent(t, ctx, { type: `${type}.${verb}`, entityType: type, entityId: id, summary: `${summary} ${label(L.entityType, type).toLowerCase()} «${title}»` });
+    await recordEvent(t, ctx, {
+      type: `${type}.${verb}`,
+      entityType: type,
+      entityId: id,
+      summary: `${summary} ${label(L.entityType, type).toLowerCase()} «${title}»`,
+    });
     return row;
   });
 }
@@ -96,7 +117,15 @@ export async function purgeOne(ctx: Ctx, type: string, id: string) {
       .where(and(eq(table.id, id), eq(table.workspaceId, ctx.workspaceId), isNotNull(table.deletedAt)))
       .returning();
     if (!row) throw notFound();
-    await t.insert(schema.auditLog).values({ workspaceId: ctx.workspaceId, actorType: ctx.actor.type, actorId: ctx.actor.id, action: "entity.purged", targetType: type, targetId: id, before: row as object });
+    await t.insert(schema.auditLog).values({
+      workspaceId: ctx.workspaceId,
+      actorType: ctx.actor.type,
+      actorId: ctx.actor.id,
+      action: "entity.purged",
+      targetType: type,
+      targetId: id,
+      before: row as object,
+    });
     return true;
   });
 }

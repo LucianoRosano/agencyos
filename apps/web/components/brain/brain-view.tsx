@@ -10,7 +10,19 @@ import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState }
 import { toast } from "sonner";
 import { saveLayoutAction } from "@/app/(app)/cerebro/actions";
 import type { GraphApi, Insets } from "./graph-canvas";
-import { type BrainGraph, type BrainNode, type BrainNodeType, FILTER_TYPES, isPulsing, monthLabel, neighborhood, normText, relTime, TYPE_COLOR, TYPE_LABEL } from "./model";
+import {
+  type BrainGraph,
+  type BrainNode,
+  type BrainNodeType,
+  FILTER_TYPES,
+  isPulsing,
+  monthLabel,
+  neighborhood,
+  normText,
+  relTime,
+  TYPE_COLOR,
+  TYPE_LABEL,
+} from "./model";
 import "./brain.css";
 
 const GraphCanvas = dynamic(() => import("./graph-canvas"), {
@@ -34,7 +46,11 @@ function Dot({ type, dim }: { type: BrainNodeType; dim?: boolean }) {
   return type === "contact" ? (
     <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full border-2" style={{ borderColor: c, opacity: dim ? 0.5 : 1 }} />
   ) : (
-    <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: c, boxShadow: dim ? "none" : `0 0 8px ${c}`, opacity: dim ? 0.5 : 1 }} />
+    <span
+      aria-hidden
+      className="inline-block size-2.5 shrink-0 rounded-full"
+      style={{ background: c, boxShadow: dim ? "none" : `0 0 8px ${c}`, opacity: dim ? 0.5 : 1 }}
+    />
   );
 }
 
@@ -91,23 +107,20 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
     return out;
   }, [real, types, spaceId, timeCut, localSet]);
 
-  const select = useCallback(
-    (key: string | null, fly = false) => {
-      setSelected(key);
-      if (!key) setLocal(null);
-      try {
-        const url = new URL(window.location.href);
-        if (key) url.searchParams.set("nodo", key);
-        else url.searchParams.delete("nodo");
-        window.history.replaceState(window.history.state, "", url);
-      } catch {}
-      if (key && fly) {
-        if (api.current) api.current.flyTo(key, panelInset());
-        else pendingFly.current = key;
-      }
-    },
-    [],
-  );
+  const select = useCallback((key: string | null, fly = false) => {
+    setSelected(key);
+    if (!key) setLocal(null);
+    try {
+      const url = new URL(window.location.href);
+      if (key) url.searchParams.set("nodo", key);
+      else url.searchParams.delete("nodo");
+      window.history.replaceState(window.history.state, "", url);
+    } catch {}
+    if (key && fly) {
+      if (api.current) api.current.flyTo(key, panelInset());
+      else pendingFly.current = key;
+    }
+  }, []);
 
   // Atajos: "/" busca y vuela, Esc limpia.
   useEffect(() => {
@@ -155,7 +168,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
     for (const n of real) c[n.type] = (c[n.type] ?? 0) + 1;
     return c;
   }, [real]);
-  const sel = selected ? byKey.get(selected) ?? null : null;
+  const sel = selected ? (byKey.get(selected) ?? null) : null;
   const empty = real.length === 0;
   const onLayout = useCallback(
     (pos: Record<string, [number, number]>) => {
@@ -195,10 +208,14 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       {/* Barra superior: buscar y volar · chips · Grafo | Lista */}
       <div className="absolute inset-x-3 top-3 z-20 flex flex-col gap-2 md:inset-x-5 md:top-5 md:flex-row md:items-center md:gap-3">
         <div className="flex items-center gap-2">
-          <SearchFly inputRef={searchRef} nodes={real} onPick={(k) => {
-            if (view === "list") changeView("graph");
-            select(k, true);
-          }} />
+          <SearchFly
+            inputRef={searchRef}
+            nodes={real}
+            onPick={(k) => {
+              if (view === "list") changeView("graph");
+              select(k, true);
+            }}
+          />
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
@@ -230,17 +247,22 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
           })}
         </div>
         <div className="brain-glass hidden h-10 shrink-0 items-center rounded-[10px] p-0.5 md:flex" role="radiogroup" aria-label="Vista">
-          {([
-            ["graph", "Grafo", <Waypoints key="g" className="size-4" />],
-            ["list", "Lista", <List key="l" className="size-4" />],
-          ] as const).map(([k, l, icon]) => (
+          {(
+            [
+              ["graph", "Grafo", <Waypoints key="g" className="size-4" />],
+              ["list", "Lista", <List key="l" className="size-4" />],
+            ] as const
+          ).map(([k, l, icon]) => (
             <button
               key={k}
               type="button"
               role="radio"
               aria-checked={view === k}
               onClick={() => changeView(k)}
-              className={cn("flex h-9 items-center gap-2 rounded-[8px] px-3.5 text-[14px]", view === k ? "bg-white/10 text-text" : "text-text-muted hover:text-text")}
+              className={cn(
+                "flex h-9 items-center gap-2 rounded-[8px] px-3.5 text-[14px]",
+                view === k ? "bg-white/10 text-text" : "text-text-muted hover:text-text",
+              )}
             >
               {icon}
               {l}
@@ -254,7 +276,12 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
           <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Grafo local</span>
           <span className="max-w-40 truncate text-text">{sel.label}</span>
           <DepthPicker value={local} onChange={setLocal} />
-          <button type="button" onClick={() => setLocal(null)} aria-label="Salir del grafo local" className="grid size-8 place-items-center rounded-full text-text-muted hover:bg-white/10 hover:text-text">
+          <button
+            type="button"
+            onClick={() => setLocal(null)}
+            aria-label="Salir del grafo local"
+            className="grid size-8 place-items-center rounded-full text-text-muted hover:bg-white/10 hover:text-text"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -285,10 +312,14 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       ) : null}
 
       {view === "list" && !empty ? (
-        <BrainList nodes={real.filter((n) => visible.has(n.key))} adj={adj} onShow={(k) => {
-          changeView("graph");
-          select(k, true);
-        }} />
+        <BrainList
+          nodes={real.filter((n) => visible.has(n.key))}
+          adj={adj}
+          onShow={(k) => {
+            changeView("graph");
+            select(k, true);
+          }}
+        />
       ) : null}
 
       {/* Zoom / encuadre */}
@@ -306,21 +337,42 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
         </div>
       ) : null}
       {laying ? (
-        <p className="brain-glass absolute top-[124px] left-1/2 z-10 -translate-x-1/2 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted md:top-[76px]" aria-live="polite">
+        <p
+          className="brain-glass absolute top-[124px] left-1/2 z-10 -translate-x-1/2 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted md:top-[76px]"
+          aria-live="polite"
+        >
           Ordenando el grafo…
         </p>
       ) : null}
 
       {/* Panel lateral (desktop) */}
       {sel && view === "graph" ? (
-        <aside className="brain-glass absolute top-[76px] right-5 bottom-24 z-20 hidden w-[360px] flex-col overflow-hidden rounded-[16px] md:flex" aria-label={`Nodo seleccionado: ${sel.label}`} data-testid="brain-panel">
-          <NodePanel node={sel} adj={adj} byKey={byKey} now={now} local={local} onLocal={setLocal} onPick={(k) => select(k, true)} onClose={() => select(null)} />
+        <aside
+          className="brain-glass absolute top-[76px] right-5 bottom-24 z-20 hidden w-[360px] flex-col overflow-hidden rounded-[16px] md:flex"
+          aria-label={`Nodo seleccionado: ${sel.label}`}
+          data-testid="brain-panel"
+        >
+          <NodePanel
+            node={sel}
+            adj={adj}
+            byKey={byKey}
+            now={now}
+            local={local}
+            onLocal={setLocal}
+            onPick={(k) => select(k, true)}
+            onClose={() => select(null)}
+          />
         </aside>
       ) : null}
 
       {/* Hoja inferior (celular) */}
       {sel && view === "graph" ? (
-        <div className="brain-glass absolute inset-x-3 bottom-[calc(96px+env(safe-area-inset-bottom))] z-20 rounded-[18px] p-4 md:hidden" role="region" data-testid="brain-sheet" aria-label={`Nodo seleccionado: ${sel.label}`}>
+        <div
+          className="brain-glass absolute inset-x-3 bottom-[calc(96px+env(safe-area-inset-bottom))] z-20 rounded-[18px] p-4 md:hidden"
+          role="region"
+          data-testid="brain-sheet"
+          aria-label={`Nodo seleccionado: ${sel.label}`}
+        >
           <div className="mx-auto -mt-1.5 mb-3 h-1 w-10 rounded-full bg-white/15" aria-hidden />
           <div className="flex items-center gap-3">
             <Dot type={sel.type} dim={sel.dim} />
@@ -368,7 +420,10 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
                   changeView(k);
                   setFiltersOpen(false);
                 }}
-                className={cn("flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] text-[15px]", view === k ? "bg-surface-2 text-text" : "text-text-muted")}
+                className={cn(
+                  "flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] text-[15px]",
+                  view === k ? "bg-surface-2 text-text" : "text-text-muted",
+                )}
               >
                 {k === "graph" ? <Waypoints className="size-4" /> : <List className="size-4" />}
                 {k === "graph" ? "Grafo" : "Lista"}
@@ -377,7 +432,11 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
           </div>
           <label className="flex flex-col gap-1.5 text-[13px] text-text-muted">
             Espacio
-            <select value={spaceId} onChange={(e) => setSpaceId(e.target.value)} className="select-chevron h-11 appearance-none rounded-[var(--radius-control)] border border-border bg-bg-elevated bg-[length:16px] bg-[right_10px_center] bg-no-repeat px-3 text-base text-text">
+            <select
+              value={spaceId}
+              onChange={(e) => setSpaceId(e.target.value)}
+              className="select-chevron h-11 appearance-none rounded-[var(--radius-control)] border border-border bg-bg-elevated bg-[length:16px] bg-[right_10px_center] bg-no-repeat px-3 text-base text-text"
+            >
               <option value="">Todos los espacios</option>
               {graph.spaces.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -396,7 +455,13 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
 
 function IconBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" aria-label={label} title={label} onClick={onClick} className="grid size-11 place-items-center text-text-muted hover:text-text [&:not(:last-child)]:border-b [&:not(:last-child)]:border-white/10">
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="grid size-11 place-items-center text-text-muted hover:text-text [&:not(:last-child)]:border-b [&:not(:last-child)]:border-white/10"
+    >
       {children}
     </button>
   );
@@ -435,7 +500,10 @@ function SearchFly({ nodes, onPick, inputRef }: { nodes: BrainNode[]; onPick: (k
       if (i < 0) continue;
       scored.push({ n, s: (i === 0 ? 0 : 1) + l.length / 200 });
     }
-    return scored.sort((a, b) => a.s - b.s).slice(0, 8).map((x) => x.n);
+    return scored
+      .sort((a, b) => a.s - b.s)
+      .slice(0, 8)
+      .map((x) => x.n);
   }, [q, nodes]);
   const pick = (n: BrainNode) => {
     onPick(n.key);
@@ -489,26 +557,35 @@ function SearchFly({ nodes, onPick, inputRef }: { nodes: BrainNode[]; onPick: (k
         <kbd className="hidden rounded-md border border-white/15 px-1.5 font-mono text-[12px] text-text-muted md:inline">/</kbd>
       </div>
       {open && results.length ? (
-        <ul id="brain-search-results" role="listbox" aria-label="Resultados" className="brain-glass absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-[12px] p-1">
+        <div
+          id="brain-search-results"
+          role="listbox"
+          aria-label="Resultados"
+          className="brain-glass absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-[12px] p-1"
+        >
           {results.map((n, i) => (
-            <li
+            <div
               key={n.key}
               id={`brain-opt-${i}`}
               role="option"
+              tabIndex={-1}
               aria-selected={i === active}
               onMouseDown={(e) => {
                 e.preventDefault();
                 pick(n);
               }}
               onMouseEnter={() => setActive(i)}
-              className={cn("flex min-h-11 cursor-pointer items-center gap-2.5 rounded-[8px] px-2.5 text-[14px]", i === active ? "bg-white/10 text-text" : "text-text-muted")}
+              className={cn(
+                "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-[8px] px-2.5 text-[14px]",
+                i === active ? "bg-white/10 text-text" : "text-text-muted",
+              )}
             >
               <Dot type={n.type} dim={n.dim} />
               <span className="min-w-0 flex-1 truncate">{n.label}</span>
               <span className="font-mono text-[11px] text-text-faint">{TYPE_LABEL[n.type].one.toLowerCase()}</span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : null}
     </div>
   );
@@ -558,10 +635,19 @@ function NodePanel({
           <h2 className="mt-2 text-[22px] leading-tight font-semibold text-text">{node.label}</h2>
           <p className="mt-1 text-[13px] text-text-muted">
             {[node.subtitle, `actualizado ${relTime(node.activeAt, now)}`].filter(Boolean).join(" · ")}
-            {isPulsing(node, now) ? <span className="ml-2 inline-flex items-center gap-1 text-success"><Activity className="size-3" /> activo</span> : null}
+            {isPulsing(node, now) ? (
+              <span className="ml-2 inline-flex items-center gap-1 text-success">
+                <Activity className="size-3" /> activo
+              </span>
+            ) : null}
           </p>
         </div>
-        <button type="button" onClick={onClose} aria-label="Cerrar panel" className="grid size-9 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar panel"
+          className="grid size-9 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text"
+        >
           <X className="size-4" />
         </button>
       </div>
@@ -573,7 +659,15 @@ function NodePanel({
           </div>
           <div className="rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
             <p className="text-[12px] text-text-muted">{second.label}</p>
-            <p className={cn("mt-1 font-mono text-[22px]", second.accent ? "text-gradient" : "text-text", second.value.length > 8 && "text-[15px] leading-[33px]")}>{second.value}</p>
+            <p
+              className={cn(
+                "mt-1 font-mono text-[22px]",
+                second.accent ? "text-gradient" : "text-text",
+                second.value.length > 8 && "text-[15px] leading-[33px]",
+              )}
+            >
+              {second.value}
+            </p>
           </div>
         </div>
         {node.nextAction ? (
@@ -587,7 +681,11 @@ function NodePanel({
           <ul className="flex flex-col pb-3">
             {neighbors.slice(0, 12).map((n) => (
               <li key={n.key}>
-                <button type="button" onClick={() => onPick(n.key)} className="flex min-h-10 w-full items-center gap-2.5 rounded-md px-1 text-left text-[14px] text-text hover:bg-white/5">
+                <button
+                  type="button"
+                  onClick={() => onPick(n.key)}
+                  className="flex min-h-10 w-full items-center gap-2.5 rounded-md px-1 text-left text-[14px] text-text hover:bg-white/5"
+                >
                   <Dot type={n.type} dim={n.dim} />
                   <span className="min-w-0 flex-1 truncate">{n.label}</span>
                   <span className="font-mono text-[11px] text-text-faint">{TYPE_LABEL[n.type].one.toLowerCase()}</span>
@@ -673,8 +771,16 @@ function SpaceSelect({ spaces, value, onChange }: { spaces: { id: string; name: 
   return (
     <label className="brain-glass flex h-14 shrink-0 items-center gap-2 rounded-[12px] pr-1 pl-3.5">
       <span className="sr-only">Espacio</span>
-      <span aria-hidden className="size-2.5 rounded-full" style={{ background: spaces.find((s) => s.id === value)?.color ?? "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }} />
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="select-chevron h-12 appearance-none bg-transparent bg-[length:16px] bg-[right_8px_center] bg-no-repeat pr-8 pl-1 text-[14px] text-text outline-none">
+      <span
+        aria-hidden
+        className="size-2.5 rounded-full"
+        style={{ background: spaces.find((s) => s.id === value)?.color ?? "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+      />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="select-chevron h-12 appearance-none bg-transparent bg-[length:16px] bg-[right_8px_center] bg-no-repeat pr-8 pl-1 text-[14px] text-text outline-none"
+      >
         <option value="">Todos los espacios</option>
         {spaces.map((s) => (
           <option key={s.id} value={s.id}>
@@ -718,7 +824,11 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
   };
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: navegación con flechas entre filas (roving focus)
-    <div className="absolute inset-x-0 top-[124px] bottom-0 z-10 overflow-y-auto px-3 pb-32 md:top-[76px] md:bottom-[92px] md:px-5 md:pb-6" onKeyDown={onKey} data-testid="brain-list">
+    <div
+      className="absolute inset-x-0 top-[124px] bottom-0 z-10 overflow-y-auto px-3 pb-32 md:top-[76px] md:bottom-[92px] md:px-5 md:pb-6"
+      onKeyDown={onKey}
+      data-testid="brain-list"
+    >
       <div className="mx-auto flex max-w-4xl flex-col gap-5">
         {groups.length ? (
           groups.map((g) => (
@@ -729,7 +839,11 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
               <ul className="brain-glass overflow-hidden rounded-[12px]">
                 {g.items.map((n) => (
                   <li key={n.key} className="flex items-center gap-2 border-b border-white/5 last:border-0">
-                    <Link href={n.href} data-row className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-2 hover:bg-white/5 focus-visible:bg-white/5">
+                    <Link
+                      href={n.href}
+                      data-row
+                      className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-2 hover:bg-white/5 focus-visible:bg-white/5"
+                    >
                       <Dot type={n.type} dim={n.dim} />
                       <span className="min-w-0 flex-1">
                         <span className={cn("block truncate text-[15px]", n.dim ? "text-text-muted" : "text-text")}>{n.label}</span>
@@ -739,7 +853,12 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
                       </span>
                       <span className="hidden font-mono text-[12px] text-text-muted sm:inline">{adj.get(n.key)?.length ?? 0} conex.</span>
                     </Link>
-                    <button type="button" onClick={() => onShow(n.key)} aria-label={`Ver «${n.label}» en el grafo`} className="mr-2 grid size-11 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text">
+                    <button
+                      type="button"
+                      onClick={() => onShow(n.key)}
+                      aria-label={`Ver «${n.label}» en el grafo`}
+                      className="mr-2 grid size-11 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text"
+                    >
                       <Waypoints className="size-4" />
                     </button>
                   </li>

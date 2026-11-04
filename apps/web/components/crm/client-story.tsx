@@ -9,8 +9,20 @@ import { KIND_ICON } from "./icons";
 import { InteractionMenu, NextStepDone } from "./interaction-form";
 import { dueTone } from "./shared";
 
-type Interaction = { i: { id: string; kind: string; occurredAt: Date; summaryMd: string; nextStep: string | null; nextStepDue: string | null }; contactName: string | null };
-type Opp = { id: string; title: string; createdAt: Date; wonAt: Date | null; lostAt: Date | null; lostReason: string | null; valueAmount: string | null; valueCurrency: string };
+type Interaction = {
+  i: { id: string; kind: string; occurredAt: Date; summaryMd: string; nextStep: string | null; nextStepDue: string | null };
+  contactName: string | null;
+};
+type Opp = {
+  id: string;
+  title: string;
+  createdAt: Date;
+  wonAt: Date | null;
+  lostAt: Date | null;
+  lostReason: string | null;
+  valueAmount: string | null;
+  valueCurrency: string;
+};
 type Project = { id: string; name: string; createdAt: Date };
 type Quote = { id: string; number: string; title: string; createdAt: Date; sentAt: Date | null; total: string | null; currency: string | null };
 
@@ -48,24 +60,111 @@ function interactionItem({ i, contactName }: Interaction): Item {
 
 /** La ficha se lee como una historia: conversaciones + hitos (docs/07 §4). */
 export function ClientStory({
-  interactions, opportunities = [], projects = [], quotes = [], createdAt, limit, onlyInteractions,
+  interactions,
+  opportunities = [],
+  projects = [],
+  quotes = [],
+  createdAt,
+  limit,
+  onlyInteractions,
 }: {
-  interactions: Interaction[]; opportunities?: Opp[]; projects?: Project[]; quotes?: Quote[]; createdAt?: Date; limit?: number; onlyInteractions?: boolean;
+  interactions: Interaction[];
+  opportunities?: Opp[];
+  projects?: Project[];
+  quotes?: Quote[];
+  createdAt?: Date;
+  limit?: number;
+  onlyInteractions?: boolean;
 }) {
   const items: Item[] = interactions.map(interactionItem);
   if (!onlyInteractions) {
     for (const o of opportunities) {
-      items.push({ key: `oc-${o.id}`, at: o.createdAt, icon: <Handshake />, tone: "text-text-muted border-border bg-surface-2", title: <>Se abrió la oportunidad <Link className="text-text hover:underline" href={`/crm/oportunidades/${o.id}`}>«{o.title}»</Link></>, meta: o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : undefined });
-      if (o.wonAt) items.push({ key: `ow-${o.id}`, at: o.wonAt, icon: <Trophy />, tone: "text-success border-success/30 bg-success-soft", title: <>Ganada: <Link className="hover:underline" href={`/crm/oportunidades/${o.id}`}>«{o.title}»</Link></>, meta: o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : undefined });
-      if (o.lostAt) items.push({ key: `ol-${o.id}`, at: o.lostAt, icon: <XCircle />, tone: "text-danger border-danger/30 bg-danger-soft", title: <>Perdida: «{o.title}»</>, meta: label(L.lostReason, o.lostReason) });
+      items.push({
+        key: `oc-${o.id}`,
+        at: o.createdAt,
+        icon: <Handshake />,
+        tone: "text-text-muted border-border bg-surface-2",
+        title: (
+          <>
+            Se abrió la oportunidad{" "}
+            <Link className="text-text hover:underline" href={`/crm/oportunidades/${o.id}`}>
+              «{o.title}»
+            </Link>
+          </>
+        ),
+        meta: o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : undefined,
+      });
+      if (o.wonAt)
+        items.push({
+          key: `ow-${o.id}`,
+          at: o.wonAt,
+          icon: <Trophy />,
+          tone: "text-success border-success/30 bg-success-soft",
+          title: (
+            <>
+              Ganada:{" "}
+              <Link className="hover:underline" href={`/crm/oportunidades/${o.id}`}>
+                «{o.title}»
+              </Link>
+            </>
+          ),
+          meta: o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : undefined,
+        });
+      if (o.lostAt)
+        items.push({
+          key: `ol-${o.id}`,
+          at: o.lostAt,
+          icon: <XCircle />,
+          tone: "text-danger border-danger/30 bg-danger-soft",
+          title: <>Perdida: «{o.title}»</>,
+          meta: label(L.lostReason, o.lostReason),
+        });
     }
-    for (const p of projects) items.push({ key: `p-${p.id}`, at: p.createdAt, icon: <FolderKanban />, tone: "text-accent border-accent/30 bg-accent-soft", title: <>Arrancó el proyecto <Link className="text-text hover:underline" href={`/proyectos/${p.id}`}>«{p.name}»</Link></> });
-    for (const q of quotes) items.push({ key: `q-${q.id}`, at: q.sentAt ?? q.createdAt, icon: <FileSignature />, tone: "text-[#A78BFA] border-[#A78BFA]/30 bg-[#A78BFA]/10", title: <>{q.sentAt ? "Envió" : "Armó"} el presupuesto <Link className="text-text hover:underline" href={`/presupuestos/${q.id}`}>{q.number}</Link></>, meta: q.total ? formatMoney(q.total, q.currency ?? "ARS") : undefined });
-    if (createdAt) items.push({ key: "created", at: createdAt, icon: <Sparkles />, tone: "text-text-muted border-border bg-surface-2", title: "Se registró el cliente" });
+    for (const p of projects)
+      items.push({
+        key: `p-${p.id}`,
+        at: p.createdAt,
+        icon: <FolderKanban />,
+        tone: "text-accent border-accent/30 bg-accent-soft",
+        title: (
+          <>
+            Arrancó el proyecto{" "}
+            <Link className="text-text hover:underline" href={`/proyectos/${p.id}`}>
+              «{p.name}»
+            </Link>
+          </>
+        ),
+      });
+    for (const q of quotes)
+      items.push({
+        key: `q-${q.id}`,
+        at: q.sentAt ?? q.createdAt,
+        icon: <FileSignature />,
+        tone: "text-[#A78BFA] border-[#A78BFA]/30 bg-[#A78BFA]/10",
+        title: (
+          <>
+            {q.sentAt ? "Envió" : "Armó"} el presupuesto{" "}
+            <Link className="text-text hover:underline" href={`/presupuestos/${q.id}`}>
+              {q.number}
+            </Link>
+          </>
+        ),
+        meta: q.total ? formatMoney(q.total, q.currency ?? "ARS") : undefined,
+      });
+    if (createdAt)
+      items.push({ key: "created", at: createdAt, icon: <Sparkles />, tone: "text-text-muted border-border bg-surface-2", title: "Se registró el cliente" });
   }
   items.sort((a, b) => b.at.getTime() - a.at.getTime());
   const shown = limit ? items.slice(0, limit) : items;
-  if (!shown.length) return <EmptyState compact icon={<MessagesSquare />} title="Todavía no hay historia" description="Registrá la primera conversación: WhatsApp, llamada, reunión o una nota." />;
+  if (!shown.length)
+    return (
+      <EmptyState
+        compact
+        icon={<MessagesSquare />}
+        title="Todavía no hay historia"
+        description="Registrá la primera conversación: WhatsApp, llamada, reunión o una nota."
+      />
+    );
   return (
     <ol className="relative flex flex-col">
       {shown.map((it, idx) => (
@@ -76,7 +175,8 @@ export function ClientStory({
             <p className={cn("text-[14px] font-medium text-text", it.actions && "pr-10")}>{it.title}</p>
             {it.actions ? <div className="absolute top-0 right-0">{it.actions}</div> : null}
             <p className="mt-0.5 font-mono text-[11px] text-text-faint" title={formatDateTime(it.at)}>
-              {formatDateTime(it.at)} · {relativeFromDate(it.at)}{it.meta ? ` · ${it.meta}` : ""}
+              {formatDateTime(it.at)} · {relativeFromDate(it.at)}
+              {it.meta ? ` · ${it.meta}` : ""}
             </p>
             {it.body ? <div className="mt-2">{it.body}</div> : null}
           </div>

@@ -27,18 +27,35 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const tab = sp.ver === "auditoria" ? "auditoria" : "actividad";
   return (
     <Card className="p-5">
-      <Tabs active={tab} items={[{ key: "actividad", label: "Actividad", href: "/configuracion/actividad" }, { key: "auditoria", label: "Auditoría", href: "/configuracion/actividad?ver=auditoria" }]} />
+      <Tabs
+        active={tab}
+        items={[
+          { key: "actividad", label: "Actividad", href: "/configuracion/actividad" },
+          { key: "auditoria", label: "Auditoría", href: "/configuracion/actividad?ver=auditoria" },
+        ]}
+      />
       {tab === "actividad" ? (
         <ActivityList rows={await listActivity(ctx, { limit: 150 })} />
       ) : (
         <>
-          <SectionLabel className="mb-3">Registro inmutable · <a className="normal-case tracking-normal text-accent hover:underline" href="/api/auditoria.csv">exportar CSV</a></SectionLabel>
+          <SectionLabel className="mb-3">
+            Registro inmutable ·{" "}
+            <a className="normal-case tracking-normal text-accent hover:underline" href="/api/auditoria.csv">
+              exportar CSV
+            </a>
+          </SectionLabel>
           <ul className="divide-y divide-border">
             {(await listAudit(ctx)).map((a) => (
               <li key={a.id} className="grid gap-1 py-2.5 text-[13px] md:grid-cols-[170px_1fr_auto]">
                 <span className="font-mono text-text-faint">{formatDateTime(a.at)}</span>
-                <span className="text-text">{ACTION_LABEL[a.action] ?? a.action}{a.targetId && a.action.startsWith("mcp") ? ` · ${a.targetId}` : ""}</span>
-                <span className="text-text-muted">{a.actorType === "agent" ? "Claude (MCP)" : a.actorType === "system" ? "Sistema" : "Usuario"}{a.ip ? ` · ${a.ip}` : ""}</span>
+                <span className="text-text">
+                  {ACTION_LABEL[a.action] ?? a.action}
+                  {a.targetId && a.action.startsWith("mcp") ? ` · ${a.targetId}` : ""}
+                </span>
+                <span className="text-text-muted">
+                  {a.actorType === "agent" ? "Claude (MCP)" : a.actorType === "system" ? "Sistema" : "Usuario"}
+                  {a.ip ? ` · ${a.ip}` : ""}
+                </span>
               </li>
             ))}
           </ul>

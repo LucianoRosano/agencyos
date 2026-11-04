@@ -24,8 +24,15 @@ export function Topbar({ data }: { data: ShellData }) {
       <BellLink count={data.counts.notifications ?? 0} />
       <Menu
         trigger={
-          <button type="button" className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong">
-            <span aria-hidden className="size-2.5 rounded-full" style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }} />
+          <button
+            type="button"
+            className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong"
+          >
+            <span
+              aria-hidden
+              className="size-2.5 rounded-full"
+              style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+            />
             {selected ? selected.name : "Todos los espacios"}
             <ChevronDown className="size-4 text-text-muted" />
           </button>
@@ -70,9 +77,17 @@ export function Topbar({ data }: { data: ShellData }) {
 
 export function BellLink({ count, className }: { count: number; className?: string }) {
   return (
-    <Link href="/notificaciones" aria-label={count ? `Notificaciones: ${count} sin leer` : "Notificaciones"} className={`relative grid size-10 place-items-center rounded-[9px] border border-border bg-surface text-text-muted hover:text-text ${className ?? ""}`}>
+    <Link
+      href="/notificaciones"
+      aria-label={count ? `Notificaciones: ${count} sin leer` : "Notificaciones"}
+      className={`relative grid size-10 place-items-center rounded-[9px] border border-border bg-surface text-text-muted hover:text-text ${className ?? ""}`}
+    >
       <Bell className="size-[18px]" />
-      {count ? <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 font-mono text-[10px] text-white">{count > 99 ? "99+" : count}</span> : null}
+      {count ? (
+        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 font-mono text-[10px] text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      ) : null}
     </Link>
   );
 }

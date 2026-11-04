@@ -43,7 +43,10 @@ const ymd = (iso: string) => iso.replaceAll("-", "");
 const hm = (t: string) => t.replace(":", "").padEnd(4, "0");
 
 function utcStamp(d: Date): string {
-  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  return d
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 }
 
 function addMinutes(date: string, time: string, minutes: number): { date: string; time: string } {

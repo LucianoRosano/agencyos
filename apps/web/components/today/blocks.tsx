@@ -40,7 +40,12 @@ export function AgendaBlock({ items, today = todayAR() }: { items: Agenda[]; tod
           ))}
         </div>
       ) : (
-        <EmptyState compact icon={<CalendarDays />} title="Semana despejada" description="No hay tareas, entregas, pagos ni evaluaciones en los próximos 7 días." />
+        <EmptyState
+          compact
+          icon={<CalendarDays />}
+          title="Semana despejada"
+          description="No hay tareas, entregas, pagos ni evaluaciones en los próximos 7 días."
+        />
       )}
     </BlockCard>
   );
@@ -105,7 +110,17 @@ export function MoneyBlock({ m }: { m: Money }) {
           ) : null}
         </>
       ) : (
-        <EmptyState compact icon={<Wallet />} title="Sin movimientos todavía" description="Registrá tu primer ingreso o gasto para ver el mes." action={<Link className="text-[13px] text-accent hover:underline" href="/finanzas/movimientos?nuevo=1">Registrar movimiento</Link>} />
+        <EmptyState
+          compact
+          icon={<Wallet />}
+          title="Sin movimientos todavía"
+          description="Registrá tu primer ingreso o gasto para ver el mes."
+          action={
+            <Link className="text-[13px] text-accent hover:underline" href="/finanzas/movimientos?nuevo=1">
+              Registrar movimiento
+            </Link>
+          }
+        />
       )}
     </BlockCard>
   );
@@ -128,7 +143,9 @@ export function StudyBlock({ s, today = todayAR() }: { s: Study; today?: string 
             <span className="text-[18px] text-text-muted">{days === 1 ? "día" : "días"}</span>
           </span>
           <span className="min-w-0">
-            <span className="block text-[16px] text-text">{s.next.title} · {s.next.courseName}</span>
+            <span className="block text-[16px] text-text">
+              {s.next.title} · {s.next.courseName}
+            </span>
             <span className="block text-[13px] text-text-muted">
               {s.next.date.slice(8, 10)}/{s.next.date.slice(5, 7)}
               {s.next.time ? ` · ${s.next.time}` : ""}
@@ -152,7 +169,9 @@ export function StudyBlock({ s, today = todayAR() }: { s: Study; today?: string 
       <ul className="mt-4 flex flex-col gap-2.5">
         {s.courses.map((c) => (
           <li key={c.id} className="grid grid-cols-[1fr_120px_40px] items-center gap-3 text-[14px]">
-            <Link href={`/facultad/${c.id}`} className="truncate text-text hover:underline">{c.name}</Link>
+            <Link href={`/facultad/${c.id}`} className="truncate text-text hover:underline">
+              {c.name}
+            </Link>
             <Progress value={c.progress} tone="warning" label={`Avance de ${c.name}`} />
             <span className="text-right font-mono text-[13px] text-text-muted">{c.progress}%</span>
           </li>
@@ -181,7 +200,17 @@ export function NotesBlock({ notes }: { notes: { id: string; title: string; upda
           <MiniBrain notes={notes} />
         </>
       ) : (
-        <EmptyState compact icon={<FileText />} title="Sin notas todavía" description="Las notas en Markdown con [[enlaces]] alimentan el Cerebro." action={<Link className="text-[13px] text-accent hover:underline" href="/notas/nueva">Nueva nota</Link>} />
+        <EmptyState
+          compact
+          icon={<FileText />}
+          title="Sin notas todavía"
+          description="Las notas en Markdown con [[enlaces]] alimentan el Cerebro."
+          action={
+            <Link className="text-[13px] text-accent hover:underline" href="/notas/nueva">
+              Nueva nota
+            </Link>
+          }
+        />
       )}
     </BlockCard>
   );
@@ -214,7 +243,17 @@ export function ProjectsBlock({ projects }: { projects: ProjectCardData[] }) {
           ))}
         </div>
       ) : (
-        <EmptyState compact icon={<FolderKanban />} title="No hay proyectos activos" description="Arrancá uno con el asistente en menos de 2 minutos." action={<Link className="text-[13px] text-accent hover:underline" href="/proyectos/nuevo">Nuevo proyecto</Link>} />
+        <EmptyState
+          compact
+          icon={<FolderKanban />}
+          title="No hay proyectos activos"
+          description="Arrancá uno con el asistente en menos de 2 minutos."
+          action={
+            <Link className="text-[13px] text-accent hover:underline" href="/proyectos/nuevo">
+              Nuevo proyecto
+            </Link>
+          }
+        />
       )}
     </BlockCard>
   );

@@ -15,8 +15,10 @@ export const setClientStatusAction = async (id: string, status: string) => run((
 export const deleteClientAction = async (id: string) => run((ctx) => svc.deleteClient(ctx, id));
 export const restoreClientAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "client", id));
 export const archiveClientAction = async (id: string, withProjects: boolean) => run((ctx) => svc.archiveClient(ctx, id, { withProjects }));
-export const unarchiveClientAction = async (id: string, previousStatus: string, projectIds: string[]) => run((ctx) => svc.unarchiveClient(ctx, id, previousStatus, projectIds));
-export const mergeClientsAction = async (duplicateId: string, _: S, fd: FormData) => run((ctx) => svc.mergeClients(ctx, duplicateId, String(fd.get("targetId") ?? "")));
+export const unarchiveClientAction = async (id: string, previousStatus: string, projectIds: string[]) =>
+  run((ctx) => svc.unarchiveClient(ctx, id, previousStatus, projectIds));
+export const mergeClientsAction = async (duplicateId: string, _: S, fd: FormData) =>
+  run((ctx) => svc.mergeClients(ctx, duplicateId, String(fd.get("targetId") ?? "")));
 
 // Datos fiscales (revelar no revalida: no cambia nada visible para otros)
 export const revealFiscalAction = async (clientId: string) => run((ctx) => svc.revealFiscalHolders(ctx, clientId), { revalidate: false });
@@ -37,14 +39,16 @@ export const restoreContactAction = async (id: string) => run((ctx) => restoreFr
 // Interacciones
 export const logInteractionAction = async (_: S, fd: FormData) => run((ctx) => svc.logInteraction(ctx, obj(fd)));
 export const completeNextStepAction = async (id: string) => run((ctx) => svc.completeNextStep(ctx, id));
-export const restoreNextStepAction = async (id: string, nextStep: string | null, nextStepDue: string | null) => run((ctx) => svc.restoreNextStep(ctx, id, nextStep, nextStepDue));
+export const restoreNextStepAction = async (id: string, nextStep: string | null, nextStepDue: string | null) =>
+  run((ctx) => svc.restoreNextStep(ctx, id, nextStep, nextStepDue));
 export const deleteInteractionAction = async (id: string) => run((ctx) => moveToTrash(ctx, "interaction", id));
 export const restoreInteractionAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "interaction", id));
 
 // Oportunidades
 export const createOpportunityAction = async (_: S, fd: FormData) => run((ctx) => svc.createOpportunity(ctx, obj(fd)));
 export const updateOpportunityAction = async (id: string, _: S, fd: FormData) => run((ctx) => svc.updateOpportunity(ctx, id, obj(fd)));
-export const moveOpportunityAction = async (id: string, input: { stage: string; quoteId?: string; lostReason?: string }) => run((ctx) => svc.moveOpportunity(ctx, id, input));
+export const moveOpportunityAction = async (id: string, input: { stage: string; quoteId?: string; lostReason?: string }) =>
+  run((ctx) => svc.moveOpportunity(ctx, id, input));
 export const unlinkQuoteAction = async (opportunityId: string, quoteId: string) => run((ctx) => svc.unlinkQuote(ctx, opportunityId, quoteId));
 export const deleteOpportunityAction = async (id: string) => run((ctx) => moveToTrash(ctx, "opportunity", id));
 export const restoreOpportunityAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "opportunity", id));

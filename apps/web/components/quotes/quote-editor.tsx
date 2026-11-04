@@ -26,13 +26,40 @@ const PRESETS: Record<string, { label: string; percent: string; offsetDays: stri
   ],
 };
 
-const emptyItem = (): ItemDraft => ({ key: newKey(), serviceId: "", description: "", quantity: "1", unit: "", unitPrice: "", discountType: "none", discountValue: "" });
+const emptyItem = (): ItemDraft => ({
+  key: newKey(),
+  serviceId: "",
+  description: "",
+  quantity: "1",
+  unit: "",
+  unitPrice: "",
+  discountType: "none",
+  discountValue: "",
+});
 
-function Segmented<T extends string>({ name, value, options, onChange, label }: { name: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
+function Segmented<T extends string>({
+  name,
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  name: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+  label: string;
+}) {
   return (
     <div role="radiogroup" aria-label={label} className="inline-flex rounded-[var(--radius-control)] border border-border bg-bg-elevated p-0.5">
       {options.map((o) => (
-        <label key={o.value} className={cn("flex h-9 cursor-pointer items-center rounded-[7px] px-3 text-[13px] transition-colors", value === o.value ? "bg-surface-3 text-text" : "text-text-muted hover:text-text")}>
+        <label
+          key={o.value}
+          className={cn(
+            "flex h-9 cursor-pointer items-center rounded-[7px] px-3 text-[13px] transition-colors",
+            value === o.value ? "bg-surface-3 text-text" : "text-text-muted hover:text-text",
+          )}
+        >
           <input type="radio" className="sr-only" name={name} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
           {o.label}
         </label>
@@ -75,7 +102,8 @@ export function QuoteEditor({
   const first = useRef(true);
 
   const set = <K extends keyof QuoteDraft>(k: K, v: QuoteDraft[K]) => setD((prev) => ({ ...prev, [k]: v }));
-  const setItem = (key: string, patch: Partial<ItemDraft>) => setD((prev) => ({ ...prev, items: prev.items.map((it) => (it.key === key ? { ...it, ...patch } : it)) }));
+  const setItem = (key: string, patch: Partial<ItemDraft>) =>
+    setD((prev) => ({ ...prev, items: prev.items.map((it) => (it.key === key ? { ...it, ...patch } : it)) }));
   const setPlan = (patch: Partial<QuoteDraft["plan"]>) => setD((prev) => ({ ...prev, plan: { ...prev.plan, ...patch } }));
   const setMilestone = (key: string, patch: Partial<MilestoneDraft>) => setPlan({ items: d.plan.items.map((m) => (m.key === key ? { ...m, ...patch } : m)) });
 
@@ -183,9 +211,21 @@ export function QuoteEditor({
             </Select>
           </Field>
           <Field label="Título" name="title" required error={errors.title} className="sm:col-span-2">
-            <Input id="title" value={d.title} maxLength={200} placeholder="Ej.: Tienda online con WooCommerce" aria-invalid={errors.title ? true : undefined} onChange={(e) => set("title", e.target.value)} />
+            <Input
+              id="title"
+              value={d.title}
+              maxLength={200}
+              placeholder="Ej.: Tienda online con WooCommerce"
+              aria-invalid={errors.title ? true : undefined}
+              onChange={(e) => set("title", e.target.value)}
+            />
           </Field>
-          <Field label="Oportunidad" name="opportunityId" error={errors.opportunityId} hint={d.clientId && !opportunities.length ? "Este cliente no tiene oportunidades abiertas." : undefined}>
+          <Field
+            label="Oportunidad"
+            name="opportunityId"
+            error={errors.opportunityId}
+            hint={d.clientId && !opportunities.length ? "Este cliente no tiene oportunidades abiertas." : undefined}
+          >
             <Select id="opportunityId" value={d.opportunityId} onChange={(e) => set("opportunityId", e.target.value)} disabled={!d.clientId}>
               <option value="">Sin oportunidad</option>
               {opportunities.map((o) => (
@@ -211,11 +251,38 @@ export function QuoteEditor({
           <Field label="Fecha" name="issueDate" error={errors.issueDate}>
             <Input id="issueDate" type="date" value={d.issueDate} onChange={(e) => set("issueDate", e.target.value)} />
           </Field>
-          <Field label="Válido hasta" name="validUntil" error={errors.validUntil} hint={<button type="button" className="text-accent-2 hover:underline" onClick={() => set("validUntil", addDays(d.issueDate, 15))}>15 días desde la fecha</button>}>
-            <Input id="validUntil" type="date" value={d.validUntil} aria-invalid={errors.validUntil ? true : undefined} onChange={(e) => set("validUntil", e.target.value)} />
+          <Field
+            label="Válido hasta"
+            name="validUntil"
+            error={errors.validUntil}
+            hint={
+              <button type="button" className="text-accent-2 hover:underline" onClick={() => set("validUntil", addDays(d.issueDate, 15))}>
+                15 días desde la fecha
+              </button>
+            }
+          >
+            <Input
+              id="validUntil"
+              type="date"
+              value={d.validUntil}
+              aria-invalid={errors.validUntil ? true : undefined}
+              onChange={(e) => set("validUntil", e.target.value)}
+            />
           </Field>
-          <Field label="Tipo de cambio de referencia (opcional)" name="exchangeRateRef" error={errors.exchangeRateRef} hint="Pesos por dólar. Solo informativo." className="sm:col-span-2">
-            <Input id="exchangeRateRef" inputMode="decimal" value={d.exchangeRateRef} placeholder="Ej.: 1450" onChange={(e) => set("exchangeRateRef", e.target.value)} />
+          <Field
+            label="Tipo de cambio de referencia (opcional)"
+            name="exchangeRateRef"
+            error={errors.exchangeRateRef}
+            hint="Pesos por dólar. Solo informativo."
+            className="sm:col-span-2"
+          >
+            <Input
+              id="exchangeRateRef"
+              inputMode="decimal"
+              value={d.exchangeRateRef}
+              placeholder="Ej.: 1450"
+              onChange={(e) => set("exchangeRateRef", e.target.value)}
+            />
           </Field>
         </div>
       </Card>
@@ -238,13 +305,41 @@ export function QuoteEditor({
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <span className="font-mono text-[12px] text-text-faint">{String(i + 1).padStart(2, "0")}</span>
                   <div className="flex items-center gap-1">
-                    <Button type="button" variant="ghost" size="icon" className="size-9" aria-label={`Subir ítem ${i + 1}`} disabled={i === 0} onClick={() => move(it.key, -1)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label={`Subir ítem ${i + 1}`}
+                      disabled={i === 0}
+                      onClick={() => move(it.key, -1)}
+                    >
                       <ArrowUp className="size-4" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" className="size-9" aria-label={`Bajar ítem ${i + 1}`} disabled={i === d.items.length - 1} onClick={() => move(it.key, 1)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label={`Bajar ítem ${i + 1}`}
+                      disabled={i === d.items.length - 1}
+                      onClick={() => move(it.key, 1)}
+                    >
                       <ArrowDown className="size-4" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" className="size-9 hover:text-danger" aria-label={`Quitar ítem ${i + 1}`} onClick={() => set("items", d.items.filter((x) => x.key !== it.key))}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 hover:text-danger"
+                      aria-label={`Quitar ítem ${i + 1}`}
+                      onClick={() =>
+                        set(
+                          "items",
+                          d.items.filter((x) => x.key !== it.key),
+                        )
+                      }
+                    >
                       <Trash2 className="size-4" />
                     </Button>
                   </div>
@@ -278,18 +373,45 @@ export function QuoteEditor({
                       ))}
                     </Select>
                   </Field>
-                  <Field label={`Precio unitario (${d.currency})`} name={`${p}.unitPrice`} error={issueFor(`${p}.unitPrice`)} className="col-span-2 sm:col-span-2">
-                    <Input id={`${p}.unitPrice`} inputMode="decimal" value={it.unitPrice} placeholder="0" onChange={(e) => setItem(it.key, { unitPrice: e.target.value })} />
+                  <Field
+                    label={`Precio unitario (${d.currency})`}
+                    name={`${p}.unitPrice`}
+                    error={issueFor(`${p}.unitPrice`)}
+                    className="col-span-2 sm:col-span-2"
+                  >
+                    <Input
+                      id={`${p}.unitPrice`}
+                      inputMode="decimal"
+                      value={it.unitPrice}
+                      placeholder="0"
+                      onChange={(e) => setItem(it.key, { unitPrice: e.target.value })}
+                    />
                   </Field>
                   <Field label="Descuento" name={`${p}.discountType`} className="sm:col-span-2">
-                    <Select id={`${p}.discountType`} value={it.discountType} onChange={(e) => setItem(it.key, { discountType: e.target.value as ItemDraft["discountType"] })}>
+                    <Select
+                      id={`${p}.discountType`}
+                      value={it.discountType}
+                      onChange={(e) => setItem(it.key, { discountType: e.target.value as ItemDraft["discountType"] })}
+                    >
                       <option value="none">Sin descuento</option>
                       <option value="percent">Porcentaje (%)</option>
                       <option value="amount">Monto fijo</option>
                     </Select>
                   </Field>
-                  <Field label={it.discountType === "percent" ? "Descuento %" : "Descuento $"} name={`${p}.discountValue`} error={issueFor(`${p}.discountValue`)} className="sm:col-span-2">
-                    <Input id={`${p}.discountValue`} inputMode="decimal" value={it.discountValue} disabled={it.discountType === "none"} placeholder="0" onChange={(e) => setItem(it.key, { discountValue: e.target.value })} />
+                  <Field
+                    label={it.discountType === "percent" ? "Descuento %" : "Descuento $"}
+                    name={`${p}.discountValue`}
+                    error={issueFor(`${p}.discountValue`)}
+                    className="sm:col-span-2"
+                  >
+                    <Input
+                      id={`${p}.discountValue`}
+                      inputMode="decimal"
+                      value={it.discountValue}
+                      disabled={it.discountType === "none"}
+                      placeholder="0"
+                      onChange={(e) => setItem(it.key, { discountValue: e.target.value })}
+                    />
                   </Field>
                   <div className="col-span-2 flex flex-col justify-end sm:col-span-2">
                     <span className="text-[13px] font-medium text-text-muted">Importe</span>
@@ -311,14 +433,25 @@ export function QuoteEditor({
         <SectionLabel className="mb-4">Descuento global y totales</SectionLabel>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Descuento global" name="globalDiscountType">
-            <Select id="globalDiscountType" value={d.globalDiscountType} onChange={(e) => set("globalDiscountType", e.target.value as QuoteDraft["globalDiscountType"])}>
+            <Select
+              id="globalDiscountType"
+              value={d.globalDiscountType}
+              onChange={(e) => set("globalDiscountType", e.target.value as QuoteDraft["globalDiscountType"])}
+            >
               <option value="none">Sin descuento</option>
               <option value="percent">Porcentaje (%)</option>
               <option value="amount">Monto fijo</option>
             </Select>
           </Field>
           <Field label="Valor" name="globalDiscountValue" error={issueFor("globalDiscountValue")}>
-            <Input id="globalDiscountValue" inputMode="decimal" value={d.globalDiscountValue} disabled={d.globalDiscountType === "none"} placeholder="0" onChange={(e) => set("globalDiscountValue", e.target.value)} />
+            <Input
+              id="globalDiscountValue"
+              inputMode="decimal"
+              value={d.globalDiscountValue}
+              disabled={d.globalDiscountType === "none"}
+              placeholder="0"
+              onChange={(e) => set("globalDiscountValue", e.target.value)}
+            />
           </Field>
         </div>
         <dl className="mt-5 grid grid-cols-[1fr_auto] gap-y-1.5 border-t border-border pt-4 text-[14px]">
@@ -342,7 +475,15 @@ export function QuoteEditor({
           name="planKind"
           label="Plan de cobro"
           value={d.plan.kind}
-          onChange={(kind) => setPlan(kind === "milestones" && !d.plan.items.length ? { kind, items: (PRESETS["50/50"] ?? []).map((x) => ({ ...x, key: newKey() })) } : kind === "monthly" && !d.plan.amount ? { kind, amount: preview.totals.total === "0.00" ? "" : preview.totals.total } : { kind })}
+          onChange={(kind) =>
+            setPlan(
+              kind === "milestones" && !d.plan.items.length
+                ? { kind, items: (PRESETS["50/50"] ?? []).map((x) => ({ ...x, key: newKey() })) }
+                : kind === "monthly" && !d.plan.amount
+                  ? { kind, amount: preview.totals.total === "0.00" ? "" : preview.totals.total }
+                  : { kind },
+            )
+          }
           options={[
             { value: "single", label: L.paymentPlanKind.single },
             { value: "milestones", label: L.paymentPlanKind.milestones },
@@ -362,22 +503,49 @@ export function QuoteEditor({
             </div>
             {d.plan.items.map((ms, i) => (
               <div key={ms.key} className="grid grid-cols-[1fr_1fr_auto] items-end gap-3 sm:grid-cols-[1fr_96px_120px_auto]">
-                <Field label="Etapa" name={`paymentPlan.items.${i}.label`} error={issueFor(`paymentPlan.items.${i}.label`)} className="col-span-3 sm:col-span-1">
+                <Field
+                  label="Etapa"
+                  name={`paymentPlan.items.${i}.label`}
+                  error={issueFor(`paymentPlan.items.${i}.label`)}
+                  className="col-span-3 sm:col-span-1"
+                >
                   <Input id={`paymentPlan.items.${i}.label`} value={ms.label} onChange={(e) => setMilestone(ms.key, { label: e.target.value })} />
                 </Field>
                 <Field label="%" name={`paymentPlan.items.${i}.percent`} error={issueFor(`paymentPlan.items.${i}.percent`)}>
-                  <Input id={`paymentPlan.items.${i}.percent`} inputMode="decimal" value={ms.percent} onChange={(e) => setMilestone(ms.key, { percent: e.target.value })} />
+                  <Input
+                    id={`paymentPlan.items.${i}.percent`}
+                    inputMode="decimal"
+                    value={ms.percent}
+                    onChange={(e) => setMilestone(ms.key, { percent: e.target.value })}
+                  />
                 </Field>
                 <Field label="A los … días" name={`paymentPlan.items.${i}.offsetDays`}>
-                  <Input id={`paymentPlan.items.${i}.offsetDays`} inputMode="numeric" value={ms.offsetDays} onChange={(e) => setMilestone(ms.key, { offsetDays: e.target.value })} />
+                  <Input
+                    id={`paymentPlan.items.${i}.offsetDays`}
+                    inputMode="numeric"
+                    value={ms.offsetDays}
+                    onChange={(e) => setMilestone(ms.key, { offsetDays: e.target.value })}
+                  />
                 </Field>
-                <Button type="button" variant="ghost" size="icon" aria-label={`Quitar etapa ${i + 1}`} className="hover:text-danger" onClick={() => setPlan({ items: d.plan.items.filter((x) => x.key !== ms.key) })}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Quitar etapa ${i + 1}`}
+                  className="hover:text-danger"
+                  onClick={() => setPlan({ items: d.plan.items.filter((x) => x.key !== ms.key) })}
+                >
                   <Trash2 className="size-4" />
                 </Button>
               </div>
             ))}
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <Button type="button" size="sm" variant="secondary" onClick={() => setPlan({ items: [...d.plan.items, { key: newKey(), label: "", percent: "", offsetDays: "" }] })}>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setPlan({ items: [...d.plan.items, { key: newKey(), label: "", percent: "", offsetDays: "" }] })}
+              >
                 <Plus className="size-4" /> Etapa
               </Button>
               <span className={cn("font-mono text-[13px]", pctSum === 100 ? "text-success" : "text-warning")} aria-live="polite">
@@ -392,8 +560,19 @@ export function QuoteEditor({
             <Field label={`Monto mensual (${d.currency})`} name="paymentPlan.amount" error={issueFor("paymentPlan.amount")}>
               <Input id="paymentPlan.amount" inputMode="decimal" value={d.plan.amount} onChange={(e) => setPlan({ amount: e.target.value })} />
             </Field>
-            <Field label="Meses" name="paymentPlan.months" error={issueFor("paymentPlan.months")} hint="Vacío = indefinido (se generan los primeros 12 cobros al aceptar).">
-              <Input id="paymentPlan.months" inputMode="numeric" value={d.plan.months} placeholder="Indefinido" onChange={(e) => setPlan({ months: e.target.value })} />
+            <Field
+              label="Meses"
+              name="paymentPlan.months"
+              error={issueFor("paymentPlan.months")}
+              hint="Vacío = indefinido (se generan los primeros 12 cobros al aceptar)."
+            >
+              <Input
+                id="paymentPlan.months"
+                inputMode="numeric"
+                value={d.plan.months}
+                placeholder="Indefinido"
+                onChange={(e) => setPlan({ months: e.target.value })}
+              />
             </Field>
           </div>
         ) : null}
@@ -458,7 +637,13 @@ export function QuoteEditor({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button type="button" variant="ghost" className="lg:hidden" onClick={() => setView(view === "edit" ? "preview" : "edit")} aria-label={view === "edit" ? "Ver vista previa" : "Volver a editar"}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="lg:hidden"
+            onClick={() => setView(view === "edit" ? "preview" : "edit")}
+            aria-label={view === "edit" ? "Ver vista previa" : "Volver a editar"}
+          >
             {view === "edit" ? <Eye className="size-4" /> : <PenLine className="size-4" />}
           </Button>
           <Button type="button" variant="primary" loading={saving} onClick={save}>

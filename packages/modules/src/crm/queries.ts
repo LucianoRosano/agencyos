@@ -1,4 +1,4 @@
-import { can, type Ctx } from "@agencyos/core";
+import { type Ctx, can } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, ne, or, type SQL, sql } from "drizzle-orm";
 import { getDb, scoped } from "../shared/db";
@@ -22,7 +22,9 @@ export async function listClients(ctx: Ctx, f: ClientFilters = {}) {
   return db
     .select({
       c: schema.client,
-      primaryContact: sql<string | null>`(select ct.name from client_contact cc join contact ct on ct.id = cc.contact_id and ct.deleted_at is null where cc.client_id = "client"."id" order by cc.is_primary desc, ct.name limit 1)`,
+      primaryContact: sql<
+        string | null
+      >`(select ct.name from client_contact cc join contact ct on ct.id = cc.contact_id and ct.deleted_at is null where cc.client_id = "client"."id" order by cc.is_primary desc, ct.name limit 1)`,
       openOpps: sql<number>`(select count(*)::int from opportunity o where o.client_id = "client"."id" and o.deleted_at is null and o.stage in ('new','contacted','meeting','proposal_sent','negotiation'))`,
       activeProjects: sql<number>`(select count(*)::int from project p where p.client_id = "client"."id" and p.deleted_at is null and p.archived_at is null and p.status not in ('done','archived'))`,
     })
@@ -105,19 +107,31 @@ export async function clientMoney(ctx: Ctx, clientId: string) {
   const db = getDb();
   const [collected, pending, receivables] = await Promise.all([
     db
-      .select({ currency: schema.transaction.currency, total: sql<string>`sum(${schema.transaction.amount})::numeric(14,2)::text`, n: sql<number>`count(*)::int` })
+      .select({
+        currency: schema.transaction.currency,
+        total: sql<string>`sum(${schema.transaction.amount})::numeric(14,2)::text`,
+        n: sql<number>`count(*)::int`,
+      })
       .from(schema.transaction)
       .where(and(scoped(schema.transaction, ctx), eq(schema.transaction.clientId, clientId), eq(schema.transaction.kind, "income")))
       .groupBy(schema.transaction.currency),
     db
-      .select({ currency: schema.receivable.currency, total: sql<string>`sum(${schema.receivable.amount} - ${schema.receivable.paidAmount})::numeric(14,2)::text`, n: sql<number>`count(*)::int` })
+      .select({
+        currency: schema.receivable.currency,
+        total: sql<string>`sum(${schema.receivable.amount} - ${schema.receivable.paidAmount})::numeric(14,2)::text`,
+        n: sql<number>`count(*)::int`,
+      })
       .from(schema.receivable)
-      .where(and(scoped(schema.receivable, ctx), eq(schema.receivable.clientId, clientId), inArray(schema.receivable.status, ["pending", "partial", "overdue"])))
+      .where(
+        and(scoped(schema.receivable, ctx), eq(schema.receivable.clientId, clientId), inArray(schema.receivable.status, ["pending", "partial", "overdue"])),
+      )
       .groupBy(schema.receivable.currency),
     db
       .select()
       .from(schema.receivable)
-      .where(and(scoped(schema.receivable, ctx), eq(schema.receivable.clientId, clientId), inArray(schema.receivable.status, ["pending", "partial", "overdue"])))
+      .where(
+        and(scoped(schema.receivable, ctx), eq(schema.receivable.clientId, clientId), inArray(schema.receivable.status, ["pending", "partial", "overdue"])),
+      )
       .orderBy(asc(schema.receivable.dueDate))
       .limit(50),
   ]);
@@ -156,7 +170,11 @@ export async function getClient(ctx: Ctx, id: string) {
       .where(and(eq(schema.interaction.clientId, id), scoped(schema.interaction, ctx)))
       .orderBy(desc(schema.interaction.occurredAt))
       .limit(200),
-    db.select().from(schema.opportunity).where(and(eq(schema.opportunity.clientId, id), scoped(schema.opportunity, ctx))).orderBy(desc(schema.opportunity.createdAt)),
+    db
+      .select()
+      .from(schema.opportunity)
+      .where(and(eq(schema.opportunity.clientId, id), scoped(schema.opportunity, ctx)))
+      .orderBy(desc(schema.opportunity.createdAt)),
     db
       .select()
       .from(schema.project)
@@ -168,18 +186,33 @@ export async function getClient(ctx: Ctx, id: string) {
       .from(schema.clientFiscalHolder)
       .where(and(eq(schema.clientFiscalHolder.clientId, id), scoped(schema.clientFiscalHolder, ctx))),
   ]);
-  return { ...row, contacts, interactions, opportunities, projects, quotes, fiscalCount: fiscal[0]?.n ?? 0, canSeeFiscal: can(ctx, "read", "fiscal"), canSeeMoney: can(ctx, "read", "finance") };
+  return {
+    ...row,
+    contacts,
+    interactions,
+    opportunities,
+    projects,
+    quotes,
+    fiscalCount: fiscal[0]?.n ?? 0,
+    canSeeFiscal: can(ctx, "read", "fiscal"),
+    canSeeMoney: can(ctx, "read", "finance"),
+  };
 }
 
 export type ContactFilters = { q?: string };
 
 export async function listContacts(ctx: Ctx, f: ContactFilters = {}) {
   const where: SQL[] = [scoped(schema.contact, ctx)];
-  if (f.q) where.push(sql`f_search_norm(coalesce(${schema.contact.name},'') || ' ' || coalesce(${schema.contact.email},'') || ' ' || coalesce(${schema.contact.role},'')) like '%' || f_search_norm(${f.q}) || '%'`);
+  if (f.q)
+    where.push(
+      sql`f_search_norm(coalesce(${schema.contact.name},'') || ' ' || coalesce(${schema.contact.email},'') || ' ' || coalesce(${schema.contact.role},'')) like '%' || f_search_norm(${f.q}) || '%'`,
+    );
   return getDb()
     .select({
       ct: schema.contact,
-      clients: sql<{ id: string; name: string; isPrimary: boolean }[]>`coalesce((select json_agg(json_build_object('id', c.id, 'name', c.name, 'isPrimary', cc.is_primary) order by c.name) from client_contact cc join client c on c.id = cc.client_id and c.deleted_at is null where cc.contact_id = "contact"."id"), '[]'::json)`,
+      clients: sql<
+        { id: string; name: string; isPrimary: boolean }[]
+      >`coalesce((select json_agg(json_build_object('id', c.id, 'name', c.name, 'isPrimary', cc.is_primary) order by c.name) from client_contact cc join client c on c.id = cc.client_id and c.deleted_at is null where cc.contact_id = "contact"."id"), '[]'::json)`,
     })
     .from(schema.contact)
     .where(and(...where))
@@ -188,19 +221,34 @@ export async function listContacts(ctx: Ctx, f: ContactFilters = {}) {
 }
 
 export async function contactOptions(ctx: Ctx) {
-  return getDb().select({ id: schema.contact.id, name: schema.contact.name, email: schema.contact.email }).from(schema.contact).where(scoped(schema.contact, ctx)).orderBy(asc(schema.contact.name));
+  return getDb()
+    .select({ id: schema.contact.id, name: schema.contact.name, email: schema.contact.email })
+    .from(schema.contact)
+    .where(scoped(schema.contact, ctx))
+    .orderBy(asc(schema.contact.name));
 }
 
 export async function getContact(ctx: Ctx, id: string) {
   const db = getDb();
-  const [ct] = await db.select().from(schema.contact).where(and(eq(schema.contact.id, id), scoped(schema.contact, ctx)));
+  const [ct] = await db
+    .select()
+    .from(schema.contact)
+    .where(and(eq(schema.contact.id, id), scoped(schema.contact, ctx)));
   if (!ct) return null;
   const [clients, interactions] = await Promise.all([
     db
-      .select({ id: schema.client.id, name: schema.client.name, status: schema.client.status, isPrimary: schema.clientContact.isPrimary, roleInClient: schema.clientContact.roleInClient })
+      .select({
+        id: schema.client.id,
+        name: schema.client.name,
+        status: schema.client.status,
+        isPrimary: schema.clientContact.isPrimary,
+        roleInClient: schema.clientContact.roleInClient,
+      })
       .from(schema.clientContact)
       .innerJoin(schema.client, eq(schema.client.id, schema.clientContact.clientId))
-      .where(and(eq(schema.clientContact.contactId, id), eq(schema.clientContact.workspaceId, ctx.workspaceId), scoped(schema.client, ctx, { withArchived: true })))
+      .where(
+        and(eq(schema.clientContact.contactId, id), eq(schema.clientContact.workspaceId, ctx.workspaceId), scoped(schema.client, ctx, { withArchived: true })),
+      )
       .orderBy(asc(schema.client.name)),
     db
       .select({ i: schema.interaction, clientName: schema.client.name })
@@ -257,11 +305,19 @@ export async function getOpportunity(ctx: Ctx, id: string) {
 export function nextStepsOf(data: NonNullable<Awaited<ReturnType<typeof getClient>>>) {
   const steps: { key: string; text: string; due: string | null; href: string; source: string; interactionId?: string }[] = [];
   for (const o of data.opportunities) {
-    if (OPEN.includes(o.stage) && o.nextAction) steps.push({ key: `o-${o.id}`, text: o.nextAction, due: o.nextActionDue, href: `/crm/oportunidades/${o.id}`, source: `Oportunidad «${o.title}»` });
+    if (OPEN.includes(o.stage) && o.nextAction)
+      steps.push({ key: `o-${o.id}`, text: o.nextAction, due: o.nextActionDue, href: `/crm/oportunidades/${o.id}`, source: `Oportunidad «${o.title}»` });
   }
   for (const { i } of data.interactions) {
-    if (i.nextStep) steps.push({ key: `i-${i.id}`, text: i.nextStep, due: i.nextStepDue, href: `/crm/clientes/${i.clientId}/interacciones`, source: "Conversación", interactionId: i.id });
+    if (i.nextStep)
+      steps.push({
+        key: `i-${i.id}`,
+        text: i.nextStep,
+        due: i.nextStepDue,
+        href: `/crm/clientes/${i.clientId}/interacciones`,
+        source: "Conversación",
+        interactionId: i.id,
+      });
   }
   return steps.sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999"));
 }
-

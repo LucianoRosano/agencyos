@@ -48,14 +48,19 @@ export function calcLine(it: CalcItemInput): CalcLine {
 }
 
 /** Totales del presupuesto + problemas de validación (descuentos que superan su base, precios negativos…). */
-export function calcQuote(input: { items: CalcItemInput[]; globalDiscountType: DiscountType | string; globalDiscountValue: string | null | undefined }): QuoteTotals {
+export function calcQuote(input: {
+  items: CalcItemInput[];
+  globalDiscountType: DiscountType | string;
+  globalDiscountValue: string | null | undefined;
+}): QuoteTotals {
   const issues: CalcIssue[] = [];
   if (!input.items.length) issues.push({ path: "items", message: "Agregá al menos un ítem" });
   const lines = input.items.map((it, i) => {
     if (cents(it.unitPrice) < 0n) issues.push({ path: `items.${i}.unitPrice`, message: "El precio no puede ser negativo" });
     if (cents(it.quantity) <= 0n) issues.push({ path: `items.${i}.quantity`, message: "La cantidad debe ser mayor a cero" });
     const line = calcLine(it);
-    if (it.discountType === "percent" && cents(it.discountValue || "0") > 10000n) issues.push({ path: `items.${i}.discountValue`, message: "El descuento no puede superar el 100 %" });
+    if (it.discountType === "percent" && cents(it.discountValue || "0") > 10000n)
+      issues.push({ path: `items.${i}.discountValue`, message: "El descuento no puede superar el 100 %" });
     else if (cents(line.discount) < 0n) issues.push({ path: `items.${i}.discountValue`, message: "El descuento no puede ser negativo" });
     else if (cents(line.discount) > cents(line.gross)) issues.push({ path: `items.${i}.discountValue`, message: "El descuento supera el importe del ítem" });
     return line;
@@ -64,9 +69,11 @@ export function calcQuote(input: { items: CalcItemInput[]; globalDiscountType: D
   const itemsDiscount = sum(lines.map((l) => l.discount));
   const netItems = fromCents(cents(subtotal) - cents(itemsDiscount));
   const globalDiscount = discountAmount(netItems, input.globalDiscountType, input.globalDiscountValue);
-  if (input.globalDiscountType === "percent" && cents(input.globalDiscountValue || "0") > 10000n) issues.push({ path: "globalDiscountValue", message: "El descuento no puede superar el 100 %" });
+  if (input.globalDiscountType === "percent" && cents(input.globalDiscountValue || "0") > 10000n)
+    issues.push({ path: "globalDiscountValue", message: "El descuento no puede superar el 100 %" });
   else if (cents(globalDiscount) < 0n) issues.push({ path: "globalDiscountValue", message: "El descuento no puede ser negativo" });
-  else if (cents(globalDiscount) > 0n && cents(globalDiscount) > cents(netItems)) issues.push({ path: "globalDiscountValue", message: "El descuento global supera el subtotal" });
+  else if (cents(globalDiscount) > 0n && cents(globalDiscount) > cents(netItems))
+    issues.push({ path: "globalDiscountValue", message: "El descuento global supera el subtotal" });
   const discountTotal = fromCents(cents(itemsDiscount) + cents(globalDiscount));
   const total = fromCents(cents(subtotal) - cents(discountTotal));
   return { lines, subtotal, itemsDiscount, netItems, globalDiscount, discountTotal, total, issues };
@@ -102,8 +109,17 @@ export function planIssues(plan: PaymentPlan): CalcIssue[] {
  */
 export function paymentSchedule(plan: PaymentPlan, total: string, start: string): ScheduleRow[] {
   if (plan.kind === "milestones") {
-    const parts = splitByPercents(total, plan.items.map((m) => m.percent));
-    return plan.items.map((m, i) => ({ label: m.label, percent: m.percent, amount: parts[i] ?? ZERO, dueDate: addDays(start, m.offsetDays ?? 0), offsetDays: m.offsetDays ?? 0 }));
+    const parts = splitByPercents(
+      total,
+      plan.items.map((m) => m.percent),
+    );
+    return plan.items.map((m, i) => ({
+      label: m.label,
+      percent: m.percent,
+      amount: parts[i] ?? ZERO,
+      dueDate: addDays(start, m.offsetDays ?? 0),
+      offsetDays: m.offsetDays ?? 0,
+    }));
   }
   if (plan.kind === "monthly") {
     const n = plan.months ?? MONTHLY_INDEFINITE_HORIZON;
@@ -164,6 +180,11 @@ export function diffVersions(a: DiffableVersion, b: DiffableVersion): { items: I
     items.push(changes.length ? { kind: "changed", before, after, changes } : { kind: "same", before, after });
   }
   for (const after of pool) items.push({ kind: "added", after });
-  const totals = (["subtotal", "discountTotal", "total"] as const).map((field) => ({ field, before: a[field], after: b[field], delta: fromCents(cents(b[field]) - cents(a[field])) }));
+  const totals = (["subtotal", "discountTotal", "total"] as const).map((field) => ({
+    field,
+    before: a[field],
+    after: b[field],
+    delta: fromCents(cents(b[field]) - cents(a[field])),
+  }));
   return { items, totals, currencyChanged: a.currency !== b.currency };
 }

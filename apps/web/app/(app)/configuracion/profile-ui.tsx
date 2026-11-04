@@ -37,7 +37,10 @@ export function ThemePicker({ current }: { current: string }) {
             await setThemeAction(o.v);
             router.refresh();
           }}
-          className={cn("flex h-11 items-center justify-center gap-2 rounded-[10px] border text-[14px]", current === o.v ? "border-accent bg-accent-soft text-text" : "border-border text-text-muted")}
+          className={cn(
+            "flex h-11 items-center justify-center gap-2 rounded-[10px] border text-[14px]",
+            current === o.v ? "border-accent bg-accent-soft text-text" : "border-border text-text-muted",
+          )}
         >
           {o.i} {o.l}
         </button>

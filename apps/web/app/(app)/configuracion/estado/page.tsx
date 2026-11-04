@@ -29,10 +29,24 @@ export default async function StatusPage() {
       <Card className="p-5">
         <SectionLabel className="mb-3">Worker y backups</SectionLabel>
         <dl>
-          {row("Worker", workerOk ? <Badge tone="success">Activo · {relativeFromDate(s.workerSeenAt)}</Badge> : <Badge tone="danger">{s.workerSeenAt ? `Sin señal desde ${formatDateTime(s.workerSeenAt)}` : "Nunca se conectó"}</Badge>)}
+          {row(
+            "Worker",
+            workerOk ? (
+              <Badge tone="success">Activo · {relativeFromDate(s.workerSeenAt)}</Badge>
+            ) : (
+              <Badge tone="danger">{s.workerSeenAt ? `Sin señal desde ${formatDateTime(s.workerSeenAt)}` : "Nunca se conectó"}</Badge>
+            ),
+          )}
           {row("Eventos sin despachar", <span className="font-mono">{s.outbox.pending}</span>)}
           {row("Jobs fallidos (7 días)", <span className="font-mono">{s.failedJobs.reduce((a, b) => a + b.n, 0)}</span>)}
-          {row("Último backup", backupOk ? <Badge tone="success">{formatDateTime(s.lastBackupAt)}</Badge> : <Badge tone="warning">{s.lastBackupAt ? formatDateTime(s.lastBackupAt) : "Sin backups registrados"}</Badge>)}
+          {row(
+            "Último backup",
+            backupOk ? (
+              <Badge tone="success">{formatDateTime(s.lastBackupAt)}</Badge>
+            ) : (
+              <Badge tone="warning">{s.lastBackupAt ? formatDateTime(s.lastBackupAt) : "Sin backups registrados"}</Badge>
+            ),
+          )}
         </dl>
         {s.queue.length ? <p className="mt-3 font-mono text-[12px] text-text-faint">Cola: {s.queue.map((q) => `${q.state} ${q.n}`).join(" · ")}</p> : null}
       </Card>

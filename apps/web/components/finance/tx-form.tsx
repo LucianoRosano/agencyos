@@ -87,7 +87,11 @@ export function TransactionSheet({
       ) : (
         <div className="flex flex-col gap-4">
           {!editing ? (
-            <div role="radiogroup" aria-label="Tipo de movimiento" className="grid grid-cols-3 gap-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-1">
+            <div
+              role="radiogroup"
+              aria-label="Tipo de movimiento"
+              className="grid grid-cols-3 gap-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-1"
+            >
               {KINDS.map((k) => (
                 <button
                   key={k.key}
@@ -100,7 +104,9 @@ export function TransactionSheet({
                     kind === k.key ? "bg-surface-2 font-medium text-text shadow-[inset_0_0_0_1px_var(--border)]" : "text-text-muted hover:text-text",
                   )}
                 >
-                  <span className={kind === k.key ? (k.key === "income" ? "text-success" : k.key === "expense" ? "text-danger" : "text-accent-2") : undefined}>{k.icon}</span>
+                  <span className={kind === k.key ? (k.key === "income" ? "text-success" : k.key === "expense" ? "text-danger" : "text-accent-2") : undefined}>
+                    {k.icon}
+                  </span>
                   <span className="truncate">{k.label}</span>
                 </button>
               ))}
@@ -117,7 +123,19 @@ export function TransactionSheet({
   );
 }
 
-function IncomeExpenseForm({ kind, options, defaults, defaultAccountId, onDone }: { kind: "income" | "expense"; options: FormOptions; defaults?: TxDefaults; defaultAccountId?: string; onDone: () => void }) {
+function IncomeExpenseForm({
+  kind,
+  options,
+  defaults,
+  defaultAccountId,
+  onDone,
+}: {
+  kind: "income" | "expense";
+  options: FormOptions;
+  defaults?: TxDefaults;
+  defaultAccountId?: string;
+  onDone: () => void;
+}) {
   const undo = useUndoToast();
   const [accountId, setAccountId] = useState(defaults?.accountId ?? defaultAccountId ?? options.accounts[0]?.id ?? "");
   const account = options.accounts.find((a) => a.id === accountId);
@@ -134,7 +152,16 @@ function IncomeExpenseForm({ kind, options, defaults, defaultAccountId, onDone }
     >
       <input type="hidden" name="kind" value={kind} />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <TextField label={`Monto${account ? ` (${account.currency})` : ""}`} name="amount" required inputMode="decimal" autoComplete="off" placeholder="0,00" defaultValue={v(defaults?.amount)} autoFocus />
+        <TextField
+          label={`Monto${account ? ` (${account.currency})` : ""}`}
+          name="amount"
+          required
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="0,00"
+          defaultValue={v(defaults?.amount)}
+          autoFocus
+        />
         <TextField label="Fecha" name="date" type="date" defaultValue={defaults?.date ?? todayAR()} />
         <SelectField
           label="Cuenta"
@@ -148,7 +175,13 @@ function IncomeExpenseForm({ kind, options, defaults, defaultAccountId, onDone }
           }))}
           hint="La moneda es la de la cuenta."
         />
-        <SelectField label="Categoría" name="categoryId" defaultValue={v(defaults?.categoryId)} placeholder="Sin categoría" options={cats.map((c) => ({ value: c.id, label: c.label }))} />
+        <SelectField
+          label="Categoría"
+          name="categoryId"
+          defaultValue={v(defaults?.categoryId)}
+          placeholder="Sin categoría"
+          options={cats.map((c) => ({ value: c.id, label: c.label }))}
+        />
         <SelectField label="Cliente" name="clientId" defaultValue={v(defaults?.clientId)} placeholder="Sin cliente" options={options.clients} />
         <SelectField label="Proyecto" name="projectId" defaultValue={v(defaults?.projectId)} placeholder="Sin proyecto" options={options.projects} />
         <TextField label={kind === "income" ? "Quién pagó" : "A quién"} name="counterpart" defaultValue={v(defaults?.counterpart)} maxLength={160} />
@@ -161,7 +194,13 @@ function IncomeExpenseForm({ kind, options, defaults, defaultAccountId, onDone }
           hint="Pesos por dólar. Solo se usa para convertir en reportes."
         />
       </div>
-      <TextField label="Descripción" name="description" defaultValue={v(defaults?.description)} maxLength={500} placeholder={kind === "income" ? "Ej.: Mantenimiento de octubre" : "Ej.: Teclado"} />
+      <TextField
+        label="Descripción"
+        name="description"
+        defaultValue={v(defaults?.description)}
+        maxLength={500}
+        placeholder={kind === "income" ? "Ej.: Mantenimiento de octubre" : "Ej.: Teclado"}
+      />
       <div className="flex justify-end">
         <SubmitButton>{id ? "Guardar" : kind === "income" ? "Registrar ingreso" : "Registrar gasto"}</SubmitButton>
       </div>
@@ -207,10 +246,34 @@ function TransferForm({ options, defaultAccountId, onDone }: { options: FormOpti
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField label="Desde" name="fromAccountId" required value={fromId} onChange={(e) => setFromId(e.target.value)} options={accs} />
-        <SelectField label="Hacia" name="toAccountId" required value={toId} onChange={(e) => setToId(e.target.value)} placeholder="Elegí la cuenta" options={accs.filter((a) => a.value !== fromId)} />
-        <TextField label={`Monto${from ? ` (${from.currency})` : ""}`} name="amount" required inputMode="decimal" autoComplete="off" placeholder="0,00" autoFocus />
+        <SelectField
+          label="Hacia"
+          name="toAccountId"
+          required
+          value={toId}
+          onChange={(e) => setToId(e.target.value)}
+          placeholder="Elegí la cuenta"
+          options={accs.filter((a) => a.value !== fromId)}
+        />
+        <TextField
+          label={`Monto${from ? ` (${from.currency})` : ""}`}
+          name="amount"
+          required
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="0,00"
+          autoFocus
+        />
         {differ ? (
-          <TextField label={`Llega (${to?.currency})`} name="toAmount" required inputMode="decimal" autoComplete="off" placeholder="0,00" hint="Las cuentas tienen distinta moneda: indicá cuánto se acredita." />
+          <TextField
+            label={`Llega (${to?.currency})`}
+            name="toAmount"
+            required
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder="0,00"
+            hint="Las cuentas tienen distinta moneda: indicá cuánto se acredita."
+          />
         ) : null}
         <TextField label="Fecha" name="date" type="date" defaultValue={todayAR()} />
       </div>

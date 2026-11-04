@@ -70,7 +70,11 @@ function ReceivableForm({ options, d, onDone }: { options: FormOptions; d?: Rece
     );
   }
   return (
-    <ActionForm action={d ? updateReceivableAction.bind(null, d.id) : createReceivableAction} successMessage={d ? "Cobro actualizado" : "Cobro pendiente agregado"} onSuccess={onDone}>
+    <ActionForm
+      action={d ? updateReceivableAction.bind(null, d.id) : createReceivableAction}
+      successMessage={d ? "Cobro actualizado" : "Cobro pendiente agregado"}
+      onSuccess={onDone}
+    >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField label="Cliente" name="clientId" required defaultValue={d?.clientId ?? ""} placeholder="Elegí el cliente" options={options.clients} />
         <SelectField label="Proyecto" name="projectId" defaultValue={d?.projectId ?? ""} placeholder="Sin proyecto" options={options.projects} />
@@ -88,7 +92,15 @@ function ReceivableForm({ options, d, onDone }: { options: FormOptions; d?: Rece
   );
 }
 
-export function NewReceivableButton({ options, label = "Nuevo cobro", variant = "secondary" }: { options: FormOptions; label?: string; variant?: "primary" | "secondary" }) {
+export function NewReceivableButton({
+  options,
+  label = "Nuevo cobro",
+  variant = "secondary",
+}: {
+  options: FormOptions;
+  label?: string;
+  variant?: "primary" | "secondary";
+}) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet
@@ -108,7 +120,17 @@ export function NewReceivableButton({ options, label = "Nuevo cobro", variant = 
 }
 
 /** "Registrar cobro" (total o parcial). Deep link `?cobrar=<id>`. */
-export function CollectSheet({ r, options, openInitially, trigger }: { r: ReceivableData; options: FormOptions; openInitially?: boolean; trigger?: ReactNode }) {
+export function CollectSheet({
+  r,
+  options,
+  openInitially,
+  trigger,
+}: {
+  r: ReceivableData;
+  options: FormOptions;
+  openInitially?: boolean;
+  trigger?: ReactNode;
+}) {
   const [open, setOpen] = useState(Boolean(openInitially));
   const clear = useClearParam();
   const undo = useUndoToast();
@@ -136,7 +158,14 @@ export function CollectSheet({ r, options, openInitially, trigger }: { r: Receiv
           }}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <TextField label={`Monto cobrado (${r.currency})`} name="amount" required inputMode="decimal" defaultValue={remaining} hint="Podés registrar un cobro parcial." />
+            <TextField
+              label={`Monto cobrado (${r.currency})`}
+              name="amount"
+              required
+              inputMode="decimal"
+              defaultValue={remaining}
+              hint="Podés registrar un cobro parcial."
+            />
             <TextField label="Fecha" name="date" type="date" defaultValue={todayAR()} />
             <SelectField
               label="Cuenta donde entró"
@@ -147,7 +176,12 @@ export function CollectSheet({ r, options, openInitially, trigger }: { r: Receiv
                 label: `${a.name} · ${a.currency}`,
               }))}
             />
-            <SelectField label="Categoría" name="categoryId" placeholder="Sin categoría" options={options.categories.filter((c) => c.kind === "income").map((c) => ({ value: c.id, label: c.label }))} />
+            <SelectField
+              label="Categoría"
+              name="categoryId"
+              placeholder="Sin categoría"
+              options={options.categories.filter((c) => c.kind === "income").map((c) => ({ value: c.id, label: c.label }))}
+            />
           </div>
           <div className="flex justify-end">
             <SubmitButton>Registrar cobro</SubmitButton>
@@ -244,10 +278,20 @@ export function ReceivableMenu({ r, options }: { r: ReceivableData; options: For
 // ---------------------------------------------------------------------------
 function PayableForm({ options, d, defaultLedgerId, onDone }: { options: FormOptions; d?: PayableData; defaultLedgerId?: string; onDone: () => void }) {
   return (
-    <ActionForm action={d ? updatePayableAction.bind(null, d.id) : createPayableAction} successMessage={d ? "Pago actualizado" : "Pago pendiente agregado"} onSuccess={onDone}>
+    <ActionForm
+      action={d ? updatePayableAction.bind(null, d.id) : createPayableAction}
+      successMessage={d ? "Pago actualizado" : "Pago pendiente agregado"}
+      onSuccess={onDone}
+    >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField label="A quién" name="counterpart" required defaultValue={d?.counterpart} placeholder="Proveedor o acreedor" maxLength={160} autoFocus />
-        <SelectField label="Libro" name="ledgerId" required defaultValue={d?.ledgerId ?? defaultLedgerId ?? options.ledgers[0]?.value} options={options.ledgers} />
+        <SelectField
+          label="Libro"
+          name="ledgerId"
+          required
+          defaultValue={d?.ledgerId ?? defaultLedgerId ?? options.ledgers[0]?.value}
+          options={options.ledgers}
+        />
       </div>
       <TextField label="Concepto" name="concept" required defaultValue={d?.concept} placeholder="Ej.: Cuota 3 de 6" maxLength={200} />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -262,7 +306,17 @@ function PayableForm({ options, d, defaultLedgerId, onDone }: { options: FormOpt
   );
 }
 
-export function NewPayableButton({ options, defaultLedgerId, label = "Nuevo pago", variant = "secondary" }: { options: FormOptions; defaultLedgerId?: string; label?: string; variant?: "primary" | "secondary" }) {
+export function NewPayableButton({
+  options,
+  defaultLedgerId,
+  label = "Nuevo pago",
+  variant = "secondary",
+}: {
+  options: FormOptions;
+  defaultLedgerId?: string;
+  label?: string;
+  variant?: "primary" | "secondary";
+}) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet
@@ -282,7 +336,17 @@ export function NewPayableButton({ options, defaultLedgerId, label = "Nuevo pago
 }
 
 /** "Registrar pago" (total o parcial) de una deuda. Deep link `?pagar=<id>`. */
-export function PayPayableSheet({ p, options, openInitially, trigger }: { p: PayableData; options: FormOptions; openInitially?: boolean; trigger?: ReactNode }) {
+export function PayPayableSheet({
+  p,
+  options,
+  openInitially,
+  trigger,
+}: {
+  p: PayableData;
+  options: FormOptions;
+  openInitially?: boolean;
+  trigger?: ReactNode;
+}) {
   const [open, setOpen] = useState(Boolean(openInitially));
   const clear = useClearParam();
   const undo = useUndoToast();
@@ -310,7 +374,14 @@ export function PayPayableSheet({ p, options, openInitially, trigger }: { p: Pay
           }}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <TextField label={`Monto pagado (${p.currency})`} name="amount" required inputMode="decimal" defaultValue={remaining} hint="Podés registrar un pago parcial." />
+            <TextField
+              label={`Monto pagado (${p.currency})`}
+              name="amount"
+              required
+              inputMode="decimal"
+              defaultValue={remaining}
+              hint="Podés registrar un pago parcial."
+            />
             <TextField label="Fecha" name="date" type="date" defaultValue={todayAR()} />
             <SelectField
               label="Cuenta de la que sale"
@@ -321,7 +392,12 @@ export function PayPayableSheet({ p, options, openInitially, trigger }: { p: Pay
                 label: `${a.name} · ${a.currency}`,
               }))}
             />
-            <SelectField label="Categoría" name="categoryId" placeholder="Sin categoría" options={options.categories.filter((c) => c.kind === "expense").map((c) => ({ value: c.id, label: c.label }))} />
+            <SelectField
+              label="Categoría"
+              name="categoryId"
+              placeholder="Sin categoría"
+              options={options.categories.filter((c) => c.kind === "expense").map((c) => ({ value: c.id, label: c.label }))}
+            />
           </div>
           <div className="flex justify-end">
             <SubmitButton>Registrar pago</SubmitButton>

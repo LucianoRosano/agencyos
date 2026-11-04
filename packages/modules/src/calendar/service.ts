@@ -24,7 +24,10 @@ function requireUser(ctx: Ctx): string {
 
 export async function getIcalStatus(ctx: Ctx): Promise<{ active: boolean; createdAt: string | null }> {
   if (!ctx.userId) return { active: false, createdAt: null };
-  const [row] = await getDb().select().from(schema.userPreference).where(and(eq(schema.userPreference.userId, ctx.userId), eq(schema.userPreference.key, ICAL_PREF_KEY)));
+  const [row] = await getDb()
+    .select()
+    .from(schema.userPreference)
+    .where(and(eq(schema.userPreference.userId, ctx.userId), eq(schema.userPreference.key, ICAL_PREF_KEY)));
   const v = row?.value as Partial<IcalPref> | undefined;
   return { active: Boolean(v?.hash), createdAt: v?.createdAt ?? null };
 }
@@ -36,7 +39,10 @@ export async function rotateIcalToken(ctx: Ctx): Promise<{ token: string; create
   const token = randomBytes(32).toString("base64url");
   const value: IcalPref = { hash: sha256(token), createdAt: new Date().toISOString(), workspaceId: ctx.workspaceId };
   await getDb().transaction(async (t) => {
-    const [prev] = await t.select({ id: schema.userPreference.id }).from(schema.userPreference).where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, ICAL_PREF_KEY)));
+    const [prev] = await t
+      .select({ id: schema.userPreference.id })
+      .from(schema.userPreference)
+      .where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, ICAL_PREF_KEY)));
     await t
       .insert(schema.userPreference)
       .values({ userId, key: ICAL_PREF_KEY, value })
@@ -49,7 +55,10 @@ export async function rotateIcalToken(ctx: Ctx): Promise<{ token: string; create
 export async function revokeIcalToken(ctx: Ctx): Promise<{ revoked: boolean }> {
   const userId = requireUser(ctx);
   return getDb().transaction(async (t) => {
-    const rows = await t.delete(schema.userPreference).where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, ICAL_PREF_KEY))).returning({ id: schema.userPreference.id });
+    const rows = await t
+      .delete(schema.userPreference)
+      .where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, ICAL_PREF_KEY)))
+      .returning({ id: schema.userPreference.id });
     if (rows.length) await audit(t, ctx, { action: "calendario.ical_revocado", targetType: "user_preference", targetId: null });
     return { revoked: rows.length > 0 };
   });

@@ -40,7 +40,10 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted">
-        <Link href={n.folderPath ? `/notas?carpeta=${encodeURIComponent(n.folderPath)}` : "/notas"} className="-ml-1 flex h-10 items-center gap-1 rounded-md px-1 hover:text-text md:h-8">
+        <Link
+          href={n.folderPath ? `/notas?carpeta=${encodeURIComponent(n.folderPath)}` : "/notas"}
+          className="-ml-1 flex h-10 items-center gap-1 rounded-md px-1 hover:text-text md:h-8"
+        >
           <ChevronLeft className="size-4" /> Notas
         </Link>
         {n.folderPath ? (
@@ -65,7 +68,12 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
             spaces={spaces}
             entities={entities}
             folders={folders}
-            defaults={{ spaceId: n.spaceId, folderPath: n.folderPath, entity: n.entityType && n.entityId ? `${n.entityType}:${n.entityId}` : "", aliases: n.aliases.join(", ") }}
+            defaults={{
+              spaceId: n.spaceId,
+              folderPath: n.folderPath,
+              entity: n.entityType && n.entityId ? `${n.entityType}:${n.entityId}` : "",
+              aliases: n.aliases.join(", "),
+            }}
           />
           <NoteMenu id={id} title={n.title} pinned={n.pinned} />
         </span>
@@ -73,7 +81,15 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <NoteEditor
-          note={{ id, title: n.title, bodyMd: n.bodyMd, spaceId: n.spaceId, folderPath: n.folderPath, updatedAt: n.updatedAt.getTime(), wordCount: n.wordCount }}
+          note={{
+            id,
+            title: n.title,
+            bodyMd: n.bodyMd,
+            spaceId: n.spaceId,
+            folderPath: n.folderPath,
+            updatedAt: n.updatedAt.getTime(),
+            wordCount: n.wordCount,
+          }}
           initialPreview={preview}
         />
 
@@ -82,7 +98,13 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
             <SectionLabel className="mb-3">Propiedades</SectionLabel>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[13px]">
               <dt className="text-text-muted">Espacio</dt>
-              <dd className="min-w-0">{data.spaceName ? <EntityChip color={data.spaceColor ?? "#8A93A6"}>{data.spaceName}</EntityChip> : <span className="text-text-faint">Sin espacio</span>}</dd>
+              <dd className="min-w-0">
+                {data.spaceName ? (
+                  <EntityChip color={data.spaceColor ?? "#8A93A6"}>{data.spaceName}</EntityChip>
+                ) : (
+                  <span className="text-text-faint">Sin espacio</span>
+                )}
+              </dd>
               <dt className="text-text-muted">Vínculo</dt>
               <dd className="min-w-0">
                 {data.entity ? (
@@ -100,7 +122,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                   <dt className="text-text-muted">Etiquetas</dt>
                   <dd className="flex min-w-0 flex-wrap gap-1">
                     {tags.map((t) => (
-                      <Link key={t} href={`/notas?etiqueta=${encodeURIComponent(t.toLowerCase().replace(/^#/, ""))}`} className="rounded-md border border-border bg-bg-elevated px-1.5 font-mono text-[12px] text-text-muted hover:text-text">
+                      <Link
+                        key={t}
+                        href={`/notas?etiqueta=${encodeURIComponent(t.toLowerCase().replace(/^#/, ""))}`}
+                        className="rounded-md border border-border bg-bg-elevated px-1.5 font-mono text-[12px] text-text-muted hover:text-text"
+                      >
                         #{t.replace(/^#/, "")}
                       </Link>
                     ))}

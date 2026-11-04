@@ -37,31 +37,101 @@ export function neighborhood(edges: BrainEdge[], start: string, depth: number, s
  * (tareas solo si se piden). Aristas: `link` (wikilink, mención, relacionado…) y pertenencia.
  * Los espacios entran como nodos ancla invisibles para agrupar constelaciones.
  */
-export async function getBrainGraph(ctx: Ctx & { workspace?: { settings?: { stalledDays?: number } } }, opts: { includeTasks?: boolean } = {}): Promise<BrainGraph> {
+export async function getBrainGraph(
+  ctx: Ctx & { workspace?: { settings?: { stalledDays?: number } } },
+  opts: { includeTasks?: boolean } = {},
+): Promise<BrainGraph> {
   const db = getDb();
   const stalledDays = ctx.workspace?.settings?.stalledDays ?? 14;
   const today = todayAR();
   const [spaces, clients, projects, contacts, clientContacts, courses, notes, links, tasks] = await Promise.all([
-    db.select({ id: schema.space.id, name: schema.space.name, color: schema.space.color, kind: schema.space.kind }).from(schema.space).where(scoped(schema.space, ctx)),
     db
-      .select({ id: schema.client.id, name: schema.client.name, status: schema.client.status, spaceId: schema.client.spaceId, industry: schema.client.industry, createdAt: schema.client.createdAt, updatedAt: schema.client.updatedAt, lastActivityAt: schema.client.lastActivityAt })
+      .select({ id: schema.space.id, name: schema.space.name, color: schema.space.color, kind: schema.space.kind })
+      .from(schema.space)
+      .where(scoped(schema.space, ctx)),
+    db
+      .select({
+        id: schema.client.id,
+        name: schema.client.name,
+        status: schema.client.status,
+        spaceId: schema.client.spaceId,
+        industry: schema.client.industry,
+        createdAt: schema.client.createdAt,
+        updatedAt: schema.client.updatedAt,
+        lastActivityAt: schema.client.lastActivityAt,
+      })
       .from(schema.client)
       .where(and(scoped(schema.client, ctx), notInArray(schema.client.status, ["archived"]))),
     db
-      .select({ id: schema.project.id, name: schema.project.name, status: schema.project.status, spaceId: schema.project.spaceId, clientId: schema.project.clientId, progress: schema.project.progress, nextAction: schema.project.nextAction, createdAt: schema.project.createdAt, lastActivityAt: schema.project.lastActivityAt })
+      .select({
+        id: schema.project.id,
+        name: schema.project.name,
+        status: schema.project.status,
+        spaceId: schema.project.spaceId,
+        clientId: schema.project.clientId,
+        progress: schema.project.progress,
+        nextAction: schema.project.nextAction,
+        createdAt: schema.project.createdAt,
+        lastActivityAt: schema.project.lastActivityAt,
+      })
       .from(schema.project)
       .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["archived"]))),
-    db.select({ id: schema.contact.id, name: schema.contact.name, role: schema.contact.role, createdAt: schema.contact.createdAt, updatedAt: schema.contact.updatedAt }).from(schema.contact).where(scoped(schema.contact, ctx)),
-    db.select({ clientId: schema.clientContact.clientId, contactId: schema.clientContact.contactId, isPrimary: schema.clientContact.isPrimary }).from(schema.clientContact).where(eq(schema.clientContact.workspaceId, ctx.workspaceId)),
-    db.select({ id: schema.course.id, name: schema.course.name, status: schema.course.status, spaceId: schema.course.spaceId, term: schema.course.term, createdAt: schema.course.createdAt, updatedAt: schema.course.updatedAt }).from(schema.course).where(scoped(schema.course, ctx)),
     db
-      .select({ id: schema.note.id, title: schema.note.title, spaceId: schema.note.spaceId, folderPath: schema.note.folderPath, entityType: schema.note.entityType, entityId: schema.note.entityId, isDaily: schema.note.isDaily, createdAt: schema.note.createdAt, updatedAt: schema.note.updatedAt })
+      .select({
+        id: schema.contact.id,
+        name: schema.contact.name,
+        role: schema.contact.role,
+        createdAt: schema.contact.createdAt,
+        updatedAt: schema.contact.updatedAt,
+      })
+      .from(schema.contact)
+      .where(scoped(schema.contact, ctx)),
+    db
+      .select({ clientId: schema.clientContact.clientId, contactId: schema.clientContact.contactId, isPrimary: schema.clientContact.isPrimary })
+      .from(schema.clientContact)
+      .where(eq(schema.clientContact.workspaceId, ctx.workspaceId)),
+    db
+      .select({
+        id: schema.course.id,
+        name: schema.course.name,
+        status: schema.course.status,
+        spaceId: schema.course.spaceId,
+        term: schema.course.term,
+        createdAt: schema.course.createdAt,
+        updatedAt: schema.course.updatedAt,
+      })
+      .from(schema.course)
+      .where(scoped(schema.course, ctx)),
+    db
+      .select({
+        id: schema.note.id,
+        title: schema.note.title,
+        spaceId: schema.note.spaceId,
+        folderPath: schema.note.folderPath,
+        entityType: schema.note.entityType,
+        entityId: schema.note.entityId,
+        isDaily: schema.note.isDaily,
+        createdAt: schema.note.createdAt,
+        updatedAt: schema.note.updatedAt,
+      })
       .from(schema.note)
       .where(scoped(schema.note, ctx)),
-    db.select({ fromType: schema.link.fromType, fromId: schema.link.fromId, toType: schema.link.toType, toId: schema.link.toId, kind: schema.link.kind }).from(schema.link).where(eq(schema.link.workspaceId, ctx.workspaceId)),
+    db
+      .select({ fromType: schema.link.fromType, fromId: schema.link.fromId, toType: schema.link.toType, toId: schema.link.toId, kind: schema.link.kind })
+      .from(schema.link)
+      .where(eq(schema.link.workspaceId, ctx.workspaceId)),
     opts.includeTasks
       ? db
-          .select({ id: schema.task.id, title: schema.task.title, status: schema.task.status, spaceId: schema.task.spaceId, projectId: schema.task.projectId, dueDate: schema.task.dueDate, createdAt: schema.task.createdAt, updatedAt: schema.task.updatedAt })
+          .select({
+            id: schema.task.id,
+            title: schema.task.title,
+            status: schema.task.status,
+            spaceId: schema.task.spaceId,
+            projectId: schema.task.projectId,
+            dueDate: schema.task.dueDate,
+            createdAt: schema.task.createdAt,
+            updatedAt: schema.task.updatedAt,
+          })
           .from(schema.task)
           .where(and(scoped(schema.task, ctx), inArray(schema.task.status, ["todo", "doing", "waiting", "done"])))
           .limit(3000)
@@ -86,52 +156,102 @@ export async function getBrainGraph(ctx: Ctx & { workspace?: { settings?: { stal
     nodes.set(key, { ...n, key, href: n.href ?? entityHref(n.type, n.id) });
     return key;
   };
-  const spaceName = (id: string | null) => (id ? spaceById.get(id)?.name ?? null : null);
+  const spaceName = (id: string | null) => (id ? (spaceById.get(id)?.name ?? null) : null);
 
   for (const c of clients) {
     add({
-      type: "client", id: c.id, label: c.name, spaceId: c.spaceId, cluster: `client:${c.id}`, status: c.status, statusLabel: label(L.clientStatus, c.status),
+      type: "client",
+      id: c.id,
+      label: c.name,
+      spaceId: c.spaceId,
+      cluster: `client:${c.id}`,
+      status: c.status,
+      statusLabel: label(L.clientStatus, c.status),
       subtitle: [c.industry, spaceName(c.spaceId)].filter(Boolean).join(" · ") || null,
-      createdAt: ms(c.createdAt), activeAt: Math.max(ms(c.lastActivityAt), ms(c.updatedAt)), dim: c.status === "finished", progress: null, nextAction: null,
+      createdAt: ms(c.createdAt),
+      activeAt: Math.max(ms(c.lastActivityAt), ms(c.updatedAt)),
+      dim: c.status === "finished",
+      progress: null,
+      nextAction: null,
     });
   }
   for (const p of projects) {
     const stalled = p.status === "in_progress" && diffDays(today, toISODateAR(p.lastActivityAt)) > stalledDays;
     const client = p.clientId ? clientById.get(p.clientId) : undefined;
     const key = add({
-      type: "project", id: p.id, label: p.name, spaceId: p.spaceId, cluster: client ? `client:${client.id}` : `space:${p.spaceId}`,
-      status: p.status, statusLabel: stalled ? "Frenado" : label(L.projectStatus, p.status),
-      subtitle: client?.name ?? spaceName(p.spaceId), createdAt: ms(p.createdAt), activeAt: ms(p.lastActivityAt),
-      dim: stalled || ["paused", "blocked", "done"].includes(p.status), progress: p.progress, nextAction: p.nextAction,
+      type: "project",
+      id: p.id,
+      label: p.name,
+      spaceId: p.spaceId,
+      cluster: client ? `client:${client.id}` : `space:${p.spaceId}`,
+      status: p.status,
+      statusLabel: stalled ? "Frenado" : label(L.projectStatus, p.status),
+      subtitle: client?.name ?? spaceName(p.spaceId),
+      createdAt: ms(p.createdAt),
+      activeAt: ms(p.lastActivityAt),
+      dim: stalled || ["paused", "blocked", "done"].includes(p.status),
+      progress: p.progress,
+      nextAction: p.nextAction,
     });
     if (client) addEdge(key, `client:${client.id}`, "belongs");
     else addEdge(key, `space:${p.spaceId}`, "space");
   }
   const contactClient = new Map<string, string>();
-  for (const cc of clientContacts.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary))) if (!contactClient.has(cc.contactId) && clientById.has(cc.clientId)) contactClient.set(cc.contactId, cc.clientId);
+  for (const cc of clientContacts.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary)))
+    if (!contactClient.has(cc.contactId) && clientById.has(cc.clientId)) contactClient.set(cc.contactId, cc.clientId);
   for (const c of contacts) {
     const clientId = contactClient.get(c.id);
     add({
-      type: "contact", id: c.id, label: c.name, spaceId: clientId ? clientById.get(clientId)?.spaceId ?? null : null, cluster: clientId ? `client:${clientId}` : null,
-      status: null, statusLabel: null, subtitle: [c.role, clientId ? clientById.get(clientId)?.name : null].filter(Boolean).join(" · ") || null,
-      createdAt: ms(c.createdAt), activeAt: ms(c.updatedAt), dim: false, progress: null, nextAction: null,
+      type: "contact",
+      id: c.id,
+      label: c.name,
+      spaceId: clientId ? (clientById.get(clientId)?.spaceId ?? null) : null,
+      cluster: clientId ? `client:${clientId}` : null,
+      status: null,
+      statusLabel: null,
+      subtitle: [c.role, clientId ? clientById.get(clientId)?.name : null].filter(Boolean).join(" · ") || null,
+      createdAt: ms(c.createdAt),
+      activeAt: ms(c.updatedAt),
+      dim: false,
+      progress: null,
+      nextAction: null,
     });
   }
   for (const cc of clientContacts) if (clientById.has(cc.clientId)) addEdge(`contact:${cc.contactId}`, `client:${cc.clientId}`, "belongs");
   for (const c of courses) {
     const key = add({
-      type: "course", id: c.id, label: c.name, spaceId: c.spaceId, cluster: c.spaceId ? `space:${c.spaceId}` : null, status: c.status, statusLabel: label(L.courseStatus, c.status),
-      subtitle: [c.term, spaceName(c.spaceId)].filter(Boolean).join(" · ") || null, createdAt: ms(c.createdAt), activeAt: ms(c.updatedAt),
-      dim: ["aprobada", "abandonada"].includes(c.status), progress: null, nextAction: null,
+      type: "course",
+      id: c.id,
+      label: c.name,
+      spaceId: c.spaceId,
+      cluster: c.spaceId ? `space:${c.spaceId}` : null,
+      status: c.status,
+      statusLabel: label(L.courseStatus, c.status),
+      subtitle: [c.term, spaceName(c.spaceId)].filter(Boolean).join(" · ") || null,
+      createdAt: ms(c.createdAt),
+      activeAt: ms(c.updatedAt),
+      dim: ["aprobada", "abandonada"].includes(c.status),
+      progress: null,
+      nextAction: null,
     });
     if (c.spaceId) addEdge(key, `space:${c.spaceId}`, "space");
   }
   for (const t of tasks) {
     const project = t.projectId ? projectById.get(t.projectId) : undefined;
     const key = add({
-      type: "task", id: t.id, label: t.title, spaceId: t.spaceId, cluster: project ? nodes.get(`project:${project.id}`)?.cluster ?? null : `space:${t.spaceId}`,
-      status: t.status, statusLabel: label(L.taskStatus, t.status), subtitle: project?.name ?? spaceName(t.spaceId),
-      createdAt: ms(t.createdAt), activeAt: ms(t.updatedAt), dim: t.status === "done", progress: null, nextAction: null,
+      type: "task",
+      id: t.id,
+      label: t.title,
+      spaceId: t.spaceId,
+      cluster: project ? (nodes.get(`project:${project.id}`)?.cluster ?? null) : `space:${t.spaceId}`,
+      status: t.status,
+      statusLabel: label(L.taskStatus, t.status),
+      subtitle: project?.name ?? spaceName(t.spaceId),
+      createdAt: ms(t.createdAt),
+      activeAt: ms(t.updatedAt),
+      dim: t.status === "done",
+      progress: null,
+      nextAction: null,
     });
     if (project) addEdge(key, `project:${project.id}`, "belongs");
     else addEdge(key, `space:${t.spaceId}`, "space");
@@ -140,9 +260,19 @@ export async function getBrainGraph(ctx: Ctx & { workspace?: { settings?: { stal
     const ownerKey = n.entityType && n.entityId ? `${n.entityType}:${n.entityId}` : null;
     const owner = ownerKey ? nodes.get(ownerKey) : undefined;
     const key = add({
-      type: "note", id: n.id, label: n.title, spaceId: n.spaceId ?? owner?.spaceId ?? null, cluster: owner?.cluster ?? (n.spaceId ? `space:${n.spaceId}` : null),
-      status: null, statusLabel: n.isDaily ? "Diaria" : null, subtitle: [n.folderPath, owner?.label ?? spaceName(n.spaceId)].filter(Boolean).join(" · ") || null,
-      createdAt: ms(n.createdAt), activeAt: ms(n.updatedAt), dim: false, progress: null, nextAction: null,
+      type: "note",
+      id: n.id,
+      label: n.title,
+      spaceId: n.spaceId ?? owner?.spaceId ?? null,
+      cluster: owner?.cluster ?? (n.spaceId ? `space:${n.spaceId}` : null),
+      status: null,
+      statusLabel: n.isDaily ? "Diaria" : null,
+      subtitle: [n.folderPath, owner?.label ?? spaceName(n.spaceId)].filter(Boolean).join(" · ") || null,
+      createdAt: ms(n.createdAt),
+      activeAt: ms(n.updatedAt),
+      dim: false,
+      progress: null,
+      nextAction: null,
     });
     if (owner && ownerKey) addEdge(key, ownerKey, "belongs");
   }
@@ -159,7 +289,22 @@ export async function getBrainGraph(ctx: Ctx & { workspace?: { settings?: { stal
   const usedSpaces = new Set(edges.filter((e) => e.kind === "space").map((e) => e.t));
   for (const s of spaces) {
     if (!usedSpaces.has(`space:${s.id}`)) continue;
-    add({ type: "space", id: s.id, label: s.name, href: `/espacios/${s.id}`, spaceId: s.id, cluster: `space:${s.id}`, status: null, statusLabel: null, subtitle: null, createdAt: 0, activeAt: 0, dim: false, progress: null, nextAction: null });
+    add({
+      type: "space",
+      id: s.id,
+      label: s.name,
+      href: `/espacios/${s.id}`,
+      spaceId: s.id,
+      cluster: `space:${s.id}`,
+      status: null,
+      statusLabel: null,
+      subtitle: null,
+      createdAt: 0,
+      activeAt: 0,
+      dim: false,
+      progress: null,
+      nextAction: null,
+    });
   }
   const finalEdges = edges.filter((e) => nodes.has(e.s) && nodes.has(e.t));
 
@@ -181,7 +326,11 @@ export async function getLocalGraph(ctx: Ctx, type: string, id: string, depth = 
   const full = await getBrainGraph(ctx, { includeTasks: type === "task" });
   const center = `${type}:${id}`;
   if (!full.nodes.some((n) => n.key === center)) return { ...full, nodes: [], edges: [], center };
-  const keep = neighborhood(full.edges.filter((e) => e.kind !== "space"), center, depth);
+  const keep = neighborhood(
+    full.edges.filter((e) => e.kind !== "space"),
+    center,
+    depth,
+  );
   const nodes = full.nodes.filter((n) => keep.has(n.key));
   const edges = full.edges.filter((e) => keep.has(e.s) && keep.has(e.t));
   return { ...full, nodes, edges, center };

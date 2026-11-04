@@ -28,10 +28,22 @@ export async function capture(ctx: Ctx, raw: unknown, source: "app" | "mcp" = "a
     await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
     const [row] = await t
       .insert(schema.inboxItem)
-      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, text: input.text, suggestedType: input.suggestedType ?? guessType(input.text) ?? null, spaceId: input.spaceId ?? null, source })
+      .values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        text: input.text,
+        suggestedType: input.suggestedType ?? guessType(input.text) ?? null,
+        spaceId: input.spaceId ?? null,
+        source,
+      })
       .returning();
     if (!row) throw new Error("No se pudo capturar");
-    await recordEvent(t, ctx, { type: "bandeja.capturado", entityType: "inbox_item", entityId: row.id, summary: `Capturó en la Bandeja: ${row.text.slice(0, 80)}` });
+    await recordEvent(t, ctx, {
+      type: "bandeja.capturado",
+      entityType: "inbox_item",
+      entityId: row.id,
+      summary: `Capturó en la Bandeja: ${row.text.slice(0, 80)}`,
+    });
     return row;
   });
 }
@@ -75,7 +87,10 @@ export async function unprocess(ctx: Ctx, id: string) {
 }
 
 export async function getItem(ctx: Ctx, id: string) {
-  const [row] = await getDb().select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)));
+  const [row] = await getDb()
+    .select()
+    .from(schema.inboxItem)
+    .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)));
   if (!row) throw notFound("El ítem");
   return row;
 }
@@ -84,7 +99,10 @@ export async function getItem(ctx: Ctx, id: string) {
 export async function convertToTask(ctx: Ctx, id: string, raw: Record<string, unknown>) {
   const { createTask } = await import("../tasks/service");
   return getDb().transaction(async (t) => {
-    const [item] = await t.select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
+    const [item] = await t
+      .select()
+      .from(schema.inboxItem)
+      .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
     if (!item) throw notFound("El ítem");
     const task = await createTask(ctx, { title: item.text.slice(0, 300), spaceId: item.spaceId ?? undefined, ...raw }, t);
     await t.update(schema.inboxItem).set({ processedAt: new Date(), resultEntityType: "task", resultEntityId: task.id }).where(eq(schema.inboxItem.id, id));
@@ -97,7 +115,10 @@ export async function convertToNote(ctx: Ctx, id: string, title?: string) {
   assertCan(ctx, "create", "note");
   const { createNoteInTx } = await import("../notes/service");
   return getDb().transaction(async (t) => {
-    const [item] = await t.select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
+    const [item] = await t
+      .select()
+      .from(schema.inboxItem)
+      .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)));
     if (!item) throw notFound("El ítem");
     const noteTitle = (title?.trim() || item.text.split("\n")[0] || "Nota").slice(0, 160);
     const note = await createNoteInTx(t, ctx, { title: noteTitle, spaceId: item.spaceId ?? undefined, bodyMd: item.text });
@@ -109,7 +130,11 @@ export async function convertToNote(ctx: Ctx, id: string, title?: string) {
 export async function setItemSpace(ctx: Ctx, id: string, spaceId: string) {
   assertCan(ctx, "create", "inbox");
   await assertOwned(getDb(), ctx, schema.space, spaceId, "El espacio");
-  const [row] = await getDb().update(schema.inboxItem).set({ spaceId }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.inboxItem)
+    .set({ spaceId })
+    .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)))
+    .returning();
   if (!row) throw notFound("El ítem");
   return row;
 }
@@ -117,7 +142,11 @@ export async function setItemSpace(ctx: Ctx, id: string, spaceId: string) {
 export async function updateItemText(ctx: Ctx, id: string, text: string) {
   assertCan(ctx, "create", "inbox");
   const parsed = zRequired(2000, "El texto").parse(text);
-  const [row] = await getDb().update(schema.inboxItem).set({ text: parsed }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.inboxItem)
+    .set({ text: parsed })
+    .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)))
+    .returning();
   if (!row) throw notFound("El ítem");
   return row;
 }

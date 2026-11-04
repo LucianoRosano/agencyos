@@ -13,7 +13,17 @@ import { useClearParam } from "./use-deep-link";
 
 type AccountDefaults = Partial<Record<"id" | "name" | "ledgerId" | "kind" | "currency" | "openingBalance" | "openingDate", string>>;
 
-export function AccountSheet({ ledgers, defaults, trigger, openInitially }: { ledgers: Opt[]; defaults?: AccountDefaults; trigger?: ReactNode; openInitially?: boolean }) {
+export function AccountSheet({
+  ledgers,
+  defaults,
+  trigger,
+  openInitially,
+}: {
+  ledgers: Opt[];
+  defaults?: AccountDefaults;
+  trigger?: ReactNode;
+  openInitially?: boolean;
+}) {
   const [open, setOpen] = useState(Boolean(openInitially));
   const clear = useClearParam();
   const id = defaults?.id;
@@ -28,7 +38,11 @@ export function AccountSheet({ ledgers, defaults, trigger, openInitially }: { le
       description={id ? undefined : "Efectivo, banco, Mercado Pago o dólares. El saldo actual se calcula desde el saldo inicial."}
       trigger={trigger}
     >
-      <ActionForm action={id ? updateAccountAction.bind(null, id) : createAccountAction} successMessage={id ? "Cuenta actualizada" : "Cuenta creada"} onSuccess={() => setOpen(false)}>
+      <ActionForm
+        action={id ? updateAccountAction.bind(null, id) : createAccountAction}
+        successMessage={id ? "Cuenta actualizada" : "Cuenta creada"}
+        onSuccess={() => setOpen(false)}
+      >
         <TextField label="Nombre" name="name" required defaultValue={defaults?.name} placeholder="Ej.: Mercado Pago" autoFocus maxLength={80} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Tipo" name="kind" defaultValue={defaults?.kind ?? "cash"} options={opts(L.accountKind)} />

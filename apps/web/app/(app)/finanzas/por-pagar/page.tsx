@@ -15,7 +15,11 @@ export default async function PorPagarPage({ searchParams }: { searchParams: Pro
   const f = await financePage(sp);
   if (!f.allowed) return <NoFinanceAccess />;
   const view = (DEBT_VIEWS.find((v) => v.key === sp.ver)?.key ?? "abiertos") as DebtView;
-  const [rows, options, deep] = await Promise.all([listPayables(f.ctx, { view, ledgerId: f.ledgerId }), formOptions(f.ctx), sp.pagar ? getPayable(f.ctx, sp.pagar) : Promise.resolve(null)]);
+  const [rows, options, deep] = await Promise.all([
+    listPayables(f.ctx, { view, ledgerId: f.ledgerId }),
+    formOptions(f.ctx),
+    sp.pagar ? getPayable(f.ctx, sp.pagar) : Promise.resolve(null),
+  ]);
   const toData = (p: NonNullable<typeof deep>): PayableData => ({
     id: p.id,
     ledgerId: p.ledgerId,
@@ -28,14 +32,22 @@ export default async function PorPagarPage({ searchParams }: { searchParams: Pro
     status: p.status,
   });
   const pending = new Map<string, string>();
-  for (const { p } of rows) if (["pending", "partial", "overdue"].includes(p.status)) pending.set(p.currency, addMoney(pending.get(p.currency) ?? "0", subMoney(p.amount, p.paidAmount)));
+  for (const { p } of rows)
+    if (["pending", "partial", "overdue"].includes(p.status))
+      pending.set(p.currency, addMoney(pending.get(p.currency) ?? "0", subMoney(p.amount, p.paidAmount)));
   const totals = [...pending.entries()].map(([currency, total]) => ({
     currency,
     total,
   }));
   return (
     <div className="mx-auto max-w-5xl">
-      <FinanceHeader active="por-pagar" title="Por pagar" ledgers={f.ledgers} ledgerId={f.ledgerId} actions={<NewPayableButton options={options} defaultLedgerId={f.defaultLedgerId} />} />
+      <FinanceHeader
+        active="por-pagar"
+        title="Por pagar"
+        ledgers={f.ledgers}
+        ledgerId={f.ledgerId}
+        actions={<NewPayableButton options={options} defaultLedgerId={f.defaultLedgerId} />}
+      />
       {deep ? <PayPayableSheet key={deep.id} p={toData(deep)} options={options} openInitially /> : null}
       <div className="flex flex-wrap items-start justify-between gap-x-6">
         <ViewChips active={view} href={(v) => `/finanzas/por-pagar${qs(f.ledgerId, { ver: v === "abiertos" ? undefined : v })}`} />
@@ -108,7 +120,11 @@ export default async function PorPagarPage({ searchParams }: { searchParams: Pro
             icon={<Receipt />}
             title={view === "abiertos" ? "No tenés pagos pendientes" : "No hay pagos en esta vista"}
             description="Anotá deudas y compromisos (cuotas, préstamos, proveedores) con su vencimiento. Te avisamos en Hoy y al pagar se registra el gasto."
-            action={view === "abiertos" ? <NewPayableButton options={options} defaultLedgerId={f.defaultLedgerId} label="Agregar un pago" variant="primary" /> : undefined}
+            action={
+              view === "abiertos" ? (
+                <NewPayableButton options={options} defaultLedgerId={f.defaultLedgerId} label="Agregar un pago" variant="primary" />
+              ) : undefined
+            }
           />
         </Card>
       )}

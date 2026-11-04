@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: { default: "AGENCYOS", template: "%s · AGENCYOS" },
   description: "Centro de mando de la agencia, los proyectos y el conocimiento de Luciano.",
   applicationName: "AGENCYOS",
-    icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: "AGENCYOS", statusBarStyle: "black-translucent" },
 };

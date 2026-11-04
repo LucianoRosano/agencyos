@@ -35,10 +35,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         actions={
           <>
             <Button asChild variant="ghost">
-              <Link href="/proyectos/plantillas"><LayoutTemplate className="size-4" /> Plantillas</Link>
+              <Link href="/proyectos/plantillas">
+                <LayoutTemplate className="size-4" /> Plantillas
+              </Link>
             </Button>
             <Button asChild variant="primary">
-              <Link href="/proyectos/nuevo"><Plus className="size-4" /> Nuevo proyecto</Link>
+              <Link href="/proyectos/nuevo">
+                <Plus className="size-4" /> Nuevo proyecto
+              </Link>
             </Button>
           </>
         }
@@ -46,14 +50,26 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <Tabs active={sp.estado ?? "activos"} items={FILTERS.map((x) => ({ key: x.key, label: x.label, href: `/proyectos?estado=${x.key}` }))} />
       <form className="mb-5" action="/proyectos">
         {sp.estado ? <input type="hidden" name="estado" value={sp.estado} /> : null}
-        <input name="q" defaultValue={sp.q} placeholder="Buscar proyectos…" aria-label="Buscar proyectos" className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm" />
+        <input
+          name="q"
+          defaultValue={sp.q}
+          placeholder="Buscar proyectos…"
+          aria-label="Buscar proyectos"
+          className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm"
+        />
       </form>
       {rows.length ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ p, clientName, spaceName, spaceColor }) => (
             <ProjectCard
               key={p.id}
-              p={{ ...p, clientName, spaceName, spaceColor, stalled: p.status === "in_progress" && diffDays(today, toISODateAR(p.lastActivityAt)) > stalledDays }}
+              p={{
+                ...p,
+                clientName,
+                spaceName,
+                spaceColor,
+                stalled: p.status === "in_progress" && diffDays(today, toISODateAR(p.lastActivityAt)) > stalledDays,
+              }}
             />
           ))}
         </div>
@@ -62,7 +78,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           icon={<FolderKanban />}
           title={f ? `No hay proyectos «${L.projectStatus[f as keyof typeof L.projectStatus] ?? f}»` : "Todavía no hay proyectos"}
           description="Arrancá uno con el asistente: elegís plantilla, cliente, qué significa terminado y la primera acción. Menos de 2 minutos."
-          action={<Button asChild variant="primary"><Link href="/proyectos/nuevo"><Plus className="size-4" /> Nuevo proyecto</Link></Button>}
+          action={
+            <Button asChild variant="primary">
+              <Link href="/proyectos/nuevo">
+                <Plus className="size-4" /> Nuevo proyecto
+              </Link>
+            </Button>
+          }
         />
       )}
     </div>

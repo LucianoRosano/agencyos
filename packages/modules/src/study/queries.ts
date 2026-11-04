@@ -36,9 +36,26 @@ export async function listCourses(ctx: Ctx, f: CourseFilters = {}) {
   if (f.status) where.push(eq(schema.course.status, f.status));
   else if (!f.includeAll) where.push(inArray(schema.course.status, [...ACTIVE_COURSE_STATUSES]));
   if (f.spaceId) where.push(eq(schema.course.spaceId, f.spaceId));
-  const courses = await db.select().from(schema.course).where(and(...where)).orderBy(asc(schema.course.name)).limit(200);
+  const courses = await db
+    .select()
+    .from(schema.course)
+    .where(and(...where))
+    .orderBy(asc(schema.course.name))
+    .limit(200);
   const assess = courses.length
-    ? await db.select().from(schema.assessment).where(and(scoped(schema.assessment, ctx), inArray(schema.assessment.courseId, courses.map((c) => c.id)))).orderBy(asc(schema.assessment.date))
+    ? await db
+        .select()
+        .from(schema.assessment)
+        .where(
+          and(
+            scoped(schema.assessment, ctx),
+            inArray(
+              schema.assessment.courseId,
+              courses.map((c) => c.id),
+            ),
+          ),
+        )
+        .orderBy(asc(schema.assessment.date))
     : [];
   const today = todayAR();
   return courses.map((c) => {
@@ -74,7 +91,11 @@ export async function getCourse(ctx: Ctx, id: string) {
     .where(and(eq(schema.course.id, id), scoped(schema.course, ctx, { withArchived: true })));
   if (!course) return null;
   const [assessments, notes] = await Promise.all([
-    db.select().from(schema.assessment).where(and(eq(schema.assessment.courseId, id), scoped(schema.assessment, ctx))).orderBy(asc(schema.assessment.date), asc(schema.assessment.time)),
+    db
+      .select()
+      .from(schema.assessment)
+      .where(and(eq(schema.assessment.courseId, id), scoped(schema.assessment, ctx)))
+      .orderBy(asc(schema.assessment.date), asc(schema.assessment.time)),
     db
       .select({ id: schema.note.id, title: schema.note.title, updatedAt: schema.note.updatedAt, wordCount: schema.note.wordCount })
       .from(schema.note)
@@ -88,7 +109,19 @@ export async function getCourse(ctx: Ctx, id: string) {
         .select({ assessmentId: schema.link.toId, t: schema.task })
         .from(schema.link)
         .innerJoin(schema.task, eq(schema.task.id, schema.link.fromId))
-        .where(and(eq(schema.link.workspaceId, ctx.workspaceId), eq(schema.link.kind, "study_plan"), eq(schema.link.fromType, "task"), eq(schema.link.toType, "assessment"), inArray(schema.link.toId, assessments.map((a) => a.id)), scoped(schema.task, ctx)))
+        .where(
+          and(
+            eq(schema.link.workspaceId, ctx.workspaceId),
+            eq(schema.link.kind, "study_plan"),
+            eq(schema.link.fromType, "task"),
+            eq(schema.link.toType, "assessment"),
+            inArray(
+              schema.link.toId,
+              assessments.map((a) => a.id),
+            ),
+            scoped(schema.task, ctx),
+          ),
+        )
         .orderBy(asc(schema.task.dueDate))
     : [];
   const plan = new Map<string, (typeof schema.task.$inferSelect)[]>();
@@ -97,5 +130,9 @@ export async function getCourse(ctx: Ctx, id: string) {
 }
 
 export async function courseOptions(ctx: Ctx) {
-  return getDb().select({ id: schema.course.id, name: schema.course.name }).from(schema.course).where(scoped(schema.course, ctx)).orderBy(asc(schema.course.name));
+  return getDb()
+    .select({ id: schema.course.id, name: schema.course.name })
+    .from(schema.course)
+    .where(scoped(schema.course, ctx))
+    .orderBy(asc(schema.course.name));
 }

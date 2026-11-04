@@ -14,13 +14,24 @@ function fmValue(v: unknown): string {
  * Vista previa renderizada (HTML sanitizado en el servidor). Un [[enlace]] a una nota que no existe
  * se muestra punteado y, con un clic, crea la nota.
  */
-export function NotePreviewPane({ html, frontmatter, onCreate }: { html: string; frontmatter: Record<string, unknown>; onCreate: (title: string) => Promise<void> }) {
+export function NotePreviewPane({
+  html,
+  frontmatter,
+  onCreate,
+}: {
+  html: string;
+  frontmatter: Record<string, unknown>;
+  onCreate: (title: string) => Promise<void>;
+}) {
   const [creating, setCreating] = useState<string | null>(null);
   const props = Object.entries(frontmatter);
   return (
     <div className="pt-3">
       {props.length ? (
-        <dl className="mb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 py-2 text-[13px]" aria-label="Propiedades (frontmatter)">
+        <dl
+          className="mb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 py-2 text-[13px]"
+          aria-label="Propiedades (frontmatter)"
+        >
           {props.map(([k, v]) => (
             <div key={k} className="contents">
               <dt className="font-mono text-text-faint">{k}</dt>

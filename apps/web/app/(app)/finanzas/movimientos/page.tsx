@@ -32,7 +32,11 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
     to: /^\d{4}-\d{2}-\d{2}$/.test(sp.hasta ?? "") ? sp.hasta : undefined,
     q: sp.q || undefined,
   };
-  const [page, totals, options] = await Promise.all([listTransactions(f.ctx, { ...filters, cursor: sp.cursor }), transactionTotals(f.ctx, filters), formOptions(f.ctx)]);
+  const [page, totals, options] = await Promise.all([
+    listTransactions(f.ctx, { ...filters, cursor: sp.cursor }),
+    transactionTotals(f.ctx, filters),
+    formOptions(f.ctx),
+  ]);
   const accounts = options.accounts.filter((a) => !f.ledgerId || a.ledgerId === f.ledgerId);
   const filtered = Boolean(filters.accountId || filters.categoryId || filters.kind || filters.from || filters.to || filters.q);
   const keep = {
@@ -47,7 +51,12 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
   return (
     <div className="mx-auto max-w-6xl">
       <FinanceHeader active="movimientos" title="Movimientos" ledgers={f.ledgers} ledgerId={f.ledgerId} extraQuery={keep} />
-      <TransactionSheet key={sp.nuevo === "1" ? "nuevo" : "cerrado"} options={options} openInitially={sp.nuevo === "1"} defaultAccountId={filters.accountId ?? accounts[0]?.id} />
+      <TransactionSheet
+        key={sp.nuevo === "1" ? "nuevo" : "cerrado"}
+        options={options}
+        openInitially={sp.nuevo === "1"}
+        defaultAccountId={filters.accountId ?? accounts[0]?.id}
+      />
 
       <details className="group mb-5 rounded-[var(--radius-card)] border border-border bg-surface md:open:bg-surface" open={filtered || undefined}>
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 text-[14px] text-text-muted marker:hidden">
@@ -57,14 +66,24 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
         <form action="/finanzas/movimientos" className="grid grid-cols-1 gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-6">
           {f.ledgerId ? <input type="hidden" name="libro" value={f.ledgerId} /> : null}
           <input name="q" defaultValue={sp.q} placeholder="Buscar…" aria-label="Buscar movimientos" className={`${ctl} lg:col-span-2`} />
-          <select name="tipo" defaultValue={sp.tipo ?? ""} aria-label="Tipo" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
+          <select
+            name="tipo"
+            defaultValue={sp.tipo ?? ""}
+            aria-label="Tipo"
+            className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}
+          >
             {KIND_OPTS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </select>
-          <select name="cuenta" defaultValue={sp.cuenta ?? ""} aria-label="Cuenta" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
+          <select
+            name="cuenta"
+            defaultValue={sp.cuenta ?? ""}
+            aria-label="Cuenta"
+            className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}
+          >
             <option value="">Todas las cuentas</option>
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
@@ -72,7 +91,12 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
               </option>
             ))}
           </select>
-          <select name="categoria" defaultValue={sp.categoria ?? ""} aria-label="Categoría" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
+          <select
+            name="categoria"
+            defaultValue={sp.categoria ?? ""}
+            aria-label="Categoría"
+            className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}
+          >
             <option value="">Todas las categorías</option>
             <optgroup label="Ingresos">
               {options.categories

@@ -21,7 +21,10 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
   const initial: QuoteDraft = {
     ...base,
     currency: base.currency === "USD" ? "USD" : "ARS",
-    items: (base.items.length ? base.items : [{ serviceId: "", description: "", quantity: "1", unit: "", unitPrice: "", discountType: "none", discountValue: "" }]).map((it) => ({
+    items: (base.items.length
+      ? base.items
+      : [{ serviceId: "", description: "", quantity: "1", unit: "", unitPrice: "", discountType: "none", discountValue: "" }]
+    ).map((it) => ({
       ...it,
       key: `n${++k}`,
       discountType: "none" as const,
@@ -33,7 +36,12 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader eyebrow="Presupuestos · nuevo" title="Nuevo presupuesto" description="Editor a la izquierda, vista previa del PDF a la derecha. Los totales los calcula el servidor." accent="#A78BFA" />
+      <PageHeader
+        eyebrow="Presupuestos · nuevo"
+        title="Nuevo presupuesto"
+        description="Editor a la izquierda, vista previa del PDF a la derecha. Los totales los calcula el servidor."
+        accent="#A78BFA"
+      />
       {opts.clients.length ? (
         <QuoteEditor initial={initial} options={opts} initialPreview={previewState(doc)} />
       ) : (

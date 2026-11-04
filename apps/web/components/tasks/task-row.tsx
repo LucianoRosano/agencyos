@@ -57,7 +57,13 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
 
   return (
     <li className="relative overflow-hidden rounded-[10px]">
-      <div aria-hidden className={cn("absolute inset-0 flex items-center px-5 text-[13px] font-medium", dx > 0 ? "justify-start bg-success-soft text-success" : "justify-end bg-warning-soft text-warning")}>
+      <div
+        aria-hidden
+        className={cn(
+          "absolute inset-0 flex items-center px-5 text-[13px] font-medium",
+          dx > 0 ? "justify-start bg-success-soft text-success" : "justify-end bg-warning-soft text-warning",
+        )}
+      >
         {dx > 0 ? "Completar" : dx < 0 ? "Posponer" : ""}
       </div>
       <div
@@ -93,7 +99,9 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
         <Link href={`/tareas/${task.id}`} className="min-w-0 flex-1">
           <span className={cn("block truncate text-[15px]", done ? "text-text-faint line-through" : "text-text")}>{task.title}</span>
           <span className="mt-1 flex flex-wrap items-center gap-2 text-[12px]">
-            {task.priority <= 2 ? <span className={cn("inline-block h-1.5 w-1.5 rounded-full", PRIO[task.priority])} title={`Prioridad P${task.priority}`} /> : null}
+            {task.priority <= 2 ? (
+              <span className={cn("inline-block h-1.5 w-1.5 rounded-full", PRIO[task.priority])} title={`Prioridad P${task.priority}`} />
+            ) : null}
             {showProject && (task.projectName || task.clientName) ? (
               <EntityChip color={task.clientName ? "#22D3EE" : (task.spaceColor ?? "#7C5CFF")}>{task.projectName ?? task.clientName}</EntityChip>
             ) : null}

@@ -36,7 +36,16 @@ export async function seedStructure(t: Tx, workspaceId: string, userId: string) 
   ];
   await t.insert(schema.category).values(cats);
   await t.insert(schema.projectTemplate).values(
-    PROJECT_TEMPLATES.map((tpl, i) => ({ workspaceId, key: tpl.key, name: tpl.name, kind: tpl.kind, description: tpl.description, definition: tpl.definition, sort: i, createdBy: userId })),
+    PROJECT_TEMPLATES.map((tpl, i) => ({
+      workspaceId,
+      key: tpl.key,
+      name: tpl.name,
+      kind: tpl.kind,
+      description: tpl.description,
+      definition: tpl.definition,
+      sort: i,
+      createdBy: userId,
+    })),
   );
   await t.insert(schema.quoteTemplate).values({ workspaceId, ...DEFAULT_QUOTE_TEMPLATE, isDefault: true, createdBy: userId });
   return { spaces, ledgers };
@@ -60,7 +69,9 @@ export async function createOwner(input: SetupInput): Promise<{ userId: string; 
   try {
     if (await isSetupDone()) throw new Error("AGENCYOS ya está configurado.");
     const existing = await actx.internalAdapter.findUserByEmail(input.email.toLowerCase());
-    const created = existing?.user ?? (await actx.internalAdapter.createUser({ email: input.email.toLowerCase(), name: input.name, emailVerified: true }, { method: "admin" }));
+    const created =
+      existing?.user ??
+      (await actx.internalAdapter.createUser({ email: input.email.toLowerCase(), name: input.name, emailVerified: true }, { method: "admin" }));
     if (!existing) await actx.internalAdapter.linkAccount({ userId: created.id, providerId: "credential", accountId: created.id, password: hashed });
     else await actx.internalAdapter.updatePassword(created.id, hashed);
     return await createWorkspaceFor(created.id, input);

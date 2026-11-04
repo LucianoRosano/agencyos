@@ -29,7 +29,15 @@ export const createNoteAction = async (_: S, fd: FormData) => run((ctx) => svc.c
 export const createLinkedNoteAction = async (title: string, from?: { spaceId?: string | null; folderPath?: string | null }) =>
   run((ctx) => svc.createNote(ctx, { title, spaceId: from?.spaceId ?? undefined, folderPath: from?.folderPath ?? undefined }));
 
-export type SaveNoteResponse = { html: string; frontmatter: Record<string, unknown>; title: string; savedAt: number; versioned: boolean; linkSig: string; wordCount: number };
+export type SaveNoteResponse = {
+  html: string;
+  frontmatter: Record<string, unknown>;
+  title: string;
+  savedAt: number;
+  versioned: boolean;
+  linkSig: string;
+  wordCount: number;
+};
 
 /** Autoguardado: guarda (transacción con enlaces y versión) y devuelve la vista previa. Sin revalidar toda la página. */
 export const saveNoteAction = async (id: string, patch: { title?: string; bodyMd?: string }) =>

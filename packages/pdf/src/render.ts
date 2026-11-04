@@ -23,9 +23,11 @@ async function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = chromium.launch({ executablePath: executablePath(), args: ["--no-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"] });
     browserPromise
-      .then((b) => b.on("disconnected", () => {
-        browserPromise = null;
-      }))
+      .then((b) =>
+        b.on("disconnected", () => {
+          browserPromise = null;
+        }),
+      )
       .catch(() => {
         browserPromise = null;
       });

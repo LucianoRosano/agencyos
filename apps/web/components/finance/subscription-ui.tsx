@@ -46,9 +46,27 @@ function SubscriptionFields({ options, d }: { options: FormOptions; d?: Partial<
         <TextField label="Monto" name="amount" required inputMode="decimal" defaultValue={d?.amount} placeholder="0,00" />
         <SelectField label="Moneda" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES} />
         <SelectField label="Frecuencia" name="frequency" defaultValue={d?.frequency ?? "monthly"} options={opts(L.frequency)} />
-        <TextField label="Cada cuántos períodos" name="intervalCount" type="number" inputMode="numeric" min={1} max={36} defaultValue={String(d?.intervalCount ?? 1)} hint="1 = todos los meses (o semanas/años)." />
+        <TextField
+          label="Cada cuántos períodos"
+          name="intervalCount"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={36}
+          defaultValue={String(d?.intervalCount ?? 1)}
+          hint="1 = todos los meses (o semanas/años)."
+        />
         <TextField label="Próximo vencimiento" name="nextDue" type="date" required defaultValue={d?.nextDue ?? todayAR()} />
-        <TextField label="Avisar días antes" name="notifyDaysBefore" type="number" inputMode="numeric" min={0} max={60} defaultValue={String(d?.notifyDaysBefore ?? 3)} hint="Aparece en «Ponerse al día» de Hoy." />
+        <TextField
+          label="Avisar días antes"
+          name="notifyDaysBefore"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={60}
+          defaultValue={String(d?.notifyDaysBefore ?? 3)}
+          hint="Aparece en «Ponerse al día» de Hoy."
+        />
         <SelectField
           label="Cuenta con la que pagás"
           name="accountId"
@@ -118,7 +136,17 @@ function EditSubscription({ sub, options, onClose }: { sub: SubData; options: Fo
 }
 
 /** "Registrar pago": crea el gasto y avanza la próxima fecha, con Deshacer. Se abre también por deep link `?pagar=<id>`. */
-export function PaySubscriptionSheet({ sub, accounts, openInitially, trigger }: { sub: SubData; accounts: AccountOpt[]; openInitially?: boolean; trigger?: ReactNode }) {
+export function PaySubscriptionSheet({
+  sub,
+  accounts,
+  openInitially,
+  trigger,
+}: {
+  sub: SubData;
+  accounts: AccountOpt[];
+  openInitially?: boolean;
+  trigger?: ReactNode;
+}) {
   const [open, setOpen] = useState(Boolean(openInitially));
   const clear = useClearParam();
   const undo = useUndoToast();
@@ -145,7 +173,9 @@ export function PaySubscriptionSheet({ sub, accounts, openInitially, trigger }: 
             };
             setOpen(false);
             clear("pagar");
-            undo(`Pago registrado · próximo vencimiento ${formatDate(d.nextDue)}`, () => undoSubscriptionPaymentAction(sub.id, d.transaction.id, d.previousDue));
+            undo(`Pago registrado · próximo vencimiento ${formatDate(d.nextDue)}`, () =>
+              undoSubscriptionPaymentAction(sub.id, d.transaction.id, d.previousDue),
+            );
           }}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

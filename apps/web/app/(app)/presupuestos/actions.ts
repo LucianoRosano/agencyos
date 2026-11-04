@@ -29,7 +29,8 @@ export const acceptQuoteAction = async (id: string, _: S, fd: FormData) =>
     const r = await svc.acceptQuote(ctx, id, obj(fd));
     return { projectId: r.projectId, receivables: r.receivables.length };
   });
-export const rejectQuoteAction = async (id: string, _: S, fd: FormData) => run(async (ctx) => (await svc.rejectQuote(ctx, id, String(fd.get("reason") ?? "")))?.status);
+export const rejectQuoteAction = async (id: string, _: S, fd: FormData) =>
+  run(async (ctx) => (await svc.rejectQuote(ctx, id, String(fd.get("reason") ?? "")))?.status);
 export const voidQuoteAction = async (id: string) => run(async (ctx) => (await svc.voidQuote(ctx, id))?.status);
 export const deleteQuoteAction = async (id: string) => run((ctx) => moveToTrash(ctx, "quote", id));
 export const restoreQuoteAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "quote", id));
@@ -41,7 +42,13 @@ export const previewQuoteAction = async (payload: unknown, meta: { number?: stri
       const doc = await previewDocument(ctx, payload, meta);
       return {
         html: renderQuoteHtml(doc, { fontCss: geistFontCssFromUrl("/presupuestos/fuente"), preview: true }),
-        totals: { lines: doc.calc.lines.map((l) => l.lineTotal), subtotal: doc.calc.subtotal, itemsDiscount: doc.calc.itemsDiscount, globalDiscount: doc.calc.globalDiscount, total: doc.calc.total },
+        totals: {
+          lines: doc.calc.lines.map((l) => l.lineTotal),
+          subtotal: doc.calc.subtotal,
+          itemsDiscount: doc.calc.itemsDiscount,
+          globalDiscount: doc.calc.globalDiscount,
+          total: doc.calc.total,
+        },
         issues: doc.calc.issues,
       };
     },

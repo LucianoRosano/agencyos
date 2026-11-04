@@ -1,6 +1,18 @@
 import {
-  countWords, frontmatterAliases, frontmatterTags, hasPlainMention, linkFirstPlainMention, normalizeFolder, normName, parseFrontmatter,
-  parseMentions, parseWikilinks, renameWikilinks, safeFileName, slugify, stringifyFrontmatter,
+  countWords,
+  frontmatterAliases,
+  frontmatterTags,
+  hasPlainMention,
+  linkFirstPlainMention,
+  normalizeFolder,
+  normName,
+  parseFrontmatter,
+  parseMentions,
+  parseWikilinks,
+  renameWikilinks,
+  safeFileName,
+  slugify,
+  stringifyFrontmatter,
 } from "@agencyos/modules/notes/parse";
 import { describe, expect, it } from "vitest";
 
@@ -66,7 +78,7 @@ describe("menciones", () => {
 
 describe("frontmatter", () => {
   it("parsea clave: valor, listas en línea y en bloque, números y booleanos", () => {
-    const md = "---\ntitle: Plan 2026\ntags: [facultad, PSEC]\naliases:\n  - Plan\n  - \"Plan anual\"\nprioridad: 2\nhecho: false\nvacío:\n---\n# Cuerpo\n";
+    const md = '---\ntitle: Plan 2026\ntags: [facultad, PSEC]\naliases:\n  - Plan\n  - "Plan anual"\nprioridad: 2\nhecho: false\nvacío:\n---\n# Cuerpo\n';
     const { data, body, hasFrontmatter } = parseFrontmatter(md);
     expect(hasFrontmatter).toBe(true);
     expect(body).toBe("# Cuerpo\n");

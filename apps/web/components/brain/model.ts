@@ -82,5 +82,5 @@ export function monthLabel(ms: number, withYear = true) {
   const parts = new Intl.DateTimeFormat("es-AR", { timeZone: "America/Buenos_Aires", month: "numeric", year: "numeric" }).formatToParts(d);
   const m = Number(parts.find((p) => p.type === "month")?.value ?? 1);
   const y = parts.find((p) => p.type === "year")?.value ?? "";
-  return withYear ? `${MONTHS[m - 1]} ${y}` : MONTHS[m - 1] ?? "";
+  return withYear ? `${MONTHS[m - 1]} ${y}` : (MONTHS[m - 1] ?? "");
 }

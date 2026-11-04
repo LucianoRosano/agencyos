@@ -19,7 +19,12 @@ const NOTIFY: Record<string, (p: Record<string, unknown>, summary: string) => st
 /** Outbox → actividad ya registrada; acá se despachan notificaciones y se marcan como enviados. Idempotente. */
 export async function dispatchOutbox(limit = 500) {
   const db = getDb();
-  const events = await db.select().from(schema.domainEvent).where(isNull(schema.domainEvent.dispatchedAt)).orderBy(asc(schema.domainEvent.occurredAt)).limit(limit);
+  const events = await db
+    .select()
+    .from(schema.domainEvent)
+    .where(isNull(schema.domainEvent.dispatchedAt))
+    .orderBy(asc(schema.domainEvent.occurredAt))
+    .limit(limit);
   if (!events.length) return 0;
   for (const ev of events) {
     const builder = NOTIFY[ev.type];
@@ -27,13 +32,28 @@ export async function dispatchOutbox(limit = 500) {
     const title = builder ? builder(ev.payload as Record<string, unknown>, "") : null;
     if (builder || fromAgent) {
       const [act] = ev.entityId
-        ? await db.select({ summary: schema.activity.summary }).from(schema.activity).where(and(eq(schema.activity.workspaceId, ev.workspaceId), eq(schema.activity.verb, ev.type), eq(schema.activity.entityId, ev.entityId))).limit(1)
+        ? await db
+            .select({ summary: schema.activity.summary })
+            .from(schema.activity)
+            .where(and(eq(schema.activity.workspaceId, ev.workspaceId), eq(schema.activity.verb, ev.type), eq(schema.activity.entityId, ev.entityId)))
+            .limit(1)
         : [];
-      const owners = await db.select({ userId: schema.membership.userId }).from(schema.membership).where(and(eq(schema.membership.workspaceId, ev.workspaceId), inArray(schema.membership.role, ["owner", "admin"])));
+      const owners = await db
+        .select({ userId: schema.membership.userId })
+        .from(schema.membership)
+        .where(and(eq(schema.membership.workspaceId, ev.workspaceId), inArray(schema.membership.role, ["owner", "admin"])));
       for (const o of owners) {
         await db
           .insert(schema.notification)
-          .values({ workspaceId: ev.workspaceId, userId: o.userId, type: ev.type, title: (title || act?.summary || ev.type).slice(0, 200), entityType: ev.entityType, entityId: ev.entityId, dedupeKey: `ev:${ev.id}` })
+          .values({
+            workspaceId: ev.workspaceId,
+            userId: o.userId,
+            type: ev.type,
+            title: (title || act?.summary || ev.type).slice(0, 200),
+            entityType: ev.entityType,
+            entityId: ev.entityId,
+            dedupeKey: `ev:${ev.id}`,
+          })
           .onConflictDoNothing();
       }
     }
@@ -66,9 +86,16 @@ export async function dailySummary() {
     const d = await getToday(ctx, { userId: o.userId });
     const c = d.counts;
     const title = `Hoy: ${c.forToday} para hoy · ${c.overdue} vencidas · ${d.catchUp.length} para ponerse al día`;
-    await db.insert(schema.notification).values({ workspaceId: o.workspaceId, userId: o.userId, type: "resumen.diario", title, dedupeKey: `resumen:${today}` }).onConflictDoNothing();
+    await db
+      .insert(schema.notification)
+      .values({ workspaceId: o.workspaceId, userId: o.userId, type: "resumen.diario", title, dedupeKey: `resumen:${today}` })
+      .onConflictDoNothing();
     const lines = d.catchUp.slice(0, 10).map((i) => `• ${i.title} — ${i.subtitle}`);
-    await sendEmail({ to: o.email, subject: `AGENCYOS · ${title}`, text: `${title}\n\n${lines.join("\n")}\n\nAbrí AGENCYOS: ${process.env.APP_URL ?? ""}/hoy` });
+    await sendEmail({
+      to: o.email,
+      subject: `AGENCYOS · ${title}`,
+      text: `${title}\n\n${lines.join("\n")}\n\nAbrí AGENCYOS: ${process.env.APP_URL ?? ""}/hoy`,
+    });
   }
   return owners.length;
 }

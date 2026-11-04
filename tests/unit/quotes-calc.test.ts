@@ -80,11 +80,19 @@ describe("presupuestos · totales", () => {
 
 describe("presupuestos · plan de cobro", () => {
   it("pago único", () => {
-    expect(paymentSchedule({ kind: "single" }, "1000", "2026-11-04")).toEqual([{ label: "Pago único", percent: 100, amount: "1000.00", dueDate: "2026-11-04", offsetDays: 0 }]);
+    expect(paymentSchedule({ kind: "single" }, "1000", "2026-11-04")).toEqual([
+      { label: "Pago único", percent: 100, amount: "1000.00", dueDate: "2026-11-04", offsetDays: 0 },
+    ]);
   });
   it("50/50 sin perder centavos", () => {
     const s = paymentSchedule(
-      { kind: "milestones", items: [{ label: "Anticipo", percent: 50 }, { label: "Saldo", percent: 50, offsetDays: 30 }] },
+      {
+        kind: "milestones",
+        items: [
+          { label: "Anticipo", percent: 50 },
+          { label: "Saldo", percent: 50, offsetDays: 30 },
+        ],
+      },
       "384750.01",
       "2026-11-04",
     );
@@ -93,12 +101,40 @@ describe("presupuestos · plan de cobro", () => {
     expect(s.reduce((a, r) => a + Number(r.amount) * 100, 0)).toBe(38475001);
   });
   it("40/30/30", () => {
-    const s = paymentSchedule({ kind: "milestones", items: [{ label: "A", percent: 40 }, { label: "B", percent: 30 }, { label: "C", percent: 30 }] }, "1000", "2026-01-01");
+    const s = paymentSchedule(
+      {
+        kind: "milestones",
+        items: [
+          { label: "A", percent: 40 },
+          { label: "B", percent: 30 },
+          { label: "C", percent: 30 },
+        ],
+      },
+      "1000",
+      "2026-01-01",
+    );
     expect(s.map((r) => r.amount)).toEqual(["400.00", "300.00", "300.00"]);
   });
   it("los porcentajes deben sumar 100", () => {
-    expect(planIssues({ kind: "milestones", items: [{ label: "A", percent: 50 }, { label: "B", percent: 40 }] })[0]?.message).toMatch(/sumar 100/);
-    expect(planIssues({ kind: "milestones", items: [{ label: "A", percent: 33.33 }, { label: "B", percent: 33.33 }, { label: "C", percent: 33.34 }] })).toEqual([]);
+    expect(
+      planIssues({
+        kind: "milestones",
+        items: [
+          { label: "A", percent: 50 },
+          { label: "B", percent: 40 },
+        ],
+      })[0]?.message,
+    ).toMatch(/sumar 100/);
+    expect(
+      planIssues({
+        kind: "milestones",
+        items: [
+          { label: "A", percent: 33.33 },
+          { label: "B", percent: 33.33 },
+          { label: "C", percent: 33.34 },
+        ],
+      }),
+    ).toEqual([]);
   });
   it("mensual con meses: cuotas mensuales con fin de mes ajustado", () => {
     const s = paymentSchedule({ kind: "monthly", amount: "45000", months: 3 }, "0", "2026-01-31");
@@ -120,7 +156,14 @@ describe("presupuestos · plan de cobro", () => {
 
 describe("presupuestos · comparación de versiones", () => {
   const base = (items: ReturnType<typeof li>[], total: string) => ({ items, subtotal: total, discountTotal: "0", total, currency: "ARS" });
-  const li = (description: string, quantity: string, unitPrice: string, lineTotal = unitPrice) => ({ description, quantity, unitPrice, discountType: "none", discountValue: "0", lineTotal });
+  const li = (description: string, quantity: string, unitPrice: string, lineTotal = unitPrice) => ({
+    description,
+    quantity,
+    unitPrice,
+    discountType: "none",
+    discountValue: "0",
+    lineTotal,
+  });
   it("detecta ítems agregados, quitados y cambiados, y la diferencia de totales", () => {
     const a = base([li("Diseño", "1", "100"), li("Hosting", "1", "50")], "150");
     const b = base([li("diseño ", "2", "100", "200"), li("SEO", "1", "80")], "280");

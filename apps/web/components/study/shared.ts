@@ -23,4 +23,5 @@ export function countdownLabel(date: string, today = todayAR()): string {
 }
 
 /** Nota "7.50" → "7,5". */
-export const formatGrade = (g: string | null | undefined) => (g === null || g === undefined ? "—" : Number(g).toLocaleString("es-AR", { maximumFractionDigits: 2 }));
+export const formatGrade = (g: string | null | undefined) =>
+  g === null || g === undefined ? "—" : Number(g).toLocaleString("es-AR", { maximumFractionDigits: 2 });

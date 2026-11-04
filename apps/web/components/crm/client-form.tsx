@@ -26,7 +26,13 @@ function ClientFields({ spaces, d = {} }: { spaces: Opt[]; d?: Defaults }) {
         <TextField label="Origen" name="source" defaultValue={v("source")} placeholder="Referido, Instagram, web…" />
         <TextField label="Ciudad" name="city" defaultValue={v("city")} />
         <TextField label="Provincia" name="province" defaultValue={v("province")} />
-        <SelectField label="Espacio" name="spaceId" defaultValue={v("spaceId")} options={spaces} placeholder={d.spaceId ? undefined : "Agencia (por defecto)"} />
+        <SelectField
+          label="Espacio"
+          name="spaceId"
+          defaultValue={v("spaceId")}
+          options={spaces}
+          placeholder={d.spaceId ? undefined : "Agencia (por defecto)"}
+        />
       </div>
       <TextAreaField label="Notas internas (Markdown)" name="notesMd" defaultValue={v("notesMd")} rows={5} className="font-mono" />
     </>
@@ -57,10 +63,22 @@ export function NewClientForm({ spaces }: { spaces: Opt[] }) {
 export function EditClientSheet({ id, spaces, defaults }: { id: string; spaces: Opt[]; defaults: Defaults }) {
   const [open, setOpen] = useState(false);
   return (
-    <Sheet open={open} onOpenChange={setOpen} title="Editar cliente" wide trigger={<Button variant="secondary"><Pencil className="size-4" /> Editar</Button>}>
+    <Sheet
+      open={open}
+      onOpenChange={setOpen}
+      title="Editar cliente"
+      wide
+      trigger={
+        <Button variant="secondary">
+          <Pencil className="size-4" /> Editar
+        </Button>
+      }
+    >
       <ActionForm action={updateClientAction.bind(null, id)} successMessage="Cliente actualizado" onSuccess={() => setOpen(false)}>
         <ClientFields spaces={spaces} d={defaults} />
-        <div className="flex justify-end"><SubmitButton>Guardar</SubmitButton></div>
+        <div className="flex justify-end">
+          <SubmitButton>Guardar</SubmitButton>
+        </div>
       </ActionForm>
     </Sheet>
   );

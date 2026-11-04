@@ -27,12 +27,15 @@ export function LocalGraph({ entityType, entityId, depth = 1, className }: { ent
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        setShown(true);
-        io.disconnect();
-      }
-    }, { rootMargin: "200px" });
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShown(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -73,7 +76,9 @@ export function LocalGraph({ entityType, entityId, depth = 1, className }: { ent
       ) : !data ? (
         <Skeleton className="absolute inset-0 rounded-none" />
       ) : real <= 1 ? (
-        <p className="absolute inset-0 grid place-items-center p-6 text-center text-[13px] text-text-muted">Sin conexiones todavía. Enlazá con [[Nota]], @cliente o #proyecto.</p>
+        <p className="absolute inset-0 grid place-items-center p-6 text-center text-[13px] text-text-muted">
+          Sin conexiones todavía. Enlazá con [[Nota]], @cliente o #proyecto.
+        </p>
       ) : (
         <GraphCanvas
           graph={data.graph}

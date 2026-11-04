@@ -12,5 +12,15 @@ export default async function BrainPage({ searchParams }: { searchParams: Promis
   const viewKey = includeTasks ? "main+tasks" : "main";
   const [graph, layout, initialSpace] = await Promise.all([getBrainGraph(ctx, { includeTasks }), getLayout(ctx, viewKey), getSelectedSpace()]);
   const initialNode = sp.nodo && /^[a-z_]+:[0-9a-f-]{36}$/.test(sp.nodo) ? sp.nodo : null;
-  return <BrainView key={viewKey} graph={graph} layout={layout} includeTasks={includeTasks} initialNode={initialNode} initialSpace={initialSpace} viewKey={viewKey} />;
+  return (
+    <BrainView
+      key={viewKey}
+      graph={graph}
+      layout={layout}
+      includeTasks={includeTasks}
+      initialNode={initialNode}
+      initialSpace={initialSpace}
+      viewKey={viewKey}
+    />
+  );
 }

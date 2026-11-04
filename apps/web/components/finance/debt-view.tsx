@@ -46,7 +46,9 @@ export function Remaining({ amount, paid, currency }: { amount: string; paid: st
   return (
     <div className="text-right">
       <p className="font-mono text-[16px] tabular-nums text-text">{formatMoney(rem, currency)}</p>
-      <p className="font-mono text-[11px] text-text-faint">{Number(paid) > 0 ? `${formatMoney(paid, currency)} de ${formatMoney(amount, currency)}` : `de ${formatMoney(amount, currency)}`}</p>
+      <p className="font-mono text-[11px] text-text-faint">
+        {Number(paid) > 0 ? `${formatMoney(paid, currency)} de ${formatMoney(amount, currency)}` : `de ${formatMoney(amount, currency)}`}
+      </p>
     </div>
   );
 }

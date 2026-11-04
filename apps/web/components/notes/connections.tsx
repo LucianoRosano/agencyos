@@ -2,7 +2,11 @@ import { ENTITY_COLORS } from "@agencyos/core";
 import { ArrowLeft, ArrowLeftRight, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-type Group = { type: string; label: string; items: { type: string; id: string; title: string; href: string; direction: "in" | "out" | "both"; kinds: string[] }[] };
+type Group = {
+  type: string;
+  label: string;
+  items: { type: string; id: string; title: string; href: string; direction: "in" | "out" | "both"; kinds: string[] }[];
+};
 
 const KIND: Record<string, string> = { wikilink: "enlace", mention: "mención", belongs: "pertenece", related: "relacionado", tag: "etiqueta" };
 const DIR = {
@@ -25,7 +29,11 @@ export function Connections({ groups, empty = "Sin conexiones todavía. Escribí
             {g.items.map((it) => (
               <li key={`${it.type}:${it.id}`}>
                 <Link href={it.href} className="group flex min-h-10 items-center gap-2.5 rounded-md px-1.5 text-[14px] text-text hover:bg-surface-2">
-                  <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: ENTITY_COLORS[it.type] ?? "#8A93A6", boxShadow: `0 0 8px ${ENTITY_COLORS[it.type] ?? "#8A93A6"}` }} />
+                  <span
+                    aria-hidden
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ background: ENTITY_COLORS[it.type] ?? "#8A93A6", boxShadow: `0 0 8px ${ENTITY_COLORS[it.type] ?? "#8A93A6"}` }}
+                  />
                   <span className="min-w-0 flex-1 truncate">{it.title}</span>
                   <span className="font-mono text-[11px] text-text-faint">{it.kinds.map((k) => KIND[k] ?? k).join(" · ")}</span>
                   <span className="text-text-faint" title={DIR[it.direction].label}>

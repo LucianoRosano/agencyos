@@ -21,7 +21,15 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         title="Bandeja"
         description="Todo lo que capturaste con C, el botón + o desde Claude. Procesalo uno por uno: convertilo, programalo o descartalo."
         accent="#22D3EE"
-        actions={items.length && !processing ? <Button asChild variant="primary"><Link href="/bandeja?procesar=1"><Play className="size-4" /> Procesar ({items.length})</Link></Button> : null}
+        actions={
+          items.length && !processing ? (
+            <Button asChild variant="primary">
+              <Link href="/bandeja?procesar=1">
+                <Play className="size-4" /> Procesar ({items.length})
+              </Link>
+            </Button>
+          ) : null
+        }
       />
       {processing ? (
         <Processor
@@ -46,7 +54,11 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           ))}
         </Card>
       ) : (
-        <EmptyState icon={<Inbox />} title="Bandeja vacía" description="Capturá ideas, tareas, gastos o links con la tecla C o el botón +. Después los ordenás desde acá." />
+        <EmptyState
+          icon={<Inbox />}
+          title="Bandeja vacía"
+          description="Capturá ideas, tareas, gastos o links con la tecla C o el botón +. Después los ordenás desde acá."
+        />
       )}
     </div>
   );

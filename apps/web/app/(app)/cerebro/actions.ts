@@ -6,7 +6,8 @@ import { run } from "@/lib/action";
 import { requireCtx } from "@/lib/session";
 
 /** Guarda las posiciones calculadas por ForceAtlas2 (caché de presentación, sin revalidar). */
-export const saveLayoutAction = async (viewKey: string, positions: Record<string, [number, number]>) => run((ctx) => saveLayout(ctx, { viewKey, positions }), { revalidate: false });
+export const saveLayoutAction = async (viewKey: string, positions: Record<string, [number, number]>) =>
+  run((ctx) => saveLayout(ctx, { viewKey, positions }), { revalidate: false });
 
 /** Grafo local (profundidad 1–3) con las posiciones del Cerebro si ya existen. */
 export async function localGraphAction(entityType: string, entityId: string, depth: number) {

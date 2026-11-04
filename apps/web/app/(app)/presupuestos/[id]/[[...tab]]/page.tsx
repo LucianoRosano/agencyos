@@ -32,7 +32,13 @@ const KIND_LABEL = { added: "Agregado", removed: "Quitado", changed: "Cambiado",
 const KIND_TONE = { added: "success", removed: "danger", changed: "warning", same: "neutral" } as const;
 const TOTAL_LABEL = { subtotal: "Subtotal", discountTotal: "Descuentos", total: "Total" } as const;
 
-export default async function QuotePage({ params, searchParams }: { params: Promise<{ id: string; tab?: string[] }>; searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function QuotePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string; tab?: string[] }>;
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const { id, tab: tabParts } = await params;
   const sp = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -56,7 +62,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       <PageHeader
         eyebrow={
           <span className="flex flex-wrap items-center gap-2">
-            <span>{q.number} · v{v.version}</span>
+            <span>
+              {q.number} · v{v.version}
+            </span>
             {data.clientName ? (
               <Link href={`/crm/clientes/${q.clientId}`} className="hover:text-text">
                 · {data.clientName}
@@ -99,7 +107,11 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       />
       <Tabs
         active={tab}
-        items={TABS.map((t) => ({ ...t, href: `/presupuestos/${id}${t.key === "vista-previa" ? "" : `/${t.key}`}`, count: t.key === "versiones" ? data.versions.length : undefined }))}
+        items={TABS.map((t) => ({
+          ...t,
+          href: `/presupuestos/${id}${t.key === "vista-previa" ? "" : `/${t.key}`}`,
+          count: t.key === "versiones" ? data.versions.length : undefined,
+        }))}
       />
 
       {tab === "vista-previa" ? (
@@ -142,7 +154,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                 <dt className="text-text-muted">Fecha</dt>
                 <dd className="font-mono">{formatDate(v.issueDate)}</dd>
                 <dt className="text-text-muted">Válido hasta</dt>
-                <dd className={`font-mono ${["sent", "viewed"].includes(q.status) && v.validUntil < today ? "text-warning" : ""}`}>{formatDate(v.validUntil)}</dd>
+                <dd className={`font-mono ${["sent", "viewed"].includes(q.status) && v.validUntil < today ? "text-warning" : ""}`}>
+                  {formatDate(v.validUntil)}
+                </dd>
                 {q.sentAt ? (
                   <>
                     <dt className="text-text-muted">Enviado</dt>
@@ -197,7 +211,12 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                 number={q.number}
                 version={v.version}
                 initial={draftFromVersion(q, v, items)}
-                options={{ ...opts, clients: opts.clients.some((c) => c.id === q.clientId) ? opts.clients : [...opts.clients, { id: q.clientId, name: data.clientName ?? "Cliente" }] }}
+                options={{
+                  ...opts,
+                  clients: opts.clients.some((c) => c.id === q.clientId)
+                    ? opts.clients
+                    : [...opts.clients, { id: q.clientId, name: data.clientName ?? "Cliente" }],
+                }}
                 initialPreview={previewState(doc)}
               />
             );
@@ -220,9 +239,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         )
       ) : null}
 
-      {tab === "versiones" ? (
-        <VersionsTab id={id} data={data} a={sp.a} b={sp.b} money={money} />
-      ) : null}
+      {tab === "versiones" ? <VersionsTab id={id} data={data} a={sp.a} b={sp.b} money={money} /> : null}
 
       {tab === "actividad" ? (
         <Card className="p-5">
@@ -233,7 +250,19 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
   );
 }
 
-function VersionsTab({ id, data, a, b, money }: { id: string; data: NonNullable<Awaited<ReturnType<typeof getQuote>>>; a?: string; b?: string; money: (v: string) => string }) {
+function VersionsTab({
+  id,
+  data,
+  a,
+  b,
+  money,
+}: {
+  id: string;
+  data: NonNullable<Awaited<ReturnType<typeof getQuote>>>;
+  a?: string;
+  b?: string;
+  money: (v: string) => string;
+}) {
   const versions = data.versions;
   const byNo = (n?: string) => versions.find((v) => String(v.version) === n);
   const after = byNo(b) ?? versions[0];
@@ -253,7 +282,12 @@ function VersionsTab({ id, data, a, b, money }: { id: string; data: NonNullable<
                   {v.id === data.q.currentVersionId ? " · actual" : ""}
                 </p>
               </div>
-              <a href={`/api/presupuestos/${id}/pdf?version=${v.id}`} download className="text-[13px] text-text-muted hover:text-text" aria-label={`Descargar PDF de la versión ${v.version}`}>
+              <a
+                href={`/api/presupuestos/${id}/pdf?version=${v.id}`}
+                download
+                className="text-[13px] text-text-muted hover:text-text"
+                aria-label={`Descargar PDF de la versión ${v.version}`}
+              >
                 PDF
               </a>
             </Card>
@@ -267,7 +301,11 @@ function VersionsTab({ id, data, a, b, money }: { id: string; data: NonNullable<
             <form className="flex items-end gap-2" action={`/presupuestos/${id}/versiones`}>
               <label className="flex flex-col gap-1 text-[12px] text-text-muted">
                 Antes
-                <select name="a" defaultValue={before ? String(before.version) : ""} className="h-10 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-2 text-base md:text-sm">
+                <select
+                  name="a"
+                  defaultValue={before ? String(before.version) : ""}
+                  className="h-10 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-2 text-base md:text-sm"
+                >
                   {versions.map((v) => (
                     <option key={v.id} value={v.version}>
                       v{v.version}
@@ -278,7 +316,11 @@ function VersionsTab({ id, data, a, b, money }: { id: string; data: NonNullable<
               <ArrowRight className="mb-3 size-4 text-text-faint" />
               <label className="flex flex-col gap-1 text-[12px] text-text-muted">
                 Después
-                <select name="b" defaultValue={after ? String(after.version) : ""} className="h-10 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-2 text-base md:text-sm">
+                <select
+                  name="b"
+                  defaultValue={after ? String(after.version) : ""}
+                  className="h-10 rounded-[var(--radius-control)] border border-border bg-bg-elevated px-2 text-base md:text-sm"
+                >
                   {versions.map((v) => (
                     <option key={v.id} value={v.version}>
                       v{v.version}
@@ -307,7 +349,9 @@ function VersionsTab({ id, data, a, b, money }: { id: string; data: NonNullable<
                     <Badge tone={KIND_TONE[it.kind]} className="w-fit">
                       {KIND_LABEL[it.kind]}
                     </Badge>
-                    <span className={`min-w-0 flex-1 text-[14px] ${it.kind === "removed" ? "text-text-muted line-through" : "text-text"}`}>{cur.description}</span>
+                    <span className={`min-w-0 flex-1 text-[14px] ${it.kind === "removed" ? "text-text-muted line-through" : "text-text"}`}>
+                      {cur.description}
+                    </span>
                     <span className="flex flex-wrap gap-x-2 font-mono text-[13px] text-text-muted">
                       {prev && it.kind === "changed" ? (
                         <span className="whitespace-nowrap">

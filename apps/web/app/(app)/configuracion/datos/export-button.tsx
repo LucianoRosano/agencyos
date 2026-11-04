@@ -33,7 +33,9 @@ export function ExportButton() {
       }}
     >
       <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Confirmá tu contraseña" aria-label="Contraseña" required />
-      <Button type="submit" variant="primary" loading={pending}><Download className="size-4" /> Exportar todo</Button>
+      <Button type="submit" variant="primary" loading={pending}>
+        <Download className="size-4" /> Exportar todo
+      </Button>
     </form>
   );
 }

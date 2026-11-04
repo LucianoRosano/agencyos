@@ -27,7 +27,8 @@ async function main() {
       const started = Date.now();
       try {
         const result = await j.run();
-        if (j.name !== "heartbeat" && j.name !== "outbox-dispatch") log.info({ job: j.name, ms: Date.now() - started, result: JSON.stringify(result) }, "job ok");
+        if (j.name !== "heartbeat" && j.name !== "outbox-dispatch")
+          log.info({ job: j.name, ms: Date.now() - started, result: JSON.stringify(result) }, "job ok");
         return result;
       } catch (e) {
         log.error({ job: j.name, err: e instanceof Error ? e.message : String(e) }, "job falló");
