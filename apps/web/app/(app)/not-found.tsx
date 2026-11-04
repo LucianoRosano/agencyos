@@ -8,11 +8,7 @@ export default function NotFound() {
       icon={<SearchX />}
       title="No encontramos lo que buscabas"
       description="Puede que se haya eliminado o que el enlace esté mal."
-      action={
-        <Button asChild>
-          <Link href="/hoy">Volver a Hoy</Link>
-        </Button>
-      }
+      action={<Button asChild><Link href="/hoy">Volver a Hoy</Link></Button>}
     />
   );
 }

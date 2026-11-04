@@ -5,16 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { openCapture } from "./palette-trigger";
 
-const GOTO: Record<string, string> = {
-  h: "/hoy",
-  p: "/proyectos",
-  t: "/tareas",
-  c: "/crm/clientes",
-  f: "/finanzas",
-  n: "/notas",
-  b: "/cerebro",
-  i: "/bandeja",
-};
+const GOTO: Record<string, string> = { h: "/hoy", p: "/proyectos", t: "/tareas", c: "/crm/clientes", f: "/finanzas", n: "/notas", b: "/cerebro", i: "/bandeja" };
 
 /** Atajos globales (docs/06 §6). Se ignoran mientras se escribe en un campo. */
 export function Shortcuts() {

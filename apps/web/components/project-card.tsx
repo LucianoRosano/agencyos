@@ -22,20 +22,11 @@ export function ProjectCard({ p }: { p: ProjectCardData }) {
   return (
     <Link
       href={`/proyectos/${p.id}`}
-      className={cn(
-        "group flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5",
-        dim && "opacity-55",
-      )}
+      className={cn("group flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5", dim && "opacity-55")}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[16px] font-medium text-text">{p.name}</h3>
-        {p.stalled ? (
-          <span className="shrink-0 rounded-md border border-border px-1.5 py-0.5 text-[11px] text-text-faint">frenado</span>
-        ) : p.status !== "in_progress" ? (
-          <span className="shrink-0 rounded-md border border-border px-1.5 py-0.5 text-[11px] text-text-faint">
-            {label(L.projectStatus, p.status).toLowerCase()}
-          </span>
-        ) : null}
+        {p.stalled ? <span className="shrink-0 rounded-md border border-border px-1.5 py-0.5 text-[11px] text-text-faint">frenado</span> : p.status !== "in_progress" ? <span className="shrink-0 rounded-md border border-border px-1.5 py-0.5 text-[11px] text-text-faint">{label(L.projectStatus, p.status).toLowerCase()}</span> : null}
       </div>
       <p className="mt-1 flex items-center gap-2 text-[13px] text-text-muted">
         <Dot color={p.clientName ? "#22D3EE" : (p.spaceColor ?? "#7C5CFF")} />

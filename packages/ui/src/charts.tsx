@@ -30,7 +30,9 @@ export function BarPairs({
           );
         })}
       </svg>
-      <figcaption className="sr-only">{data.map((d) => `${d.label}: ${labels[0]} ${d.a}, ${labels[1]} ${d.b}`).join(". ")}</figcaption>
+      <figcaption className="sr-only">
+        {data.map((d) => `${d.label}: ${labels[0]} ${d.a}, ${labels[1]} ${d.b}`).join(". ")}
+      </figcaption>
     </figure>
   );
 }
@@ -49,15 +51,7 @@ export function Sparkline({ values, className, color = "var(--accent)" }: { valu
   );
 }
 
-export function HBars({
-  data,
-  className,
-  color = "var(--accent)",
-}: {
-  data: { label: string; value: number; display: string }[];
-  className?: string;
-  color?: string;
-}) {
+export function HBars({ data, className, color = "var(--accent)" }: { data: { label: string; value: number; display: string }[]; className?: string; color?: string }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
     <ul className={cn("flex flex-col gap-2.5", className)}>

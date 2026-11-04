@@ -8,16 +8,7 @@ const launchOptions = !process.env.CI && existsSync(LOCAL_CHROMIUM) ? { executab
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 const E2E_DB = process.env.E2E_DATABASE_URL ?? "postgres://agencyos:agencyos@127.0.0.1:5432/agencyos_e2e";
-const theme = (t: "dark" | "light") => ({
-  name: "ag-theme",
-  value: t,
-  domain: "localhost",
-  path: "/",
-  expires: -1,
-  httpOnly: false,
-  secure: false,
-  sameSite: "Lax" as const,
-});
+const theme = (t: "dark" | "light") => ({ name: "ag-theme", value: t, domain: "localhost", path: "/", expires: -1, httpOnly: false, secure: false, sameSite: "Lax" as const });
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -33,11 +24,7 @@ export default defineConfig({
     { name: "desktop-1440-dark", use: { viewport: { width: 1440, height: 900 }, storageState: { cookies: [theme("dark")], origins: [] } } },
     { name: "mobile-390-dark", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 }, storageState: { cookies: [theme("dark")], origins: [] } } },
     { name: "desktop-1440-light", use: { viewport: { width: 1440, height: 900 }, storageState: { cookies: [theme("light")], origins: [] } }, grep: /@visual/ },
-    {
-      name: "mobile-390-light",
-      use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 }, storageState: { cookies: [theme("light")], origins: [] } },
-      grep: /@visual/,
-    },
+    { name: "mobile-390-light", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 }, storageState: { cookies: [theme("light")], origins: [] } }, grep: /@visual/ },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

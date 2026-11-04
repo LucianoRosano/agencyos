@@ -1,5 +1,5 @@
 import "server-only";
-import { ok, type Result, toResultError } from "@agencyos/core";
+import { type Result, ok, toResultError } from "@agencyos/core";
 import { revalidatePath } from "next/cache";
 import { type AppCtx, requireCtx } from "./session";
 
@@ -17,14 +17,7 @@ export async function run<T>(fn: (ctx: AppCtx) => Promise<T>, opts: { revalidate
     return ok(data);
   } catch (e) {
     // redirect()/notFound() de Next se propagan
-    if (
-      e &&
-      typeof e === "object" &&
-      "digest" in e &&
-      typeof (e as { digest: unknown }).digest === "string" &&
-      (e as { digest: string }).digest.startsWith("NEXT_")
-    )
-      throw e;
+    if (e && typeof e === "object" && "digest" in e && typeof (e as { digest: unknown }).digest === "string" && (e as { digest: string }).digest.startsWith("NEXT_")) throw e;
     return toResultError(e);
   }
 }

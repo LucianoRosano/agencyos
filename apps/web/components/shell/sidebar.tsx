@@ -1,8 +1,8 @@
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { navFor } from "./nav-config";
 import { NavLink } from "./nav-link";
+import { navFor } from "./nav-config";
 import { OpenPaletteButton } from "./palette-trigger";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -63,19 +63,13 @@ export function Sidebar({ data }: { data: ShellData }) {
       </nav>
       <div className="flex items-center gap-3 border-t border-border px-4 py-4">
         <Link href="/configuracion" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-surface" aria-label="Configuración y perfil">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold text-text">
-            {initials(data.user.name)}
-          </span>
+          <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold text-text">{initials(data.user.name)}</span>
           <span className="min-w-0">
             <span className="block truncate text-[15px] text-text">{data.user.name.split(" ")[0]}</span>
             <span className="block text-[13px] text-text-muted">{data.role === "owner" ? "Dueño" : data.role}</span>
           </span>
         </Link>
-        <Link
-          href="/configuracion"
-          className="grid size-9 place-items-center rounded-md text-text-muted hover:bg-surface hover:text-text"
-          aria-label="Configuración"
-        >
+        <Link href="/configuracion" className="grid size-9 place-items-center rounded-md text-text-muted hover:bg-surface hover:text-text" aria-label="Configuración">
           <Settings className="size-[18px]" />
         </Link>
         <ThemeToggle current={data.theme} />

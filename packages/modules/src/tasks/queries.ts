@@ -37,10 +37,7 @@ export async function listTasks(ctx: Ctx, opts: { view?: TaskView; projectId?: s
   if (opts.projectId) where.push(eq(schema.task.projectId, opts.projectId));
   if (opts.spaceId) where.push(eq(schema.task.spaceId, opts.spaceId));
   if (opts.q) where.push(sql`f_search_norm(${schema.task.title}) like '%' || f_search_norm(${opts.q}) || '%'`);
-  const order =
-    opts.view === "completadas"
-      ? [desc(schema.task.completedAt)]
-      : [sql`${schema.task.dueDate} asc nulls last`, asc(schema.task.priority), asc(schema.task.createdAt)];
+  const order = opts.view === "completadas" ? [desc(schema.task.completedAt)] : [sql`${schema.task.dueDate} asc nulls last`, asc(schema.task.priority), asc(schema.task.createdAt)];
   return db
     .select(taskCols)
     .from(schema.task)
@@ -63,19 +60,9 @@ export async function getTask(ctx: Ctx, id: string) {
     .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
   if (!row) return null;
   const [subtasks, checklist, phases] = await Promise.all([
-    db
-      .select()
-      .from(schema.task)
-      .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx)))
-      .orderBy(asc(schema.task.sort), asc(schema.task.createdAt)),
+    db.select().from(schema.task).where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx))).orderBy(asc(schema.task.sort), asc(schema.task.createdAt)),
     db.select().from(schema.taskChecklistItem).where(eq(schema.taskChecklistItem.taskId, id)).orderBy(asc(schema.taskChecklistItem.sort)),
-    row.t.projectId
-      ? db
-          .select()
-          .from(schema.projectPhase)
-          .where(and(eq(schema.projectPhase.projectId, row.t.projectId), scoped(schema.projectPhase, ctx)))
-          .orderBy(asc(schema.projectPhase.sort))
-      : Promise.resolve([]),
+    row.t.projectId ? db.select().from(schema.projectPhase).where(and(eq(schema.projectPhase.projectId, row.t.projectId), scoped(schema.projectPhase, ctx))).orderBy(asc(schema.projectPhase.sort)) : Promise.resolve([]),
   ]);
   return { ...row, subtasks, checklist, phases };
 }
@@ -83,8 +70,7 @@ export async function getTask(ctx: Ctx, id: string) {
 export async function taskCounts(ctx: Ctx, spaceId?: string) {
   const today = todayAR();
   const sp = spaceId ? sql`and ${schema.task.spaceId} = ${spaceId}` : sql``;
-  const [r] = await getDb()
-    .execute<{ today: number; overdue: number; open: number }>(sql`
+  const [r] = await getDb().execute<{ today: number; overdue: number; open: number }>(sql`
     select
       count(*) filter (where ${schema.task.dueDate} = ${today})::int as today,
       count(*) filter (where ${schema.task.dueDate} < ${today})::int as overdue,
@@ -92,8 +78,7 @@ export async function taskCounts(ctx: Ctx, spaceId?: string) {
     from ${schema.task}
     where ${schema.task.workspaceId} = ${ctx.workspaceId} and ${schema.task.deletedAt} is null
       and ${schema.task.status} in ('todo','doing','waiting') ${sp}
-  `)
-    .then((r) => r.rows);
+  `).then((r) => r.rows);
   return r ?? { today: 0, overdue: 0, open: 0 };
 }
 

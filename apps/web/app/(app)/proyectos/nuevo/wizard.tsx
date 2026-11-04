@@ -12,23 +12,7 @@ type Opt = { value: string; label: string };
 
 const STEPS = ["Plantilla", "Para quién", "Terminado", "Fecha", "Primera acción"];
 
-export function Wizard({
-  templates,
-  clients,
-  spaces,
-  initialClientId,
-  initialTemplateId,
-  quoteId,
-  initialName,
-}: {
-  templates: Tpl[];
-  clients: Opt[];
-  spaces: Opt[];
-  initialClientId?: string;
-  initialTemplateId?: string;
-  quoteId?: string;
-  initialName?: string;
-}) {
+export function Wizard({ templates, clients, spaces, initialClientId, initialTemplateId, quoteId, initialName }: { templates: Tpl[]; clients: Opt[]; spaces: Opt[]; initialClientId?: string; initialTemplateId?: string; quoteId?: string; initialName?: string }) {
   const [step, setStep] = useState(initialTemplateId ? 1 : 0);
   const [tpl, setTpl] = useState(initialTemplateId ?? "");
   const [forWhom, setForWhom] = useState<"client" | "personal">(initialClientId ? "client" : "personal");
@@ -42,9 +26,7 @@ export function Wizard({
   const [pending, start] = useTransition();
   const router = useRouter();
 
-  const canNext = [Boolean(tpl), name.trim().length > 0 && (forWhom === "personal" || Boolean(clientId)), dod.trim().length > 0, true, first.trim().length > 0][
-    step
-  ];
+  const canNext = [Boolean(tpl), name.trim().length > 0 && (forWhom === "personal" || Boolean(clientId)), dod.trim().length > 0, true, first.trim().length > 0][step];
 
   function submit() {
     const fd = new FormData();
@@ -78,27 +60,17 @@ export function Wizard({
           </li>
         ))}
       </ol>
-      <p className="mb-4 font-mono text-[12px] text-text-muted md:hidden">
-        Paso {step + 1} de 5 · {STEPS[step]}
-      </p>
+      <p className="mb-4 font-mono text-[12px] text-text-muted md:hidden">Paso {step + 1} de 5 · {STEPS[step]}</p>
 
       {step === 0 ? (
         <fieldset className="grid gap-2.5 sm:grid-cols-2">
           <legend className="mb-3 text-[15px] font-medium">¿Qué tipo de proyecto es?</legend>
           {templates.map((t) => (
-            <label
-              key={t.id}
-              className={cn(
-                "flex cursor-pointer flex-col gap-1 rounded-[10px] border p-3.5 transition-colors",
-                tpl === t.id ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong",
-              )}
-            >
+            <label key={t.id} className={cn("flex cursor-pointer flex-col gap-1 rounded-[10px] border p-3.5 transition-colors", tpl === t.id ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong")}>
               <input type="radio" name="tpl" value={t.id} checked={tpl === t.id} onChange={() => setTpl(t.id)} className="sr-only" />
               <span className="text-[14px] font-medium text-text">{t.name}</span>
               <span className="line-clamp-2 text-[12px] text-text-muted">{t.description}</span>
-              <span className="mt-1 font-mono text-[11px] text-text-faint">
-                {t.phases} etapas · {t.tasks} tareas
-              </span>
+              <span className="mt-1 font-mono text-[11px] text-text-faint">{t.phases} etapas · {t.tasks} tareas</span>
             </label>
           ))}
         </fieldset>
@@ -111,46 +83,23 @@ export function Wizard({
           </Field>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Para quién">
             {(["client", "personal"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={forWhom === k}
-                onClick={() => setForWhom(k)}
-                className={cn(
-                  "h-11 rounded-[10px] border text-[14px]",
-                  forWhom === k ? "border-accent bg-accent-soft text-text" : "border-border text-text-muted",
-                )}
-              >
+              <button key={k} type="button" role="radio" aria-checked={forWhom === k} onClick={() => setForWhom(k)} className={cn("h-11 rounded-[10px] border text-[14px]", forWhom === k ? "border-accent bg-accent-soft text-text" : "border-border text-text-muted")}>
                 {k === "client" ? "Para un cliente" : "Personal / facultad"}
               </button>
             ))}
           </div>
           {forWhom === "client" ? (
-            <Field
-              label="Cliente"
-              name="clientId"
-              error={errors.clientId}
-              hint={clients.length ? undefined : "Todavía no hay clientes: crealo primero en CRM o elegí «Personal»."}
-            >
+            <Field label="Cliente" name="clientId" error={errors.clientId} hint={clients.length ? undefined : "Todavía no hay clientes: crealo primero en CRM o elegí «Personal»."}>
               <Select id="clientId" value={clientId} onChange={(e) => setClientId(e.target.value)}>
                 <option value="">Elegí un cliente</option>
-                {clients.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
+                {clients.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </Select>
             </Field>
           ) : (
             <Field label="Espacio" name="spaceId">
               <Select id="spaceId" value={spaceId} onChange={(e) => setSpaceId(e.target.value)}>
                 <option value="">Personal</option>
-                {spaces.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
+                {spaces.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
             </Field>
           )}
@@ -158,12 +107,7 @@ export function Wizard({
       ) : null}
 
       {step === 2 ? (
-        <Field
-          label="¿Qué significa «terminado»?"
-          name="definitionOfDone"
-          error={errors.definitionOfDone}
-          hint="Una o dos frases verificables. Ej.: «Tienda publicada, con pagos y envíos probados y el cliente cargando productos solo»."
-        >
+        <Field label="¿Qué significa «terminado»?" name="definitionOfDone" error={errors.definitionOfDone} hint="Una o dos frases verificables. Ej.: «Tienda publicada, con pagos y envíos probados y el cliente cargando productos solo».">
           <Textarea id="definitionOfDone" value={dod} onChange={(e) => setDod(e.target.value)} autoFocus rows={4} />
         </Field>
       ) : null}
@@ -176,16 +120,7 @@ export function Wizard({
 
       {step === 4 ? (
         <Field label="Primera acción" name="firstAction" error={errors.firstAction} hint="Lo más chico y concreto que podés hacer hoy. Va a aparecer en Hoy.">
-          <Input
-            id="firstAction"
-            value={first}
-            onChange={(e) => setFirst(e.target.value)}
-            autoFocus
-            maxLength={300}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && first.trim()) submit();
-            }}
-          />
+          <Input id="firstAction" value={first} onChange={(e) => setFirst(e.target.value)} autoFocus maxLength={300} onKeyDown={(e) => { if (e.key === "Enter" && first.trim()) submit(); }} />
         </Field>
       ) : null}
 

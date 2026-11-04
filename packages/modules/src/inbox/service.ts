@@ -27,22 +27,10 @@ export async function capture(ctx: Ctx, raw: unknown, source: "app" | "mcp" = "a
   return getDb().transaction(async (t) => {
     const [row] = await t
       .insert(schema.inboxItem)
-      .values({
-        workspaceId: ctx.workspaceId,
-        createdBy: ctx.userId,
-        text: input.text,
-        suggestedType: input.suggestedType ?? guessType(input.text) ?? null,
-        spaceId: input.spaceId ?? null,
-        source,
-      })
+      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, text: input.text, suggestedType: input.suggestedType ?? guessType(input.text) ?? null, spaceId: input.spaceId ?? null, source })
       .returning();
     if (!row) throw new Error("No se pudo capturar");
-    await recordEvent(t, ctx, {
-      type: "bandeja.capturado",
-      entityType: "inbox_item",
-      entityId: row.id,
-      summary: `Capturó en la Bandeja: ${row.text.slice(0, 80)}`,
-    });
+    await recordEvent(t, ctx, { type: "bandeja.capturado", entityType: "inbox_item", entityId: row.id, summary: `Capturó en la Bandeja: ${row.text.slice(0, 80)}` });
     return row;
   });
 }
@@ -85,10 +73,7 @@ export async function unprocess(ctx: Ctx, id: string) {
 }
 
 export async function getItem(ctx: Ctx, id: string) {
-  const [row] = await getDb()
-    .select()
-    .from(schema.inboxItem)
-    .where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)));
+  const [row] = await getDb().select().from(schema.inboxItem).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx)));
   if (!row) throw notFound("El ítem");
   return row;
 }

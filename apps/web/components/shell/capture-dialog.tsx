@@ -23,15 +23,7 @@ export function CaptureDialog() {
     };
   }, []);
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) setText("");
-      }}
-      title="Capturar"
-      description="Anotalo ahora, ordenalo después desde la Bandeja."
-    >
+    <Sheet open={open} onOpenChange={(o) => { setOpen(o); if (!o) setText(""); }} title="Capturar" description="Anotalo ahora, ordenalo después desde la Bandeja.">
       <ActionForm
         action={captureAction}
         successMessage="Guardado en la Bandeja"

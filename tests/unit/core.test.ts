@@ -1,17 +1,4 @@
-import {
-  addDays,
-  addMonths,
-  diffDays,
-  formatMoney,
-  isValidCuit,
-  mulMoney,
-  nextOccurrence,
-  percentOf,
-  splitByPercents,
-  toCents,
-  todayAR,
-  zMoney,
-} from "@agencyos/core";
+import { addDays, addMonths, diffDays, formatMoney, isValidCuit, mulMoney, nextOccurrence, percentOf, splitByPercents, toCents, todayAR, zMoney } from "@agencyos/core";
 import { describe, expect, it, vi } from "vitest";
 
 describe("dinero", () => {

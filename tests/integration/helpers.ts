@@ -7,10 +7,7 @@ export async function makeWorkspace(name = "WS de test"): Promise<Ctx & { spaces
   const db = getDb();
   const userId = `u_${uuidv7()}`;
   await db.insert(schema.user).values({ id: userId, name: "Test", email: `${userId}@test.local`, emailVerified: true, twoFactorEnabled: true });
-  const [ws] = await db
-    .insert(schema.workspace)
-    .values({ name, slug: `ws-${uuidv7()}`, enabledModules: ["inbox", "crm", "projects", "quotes", "finance", "notes", "brain", "calendar", "study"] })
-    .returning();
+  const [ws] = await db.insert(schema.workspace).values({ name, slug: `ws-${uuidv7()}`, enabledModules: ["inbox", "crm", "projects", "quotes", "finance", "notes", "brain", "calendar", "study"] }).returning();
   if (!ws) throw new Error("ws");
   await db.insert(schema.membership).values({ workspaceId: ws.id, userId, role: "owner" });
   const { spaces, ledgers } = await db.transaction((t) => seedStructure(t, ws.id, userId));

@@ -68,11 +68,7 @@ export function LoginForm() {
         <Button type="submit" variant="primary" loading={pending} className="w-full">
           Verificar
         </Button>
-        <button
-          type="button"
-          className="text-[13px] text-text-muted underline-offset-2 hover:underline"
-          onClick={() => setStep(step === "totp" ? "backup" : "totp")}
-        >
+        <button type="button" className="text-[13px] text-text-muted underline-offset-2 hover:underline" onClick={() => setStep(step === "totp" ? "backup" : "totp")}>
           {step === "totp" ? "Usar un código de respaldo" : "Usar la app de autenticación"}
         </button>
       </form>

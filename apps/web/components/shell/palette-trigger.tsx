@@ -21,12 +21,7 @@ export function OpenPaletteButton() {
 
 export function SearchIconButton() {
   return (
-    <button
-      type="button"
-      onClick={openPalette}
-      aria-label="Buscar"
-      className="grid size-11 place-items-center rounded-xl border border-border bg-surface text-text"
-    >
+    <button type="button" onClick={openPalette} aria-label="Buscar" className="grid size-11 place-items-center rounded-xl border border-border bg-surface text-text">
       <Search className="size-5" />
     </button>
   );

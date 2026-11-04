@@ -24,11 +24,7 @@ export function parseRrule(rule: string): { freq: string; interval: number; byDa
   const freq = parts.FREQ;
   if (!freq || !["DAILY", "WEEKLY", "MONTHLY", "YEARLY"].includes(freq)) throw new Error("Recurrencia no soportada");
   const interval = Math.max(1, Number(parts.INTERVAL ?? 1));
-  const byDay = parts.BYDAY
-    ? parts.BYDAY.split(",")
-        .map((d) => DAY_CODES.indexOf(d))
-        .filter((n) => n >= 0)
-    : [];
+  const byDay = parts.BYDAY ? parts.BYDAY.split(",").map((d) => DAY_CODES.indexOf(d)).filter((n) => n >= 0) : [];
   return { freq, interval, byDay };
 }
 

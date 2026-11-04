@@ -29,11 +29,7 @@ export function BottomLink({ href, icon, label, match }: { href: string; icon: R
   const path = usePathname();
   const active = path === href || path.startsWith(`${match ?? href}/`) || (match ? path.startsWith(match) : false);
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px]", active ? "text-text" : "text-text-muted")}
-    >
+    <Link href={href} aria-current={active ? "page" : undefined} className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px]", active ? "text-text" : "text-text-muted")}>
       <span className={cn("[&>svg]:size-[22px] [&>svg]:stroke-[1.75]", active ? "text-accent" : "")}>{icon}</span>
       {label}
     </Link>

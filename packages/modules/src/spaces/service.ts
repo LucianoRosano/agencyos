@@ -9,10 +9,7 @@ export const SPACE_COLORS = ["#22D3EE", "#7C5CFF", "#FBBF24", "#34D399", "#F472B
 
 export const spaceInput = z.object({
   name: zRequired(40, "El nombre"),
-  color: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/)
-    .default("#7C5CFF"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#7C5CFF"),
 });
 
 export async function listSpaces(ctx: Ctx) {
@@ -37,10 +34,7 @@ export async function createSpace(ctx: Ctx, raw: unknown) {
   const input = spaceInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [{ n } = { n: 0 }] = await t.select({ n: count() }).from(schema.space).where(scoped(schema.space, ctx));
-    const [row] = await t
-      .insert(schema.space)
-      .values({ workspaceId: ctx.workspaceId, name: input.name, color: input.color, kind: "custom", sort: n, createdBy: ctx.userId })
-      .returning();
+    const [row] = await t.insert(schema.space).values({ workspaceId: ctx.workspaceId, name: input.name, color: input.color, kind: "custom", sort: n, createdBy: ctx.userId }).returning();
     if (!row) throw new Error("No se pudo crear");
     await recordEvent(t, ctx, { type: "espacio.creado", entityType: "space", entityId: row.id, summary: `Creó el espacio «${row.name}»` });
     return row;

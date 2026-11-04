@@ -38,47 +38,18 @@ export async function getProject(ctx: Ctx, id: string) {
     .where(and(eq(schema.project.id, id), scoped(schema.project, ctx, { withArchived: true })));
   if (!row) return null;
   const [phases, tasks, blockers, decisions, deliverables, changelog] = await Promise.all([
-    db
-      .select()
-      .from(schema.projectPhase)
-      .where(and(eq(schema.projectPhase.projectId, id), scoped(schema.projectPhase, ctx)))
-      .orderBy(asc(schema.projectPhase.sort)),
-    db
-      .select()
-      .from(schema.task)
-      .where(and(eq(schema.task.projectId, id), scoped(schema.task, ctx)))
-      .orderBy(asc(schema.task.status), asc(schema.task.sort), asc(schema.task.dueDate)),
-    db
-      .select()
-      .from(schema.blocker)
-      .where(and(eq(schema.blocker.projectId, id), scoped(schema.blocker, ctx)))
-      .orderBy(desc(schema.blocker.createdAt)),
-    db
-      .select()
-      .from(schema.decision)
-      .where(and(eq(schema.decision.projectId, id), scoped(schema.decision, ctx)))
-      .orderBy(desc(schema.decision.decidedOn)),
-    db
-      .select()
-      .from(schema.deliverable)
-      .where(and(eq(schema.deliverable.projectId, id), scoped(schema.deliverable, ctx)))
-      .orderBy(asc(schema.deliverable.dueDate)),
-    db
-      .select()
-      .from(schema.changelogEntry)
-      .where(and(eq(schema.changelogEntry.projectId, id), scoped(schema.changelogEntry, ctx)))
-      .orderBy(desc(schema.changelogEntry.createdAt))
-      .limit(100),
+    db.select().from(schema.projectPhase).where(and(eq(schema.projectPhase.projectId, id), scoped(schema.projectPhase, ctx))).orderBy(asc(schema.projectPhase.sort)),
+    db.select().from(schema.task).where(and(eq(schema.task.projectId, id), scoped(schema.task, ctx))).orderBy(asc(schema.task.status), asc(schema.task.sort), asc(schema.task.dueDate)),
+    db.select().from(schema.blocker).where(and(eq(schema.blocker.projectId, id), scoped(schema.blocker, ctx))).orderBy(desc(schema.blocker.createdAt)),
+    db.select().from(schema.decision).where(and(eq(schema.decision.projectId, id), scoped(schema.decision, ctx))).orderBy(desc(schema.decision.decidedOn)),
+    db.select().from(schema.deliverable).where(and(eq(schema.deliverable.projectId, id), scoped(schema.deliverable, ctx))).orderBy(asc(schema.deliverable.dueDate)),
+    db.select().from(schema.changelogEntry).where(and(eq(schema.changelogEntry.projectId, id), scoped(schema.changelogEntry, ctx))).orderBy(desc(schema.changelogEntry.createdAt)).limit(100),
   ]);
   return { ...row, phases, tasks, blockers, decisions, deliverables, changelog };
 }
 
 export async function listTemplates(ctx: Ctx) {
-  return getDb()
-    .select()
-    .from(schema.projectTemplate)
-    .where(scoped(schema.projectTemplate, ctx))
-    .orderBy(asc(schema.projectTemplate.sort), asc(schema.projectTemplate.name));
+  return getDb().select().from(schema.projectTemplate).where(scoped(schema.projectTemplate, ctx)).orderBy(asc(schema.projectTemplate.sort), asc(schema.projectTemplate.name));
 }
 
 export async function projectOptions(ctx: Ctx) {
@@ -91,10 +62,7 @@ export async function projectOptions(ctx: Ctx) {
 
 export async function projectsByIds(ctx: Ctx, ids: string[]) {
   if (!ids.length) return [];
-  return getDb()
-    .select()
-    .from(schema.project)
-    .where(and(scoped(schema.project, ctx), inArray(schema.project.id, ids)));
+  return getDb().select().from(schema.project).where(and(scoped(schema.project, ctx), inArray(schema.project.id, ids)));
 }
 
 export { isNull };

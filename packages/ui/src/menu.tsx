@@ -21,19 +21,7 @@ export function Menu({ trigger, children, align = "end" }: { trigger: ReactNode;
   );
 }
 
-export function MenuItem({
-  children,
-  onSelect,
-  danger,
-  icon,
-  disabled,
-}: {
-  children: ReactNode;
-  onSelect?: () => void;
-  danger?: boolean;
-  icon?: ReactNode;
-  disabled?: boolean;
-}) {
+export function MenuItem({ children, onSelect, danger, icon, disabled }: { children: ReactNode; onSelect?: () => void; danger?: boolean; icon?: ReactNode; disabled?: boolean }) {
   return (
     <M.Item
       disabled={disabled}

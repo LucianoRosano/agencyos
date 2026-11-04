@@ -1,7 +1,8 @@
 import { text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { uuidv7 } from "../uuid";
 
-export const tz = (name?: string) => (name ? timestamp(name, { withTimezone: true, mode: "date" }) : timestamp({ withTimezone: true, mode: "date" }));
+export const tz = (name?: string) =>
+  name ? timestamp(name, { withTimezone: true, mode: "date" }) : timestamp({ withTimezone: true, mode: "date" });
 
 export const pk = () => uuid("id").primaryKey().$defaultFn(uuidv7);
 
@@ -18,3 +19,4 @@ export const baseColumns = () => ({
   archivedAt: tz("archived_at"),
   deletedAt: tz("deleted_at"),
 });
+
