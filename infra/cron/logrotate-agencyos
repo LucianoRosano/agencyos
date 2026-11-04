@@ -1,0 +1,11 @@
+# AGENCYOS · rotación de logs de los scripts del host (/etc/logrotate.d/agencyos).
+# Los logs de los contenedores los rota Docker (json-file, 10 MB × 5).
+/var/log/agencyos/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

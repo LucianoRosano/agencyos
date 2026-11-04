@@ -1,0 +1,64 @@
+# syntax=docker/dockerfile:1.7
+# AGENCYOS · imagen de la app web (Next.js 16, output standalone) con Chromium para PDFs.
+# Build (desde la raíz del repo; deploy.sh lo hace solo):
+#   docker build -f infra/docker/Dockerfile.web -t agencyos-web:<sha> .
+
+ARG NODE_IMAGE=node:22-bookworm-slim
+
+# ── base: Node + pnpm (misma versión que "packageManager" del package.json raíz) ──
+FROM ${NODE_IMAGE} AS base
+ARG PNPM_VERSION=10.28.0
+ENV CI=true \
+    NEXT_TELEMETRY_DISABLED=1 \
+    npm_config_update_notifier=false
+RUN npm install -g "pnpm@${PNPM_VERSION}" && npm cache clean --force
+WORKDIR /repo
+
+# ── fetch: descarga dependencias solo con el lockfile (capa cacheable) ──
+FROM base AS fetch
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm fetch --frozen-lockfile --store-dir /pnpm/store
+
+# ── build: instala offline y compila la web ──
+FROM fetch AS build
+COPY . .
+RUN pnpm install --offline --frozen-lockfile --store-dir /pnpm/store
+RUN pnpm --filter @agencyos/web build \
+ && mkdir -p apps/web/public
+
+# ── runner: solo el servidor standalone + Chromium ──
+FROM ${NODE_IMAGE} AS runner
+ARG PLAYWRIGHT_VERSION=1.64.1
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    CHROMIUM_PATH=/usr/local/bin/chromium \
+    FILES_DIR=/data/files \
+    HOME=/home/node \
+    npm_config_update_notifier=false
+
+# Chromium de Playwright (misma versión que playwright-core del lockfile) + dependencias del
+# sistema y fuentes. Se usa el "headless shell": alcanza para PDFs y capturas y pesa menos.
+RUN set -eux; \
+    npx -y "playwright@${PLAYWRIGHT_VERSION}" install --with-deps --only-shell chromium; \
+    bin="$(find /ms-playwright -type f \( -name headless_shell -o -name chrome-headless-shell \) | head -n1)"; \
+    test -n "$bin"; \
+    ln -sf "$bin" "$CHROMIUM_PATH"; \
+    chmod -R a+rX /ms-playwright; \
+    rm -rf /var/lib/apt/lists/* /root/.npm /tmp/*; \
+    "$CHROMIUM_PATH" --version || true
+
+WORKDIR /app
+# Código de la app: propiedad de root y solo lectura para el usuario de ejecución.
+COPY --from=build /repo/apps/web/.next/standalone ./
+COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
+# public/ incluye las fuentes (Geist) que usan los PDFs.
+COPY --from=build /repo/apps/web/public ./apps/web/public
+RUN mkdir -p /data/files apps/web/.next/cache \
+ && chown -R node:node /data/files apps/web/.next/cache
+
+USER node
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

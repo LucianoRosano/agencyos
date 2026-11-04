@@ -1,0 +1,23 @@
+# AGENCYOS · configuración de gitleaks (CI y pre-commit).
+# Reglas por defecto de gitleaks + excepciones mínimas y justificadas.
+title = "AGENCYOS"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Plantillas sin valores reales y fixtures de tests"
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''^infra/rclone/rclone\.conf\.example$''',
+  '''^tests/fixtures/''',
+]
+
+[[allowlists]]
+description = "Secretos de juguete de los tests (vitest.config.ts, playwright.config.ts, CI): no protegen nada real"
+regexTarget = "match"
+regexes = [
+  '''(test|e2e)-secret-0123456789abcdef0123456789abcdef''',
+  '''e2e-setup-token-solo-ci''',
+  '''\b(1{64}|2{64})\b''',
+]

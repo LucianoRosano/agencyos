@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # Dependencias npm del monorepo (pnpm): un solo PR semanal agrupado, majors aparte.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Argentina/Buenos_Aires
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      menores-y-parches:
+        update-types: [minor, patch]
+      mayores:
+        update-types: [major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Argentina/Buenos_Aires
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      acciones:
+        patterns: ["*"]
+
+  # Imágenes base de los Dockerfile (node:22-bookworm-slim).
+  - package-ecosystem: docker
+    directory: /infra/docker
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Argentina/Buenos_Aires
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+
+  # Imágenes de docker-compose (postgres:17, caddy:2). Majors de Postgres requieren pg_upgrade: se ignoran.
+  - package-ecosystem: docker-compose
+    directory: /infra
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Argentina/Buenos_Aires
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]

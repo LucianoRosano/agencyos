@@ -1,0 +1,66 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/.claude",
+      "!**/.next",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/migrations/meta",
+      "!docs",
+      "!**/*.md",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!**/blob-report",
+      "!**/coverage",
+      "!pnpm-lock.yaml"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 160
+  },
+  "javascript": {
+    "formatter": { "quoteStyle": "double", "semicolons": "always", "trailingCommas": "all" }
+  },
+  "css": {
+    "parser": { "tailwindDirectives": true }
+  },
+  "assist": { "enabled": true, "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "useSemanticElements": "off",
+        "noAutofocus": "off",
+        "useAriaPropsSupportedByRole": "warn",
+        "noLabelWithoutControl": { "level": "error", "options": { "inputComponents": ["Checkbox", "Input", "Select", "Textarea"] } }
+      },
+      "complexity": {
+        "useMathMinMax": "off"
+      },
+      "style": {
+        "useTemplate": "warn"
+      },
+      "correctness": {
+        "noUnusedFunctionParameters": "warn"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "warn",
+        "noAssignInExpressions": "warn"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": { "rules": { "complexity": { "noImportantStyles": "off" } } }
+    }
+  ]
+}

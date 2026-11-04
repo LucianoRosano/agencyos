@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1.7
+# AGENCYOS · imagen del worker (pg-boss: outbox, jobs, PDFs/capturas con Chromium).
+# También se usa para las migraciones (servicios migrate / migrate-stg) y la CLI de
+# administración: docker compose --profile prod run --rm worker pnpm admin <comando>
+#   docker build -f infra/docker/Dockerfile.worker -t agencyos-worker:<sha> .
+
+ARG NODE_IMAGE=node:22-bookworm-slim
+
+FROM ${NODE_IMAGE} AS base
+ARG PNPM_VERSION=10.28.0
+ENV CI=true npm_config_update_notifier=false
+RUN npm install -g "pnpm@${PNPM_VERSION}" && npm cache clean --force
+WORKDIR /repo
+
+FROM base AS fetch
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm fetch --frozen-lockfile --store-dir /pnpm/store
+
+FROM fetch AS build
+COPY . .
+# El worker corre con tsx (sin build) y necesita los paquetes del workspace en TypeScript,
+# así que se instala el workspace completo. Si algún día el worker define "build", se ejecuta.
+RUN pnpm install --offline --frozen-lockfile --store-dir /pnpm/store \
+ && pnpm --filter @agencyos/worker --if-present run build
+
+FROM base AS runner
+ARG PLAYWRIGHT_VERSION=1.64.1
+ENV NODE_ENV=production \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    CHROMIUM_PATH=/usr/local/bin/chromium \
+    FILES_DIR=/data/files \
+    HOME=/home/node
+
+RUN set -eux; \
+    npx -y "playwright@${PLAYWRIGHT_VERSION}" install --with-deps --only-shell chromium; \
+    bin="$(find /ms-playwright -type f \( -name headless_shell -o -name chrome-headless-shell \) | head -n1)"; \
+    test -n "$bin"; \
+    ln -sf "$bin" "$CHROMIUM_PATH"; \
+    chmod -R a+rX /ms-playwright; \
+    rm -rf /var/lib/apt/lists/* /root/.npm /tmp/*
+
+WORKDIR /app
+COPY --from=build /repo ./
+RUN mkdir -p /data/files && chown node:node /data/files
+
+USER node
+CMD ["pnpm", "--filter", "@agencyos/worker", "start"]

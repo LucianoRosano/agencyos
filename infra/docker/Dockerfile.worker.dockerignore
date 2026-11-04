@@ -1,0 +1,25 @@
+# Contexto de build = raíz del repo. Nunca entran secretos ni artefactos locales.
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/coverage
+.git
+.github
+.claude
+**/.env
+**/.env.*
+infra/.deploy
+infra/backups
+infra/rclone/rclone.conf
+docs
+test-results
+playwright-report
+blob-report
+**/*.log
+**/*.pem
+**/*.key
+**/*.p12
+**/*.crt
+**/*.dump
+**/*.tar.gz

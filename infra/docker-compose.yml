@@ -1,0 +1,306 @@
+# AGENCYOS · Docker Compose (producción + staging en el mismo VPS)
+#
+# Perfiles:
+#   prod     → web, worker, postgres            (https://APP_DOMAIN)
+#   staging  → web-stg, worker-stg, postgres-stg (https://staging.APP_DOMAIN)
+#   caddy no tiene perfil: arranca siempre y atiende a los dos.
+#   migrate / migrate-stg (perfiles propios) solo corren a demanda: deploy.sh hace
+#   `docker compose --profile prod run --rm migrate`. Un `up -d` nunca migra solo.
+#
+# Variables de este archivo: infra/.env (la genera infra/scripts/first-setup.sh y la
+# actualiza infra/scripts/deploy.sh con TAG_* y VERSION_*). Secretos de cada entorno:
+# infra/.env.prod e infra/.env.staging (permisos 600, nunca en git).
+#
+# Uso habitual (siempre desde la raíz del repo; los scripts lo hacen por vos):
+#   docker compose -f infra/docker-compose.yml --profile prod ps
+#   docker compose -f infra/docker-compose.yml --profile staging logs -f web-stg
+
+name: agencyos
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-web: &web
+  <<: *hardening
+  build:
+    context: ..
+    dockerfile: infra/docker/Dockerfile.web
+  init: true
+  cap_drop: [ALL]
+  shm_size: "256m"
+  expose: ["3000"]
+  healthcheck:
+    # Readiness: responde 200 solo si la base contesta (GET /api/health).
+    test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+    interval: 15s
+    timeout: 5s
+    retries: 5
+    start_period: 40s
+
+x-worker: &worker
+  <<: *hardening
+  build:
+    context: ..
+    dockerfile: infra/docker/Dockerfile.worker
+  init: true
+  cap_drop: [ALL]
+  shm_size: "256m"
+  healthcheck:
+    # Ver infra/docker/worker-healthcheck.mjs (latido opcional + conexión a la base).
+    test: ["CMD", "node", "/app/infra/docker/worker-healthcheck.mjs"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+
+x-postgres: &postgres
+  <<: *hardening
+  image: postgres:17-bookworm
+  shm_size: "128m"
+  healthcheck:
+    test: ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 30s
+
+services:
+  # ───────────────────────────── Borde ─────────────────────────────
+  caddy:
+    <<: *hardening
+    image: caddy:2-alpine
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      STAGING_DOMAIN: ${STAGING_DOMAIN:-staging.${APP_DOMAIN:-localhost}}
+      ACME_EMAIL: ${ACME_EMAIL:-lucianorosanott@gmail.com}
+      STAGING_BASIC_AUTH: ${STAGING_BASIC_AUTH:-off}
+      STAGING_BASIC_AUTH_USER: ${STAGING_BASIC_AUTH_USER:-}
+      STAGING_BASIC_AUTH_HASH: ${STAGING_BASIC_AUTH_HASH:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [edge]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits: { memory: 128m }
+
+  # ─────────────────────────── Producción ──────────────────────────
+  web:
+    <<: *web
+    profiles: [prod]
+    image: agencyos-web:${TAG_PROD:-latest}
+    env_file:
+      - path: .env.prod
+        required: false
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      FILES_DIR: /data/files
+      APP_VERSION: ${VERSION_PROD:-dev}
+      NODE_OPTIONS: --max-old-space-size=768
+    volumes:
+      - files:/data/files
+    networks: [edge, db-prod]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 1280m }
+
+  worker:
+    <<: *worker
+    profiles: [prod]
+    image: agencyos-worker:${TAG_PROD:-latest}
+    env_file:
+      - path: .env.prod
+        required: false
+    environment:
+      NODE_ENV: production
+      FILES_DIR: /data/files
+      APP_VERSION: ${VERSION_PROD:-dev}
+      WORKER_HEARTBEAT_FILE: /tmp/agencyos-worker.heartbeat
+      NODE_OPTIONS: --max-old-space-size=768
+    volumes:
+      - files:/data/files
+    networks: [edge, db-prod]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 1536m }
+
+  postgres:
+    <<: *postgres
+    profiles: [prod]
+    env_file:
+      - path: .env.prod
+        required: false
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=768MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - max_connections=60
+      - -c
+      - log_min_duration_statement=500
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [db-prod]
+    # Sin `ports`: la base NO se publica en el host. Acceso: docker compose exec postgres psql …
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  # Migraciones (drizzle-orm migrator) con la imagen del worker del mismo commit.
+  migrate:
+    <<: *hardening
+    profiles: [migrate-prod]
+    image: agencyos-worker:${TAG_PROD:-latest}
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    env_file:
+      - path: .env.prod
+        required: false
+    environment:
+      NODE_ENV: production
+    command: ["pnpm", "--filter", "@agencyos/db", "migrate"]
+    networks: [db-prod]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  # ──────────────────────────── Staging ────────────────────────────
+  web-stg:
+    <<: *web
+    profiles: [staging]
+    image: agencyos-web:${TAG_STG:-latest}
+    env_file:
+      - path: .env.staging
+        required: false
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      FILES_DIR: /data/files
+      APP_VERSION: ${VERSION_STG:-dev}
+      NODE_OPTIONS: --max-old-space-size=512
+    volumes:
+      - files-stg:/data/files
+    networks: [edge, db-stg]
+    depends_on:
+      postgres-stg: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 896m }
+
+  worker-stg:
+    <<: *worker
+    profiles: [staging]
+    image: agencyos-worker:${TAG_STG:-latest}
+    env_file:
+      - path: .env.staging
+        required: false
+    environment:
+      NODE_ENV: production
+      FILES_DIR: /data/files
+      APP_VERSION: ${VERSION_STG:-dev}
+      WORKER_HEARTBEAT_FILE: /tmp/agencyos-worker.heartbeat
+      NODE_OPTIONS: --max-old-space-size=512
+    volumes:
+      - files-stg:/data/files
+    networks: [edge, db-stg]
+    depends_on:
+      postgres-stg: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  postgres-stg:
+    <<: *postgres
+    profiles: [staging]
+    env_file:
+      - path: .env.staging
+        required: false
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - effective_cache_size=384MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - max_connections=40
+    volumes:
+      - pgdata-stg:/var/lib/postgresql/data
+    networks: [db-stg]
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  migrate-stg:
+    <<: *hardening
+    profiles: [migrate-stg]
+    image: agencyos-worker:${TAG_STG:-latest}
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    env_file:
+      - path: .env.staging
+        required: false
+    environment:
+      NODE_ENV: production
+    command: ["pnpm", "--filter", "@agencyos/db", "migrate"]
+    networks: [db-stg]
+    depends_on:
+      postgres-stg: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+networks:
+  # Caddy ↔ web y salida a internet (Brevo, GitHub, Google…).
+  edge: {}
+  # Redes internas sin salida a internet: cada base solo es visible para su entorno.
+  db-prod:
+    internal: true
+  db-stg:
+    internal: true
+
+volumes:
+  # Nombres fijos: los usan backup.sh y restore-test.sh.
+  pgdata: { name: agencyos_pgdata }
+  pgdata-stg: { name: agencyos_pgdata_stg }
+  files: { name: agencyos_files }
+  files-stg: { name: agencyos_files_stg }
+  caddy-data: { name: agencyos_caddy_data }
+  caddy-config: { name: agencyos_caddy_config }

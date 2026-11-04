@@ -1,0 +1,74 @@
+name: Verificar backups
+
+# Mensual (día 15) y manual: comprueba que el último backup subió a Drive en las últimas 26 h
+# y lo restaura en un PostgreSQL efímero del VPS (infra/scripts/restore-test.sh).
+# Si falla, GitHub le manda un mail a Luciano. El cron del VPS hace lo mismo el día 1.
+on:
+  schedule:
+    - cron: "17 12 15 * *" # 09:17 ART
+  workflow_dispatch:
+
+concurrency:
+  group: backup-verify
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: ¿Hay VPS configurado?
+    runs-on: ubuntu-24.04
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$VPS_SSH_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Verificación salteada::Faltan los secrets del VPS. Ver docs/DEPLOYMENT.md."
+          fi
+
+  verify:
+    name: Estado y prueba de restauración
+    needs: check
+    if: needs.check.outputs.enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Preparar SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "$VPS_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${VPS_PORT:-22}" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts
+          fi
+      - name: Último backup (< 26 h y con copia en Drive)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: ssh -p "${VPS_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "backup-status prod"
+      - name: Restaurar el último backup de Drive en un contenedor efímero
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: ssh -p "${VPS_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 "$VPS_USER@$VPS_HOST" "restore-test prod"
+      - name: Limpiar clave
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
