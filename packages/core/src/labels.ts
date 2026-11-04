@@ -11,6 +11,8 @@ export const L = {
   lostReason: { price: "Precio", time: "Tiempo", competitor: "Eligió otro", no_answer: "Sin respuesta", other: "Otro" },
   quoteStatus: { draft: "Borrador", sent: "Enviado", viewed: "Visto", accepted: "Aceptado", rejected: "Rechazado", expired: "Vencido", void: "Anulado" },
   serviceUnit: { project: "Proyecto", hour: "Hora", month: "Mes", page: "Página", product: "Producto", item: "Ítem" },
+  paymentPlanKind: { single: "Pago único", milestones: "Por etapas", monthly: "Abono mensual" },
+  discountType: { none: "Sin descuento", percent: "%", amount: "Monto" },
   deliverableStatus: { pending: "Pendiente", delivered: "Entregada", approved: "Aprobada", changes_requested: "Con cambios" },
   phaseStatus: { pending: "Pendiente", in_progress: "En curso", done: "Hecha" },
   receivableStatus: { pending: "Pendiente", partial: "Parcial", paid: "Cobrado", overdue: "Vencido", void: "Anulado" },
