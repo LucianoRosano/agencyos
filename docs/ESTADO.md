@@ -25,12 +25,18 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Worker pg-boss: outbox → notificaciones, vencimientos diarios, resumen 8:00 (in-app + email si hay Brevo), purga de papelera.
 - ✅ Carga inicial de tus datos reales (`pnpm admin import-inicial`, primero muestra el plan).
 
-### Calidad
-- Tests: ver la última corrida en el informe de cierre (unit + integración contra PostgreSQL real; e2e Playwright en 390 y 1440, oscuro y claro, con axe y control de scroll horizontal).
+### Infraestructura (lista, falta el VPS)
+- ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
+
+### Calidad (última corrida: 04/11/2026)
+- **Unit + integración:** 136 tests en verde contra PostgreSQL 16 y 17 (servicios, aislamiento multi-inquilino, permisos, MCP, worker, seguridad).
+- **E2E (Playwright, build de producción):** flujos de docs/09 §3 en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones serias) y control de scroll horizontal.
+- **Lint (Biome) y typecheck:** en verde.
+- **Revisión de seguridad:** hecha por un agente revisor; los hallazgos altos y medios están corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
 - Capturas: `docs/capturas/<proyecto>/*.png`.
 
 ## En curso
-- Infraestructura (Docker, Caddy, CI/CD, backups): ver `infra/` y `docs/DEPLOYMENT.md`.
+- Nada a medio hacer en el código. ⏳ El push a GitHub de esta sesión fue rechazado por permisos (ver PENDIENTES-LUCIANO.md).
 
 ## Siguiente (fases posteriores)
 Ver `docs/PENDIENTES-LUCIANO.md` → "Lo que falta del programa".

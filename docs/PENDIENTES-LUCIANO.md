@@ -4,6 +4,9 @@
 
 ## A. Lo que tenés que hacer vos
 
+### Ahora mismo
+0. **Dar acceso de GitHub a Claude** para subir el código: el push de esta sesión a `LucianoRosano/agencyos` fue rechazado (403). Reconectá GitHub en claude.ai (Configuración → Conectores) e instalá la app de Claude en el repo (https://github.com/apps/claude/installations/select_target). Todo está commiteado en la rama `claude/peaceful-faraday-j13pjv`; con el acceso, se sube con un `git push`.
+
 ### Para publicar (en este orden)
 1. **Comprar el VPS** Hostinger KVM 2 (São Paulo, Ubuntu 24.04) — o KVM 1 si preferís menos pago adelantado — y **un dominio**. Todo lo demás ya está preparado: seguí `docs/DEPLOYMENT.md` paso a paso.
 2. **Cargar los secrets en GitHub** (Settings → Secrets and variables → Actions): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (el detalle está en `docs/DEPLOYMENT.md`). Con eso, cada push a `main` despliega solo a staging.
