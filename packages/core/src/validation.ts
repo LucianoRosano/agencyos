@@ -7,7 +7,8 @@ const emptyToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ?
 export const zText = (max = 500) => z.preprocess(emptyToUndef, z.string().trim().max(max, `Máximo ${max} caracteres`));
 export const zRequired = (max = 200, label = "Este campo") =>
   z.string({ error: `${label} es obligatorio` }).trim().min(1, `${label} es obligatorio`).max(max, `Máximo ${max} caracteres`);
-export const zOptText = (max = 2000) => zText(max).optional();
+// El preprocess va por fuera del optional: en Zod 4, "" → undefined dentro de zText(...).optional() falla.
+export const zOptText = (max = 2000) => z.preprocess(emptyToUndef, z.string().trim().max(max, `Máximo ${max} caracteres`).optional());
 export const zUuid = z.string().uuid("Identificador inválido");
 export const zOptUuid = z.preprocess(emptyToUndef, z.string().uuid("Identificador inválido").optional());
 export const zDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida");
