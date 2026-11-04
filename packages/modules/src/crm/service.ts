@@ -4,7 +4,7 @@ import {
 } from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
-import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, scoped } from "../shared/db";
 
@@ -512,11 +512,14 @@ export async function restoreNextStep(ctx: Ctx, interactionId: string, nextStep:
 // Oportunidades
 // ---------------------------------------------------------------------------
 
+/** "1.500.000" (miles con punto, sin coma decimal) → "1500000"; el resto lo resuelve zMoney. */
+const thousandsDots = (v: unknown) => (typeof v === "string" && /^\s*\d{1,3}(\.\d{3})+\s*$/.test(v) ? v.replace(/\./g, "") : v);
+
 export const opportunityInput = z
   .object({
     clientId: z.string({ error: "Elegí un cliente" }).uuid("Elegí un cliente"),
     title: zRequired(200, "El título"),
-    valueAmount: zOptMoney,
+    valueAmount: z.preprocess(thousandsDots, zOptMoney),
     valueCurrency: zCurrency.default("ARS"),
     probability: zInt(0, 100).default(10),
     expectedClose: zOptDate,
