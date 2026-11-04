@@ -3,7 +3,7 @@ import { getDb, schema } from "@agencyos/db";
 import { sendEmail } from "@agencyos/modules/shared/email";
 import { getToday } from "@agencyos/modules/today/queries";
 import { purgeTrash } from "@agencyos/modules/trash/service";
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { log } from "./log";
 
 /** Eventos que generan una notificación in-app para el dueño. */
@@ -42,26 +42,14 @@ export async function dispatchOutbox(limit = 500) {
   return events.length;
 }
 
-/** Vencimientos diarios: cobros/pagos vencidos y presupuestos fuera de validez. */
+/** Vencimientos diarios: cobros/pagos vencidos (Finanzas) y presupuestos fuera de validez (Presupuestos). Idempotente. */
 export async function dailyDueDates() {
-  const db = getDb();
+  const { markOverdue } = await import("@agencyos/modules/finance/service");
+  const { expireQuotes } = await import("@agencyos/modules/quotes/service");
   const today = todayAR();
-  const rec = await db.execute(sql`update receivable set status = 'overdue', updated_at = now() where deleted_at is null and status in ('pending','partial') and due_date < ${today} returning id, workspace_id, concept`);
-  const pay = await db.execute(sql`update payable set status = 'overdue', updated_at = now() where deleted_at is null and status in ('pending','partial') and due_date < ${today} returning id, workspace_id, concept`);
-  const quotes = await db.execute(sql`update quote q set status = 'expired', updated_at = now() from quote_version v where v.id = q.current_version_id and q.deleted_at is null and q.status in ('sent','viewed') and v.valid_until < ${today} returning q.id, q.workspace_id, q.number`);
-  for (const r of rec.rows as { id: string; workspace_id: string; concept: string }[]) {
-    await db.insert(schema.domainEvent).values({ workspaceId: r.workspace_id, type: "cobro.vencido", entityType: "receivable", entityId: r.id, actorType: "system", payload: {} });
-    await db.insert(schema.activity).values({ workspaceId: r.workspace_id, entityType: "receivable", entityId: r.id, verb: "cobro.vencido", summary: `Venció el cobro «${r.concept}»`, actorType: "system", actorName: "Sistema" });
-  }
-  for (const r of pay.rows as { id: string; workspace_id: string; concept: string }[]) {
-    await db.insert(schema.domainEvent).values({ workspaceId: r.workspace_id, type: "pago.vencido", entityType: "payable", entityId: r.id, actorType: "system", payload: {} });
-    await db.insert(schema.activity).values({ workspaceId: r.workspace_id, entityType: "payable", entityId: r.id, verb: "pago.vencido", summary: `Venció el pago «${r.concept}»`, actorType: "system", actorName: "Sistema" });
-  }
-  for (const q of quotes.rows as { id: string; workspace_id: string; number: string }[]) {
-    await db.insert(schema.domainEvent).values({ workspaceId: q.workspace_id, type: "presupuesto.vencido", entityType: "quote", entityId: q.id, actorType: "system", payload: {} });
-    await db.insert(schema.activity).values({ workspaceId: q.workspace_id, entityType: "quote", entityId: q.id, verb: "presupuesto.vencido", summary: `Venció el presupuesto ${q.number}`, actorType: "system", actorName: "Sistema" });
-  }
-  return { receivables: rec.rowCount ?? 0, payables: pay.rowCount ?? 0, quotes: quotes.rowCount ?? 0 };
+  const finance = await markOverdue(today);
+  const quotes = await expireQuotes(today);
+  return { finance, quotes };
 }
 
 /** Resumen diario (8:00 ART): notificación in-app y, si Brevo está configurado, email. */

@@ -380,3 +380,18 @@ export async function getOrCreateDaily(ctx: Ctx, date: string = todayAR()) {
     });
   });
 }
+
+/**
+ * Crea una nota dentro de una transacción ajena (Bandeja, MCP). Si el título ya existe,
+ * prueba «Título (2)», «Título (3)»… La verificación es un SELECT previo, así que no aborta la transacción.
+ */
+export async function createNoteInTx(t: Tx, ctx: Ctx, raw: unknown) {
+  assertCan(ctx, "create", "note");
+  const input = noteInput.parse(raw);
+  for (let i = 1; i <= 50; i++) {
+    const title = i === 1 ? input.title : `${input.title.slice(0, 190)} (${i})`;
+    const [dup] = await t.select({ id: schema.note.id }).from(schema.note).where(and(scoped(schema.note, ctx), eq(titleNorm, normName(title)))).limit(1);
+    if (!dup) return insertNote(t, ctx, { ...input, title });
+  }
+  throw conflict("No se pudo encontrar un título libre para la nota.");
+}

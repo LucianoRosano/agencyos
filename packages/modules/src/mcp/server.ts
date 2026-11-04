@@ -116,13 +116,10 @@ export function buildMcpServer(ctx: Ctx) {
       const db = getDb();
       const [p] = await db.select({ id: schema.project.id, spaceId: schema.project.spaceId }).from(schema.project).where(and(eq(schema.project.id, a.proyecto_id), scoped(schema.project, ctx)));
       if (!p) throw new DomainError("NOT_FOUND", "El proyecto no existe.");
+      const { createNoteInTx } = await import("../notes/service");
       return db.transaction(async (t) => {
-        const slug = `${a.titulo.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60) || "nota"}-${Date.now().toString(36)}`;
-        const [n] = await t.insert(schema.note).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, title: a.titulo, slug, spaceId: p.spaceId, bodyMd: a.contenido, entityType: "project", entityId: p.id, wordCount: a.contenido.split(/\s+/).filter(Boolean).length }).returning();
-        if (!n) throw new Error("No se pudo crear la nota");
-        await t.insert(schema.link).values({ workspaceId: ctx.workspaceId, fromType: "note", fromId: n.id, toType: "project", toId: p.id, kind: "belongs", createdBy: ctx.actor.id });
-        await recordEvent(t, ctx, { type: "nota.creada", entityType: "project", entityId: p.id, summary: `Claude creó la nota «${a.titulo}»` });
-        return { ok: true, id: n.id };
+        const n = await createNoteInTx(t, ctx, { title: a.titulo, bodyMd: a.contenido, spaceId: p.spaceId, entityType: "project", entityId: p.id });
+        return { ok: true, id: n.id, titulo: n.title };
       });
     }));
 

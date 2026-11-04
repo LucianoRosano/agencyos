@@ -25,8 +25,7 @@ describe("worker", () => {
     const owner = await makeWorkspace();
     const [c] = await getDb().insert(schema.client).values({ workspaceId: owner.workspaceId, name: "Cliente X", status: "active" }).returning();
     await getDb().insert(schema.receivable).values({ workspaceId: owner.workspaceId, clientId: c?.id as string, concept: "Anticipo", amount: "1000.00", currency: "ARS", dueDate: addDays(todayAR(), -2) });
-    const r = await dailyDueDates();
-    expect(r.receivables).toBeGreaterThanOrEqual(1);
+    await dailyDueDates();
     const [rec] = await getDb().select().from(schema.receivable).where(eq(schema.receivable.workspaceId, owner.workspaceId));
     expect(rec?.status).toBe("overdue");
     await dailySummary();
