@@ -11,6 +11,10 @@ const REL = path.join("fonts", "geist-sans", "Geist-Variable.woff2");
  */
 export function geistFontPath(): string | null {
   const cwd = process.cwd();
+  // Copia empaquetada en apps/web/public/fonts (sobrevive al build standalone de producción).
+  for (const p of [path.join(cwd, "public", "fonts", "Geist-Variable.woff2"), path.join(cwd, "apps", "web", "public", "fonts", "Geist-Variable.woff2")]) {
+    if (existsSync(/*turbopackIgnore: true*/ p)) return p;
+  }
   const bases = [path.join(cwd, "package.json"), path.join(cwd, "apps", "web", "package.json"), path.join(cwd, "..", "web", "package.json"), path.join(cwd, "..", "..", "apps", "web", "package.json")];
   for (const base of bases) {
     if (!existsSync(/*turbopackIgnore: true*/ base)) continue;

@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
   transpilePackages: ["@agencyos/ui", "@agencyos/core", "@agencyos/db", "@agencyos/modules", "@agencyos/pdf"],
   serverExternalPackages: ["pg", "pg-boss", "playwright-core"],
+  outputFileTracingIncludes: { "/**": ["./public/fonts/**"] },
   poweredByHeader: false,
   typedRoutes: false,
   experimental: { serverActions: { bodySizeLimit: "2mb" } },
