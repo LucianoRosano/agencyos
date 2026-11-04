@@ -61,7 +61,7 @@ export async function getCalendarItems(ctx: Ctx, q: CalendarQuery): Promise<Cale
 
   const c = (s: CalendarSource) => sourceMeta(s).color;
   const items: CalendarItem[] = [
-    ...tasks.map(({ t, projectName }) => ({ key: `task-${t.id}`, source: "task" as const, date: t.dueDate ?? from, time: t.dueTime, title: t.title, subtitle: projectName ?? "Tarea", href: `/tareas/${t.id}`, color: c("task") })),
+    ...tasks.map(({ t, projectName }) => ({ key: `task-${t.id}`, source: "task" as const, date: t.dueDate ?? from, time: t.dueTime, title: t.title, subtitle: projectName ?? null, href: `/tareas/${t.id}`, color: c("task") })),
     ...phases.map(({ ph, projectName }) => ({ key: `phase-${ph.id}`, source: "phase" as const, date: ph.dueDate ?? from, time: null, title: `Etapa: ${ph.name}`, subtitle: projectName, href: `/proyectos/${ph.projectId}/etapas`, color: c("phase") })),
     ...deliverables.map(({ d, projectName }) => ({ key: `deliverable-${d.id}`, source: "deliverable" as const, date: d.dueDate ?? from, time: null, title: `Entrega: ${d.title}`, subtitle: projectName, href: `/proyectos/${d.projectId}/entregas`, color: c("deliverable") })),
     ...assessments.map(({ a, courseName }) => ({ key: `assessment-${a.id}`, source: "assessment" as const, date: a.date, time: a.time, title: `${a.title?.trim() || label(L.assessmentKind, a.kind)} · ${courseName}`, subtitle: a.grade !== null ? `Nota ${Number(a.grade).toLocaleString("es-AR")}` : label(L.assessmentKind, a.kind), href: `/facultad/${a.courseId}`, color: c("assessment") })),
