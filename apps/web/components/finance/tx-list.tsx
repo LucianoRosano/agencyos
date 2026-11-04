@@ -48,14 +48,14 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
   return (
     <>
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-        <table className="hidden w-full text-[14px] md:table">
+        <table className="hidden w-full table-fixed text-[14px] xl:table">
           <thead>
             <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
               <th className="w-28 px-4 py-3 font-normal">Fecha</th>
               <th className="px-4 py-3 font-normal">Detalle</th>
-              <th className="px-4 py-3 font-normal">Categoría</th>
-              <th className="px-4 py-3 font-normal">Cuenta</th>
-              <th className="px-4 py-3 text-right font-normal">Monto</th>
+              <th className="w-40 px-4 py-3 font-normal 2xl:w-48">Categoría</th>
+              <th className="w-40 px-4 py-3 font-normal 2xl:w-48">Cuenta</th>
+              <th className="w-36 px-4 py-3 text-right font-normal">Monto</th>
               <th className="w-12 px-2 py-3" />
             </tr>
           </thead>
@@ -63,21 +63,21 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
             {items.map((t) => (
               <tr key={t.id} className="border-b border-border last:border-0 hover:bg-surface-2/50" data-tx={t.id}>
                 <td className="px-4 py-3 font-mono text-[13px] text-text-muted tabular-nums">{formatDate(t.date)}</td>
-                <td className="max-w-0 px-4 py-3">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <KindIcon t={t} />
                     <span className="truncate text-text">{title(t)}</span>
                   </div>
                   {t.clientName || t.projectName || (t.counterpart && t.description) ? (
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-6">
-                      {t.counterpart && t.description && !t.kind.startsWith("transfer") ? <span className="text-[12px] text-text-faint">{t.counterpart}</span> : null}
+                      {t.counterpart && t.description && !t.kind.startsWith("transfer") ? <span className="truncate text-[12px] text-text-faint">{t.counterpart}</span> : null}
                       {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
                       {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
                     </div>
                   ) : null}
                 </td>
-                <td className="px-4 py-3 text-[13px] text-text-muted">{catName(t) ?? <span className="text-text-faint">—</span>}</td>
-                <td className="px-4 py-3 text-[13px] text-text-muted">
+                <td className="truncate px-4 py-3 text-[13px] text-text-muted">{catName(t) ?? <span className="text-text-faint">—</span>}</td>
+                <td className="truncate px-4 py-3 text-[13px] text-text-muted">
                   {t.accountName}
                   {showLedger && t.ledgerName ? <span className="block font-mono text-[11px] text-text-faint">{t.ledgerName}</span> : null}
                 </td>
@@ -91,7 +91,7 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
             ))}
           </tbody>
         </table>
-        <ul className="divide-y divide-border md:hidden">
+        <ul className="divide-y divide-border xl:hidden">
           {items.map((t) => (
             <li key={t.id} className="flex items-start gap-3 px-4 py-3" data-tx={t.id}>
               <div className="mt-0.5">

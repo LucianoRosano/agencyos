@@ -83,7 +83,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
             </Stat>
           </section>
 
-          <div className="grid gap-4 md:gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-3">
             <BlockCard
               icon={<Landmark />}
               title="Saldos por cuenta"
@@ -160,7 +160,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
             </BlockCard>
           </div>
 
-          <div className="grid gap-4 md:gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-3">
             <BlockCard icon={<ChartColumn />} title="Ingresos y gastos · 6 meses" className="lg:col-span-2">
               {o.chart.length ? (
                 <div className="flex flex-col gap-6">
@@ -183,7 +183,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                           a: Number(m.income),
                           b: Number(m.expense),
                         }))}
-                        className="max-h-40"
+                        className="[&_svg]:mx-auto [&_svg]:max-h-44"
                       />
                       <details className="mt-2 text-[12px] text-text-muted">
                         <summary className="cursor-pointer select-none py-1">Ver datos</summary>
@@ -222,7 +222,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                       Te deben
                       {o.receivable.length ? ` · ${o.receivable.reduce((a, r) => a + r.n, 0)} cobro(s)` : ""}
                     </p>
-                    <MoneyLines items={o.receivable} className="text-[20px] font-semibold text-success" empty="Nada pendiente" />
+                    <MoneyLines items={o.receivable} className="text-[20px] font-semibold text-success" empty="Nada pendiente" emptyClassName="text-[14px] font-sans" />
                   </Link>
                 ) : null}
                 <Link href={L_("/finanzas/por-pagar")} className="-mx-2 rounded-md px-2 py-1.5 hover:bg-surface-2">
@@ -230,7 +230,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                     Debés
                     {o.payable.length ? ` · ${o.payable.reduce((a, r) => a + r.n, 0)} pago(s)` : ""}
                   </p>
-                  <MoneyLines items={o.payable} className="text-[20px] font-semibold text-warning" empty="Nada pendiente" />
+                  <MoneyLines items={o.payable} className="text-[20px] font-semibold text-warning" empty="Nada pendiente" emptyClassName="text-[14px] font-sans" />
                 </Link>
                 <p className="text-[12px] text-text-faint">Montos en ARS y USD por separado: nunca se convierten con cotizaciones inventadas.</p>
               </div>

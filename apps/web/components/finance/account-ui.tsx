@@ -30,7 +30,7 @@ export function AccountSheet({ ledgers, defaults, trigger, openInitially }: { le
     >
       <ActionForm action={id ? updateAccountAction.bind(null, id) : createAccountAction} successMessage={id ? "Cuenta actualizada" : "Cuenta creada"} onSuccess={() => setOpen(false)}>
         <TextField label="Nombre" name="name" required defaultValue={defaults?.name} placeholder="Ej.: Mercado Pago" autoFocus maxLength={80} />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Tipo" name="kind" defaultValue={defaults?.kind ?? "cash"} options={opts(L.accountKind)} />
           <SelectField label="Moneda" name="currency" defaultValue={defaults?.currency ?? "ARS"} options={CURRENCIES} />
           <SelectField label="Libro" name="ledgerId" required defaultValue={defaults?.ledgerId ?? ledgers[0]?.value} options={ledgers} />
@@ -121,7 +121,7 @@ function EditAccount({ account, ledgers, onClose }: { account: AccountDefaults; 
     >
       <ActionForm action={updateAccountAction.bind(null, account.id as string)} successMessage="Cuenta actualizada" onSuccess={onClose}>
         <TextField label="Nombre" name="name" required defaultValue={account.name} maxLength={80} />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Tipo" name="kind" defaultValue={account.kind} options={opts(L.accountKind)} />
           <SelectField label="Moneda" name="currency" defaultValue={account.currency} options={CURRENCIES} />
           <SelectField label="Libro" name="ledgerId" defaultValue={account.ledgerId} options={ledgers} />

@@ -622,4 +622,15 @@ describe("finanzas", () => {
     await expect(createAccount(bot, { name: "x", ledgerId: agencia(ws), currency: "ARS" })).rejects.toThrow(/alcance/);
     expect(await listAccounts(bot)).toEqual([]);
   });
+
+  it("acepta formularios con campos opcionales vacíos (FormData)", async () => {
+    const ws = await makeWorkspace();
+    const a = await createAccount(ws, { name: "Caja", ledgerId: agencia(ws), kind: "cash", currency: "ARS", openingBalance: "", openingDate: "" });
+    expect(a.openingBalance).toBe("0.00");
+    const t = await createTransaction(ws, { kind: "expense", amount: "10", date: "", accountId: a.id, categoryId: "", clientId: "", projectId: "", counterpart: "", description: "", exchangeRate: "" });
+    expect(t.description).toBeNull();
+    const s = await createSubscription(ws, { ledgerId: agencia(ws), vendor: "X", description: "", amount: "1", currency: "ARS", frequency: "monthly", intervalCount: "1", nextDue: "2030-01-01", accountId: "", categoryId: "", notifyDaysBefore: "3", status: "active" });
+    expect(s.accountId).toBeNull();
+    await expect(createTransfer(ws, { fromAccountId: a.id, toAccountId: "", amount: "1", toAmount: "", description: "", date: "" })).rejects.toThrow();
+  });
 });

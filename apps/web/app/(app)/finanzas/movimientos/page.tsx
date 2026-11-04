@@ -54,17 +54,17 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
           <SlidersHorizontal className="size-4" /> Filtros
           {filtered ? <span className="font-mono text-[11px] text-accent-2">activos</span> : null}
         </summary>
-        <form action="/finanzas/movimientos" className="grid gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <form action="/finanzas/movimientos" className="grid grid-cols-1 gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-6">
           {f.ledgerId ? <input type="hidden" name="libro" value={f.ledgerId} /> : null}
           <input name="q" defaultValue={sp.q} placeholder="Buscar…" aria-label="Buscar movimientos" className={`${ctl} lg:col-span-2`} />
-          <select name="tipo" defaultValue={sp.tipo ?? ""} aria-label="Tipo" className={`${ctl} select-chevron appearance-none pr-9`}>
+          <select name="tipo" defaultValue={sp.tipo ?? ""} aria-label="Tipo" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
             {KIND_OPTS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </select>
-          <select name="cuenta" defaultValue={sp.cuenta ?? ""} aria-label="Cuenta" className={`${ctl} select-chevron appearance-none pr-9`}>
+          <select name="cuenta" defaultValue={sp.cuenta ?? ""} aria-label="Cuenta" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
             <option value="">Todas las cuentas</option>
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
@@ -72,7 +72,7 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
               </option>
             ))}
           </select>
-          <select name="categoria" defaultValue={sp.categoria ?? ""} aria-label="Categoría" className={`${ctl} select-chevron appearance-none pr-9`}>
+          <select name="categoria" defaultValue={sp.categoria ?? ""} aria-label="Categoría" className={`${ctl} select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9`}>
             <option value="">Todas las categorías</option>
             <optgroup label="Ingresos">
               {options.categories

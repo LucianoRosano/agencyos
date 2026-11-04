@@ -47,8 +47,14 @@ export function Amount({ value, currency, kind, className }: { value: string; cu
 }
 
 /** Lista de montos por moneda (nunca se suman monedas distintas). */
-export function MoneyLines({ items, empty = "—", className, tone }: { items: { currency: string; total: string }[]; empty?: string; className?: string; tone?: string }) {
-  if (!items.length) return <span className={cn("font-mono text-text-faint", className)}>{empty}</span>;
+export function MoneyLines({
+  items,
+  empty = "—",
+  className,
+  emptyClassName,
+  tone,
+}: { items: { currency: string; total: string }[]; empty?: string; className?: string; emptyClassName?: string; tone?: string }) {
+  if (!items.length) return <span className={cn("block font-mono text-text-faint", emptyClassName ?? className)}>{empty}</span>;
   return (
     <span className={cn("flex flex-col gap-0.5", className)}>
       {items.map((i) => (

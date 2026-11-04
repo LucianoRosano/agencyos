@@ -36,7 +36,7 @@ export default async function CuentasPage({ searchParams }: { searchParams: Prom
         ledgerId={f.ledgerId}
         actions={<NewAccountButton ledgers={ledgerOpts} defaultLedgerId={f.defaultLedgerId} openInitially={sp.nueva === "1"} variant="secondary" />}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section className="flex flex-col gap-5" aria-label="Cuentas">
           {accounts.length ? (
             groups.map((g) => (

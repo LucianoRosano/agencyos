@@ -133,7 +133,7 @@ function IncomeExpenseForm({ kind, options, defaults, defaultAccountId, onDone }
       }}
     >
       <input type="hidden" name="kind" value={kind} />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField label={`Monto${account ? ` (${account.currency})` : ""}`} name="amount" required inputMode="decimal" autoComplete="off" placeholder="0,00" defaultValue={v(defaults?.amount)} autoFocus />
         <TextField label="Fecha" name="date" type="date" defaultValue={defaults?.date ?? todayAR()} />
         <SelectField
@@ -205,7 +205,7 @@ function TransferForm({ options, defaultAccountId, onDone }: { options: FormOpti
         if (first) undo("Transferencia registrada", () => deleteTransactionAction(first.id));
       }}
     >
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField label="Desde" name="fromAccountId" required value={fromId} onChange={(e) => setFromId(e.target.value)} options={accs} />
         <SelectField label="Hacia" name="toAccountId" required value={toId} onChange={(e) => setToId(e.target.value)} placeholder="Elegí la cuenta" options={accs.filter((a) => a.value !== fromId)} />
         <TextField label={`Monto${from ? ` (${from.currency})` : ""}`} name="amount" required inputMode="decimal" autoComplete="off" placeholder="0,00" autoFocus />

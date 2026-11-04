@@ -77,11 +77,13 @@ export function FinanceHeader({
               })}
             </nav>
             {actions}
-            <Button asChild variant="primary" className="hidden md:inline-flex">
-              <Link href={registrar}>
-                <Plus className="size-4" /> Registrar
-              </Link>
-            </Button>
+            <span className="hidden md:contents">
+              <Button asChild variant="primary">
+                <Link href={registrar}>
+                  <Plus className="size-4" /> Registrar
+                </Link>
+              </Button>
+            </span>
           </>
         }
       />

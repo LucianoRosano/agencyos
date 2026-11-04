@@ -40,7 +40,7 @@ function SubscriptionFields({ options, d }: { options: FormOptions; d?: Partial<
   const [currency, setCurrency] = useState(d?.currency ?? "ARS");
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField label="Proveedor" name="vendor" required defaultValue={d?.vendor} placeholder="Ej.: Hostinger" autoFocus maxLength={120} />
         <TextField label="Detalle (opcional)" name="description" defaultValue={d?.description ?? ""} placeholder="Ej.: VPS KVM 2" maxLength={300} />
         <TextField label="Monto" name="amount" required inputMode="decimal" defaultValue={d?.amount} placeholder="0,00" />
@@ -148,7 +148,7 @@ export function PaySubscriptionSheet({ sub, accounts, openInitially, trigger }: 
             undo(`Pago registrado · próximo vencimiento ${formatDate(d.nextDue)}`, () => undoSubscriptionPaymentAction(sub.id, d.transaction.id, d.previousDue));
           }}
         >
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <TextField label={`Monto (${sub.currency})`} name="amount" required inputMode="decimal" defaultValue={sub.amount} />
             <TextField label="Fecha del pago" name="date" type="date" defaultValue={todayAR()} />
           </div>

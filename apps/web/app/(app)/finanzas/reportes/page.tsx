@@ -7,7 +7,7 @@ import { financePage, qs, type SP } from "@/components/finance/server";
 
 export const metadata = { title: "Reportes · Finanzas" };
 
-const ctl = "h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base text-text md:text-sm select-chevron appearance-none pr-9";
+const ctl = "h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base text-text md:text-sm select-chevron appearance-none bg-[length:16px] bg-[right_10px_center] bg-no-repeat pr-9";
 const money = (v: string, c: string) => formatMoney(v, c);
 
 export default async function ReportesPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -140,7 +140,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             ))}
           </section>
 
-          <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-2">
             <BlockCard icon={<CalendarRange />} title={`Mensual · ${year} · ${currency}`}>
               <table className="w-full font-mono text-[12px] tabular-nums md:text-[13px]">
                 <thead>
@@ -193,7 +193,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             </BlockCard>
           </div>
 
-          <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-2">
             {(
               [
                 {

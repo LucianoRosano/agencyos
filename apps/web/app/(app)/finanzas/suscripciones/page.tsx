@@ -60,7 +60,7 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
             <div className="flex flex-wrap gap-x-8 gap-y-2">
               {cost.byCurrency.length ? (
                 cost.byCurrency.map((c) => (
-                  <div key={c.currency} className="text-right">
+                  <div key={c.currency} className="md:text-right">
                     <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{c.currency} / mes</p>
                     <p className="font-mono text-[26px] font-semibold tabular-nums text-text">{formatMoney(c.total, c.currency)}</p>
                   </div>

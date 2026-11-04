@@ -18,7 +18,6 @@ import {
   zDate,
   zInt,
   zMoney,
-  zOptText,
   zOptUuid,
   zPositiveMoney,
   zRequired,
@@ -41,6 +40,8 @@ export const SUB_STATUSES = ["active", "paused", "cancelled"] as const;
 const OPEN = ["pending", "partial", "overdue"] as const;
 
 const empty = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
+/** Texto opcional: "" → undefined (el `zOptText` de core rechaza el string vacío que manda un FormData). */
+const zOptText = (max: number) => z.preprocess(empty, z.string().trim().max(max, `Máximo ${max} caracteres`).optional());
 /** Cotización opcional (ARS por US$ 1), hasta 4 decimales. */
 export const zOptRate = z.preprocess(
   (v) =>

@@ -21,7 +21,7 @@ test("finanzas: suscripción que vence en 3 días → Hoy → «Registrar pago»
   // 1. Cuenta con saldo inicial
   await page.goto("/finanzas/cuentas?nueva=1");
   const sheet = page.getByRole("dialog");
-  await expect(sheet.getByText("Nueva cuenta")).toBeVisible();
+  await expect(sheet.getByRole("heading", { name: "Nueva cuenta" })).toBeVisible();
   await sheet.locator("#name").fill(account);
   await sheet.locator("#openingBalance").fill("250.000,50");
   await sheet.getByRole("button", { name: "Crear cuenta" }).click();
@@ -31,14 +31,14 @@ test("finanzas: suscripción que vence en 3 días → Hoy → «Registrar pago»
 
   // 2. Un ingreso desde "Registrar" (?nuevo=1)
   await page.goto("/finanzas/movimientos?nuevo=1");
-  await expect(page.getByRole("dialog").getByText("Registrar movimiento")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Registrar movimiento" })).toBeVisible();
   await page.getByRole("radio", { name: "Ingreso" }).click();
   const tx = page.getByRole("dialog");
   await tx.locator("#amount").fill("80000");
   await tx.locator("#accountId").selectOption({ label: `${account} · ARS · Agencia` });
   await tx.locator("#description").fill(`Mantenimiento ${tag}`);
   await tx.getByRole("button", { name: "Registrar ingreso" }).click();
-  await expect(page.getByText(`Mantenimiento ${tag}`).first()).toBeVisible();
+  await expect(page.getByText(`Mantenimiento ${tag}`).filter({ visible: true }).first()).toBeVisible();
 
   // 3. Suscripción que vence en 3 días
   await page.goto("/finanzas/suscripciones");
@@ -68,7 +68,7 @@ test("finanzas: suscripción que vence en 3 días → Hoy → «Registrar pago»
   // 5. Deep link de Hoy → "Registrar pago"
   await page.goto(`/finanzas/suscripciones?pagar=${subId}`);
   const pay = page.getByRole("dialog");
-  await expect(pay.getByText(`Registrar pago · ${vendor}`)).toBeVisible();
+  await expect(pay.getByRole("heading", { name: `Registrar pago · ${vendor}` })).toBeVisible();
   await expect(pay.locator("#amount")).toHaveValue("15000.00");
   await pay.getByRole("button", { name: "Registrar pago" }).click();
   const next = addMonth(due);
@@ -77,19 +77,24 @@ test("finanzas: suscripción que vence en 3 días → Hoy → «Registrar pago»
   await expect(page).not.toHaveURL(/pagar=/);
   await expect(row).toContainText(`vence el ${ddmmyyyy(next)}`);
   await expect(row).toContainText(`último pago ${ddmmyyyy(dayAR())}`);
+  await expectNoHorizontalScroll(page);
+  await shot(page, "finanzas-suscripciones", tag);
 
   // 6. El gasto quedó en Movimientos y descontó del saldo
   await page.goto("/finanzas/movimientos");
-  await expect(page.getByText(`Pago ${vendor}`).first()).toBeVisible();
+  await expect(page.getByText(`Pago ${vendor}`).filter({ visible: true }).first()).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "finanzas-movimientos", tag);
   await page.goto("/finanzas/cuentas");
   await expect(page.locator(`[data-account="${account}"]`)).toContainText("$ 315.000,50");
+  await expectNoHorizontalScroll(page);
+  await shot(page, "finanzas-cuentas", tag);
 
   // 7. Reportes y CSV autenticado
   await page.goto("/finanzas/reportes");
   await expect(page.getByText("Mensual ·").first()).toBeVisible();
   await expectNoHorizontalScroll(page);
+  await shot(page, "finanzas-reportes", tag);
   const csv = await page.request.get("/finanzas/reportes/csv?tipo=movimientos");
   expect(csv.status()).toBe(200);
   expect(await csv.text()).toContain(`Pago ${vendor}`);

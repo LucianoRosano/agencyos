@@ -71,12 +71,12 @@ function ReceivableForm({ options, d, onDone }: { options: FormOptions; d?: Rece
   }
   return (
     <ActionForm action={d ? updateReceivableAction.bind(null, d.id) : createReceivableAction} successMessage={d ? "Cobro actualizado" : "Cobro pendiente agregado"} onSuccess={onDone}>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField label="Cliente" name="clientId" required defaultValue={d?.clientId ?? ""} placeholder="Elegí el cliente" options={options.clients} />
         <SelectField label="Proyecto" name="projectId" defaultValue={d?.projectId ?? ""} placeholder="Sin proyecto" options={options.projects} />
       </div>
       <TextField label="Concepto" name="concept" required defaultValue={d?.concept} placeholder="Ej.: Sitio web · 50% de anticipo" maxLength={200} />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <TextField label="Monto" name="amount" required inputMode="decimal" defaultValue={d?.amount} placeholder="0,00" />
         <SelectField label="Moneda" name="currency" defaultValue={d?.currency ?? "ARS"} options={CURRENCIES} />
         <TextField label="Vence" name="dueDate" type="date" defaultValue={d?.dueDate ?? ""} />
@@ -135,7 +135,7 @@ export function CollectSheet({ r, options, openInitially, trigger }: { r: Receiv
             undo(`Cobro registrado · constancia ${d.number}`, () => deleteTransactionAction(d.transaction.id));
           }}
         >
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <TextField label={`Monto cobrado (${r.currency})`} name="amount" required inputMode="decimal" defaultValue={remaining} hint="Podés registrar un cobro parcial." />
             <TextField label="Fecha" name="date" type="date" defaultValue={todayAR()} />
             <SelectField
@@ -245,12 +245,12 @@ export function ReceivableMenu({ r, options }: { r: ReceivableData; options: For
 function PayableForm({ options, d, defaultLedgerId, onDone }: { options: FormOptions; d?: PayableData; defaultLedgerId?: string; onDone: () => void }) {
   return (
     <ActionForm action={d ? updatePayableAction.bind(null, d.id) : createPayableAction} successMessage={d ? "Pago actualizado" : "Pago pendiente agregado"} onSuccess={onDone}>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField label="A quién" name="counterpart" required defaultValue={d?.counterpart} placeholder="Proveedor o acreedor" maxLength={160} autoFocus />
         <SelectField label="Libro" name="ledgerId" required defaultValue={d?.ledgerId ?? defaultLedgerId ?? options.ledgers[0]?.value} options={options.ledgers} />
       </div>
       <TextField label="Concepto" name="concept" required defaultValue={d?.concept} placeholder="Ej.: Cuota 3 de 6" maxLength={200} />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <TextField label="Monto" name="amount" required inputMode="decimal" defaultValue={d?.amount} placeholder="0,00" />
         <SelectField label="Moneda" name="currency" defaultValue={d?.currency ?? "ARS"} options={CURRENCIES} />
         <TextField label="Vence" name="dueDate" type="date" defaultValue={d?.dueDate ?? ""} />
@@ -309,7 +309,7 @@ export function PayPayableSheet({ p, options, openInitially, trigger }: { p: Pay
             undo("Pago registrado", () => deleteTransactionAction(d.transaction.id));
           }}
         >
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <TextField label={`Monto pagado (${p.currency})`} name="amount" required inputMode="decimal" defaultValue={remaining} hint="Podés registrar un pago parcial." />
             <TextField label="Fecha" name="date" type="date" defaultValue={todayAR()} />
             <SelectField
