@@ -1,0 +1,46 @@
+/** Textos de UI centralizados para enums (es-AR). */
+export const L = {
+  projectStatus: { idea: "Idea", planning: "Planificación", in_progress: "En curso", paused: "En pausa", blocked: "Bloqueado", done: "Terminado", archived: "Archivado" },
+  projectKind: { website: "Sitio web", store: "Tienda online", panel: "Panel / plugin", seo: "SEO", maintenance: "Mantenimiento", personal: "Personal", study: "Facultad", other: "Otro" },
+  taskStatus: { todo: "Por hacer", doing: "En curso", waiting: "Esperando", done: "Hecha", cancelled: "Cancelada" },
+  priority: { 1: "P1 · Urgente", 2: "P2 · Alta", 3: "P3 · Normal", 4: "P4 · Baja" } as Record<number, string>,
+  clientStatus: { prospect: "Prospecto", active: "Activo", paused: "En pausa", finished: "Terminado", archived: "Archivado" },
+  relationship: { family: "Familia", referral: "Referido", external: "Externo" },
+  interactionKind: { whatsapp: "WhatsApp", call: "Llamada", email: "Email", meeting: "Reunión", message: "Mensaje", note: "Nota" },
+  stage: { new: "Nuevo", contacted: "Contactado", meeting: "Reunión", proposal_sent: "Propuesta enviada", negotiation: "Negociación", won: "Ganada", lost: "Perdida" },
+  lostReason: { price: "Precio", time: "Tiempo", competitor: "Eligió otro", no_answer: "Sin respuesta", other: "Otro" },
+  quoteStatus: { draft: "Borrador", sent: "Enviado", viewed: "Visto", accepted: "Aceptado", rejected: "Rechazado", expired: "Vencido", void: "Anulado" },
+  serviceUnit: { project: "Proyecto", hour: "Hora", month: "Mes", page: "Página", product: "Producto", item: "Ítem" },
+  deliverableStatus: { pending: "Pendiente", delivered: "Entregada", approved: "Aprobada", changes_requested: "Con cambios" },
+  phaseStatus: { pending: "Pendiente", in_progress: "En curso", done: "Hecha" },
+  receivableStatus: { pending: "Pendiente", partial: "Parcial", paid: "Cobrado", overdue: "Vencido", void: "Anulado" },
+  payableStatus: { pending: "Pendiente", partial: "Parcial", paid: "Pagado", overdue: "Vencido", void: "Anulado" },
+  accountKind: { cash: "Efectivo", bank: "Banco", wallet: "Billetera (Mercado Pago)", usd: "Dólares", other: "Otra" },
+  txKind: { income: "Ingreso", expense: "Gasto", transfer_in: "Transferencia (entrada)", transfer_out: "Transferencia (salida)" },
+  frequency: { weekly: "Semanal", monthly: "Mensual", yearly: "Anual" },
+  subscriptionStatus: { active: "Activa", paused: "En pausa", cancelled: "Cancelada" },
+  courseStatus: { cursando: "Cursando", regular: "Regular", aprobada: "Aprobada", final_pendiente: "Final pendiente", abandonada: "Abandonada" },
+  assessmentKind: { parcial: "Parcial", tp: "TP", final: "Final", recuperatorio: "Recuperatorio", otro: "Otro" },
+  spaceKind: { agency: "Agencia", personal: "Personal", study: "Facultad", custom: "Propio" },
+  inboxType: { task: "Tarea", note: "Nota", idea: "Idea", expense: "Gasto", link: "Link" },
+  reminderKind: { domain: "Dominio", hosting: "Hosting", subscription: "Suscripción", certificate: "Certificado", deadline: "Vencimiento", other: "Otro" },
+  entityType: { client: "Cliente", contact: "Contacto", project: "Proyecto", task: "Tarea", opportunity: "Oportunidad", quote: "Presupuesto", note: "Nota", course: "Materia", space: "Espacio", interaction: "Interacción", transaction: "Movimiento", receivable: "Cobro", payable: "Pago", subscription: "Suscripción", reminder: "Recordatorio", service: "Servicio", decision: "Decisión", deliverable: "Entrega", inbox_item: "Ítem de Bandeja", assessment: "Evaluación" },
+} as const;
+
+export function label<T extends Record<string, string>>(map: T, key: string | null | undefined): string {
+  if (!key) return "—";
+  return (map as Record<string, string>)[key] ?? key;
+}
+
+/** Colores por tipo de entidad (contexto C1): siempre acompañados de ícono o forma. */
+export const ENTITY_COLORS: Record<string, string> = {
+  project: "#7C5CFF",
+  client: "#22D3EE",
+  note: "#C9D1E0",
+  contact: "#34D399",
+  course: "#FBBF24",
+  site: "#F472B6",
+  task: "#60A5FA",
+  quote: "#A78BFA",
+  opportunity: "#22D3EE",
+};

@@ -1,0 +1,43 @@
+{
+  "name": "@agencyos/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agencyos/core": "workspace:*",
+    "@agencyos/db": "workspace:*",
+    "@agencyos/modules": "workspace:*",
+    "@agencyos/ui": "workspace:*",
+    "@agencyos/pdf": "workspace:*",
+    "better-auth": "1.7.17",
+    "cmdk": "1.1.1",
+    "geist": "1.9.0",
+    "lucide-react": "1.68.0",
+    "marked": "18.1.3",
+    "next": "16.4.5",
+    "qrcode": "1.5.4",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sanitize-html": "2.18.1",
+    "sonner": "2.0.8",
+    "zod": "4.6.7",
+    "sigma": "4.0.4",
+    "graphology": "0.26.0",
+    "graphology-layout-forceatlas2": "0.10.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.4",
+    "tailwindcss": "4.3.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/qrcode": "1.5.6",
+    "@types/sanitize-html": "2.16.2"
+  }
+}
