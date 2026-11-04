@@ -1,4 +1,4 @@
-import { addMonths, assertCan, type Ctx, notFound, todayAR, validation, zDate, zInt, zRequired } from "@agencyos/core";
+import { addMonths, assertCan, type Ctx, notFound, todayAR, toISODateAR, validation, zDate, zInt, zRequired } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { and, asc, eq } from "drizzle-orm";
@@ -91,4 +91,31 @@ export async function saveTodayLayout(userId: string, layout: TodayLayout) {
     .insert(schema.userPreference)
     .values({ userId, key: "today_layout", value: layout })
     .onConflictDoUpdate({ target: [schema.userPreference.userId, schema.userPreference.key], set: { value: layout, updatedAt: new Date() } });
+}
+
+// --- Modo foco ---
+export async function logFocusSession(ctx: Ctx, raw: unknown) {
+  const input = z.object({ taskId: z.string().uuid().optional(), startedAt: z.coerce.date(), minutes: zInt(1, 600), notesMd: z.string().max(20000).optional() }).parse(raw);
+  if (!ctx.userId) throw validation("Sin usuario");
+  return getDb().transaction(async (t) => {
+    const [row] = await t
+      .insert(schema.focusSession)
+      .values({ workspaceId: ctx.workspaceId, userId: ctx.userId as string, taskId: input.taskId ?? null, startedAt: input.startedAt, endedAt: new Date(), minutes: input.minutes, notesMd: input.notesMd })
+      .returning();
+    if (input.taskId) {
+      if (input.notesMd?.trim()) {
+        const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx)));
+        if (task) await t.update(schema.task).set({ descriptionMd: `${task.descriptionMd ? `${task.descriptionMd}\n\n` : ""}**Sesión de foco (${input.minutes} min):**\n${input.notesMd}` }).where(eq(schema.task.id, task.id));
+      }
+      await recordEvent(t, ctx, { type: "foco.sesion", entityType: "task", entityId: input.taskId, summary: `Sesión de foco de ${input.minutes} min` });
+    }
+    return row;
+  });
+}
+
+export async function focusMinutesToday(ctx: Ctx) {
+  if (!ctx.userId) return 0;
+  const rows = await getDb().select({ m: schema.focusSession.minutes, s: schema.focusSession.startedAt }).from(schema.focusSession).where(and(eq(schema.focusSession.userId, ctx.userId), eq(schema.focusSession.workspaceId, ctx.workspaceId)));
+  const today = todayAR();
+  return rows.filter((r) => toISODateAR(r.s) === today).reduce((a, r) => a + (r.m ?? 0), 0);
 }

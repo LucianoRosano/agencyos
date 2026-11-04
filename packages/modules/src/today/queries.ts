@@ -95,7 +95,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
   }
   for (const { p, clientName } of projects) {
     const idle = diffDays(today, toISODateAR(p.lastActivityAt));
-    if (p.status === "in_progress" && !p.nextAction?.trim()) {
+    if (["in_progress", "planning"].includes(p.status) && !p.nextAction?.trim()) {
       items.push({ key: `pna-${p.id}`, kind: "project_no_action", title: `${clientName ? `${clientName}: ` : ""}${p.name} sin siguiente acción`, subtitle: `Proyecto · sin movimiento hace ${idle} días`, severity: "medium", entityId: p.id, href: `/proyectos/${p.id}` });
     } else if (["in_progress", "planning", "blocked"].includes(p.status) && idle > stalledDays) {
       items.push({ key: `pst-${p.id}`, kind: "project_stalled", title: `${p.name} frenado`, subtitle: `Proyecto · sin actividad hace ${idle} días`, severity: "low", entityId: p.id, href: `/proyectos/${p.id}` });
