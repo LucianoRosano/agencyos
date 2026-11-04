@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { assertOwned, getDb, scoped } from "../shared/db";
 import { createTask } from "../tasks/service";
 
 export const COURSE_STATUSES = ["cursando", "regular", "aprobada", "final_pendiente", "abandonada"] as const;
@@ -106,6 +106,7 @@ export async function createCourse(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "study");
   const input = courseInput.parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
     const spaceId = input.spaceId ?? (await studySpace(t, ctx));
     const [row] = await t
       .insert(schema.course)
@@ -149,7 +150,7 @@ export async function updateCourse(ctx: Ctx, id: string, raw: unknown) {
         finalGrade: input.finalGrade ?? null,
         color: input.color ?? before.color,
         notesMd: input.notesMd ?? null,
-        spaceId: input.spaceId ?? before.spaceId,
+        spaceId: (await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio"), input.spaceId ?? before.spaceId),
       })
       .where(eq(schema.course.id, id))
       .returning();

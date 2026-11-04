@@ -21,6 +21,7 @@ export async function setupAction(_prev: Result<null> | null, fd: FormData): Pro
     const data = schema.parse(Object.fromEntries(fd));
     if (data.password !== data.password2) throw validation("Las contraseñas no coinciden", { password2: "Las contraseñas no coinciden" });
     const expected = process.env.SETUP_TOKEN;
+    if (!expected && process.env.NODE_ENV === "production") throw validation("Falta configurar SETUP_TOKEN en el servidor (ver docs/DEPLOYMENT.md).");
     if (expected) {
       const a = Buffer.from(data.token ?? "");
       const b = Buffer.from(expected);

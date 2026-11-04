@@ -408,6 +408,9 @@ async function templateForQuote(t: Tx, ctx: Ctx, versionId: string) {
 export async function acceptQuote(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "quote");
   const opts = acceptInput.parse(raw ?? {});
+  if (opts.createReceivables) assertCan(ctx, "create", "finance");
+  if (opts.createProject) assertCan(ctx, "create", "project");
+  if (opts.markOpportunityWon) assertCan(ctx, "update", "crm");
   return getDb().transaction(async (t) => {
     const { q, v } = await loadQuote(t, ctx, id);
     if (!["sent", "viewed", "expired"].includes(q.status)) {

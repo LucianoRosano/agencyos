@@ -30,14 +30,14 @@ export async function getCalendarItems(ctx: Ctx, q: CalendarQuery): Promise<Cale
 
   const [tasks, phases, deliverables, assessments, receivables, payables, subs, reminders, opps, interactions] = await Promise.all([
     skip("task", () =>
-      db.select({ t: schema.task, projectName: schema.project.name }).from(schema.task).leftJoin(schema.project, eq(schema.project.id, schema.task.projectId))
+      db.select({ t: schema.task, projectName: schema.project.name }).from(schema.task).leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
         .where(and(scoped(schema.task, ctx), inArray(schema.task.status, ["todo", "doing", "waiting"]), inRange(schema.task.dueDate), sp ? eq(schema.task.spaceId, sp) : undefined))
         .orderBy(asc(schema.task.dueDate), asc(schema.task.dueTime)).limit(2000)),
     skip("phase", () =>
       db.select({ ph: schema.projectPhase, projectName: schema.project.name }).from(schema.projectPhase).innerJoin(schema.project, eq(schema.project.id, schema.projectPhase.projectId))
         .where(and(scoped(schema.projectPhase, ctx), scoped(schema.project, ctx), notInArray(schema.projectPhase.status, ["done"]), inRange(schema.projectPhase.dueDate), sp ? eq(schema.project.spaceId, sp) : undefined))),
     skip("deliverable", () =>
-      db.select({ d: schema.deliverable, projectName: schema.project.name }).from(schema.deliverable).innerJoin(schema.project, eq(schema.project.id, schema.deliverable.projectId))
+      db.select({ d: schema.deliverable, projectName: schema.project.name }).from(schema.deliverable).innerJoin(schema.project, and(eq(schema.project.id, schema.deliverable.projectId), eq(schema.project.workspaceId, schema.deliverable.workspaceId)))
         .where(and(scoped(schema.deliverable, ctx), scoped(schema.project, ctx), inArray(schema.deliverable.status, ["pending", "changes_requested"]), inRange(schema.deliverable.dueDate), sp ? eq(schema.project.spaceId, sp) : undefined))),
     skip("assessment", () =>
       db.select({ a: schema.assessment, courseName: schema.course.name }).from(schema.assessment).innerJoin(schema.course, eq(schema.course.id, schema.assessment.courseId))

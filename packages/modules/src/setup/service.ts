@@ -1,5 +1,5 @@
 import { audit } from "@agencyos/core/events";
-import { getDb, schema, type Tx } from "@agencyos/db";
+import { getDb, getPool, schema, type Tx } from "@agencyos/db";
 import { count, eq } from "drizzle-orm";
 import { getAuth } from "../auth/server";
 import { DEFAULT_CATEGORIES, DEFAULT_QUOTE_TEMPLATE, PROJECT_TEMPLATES } from "./templates";
@@ -50,9 +50,28 @@ export async function createOwner(input: SetupInput): Promise<{ userId: string; 
   const auth = getAuth();
   const actx = await auth.$context;
   const hashed = await actx.password.hash(input.password);
-  const created = await actx.internalAdapter.createUser({ email: input.email.toLowerCase(), name: input.name, emailVerified: true }, { method: "admin" });
-  await actx.internalAdapter.linkAccount({ userId: created.id, providerId: "credential", accountId: created.id, password: hashed });
+  // Candado global en una conexión dedicada: dos /setup simultáneos no pueden crear dos dueños.
+  const client = await getPool().connect();
+  const lock = await client.query<{ ok: boolean }>("select pg_try_advisory_lock(424242) as ok");
+  if (!lock.rows[0]?.ok) {
+    client.release();
+    throw new Error("La configuración inicial ya está en curso.");
+  }
+  try {
+    if (await isSetupDone()) throw new Error("AGENCYOS ya está configurado.");
+    const existing = await actx.internalAdapter.findUserByEmail(input.email.toLowerCase());
+    const created = existing?.user ?? (await actx.internalAdapter.createUser({ email: input.email.toLowerCase(), name: input.name, emailVerified: true }, { method: "admin" }));
+    if (!existing) await actx.internalAdapter.linkAccount({ userId: created.id, providerId: "credential", accountId: created.id, password: hashed });
+    else await actx.internalAdapter.updatePassword(created.id, hashed);
+    return await createWorkspaceFor(created.id, input);
+  } finally {
+    await client.query("select pg_advisory_unlock(424242)");
+    client.release();
+  }
+}
 
+async function createWorkspaceFor(userId: string, input: SetupInput): Promise<{ userId: string; workspaceId: string }> {
+  const created = { id: userId };
   return getDb().transaction(async (t) => {
     const [ws] = await t
       .insert(schema.workspace)

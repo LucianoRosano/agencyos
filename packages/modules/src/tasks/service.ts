@@ -1,9 +1,9 @@
-import { addDays, assertCan, type Ctx, L, label, nextOccurrence, notFound, todayAR, validation, zInt, zOptDate, zOptText, zOptTime, zOptUuid, zRequired, zUuid } from "@agencyos/core";
+import { addDays, assertCan, type Ctx, L, label, nextOccurrence, notFound, todayAR, validation, zDate, zInt, zOptDate, zOptText, zOptTime, zOptUuid, zRequired, zUuid } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema, type DbOrTx } from "@agencyos/db";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { assertOwned, getDb, scoped } from "../shared/db";
 
 export const TASK_STATUSES = ["todo", "doing", "waiting", "done", "cancelled"] as const;
 
@@ -56,10 +56,20 @@ async function resolveSpace(t: DbOrTx, ctx: Ctx, input: { spaceId?: string; proj
     if (!p) throw notFound("La tarea padre");
     return p.spaceId;
   }
-  if (input.spaceId) return input.spaceId;
+  if (input.spaceId) {
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
+    return input.spaceId;
+  }
   const [s] = await t.select({ id: schema.space.id }).from(schema.space).where(scoped(schema.space, ctx)).orderBy(asc(schema.space.sort)).limit(1);
   if (!s) throw notFound("El espacio");
   return s.id;
+}
+
+/** La etapa debe ser del mismo workspace y del proyecto de la tarea. */
+async function assertPhase(t: DbOrTx, ctx: Ctx, phaseId: string | null | undefined, projectId: string | null | undefined) {
+  if (!phaseId) return;
+  const [ph] = await t.select({ projectId: schema.projectPhase.projectId }).from(schema.projectPhase).where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx)));
+  if (!ph || ph.projectId !== projectId) throw validation("La etapa no pertenece al proyecto de la tarea", { phaseId: "Etapa inválida" });
 }
 
 export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
@@ -74,6 +84,7 @@ export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
       input.projectId = input.projectId ?? parent.projectId ?? undefined;
     }
     const spaceId = await resolveSpace(t, ctx, input);
+    await assertPhase(t, ctx, input.phaseId, input.projectId);
     const [row] = await t
       .insert(schema.task)
       .values({
@@ -120,7 +131,19 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
     for (const k of ["dueDate", "dueTime", "rrule", "phaseId", "descriptionMd", "estimateMinutes", "projectId"] as const) {
       if (k in rawObj && (rawObj[k] === "" || rawObj[k] === null)) (values as Record<string, unknown>)[k] = null;
     }
+    if (values.parentTaskId !== undefined && values.parentTaskId !== null) {
+      if (values.parentTaskId === id) throw validation("Una tarea no puede ser subtarea de sí misma");
+      const [parent] = await t.select().from(schema.task).where(and(eq(schema.task.id, values.parentTaskId), scoped(schema.task, ctx)));
+      if (!parent) throw notFound("La tarea padre");
+      if (parent.parentTaskId) throw validation("Las subtareas tienen un solo nivel");
+      const [child] = await t.select({ id: schema.task.id }).from(schema.task).where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx))).limit(1);
+      if (child) throw validation("Una tarea con subtareas no puede ser subtarea");
+    }
+    if (values.spaceId) await assertOwned(t, ctx, schema.space, values.spaceId, "El espacio");
     if (values.projectId) values.spaceId = await resolveSpace(t, ctx, { projectId: values.projectId });
+    const nextProject = values.projectId === undefined ? before.projectId : values.projectId;
+    if (values.phaseId) await assertPhase(t, ctx, values.phaseId, nextProject);
+    else if (values.projectId !== undefined && values.projectId !== before.projectId) values.phaseId = null;
     const [row] = await t.update(schema.task).set(values).where(eq(schema.task.id, id)).returning();
     if (!row) throw notFound("La tarea");
     await recordEvent(t, ctx, { type: "tarea.actualizada", entityType: "task", entityId: id, summary: `Editó la tarea «${row.title}»` });
@@ -131,10 +154,12 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
 }
 
 /** Cambia el estado. Al completar una tarea recurrente se crea la siguiente ocurrencia. */
-export async function setTaskStatus(ctx: Ctx, id: string, status: (typeof TASK_STATUSES)[number]) {
+export async function setTaskStatus(ctx: Ctx, id: string, rawStatus: (typeof TASK_STATUSES)[number]) {
   assertCan(ctx, "update", "task");
+  const status = z.enum(TASK_STATUSES).parse(rawStatus);
   return getDb().transaction(async (t) => {
-    const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+    // FOR UPDATE: dos "completar" simultáneos no duplican la próxima ocurrencia.
+    const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx))).for("update");
     if (!task) throw notFound("La tarea");
     const [row] = await t
       .update(schema.task)
@@ -164,8 +189,9 @@ export async function setTaskStatus(ctx: Ctx, id: string, status: (typeof TASK_S
 }
 
 /** Posponer: mueve la fecha N días (desde hoy si estaba vencida). */
-export async function snoozeTask(ctx: Ctx, id: string, days = 1) {
+export async function snoozeTask(ctx: Ctx, id: string, rawDays = 1) {
   assertCan(ctx, "update", "task");
+  const days = zInt(1, 365).parse(rawDays);
   return getDb().transaction(async (t) => {
     const [task] = await t.select().from(schema.task).where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
     if (!task) throw notFound("La tarea");
@@ -177,8 +203,9 @@ export async function snoozeTask(ctx: Ctx, id: string, days = 1) {
   });
 }
 
-export async function setTaskDue(ctx: Ctx, id: string, due: string | null) {
+export async function setTaskDue(ctx: Ctx, id: string, rawDue: string | null) {
   assertCan(ctx, "update", "task");
+  const due = rawDue === null ? null : zDate.parse(rawDue);
   const [row] = await getDb().update(schema.task).set({ dueDate: due }).where(and(eq(schema.task.id, id), scoped(schema.task, ctx))).returning();
   if (!row) throw notFound("La tarea");
   return row;

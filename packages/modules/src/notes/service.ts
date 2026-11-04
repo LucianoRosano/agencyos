@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { assertOwned, getDb, scoped } from "../shared/db";
 import {
   countWords, frontmatterAliases, frontmatterTags, linkFirstPlainMention, normalizeFolder, normName, parseFrontmatter, parseMentions, parseWikilinks,
   renameWikilinks, slugify,
@@ -196,6 +196,7 @@ function derived(bodyMd: string, extraAliases: string[] = []) {
 }
 
 async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>) {
+  await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
   await assertUniqueTitle(t, ctx, input.title);
   await assertEntity(t, ctx, input.entityType, input.entityId);
   const bodyMd = input.bodyMd ?? "";
@@ -245,6 +246,7 @@ export type SaveResult = { note: NoteRow; versioned: boolean; links: { wikilinks
 async function applyPatch(t: Tx, ctx: Ctx, id: string, input: z.infer<typeof notePatch>): Promise<SaveResult> {
   const [before] = await t.select().from(schema.note).where(and(eq(schema.note.id, id), scoped(schema.note, ctx))).for("update");
   if (!before) throw notFound("La nota");
+  await assertOwned(t, ctx, schema.space, input.spaceId ?? null, "El espacio");
   const title = input.title ?? before.title;
   const bodyMd = input.bodyMd ?? before.bodyMd;
   const renamed = normName(title) !== normName(before.title);

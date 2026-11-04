@@ -4,7 +4,7 @@ import { schema, type Tx } from "@agencyos/db";
 import type { TemplateDefinition } from "@agencyos/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { assertOwned, getDb, scoped } from "../shared/db";
 import { recalcProjectProgress } from "../tasks/service";
 
 export const PROJECT_STATUSES = ["idea", "planning", "in_progress", "paused", "blocked", "done", "archived"] as const;
@@ -46,6 +46,8 @@ export async function createProject(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "project");
   const input = projectInput.parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
+    await assertOwned(t, ctx, schema.client, input.clientId, "El cliente");
     const spaceId = input.spaceId ?? (await defaultSpace(t, ctx, input.clientId));
     const [row] = await t
       .insert(schema.project)
@@ -77,6 +79,9 @@ export async function createFromTemplate(ctx: Ctx, raw: unknown, outer?: Tx) {
   const run = async (t: Tx) => {
     const [tpl] = await t.select().from(schema.projectTemplate).where(and(eq(schema.projectTemplate.id, input.templateId), scoped(schema.projectTemplate, ctx)));
     if (!tpl) throw notFound("La plantilla");
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
+    await assertOwned(t, ctx, schema.client, input.clientId, "El cliente");
+    await assertOwned(t, ctx, schema.quote, input.quoteId, "El presupuesto");
     const start = input.startDate ?? todayAR();
     const spaceId = input.spaceId ?? (await defaultSpace(t, ctx, input.clientId));
     const def = tpl.definition as TemplateDefinition;
@@ -155,6 +160,8 @@ export async function updateProject(ctx: Ctx, id: string, raw: unknown) {
   return getDb().transaction(async (t) => {
     const [before] = await t.select().from(schema.project).where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
     if (!before) throw notFound("El proyecto");
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
+    await assertOwned(t, ctx, schema.client, input.clientId, "El cliente");
     const [row] = await t
       .update(schema.project)
       .set({
@@ -206,8 +213,9 @@ export async function setNextAction(ctx: Ctx, id: string, nextAction: string, al
   });
 }
 
-export async function setProjectStatus(ctx: Ctx, id: string, status: (typeof PROJECT_STATUSES)[number]) {
+export async function setProjectStatus(ctx: Ctx, id: string, rawStatus: (typeof PROJECT_STATUSES)[number]) {
   assertCan(ctx, "update", "project");
+  const status = z.enum(PROJECT_STATUSES).parse(rawStatus);
   return getDb().transaction(async (t) => {
     const [p] = await t.select().from(schema.project).where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
@@ -228,14 +236,16 @@ export async function addPhase(ctx: Ctx, projectId: string, raw: unknown) {
   assertCan(ctx, "update", "project");
   const input = z.object({ name: zRequired(120, "El nombre"), dueDate: zOptDate }).parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
     const [{ n } = { n: 0 }] = await t.select({ n: sql<number>`count(*)::int` }).from(schema.projectPhase).where(and(eq(schema.projectPhase.projectId, projectId), scoped(schema.projectPhase, ctx)));
     const [row] = await t.insert(schema.projectPhase).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, name: input.name, dueDate: input.dueDate ?? null, sort: n }).returning();
     return row;
   });
 }
 
-export async function setPhaseStatus(ctx: Ctx, phaseId: string, status: "pending" | "in_progress" | "done") {
+export async function setPhaseStatus(ctx: Ctx, phaseId: string, rawStatus: "pending" | "in_progress" | "done") {
   assertCan(ctx, "update", "project");
+  const status = z.enum(["pending", "in_progress", "done"]).parse(rawStatus);
   return getDb().transaction(async (t) => {
     const [row] = await t.update(schema.projectPhase).set({ status }).where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx))).returning();
     if (!row) throw notFound("La etapa");
@@ -265,8 +275,9 @@ export async function resolveBlocker(ctx: Ctx, blockerId: string) {
   return row;
 }
 
-export async function postponeBlocker(ctx: Ctx, blockerId: string, days = 3) {
+export async function postponeBlocker(ctx: Ctx, blockerId: string, rawDays = 3) {
   assertCan(ctx, "update", "project");
+  const days = zInt(1, 365).parse(rawDays);
   const [row] = await getDb().update(schema.blocker).set({ revisitOn: addDays(todayAR(), days) }).where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx))).returning();
   if (!row) throw notFound("El bloqueo");
   return row;
@@ -301,14 +312,16 @@ export async function addDeliverable(ctx: Ctx, projectId: string, raw: unknown) 
   assertCan(ctx, "update", "project");
   const input = z.object({ title: zRequired(200, "El título"), dueDate: zOptDate, contentMd: zOptText(5000) }).parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
     const [row] = await t.insert(schema.deliverable).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, ...input }).returning();
     await recordEvent(t, ctx, { type: "entrega.creada", entityType: "project", entityId: projectId, summary: `Agregó la entrega «${input.title}»` });
     return row;
   });
 }
 
-export async function setDeliverableStatus(ctx: Ctx, id: string, status: "pending" | "delivered" | "approved" | "changes_requested") {
+export async function setDeliverableStatus(ctx: Ctx, id: string, rawStatus: "pending" | "delivered" | "approved" | "changes_requested") {
   assertCan(ctx, "update", "project");
+  const status = z.enum(["pending", "delivered", "approved", "changes_requested"]).parse(rawStatus);
   return getDb().transaction(async (t) => {
     const [row] = await t
       .update(schema.deliverable)
@@ -326,6 +339,7 @@ export async function addChangelogEntry(ctx: Ctx, projectId: string, raw: unknow
   assertCan(ctx, "update", "project");
   const input = z.object({ title: zRequired(200, "El título"), bodyMd: zOptText(10000), version: zOptText(30) }).parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
     await addChangelog(t, ctx, projectId, input.title, input.version ? "release" : "manual", input.bodyMd, input.version);
     await recordEvent(t, ctx, { type: "proyecto.changelog", entityType: "project", entityId: projectId, summary: `Agregó al changelog: ${input.title}` });
   });

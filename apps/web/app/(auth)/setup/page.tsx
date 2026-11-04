@@ -10,7 +10,7 @@ export default async function SetupPage() {
     <>
       <h1 className="text-xl font-semibold">Configuración inicial</h1>
       <p className="mt-1 mb-6 text-sm text-text-muted">Creá la cuenta del dueño. Después vas a activar el 2FA (obligatorio).</p>
-      <SetupForm needsToken={Boolean(process.env.SETUP_TOKEN)} />
+      <SetupForm needsToken={Boolean(process.env.SETUP_TOKEN) || process.env.NODE_ENV === "production"} />
     </>
   );
 }

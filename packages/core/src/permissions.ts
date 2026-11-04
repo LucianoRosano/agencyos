@@ -28,7 +28,9 @@ export const DEFAULT_MCP_SCOPES = ["read:all", "write:inbox", "write:tasks", "wr
 export function can(ctx: Ctx, action: Action, resource: Resource): boolean {
   if (ctx.actor.type === "agent") {
     const scopes = ctx.scopes ?? [];
-    return scopes.some((s) => SCOPE_GRANTS[s]?.some(([r, acts]) => r === resource && acts.includes(action)));
+    const scopeOk = scopes.some((s) => SCOPE_GRANTS[s]?.some(([r, acts]) => r === resource && acts.includes(action)));
+    // El token nunca puede más que el rol de la persona que lo creó.
+    return scopeOk && can({ ...ctx, actor: { ...ctx.actor, type: "user" }, scopes: undefined }, action, resource);
   }
   if (ctx.actor.type === "system") return true;
   switch (ctx.role) {

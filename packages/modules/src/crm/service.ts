@@ -690,6 +690,8 @@ export async function unlinkQuote(ctx: Ctx, opportunityId: string, quoteId: stri
 export async function mergeClients(ctx: Ctx, duplicateId: string, targetId: string) {
   assertCan(ctx, "update", "crm");
   assertCan(ctx, "delete", "crm");
+  assertCan(ctx, "update", "finance");
+  assertCan(ctx, "update", "fiscal");
   const ids = z.object({ duplicateId: zUuid, targetId: z.string({ error: "Elegí el cliente destino" }).uuid("Elegí el cliente destino") }).parse({ duplicateId, targetId });
   if (ids.duplicateId === ids.targetId) throw validation("Elegí otro cliente: no se puede fusionar consigo mismo", { targetId: "Elegí otro cliente" });
   return getDb().transaction(async (t) => {

@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { and, asc, count, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { assertOwned, getDb, scoped } from "../shared/db";
 
 export const INBOX_TYPES = ["task", "note", "idea", "expense", "link"] as const;
 
@@ -25,6 +25,7 @@ export async function capture(ctx: Ctx, raw: unknown, source: "app" | "mcp" = "a
   assertCan(ctx, "create", "inbox");
   const input = captureInput.parse(raw);
   return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
     const [row] = await t
       .insert(schema.inboxItem)
       .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, text: input.text, suggestedType: input.suggestedType ?? guessType(input.text) ?? null, spaceId: input.spaceId ?? null, source })
@@ -64,6 +65,7 @@ export async function markProcessed(ctx: Ctx, id: string, result?: { type: strin
 }
 
 export async function unprocess(ctx: Ctx, id: string) {
+  assertCan(ctx, "create", "inbox");
   const [row] = await getDb()
     .update(schema.inboxItem)
     .set({ processedAt: null, resultEntityType: null, resultEntityId: null })
@@ -105,12 +107,15 @@ export async function convertToNote(ctx: Ctx, id: string, title?: string) {
 }
 
 export async function setItemSpace(ctx: Ctx, id: string, spaceId: string) {
+  assertCan(ctx, "create", "inbox");
+  await assertOwned(getDb(), ctx, schema.space, spaceId, "El espacio");
   const [row] = await getDb().update(schema.inboxItem).set({ spaceId }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
   if (!row) throw notFound("El ítem");
   return row;
 }
 
 export async function updateItemText(ctx: Ctx, id: string, text: string) {
+  assertCan(ctx, "create", "inbox");
   const parsed = zRequired(2000, "El texto").parse(text);
   const [row] = await getDb().update(schema.inboxItem).set({ text: parsed }).where(and(eq(schema.inboxItem.id, id), scoped(schema.inboxItem, ctx))).returning();
   if (!row) throw notFound("El ítem");

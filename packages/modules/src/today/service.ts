@@ -97,7 +97,12 @@ export async function saveTodayLayout(userId: string, layout: TodayLayout) {
 export async function logFocusSession(ctx: Ctx, raw: unknown) {
   const input = z.object({ taskId: z.string().uuid().optional(), startedAt: z.coerce.date(), minutes: zInt(1, 600), notesMd: z.string().max(20000).optional() }).parse(raw);
   if (!ctx.userId) throw validation("Sin usuario");
+  assertCan(ctx, "update", "task");
   return getDb().transaction(async (t) => {
+    if (input.taskId) {
+      const [own] = await t.select({ id: schema.task.id }).from(schema.task).where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx)));
+      if (!own) throw notFound("La tarea");
+    }
     const [row] = await t
       .insert(schema.focusSession)
       .values({ workspaceId: ctx.workspaceId, userId: ctx.userId as string, taskId: input.taskId ?? null, startedAt: input.startedAt, endedAt: new Date(), minutes: input.minutes, notesMd: input.notesMd })

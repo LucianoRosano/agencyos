@@ -31,7 +31,9 @@ export function buildMcpServer(ctx: Ctx) {
       return text(out);
     } catch (e) {
       const denied = e instanceof DomainError && e.code === "FORBIDDEN";
-      await audit(getDb(), ctx, { action: denied ? "mcp.denied" : "mcp.error", targetType: "tool", targetId: tool, after: { message: e instanceof Error ? e.message : String(e) } });
+      const message = e instanceof DomainError ? e.message : "error interno";
+      if (!(e instanceof DomainError)) console.error("[mcp]", tool, e);
+      await audit(getDb(), ctx, { action: denied ? "mcp.denied" : "mcp.error", targetType: "tool", targetId: tool, after: { code: e instanceof DomainError ? e.code : "INTERNAL", message } });
       const msg = e instanceof DomainError ? e.message : "Error interno al ejecutar la herramienta.";
       return { content: [{ type: "text", text: msg }], isError: true };
     }

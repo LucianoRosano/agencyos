@@ -2,7 +2,7 @@ import "server-only";
 import type { Ctx, Role } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getAuth } from "@agencyos/modules/auth/server";
-import { eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -24,9 +24,10 @@ export const requireCtx = cache(async (): Promise<AppCtx> => {
     .select({ m: schema.membership, w: schema.workspace })
     .from(schema.membership)
     .innerJoin(schema.workspace, eq(schema.workspace.id, schema.membership.workspaceId))
-    .where(eq(schema.membership.userId, s.user.id))
+    .where(and(eq(schema.membership.userId, s.user.id), eq(schema.membership.status, "active")))
+    .orderBy(asc(schema.membership.createdAt))
     .limit(1);
-  if (!m) redirect("/login?error=sin-workspace");
+  if (!m || m.m.role === "client") redirect("/login?error=sin-acceso");
   return {
     workspaceId: m.w.id,
     userId: s.user.id,

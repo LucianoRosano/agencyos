@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** Evita inyección de fórmulas en planillas en columnas de texto. */
 const text = (v: string | null | undefined) => {
-  const s = (v ?? "").replace(/\r?\n/g, " ");
+  const s = (v ?? "").replace(/[\r\n]+/g, " ");
   const safe = /^[=+\-@\t]/.test(s) ? `'${s}` : s;
   return /[";]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };

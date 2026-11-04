@@ -1,7 +1,7 @@
 import { getDb, type DbOrTx, type Tx } from "@agencyos/db";
-import type { Ctx } from "@agencyos/core";
+import { type Ctx, notFound } from "@agencyos/core";
 import { and, eq, isNull, type SQL } from "drizzle-orm";
-import type { PgColumn } from "drizzle-orm/pg-core";
+import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 
 export { getDb };
 
@@ -20,3 +20,22 @@ export async function tx<T>(fn: (t: Tx) => Promise<T>): Promise<T> {
 }
 
 export type { DbOrTx, Tx };
+
+
+/**
+ * Verifica que un id recibido del cliente pertenezca al workspace (y no esté en la papelera).
+ * Las tablas de negocio no tienen FKs: esta verificación es la barrera de aislamiento al escribir.
+ */
+export async function assertOwned(
+  db: DbOrTx,
+  ctx: Pick<Ctx, "workspaceId">,
+  // biome-ignore lint/suspicious/noExplicitAny: tabla genérica con id/workspaceId/deletedAt
+  table: PgTable & { id: any; workspaceId: any; deletedAt?: any },
+  id: string | null | undefined,
+  what: string,
+): Promise<void> {
+  if (!id) return;
+  // biome-ignore lint/suspicious/noExplicitAny: select genérico
+  const [row] = await (db as any).select({ id: table.id }).from(table).where(and(scoped(table, ctx, { withArchived: true }), eq(table.id, id))).limit(1);
+  if (!row) throw notFound(what);
+}

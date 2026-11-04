@@ -21,8 +21,8 @@ export async function listProjects(ctx: Ctx, f: ProjectFilters = {}) {
       spaceColor: schema.space.color,
     })
     .from(schema.project)
-    .leftJoin(schema.client, eq(schema.client.id, schema.project.clientId))
-    .leftJoin(schema.space, eq(schema.space.id, schema.project.spaceId))
+    .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+    .leftJoin(schema.space, and(eq(schema.space.id, schema.project.spaceId), eq(schema.space.workspaceId, schema.project.workspaceId)))
     .where(and(...where))
     .orderBy(asc(schema.project.priority), desc(schema.project.lastActivityAt))
     .limit(500);
@@ -33,8 +33,8 @@ export async function getProject(ctx: Ctx, id: string) {
   const [row] = await db
     .select({ p: schema.project, clientName: schema.client.name, spaceName: schema.space.name, spaceColor: schema.space.color })
     .from(schema.project)
-    .leftJoin(schema.client, eq(schema.client.id, schema.project.clientId))
-    .leftJoin(schema.space, eq(schema.space.id, schema.project.spaceId))
+    .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+    .leftJoin(schema.space, and(eq(schema.space.id, schema.project.spaceId), eq(schema.space.workspaceId, schema.project.workspaceId)))
     .where(and(eq(schema.project.id, id), scoped(schema.project, ctx, { withArchived: true })));
   if (!row) return null;
   const [phases, tasks, blockers, decisions, deliverables, changelog] = await Promise.all([

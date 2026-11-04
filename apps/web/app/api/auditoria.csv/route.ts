@@ -2,7 +2,12 @@ import { listAudit } from "@agencyos/modules/settings/service";
 import { requireCtx } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
-const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+/** Comillas + neutraliza fórmulas (=, +, -, @) y saltos de línea (CSV injection). */
+const esc = (v: unknown) => {
+  let t = String(v ?? "").replace(/[\r\n]+/g, " ");
+  if (/^[=+\-@\t]/.test(t)) t = `'${t}`;
+  return `"${t.replace(/"/g, '""')}"`;
+};
 
 export async function GET() {
   const ctx = await requireCtx();

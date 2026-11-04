@@ -42,7 +42,14 @@ async function setColumn(ctx: Ctx, type: string, id: string, column: "deletedAt"
 
 /** Manda a la papelera (30 días, restaurable). */
 export const moveToTrash = (ctx: Ctx, type: string, id: string) => setColumn(ctx, type, id, "deletedAt", new Date(), "eliminado", "Envió a la papelera");
-export const restoreFromTrash = (ctx: Ctx, type: string, id: string) => setColumn(ctx, type, id, "deletedAt", null, "restaurado", "Restauró");
+export async function restoreFromTrash(ctx: Ctx, type: string, id: string) {
+  // Los movimientos tienen pares (transferencias) y saldos asociados: los restaura Finanzas.
+  if (type === "transaction") {
+    const { deleteTransaction } = await import("../finance/service");
+    return deleteTransaction(ctx, id, true);
+  }
+  return setColumn(ctx, type, id, "deletedAt", null, "restaurado", "Restauró");
+}
 export const archive = (ctx: Ctx, type: string, id: string) => setColumn(ctx, type, id, "archivedAt", new Date(), "archivado", "Archivó");
 export const unarchive = (ctx: Ctx, type: string, id: string) => setColumn(ctx, type, id, "archivedAt", null, "desarchivado", "Desarchivó");
 
@@ -80,6 +87,7 @@ export async function purgeTrash(olderThanDays = 30): Promise<number> {
 }
 
 export async function purgeOne(ctx: Ctx, type: string, id: string) {
+  if (type === "transaction") throw validation("Los movimientos se eliminan definitivamente solos a los 30 días (con su par de transferencia).");
   const { table, resource } = resolve(type);
   assertCan(ctx, "delete", resource);
   return getDb().transaction(async (t) => {

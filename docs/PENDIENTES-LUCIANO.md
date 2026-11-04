@@ -1,0 +1,59 @@
+# Pendientes de Luciano
+
+**Actualizado:** 04/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+
+## A. Lo que tenés que hacer vos
+
+### Para publicar (en este orden)
+1. **Comprar el VPS** Hostinger KVM 2 (São Paulo, Ubuntu 24.04) — o KVM 1 si preferís menos pago adelantado — y **un dominio**. Todo lo demás ya está preparado: seguí `docs/DEPLOYMENT.md` paso a paso.
+2. **Cargar los secrets en GitHub** (Settings → Secrets and variables → Actions): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (el detalle está en `docs/DEPLOYMENT.md`). Con eso, cada push a `main` despliega solo a staging.
+3. **Guardar en Bitwarden** los secretos que genera `infra/scripts/first-setup.sh` (`AUTH_SECRET`, `APP_ENCRYPTION_KEY`, contraseñas de la base) y la contraseña de cifrado de los backups.
+4. Abrir `https://staging.<tu-dominio>/setup` con el `SETUP_TOKEN`, crear tu cuenta y **activar el 2FA** (guardá los 10 códigos de respaldo en Bitwarden).
+5. **Backups:** configurar rclone con tu Google Drive (lucianorosanott@gmail.com) una sola vez (comando en `docs/DEPLOYMENT.md`).
+6. **Producción:** cuando staging esté bien, aprobar el tag `v1.0.0` (te lo pido yo; nada va a producción sin tu OK).
+
+### Cuentas y claves (cuando quieras)
+- **Brevo** (gratis): crear la cuenta, verificar el remitente (ideal con tu dominio) y cargar `BREVO_API_KEY`. Habilita la recuperación de contraseña por email y el resumen diario por mail. Mientras tanto, la contraseña se restablece en el servidor con `pnpm admin reset-password lucianorosanott@gmail.com`.
+- **Claude por MCP:** en Configuración → Integraciones creá un token y pegá en tu PC el comando `claude mcp add …` que te muestra. Desde claude.ai hace falta el dominio con HTTPS.
+- **GitHub Student Developer Pack** (education.github.com, con tu constancia de la UNGS): da GitHub Pro gratis → protección de ramas en repos privados (y posible dominio gratis por un año).
+- **Renombrar este repo** a `prod-agencyos` (Settings → General → Repository name; GitHub deja redirección). Lo pediste como recordatorio; también se puede hacer en otra sesión con Claude.
+- Más adelante: API key gratuita de Google PageSpeed/CrUX (SEO, F4), Application Passwords de WordPress de cada sitio (monitoreo, F4), cuenta de API de Anthropic + tope mensual (agentes internos, F5).
+
+### Datos para cargar en AGENCYOS
+- Revisar la **carga inicial** (`pnpm admin import-inicial` muestra el plan; con `--aplicar` lo ejecuta): clientes y proyectos de tu contexto (A4), proyectos personales y los dos vencimientos (Claude Design 14/12/2026, certificado ARCA 27/10/2028). Ajustá lo que no esté bien desde la app.
+- **Cuentas de dinero** con saldo inicial, **suscripciones** (Claude, Hostinger, dominios, VPS) con montos y fechas, y el **catálogo de servicios** con precios (quedan como tareas en tu Bandeja).
+- **Materias y fechas** de la facultad.
+- Revisar el **texto base de los presupuestos** (Presupuestos → al crear uno; la plantilla base está en la base de datos) y tus datos en Configuración → Agencia (nombre "Luciano Rosano", email y WhatsApp 11 5526-0021 que aparecen en los PDFs).
+- ⚠️ **Exportar los diseños de LibreríaOS desde Claude Design antes del 14/12/2026** (también quedó como vencimiento en Hoy).
+
+## B. Lo que falta del programa (próxima pasada)
+Ordenado por valor. Ninguno bloquea el uso diario.
+
+### Fase 1 (MVP) — quedó afuera o parcial
+- **Repositorios + GitHub App** (M11): inventario, estándar con puntaje de salud, planes de organización con aprobación, webhooks. Necesita crear la GitHub App (con el dominio) y que definas qué repos ordenar.
+- **Organización inicial de tus repos** (doc 15 §4): hacerla desde Claude Code en tu PC (ahí está el código suelto y el acceso a Hostinger).
+- **Notificaciones push** (Web Push): requiere dominio con HTTPS y claves VAPID.
+- **Etiquetas** con UI propia en todas las listas (hoy solo hay etiquetas en Notas, vía frontmatter), **comentarios internos** (N10), **vistas guardadas** (N11) y el panel **"Conectado con"** en todas las fichas (hoy está en Notas y Cerebro).
+- Medición real de **LCP de Hoy en un celular** (Lighthouse CI sobre staging) y **tests visuales** con snapshots aprobados.
+- Oportunidades: "servicios de interés" (falta la tabla `opportunity_service`).
+
+### F2 · Producción de sitios
+- **Website Factory** completo (briefing, requerimientos, blueprint, contenidos, revisiones, checklist de 17 áreas, documentación).
+- **Biblioteca de archivos** (y con ella: adjuntos en movimientos/comprobantes, interacciones y notas; kit de marca).
+- **Activos técnicos:** dominios, hosting y certificados con vencimientos (hoy se cargan como "vencimientos" sueltos), productos propios e instalaciones.
+- Presupuestos: **envío por email + enlace público** con aceptación online ("Visto").
+
+### F3 · Conocimiento y tiempo
+- Revisión semanal guiada, plantillas de notas, adjuntos en notas, modo 3D del Cerebro, filtros por etiqueta/fecha en el Cerebro.
+- Finanzas completas: exportación XLSX/PDF, rentabilidad con horas y tarifa, comprobantes adjuntos.
+- Importador de Obsidian: no hace falta (arrancás de cero), queda la exportación compatible como salida de emergencia.
+
+### F4 · Operación y automatización
+- **SEO Auditor** (crawler con anti-SSRF, PageSpeed, CrUX, comparación, PDF).
+- **Centro de automatizaciones** configurable (reglas, plantillas, webhooks, modo prueba).
+- **Monitoreo de sitios** (uptime, SSL, dominio, versiones por WordPress REST).
+- Passkeys, importar chats de WhatsApp al CRM, etapas del pipeline editables.
+
+### F5 · IA y F6 · Equipo
+- Agentes internos con API (Business, PM, Web Architect, Content, SEO, QA, Code Reviewer, Research, Repo) con presupuestos, trazas y evals.
+- Colaboradores, portal de clientes, multi-workspace visible, términos y privacidad.

@@ -41,9 +41,9 @@ export async function listTasks(ctx: Ctx, opts: { view?: TaskView; projectId?: s
   return db
     .select(taskCols)
     .from(schema.task)
-    .leftJoin(schema.project, eq(schema.project.id, schema.task.projectId))
-    .leftJoin(schema.client, eq(schema.client.id, schema.project.clientId))
-    .leftJoin(schema.space, eq(schema.space.id, schema.task.spaceId))
+    .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+    .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+    .leftJoin(schema.space, and(eq(schema.space.id, schema.task.spaceId), eq(schema.space.workspaceId, schema.task.workspaceId)))
     .where(and(...where))
     .orderBy(...order)
     .limit(opts.limit ?? 300);
@@ -54,9 +54,9 @@ export async function getTask(ctx: Ctx, id: string) {
   const [row] = await db
     .select(taskCols)
     .from(schema.task)
-    .leftJoin(schema.project, eq(schema.project.id, schema.task.projectId))
-    .leftJoin(schema.client, eq(schema.client.id, schema.project.clientId))
-    .leftJoin(schema.space, eq(schema.space.id, schema.task.spaceId))
+    .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+    .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+    .leftJoin(schema.space, and(eq(schema.space.id, schema.task.spaceId), eq(schema.space.workspaceId, schema.task.workspaceId)))
     .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
   if (!row) return null;
   const [subtasks, checklist, phases] = await Promise.all([

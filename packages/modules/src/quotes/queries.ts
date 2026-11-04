@@ -1,4 +1,4 @@
-import { addDays, type Ctx, formatDate, formatMoney, L, label, todayAR } from "@agencyos/core";
+import { can, addDays, type Ctx, formatDate, formatMoney, L, label, todayAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import type { WorkspaceSettings } from "@agencyos/db/schema";
 import { and, asc, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
@@ -225,7 +225,8 @@ export type QuoteDocData = ReturnType<typeof buildQuoteDoc>;
 async function clientAndContact(ctx: Ctx, clientId: string | null | undefined, contactId: string | null | undefined) {
   const db = getDb();
   const [c] = clientId ? await db.select({ name: schema.client.name }).from(schema.client).where(and(eq(schema.client.id, clientId), scoped(schema.client, ctx, { withArchived: true }))) : [];
-  const [fh] = clientId
+  // Los datos fiscales solo se incluyen si el rol puede verlos (docs/08 §4).
+  const [fh] = clientId && can(ctx, "read", "fiscal")
     ? await db
         .select({ legalName: schema.clientFiscalHolder.legalName, taxId: schema.clientFiscalHolder.taxId })
         .from(schema.clientFiscalHolder)

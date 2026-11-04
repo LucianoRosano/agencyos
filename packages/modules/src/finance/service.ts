@@ -672,7 +672,8 @@ export async function registerCollection(ctx: Ctx, receivableId: string, raw: un
     const [r] = await t
       .select()
       .from(schema.receivable)
-      .where(and(eq(schema.receivable.id, receivableId), scoped(schema.receivable, ctx)));
+      .where(and(eq(schema.receivable.id, receivableId), scoped(schema.receivable, ctx)))
+      .for("update");
     if (!r) throw notFound("El cobro");
     if (r.status === "void") throw validation("El cobro está anulado");
     const remaining = subMoney(r.amount, r.paidAmount);
@@ -817,7 +818,8 @@ export async function registerPayablePayment(ctx: Ctx, payableId: string, raw: u
     const [p] = await t
       .select()
       .from(schema.payable)
-      .where(and(eq(schema.payable.id, payableId), scoped(schema.payable, ctx)));
+      .where(and(eq(schema.payable.id, payableId), scoped(schema.payable, ctx)))
+      .for("update");
     if (!p) throw notFound("El pago");
     if (p.status === "void") throw validation("El pago está anulado");
     const remaining = subMoney(p.amount, p.paidAmount);
