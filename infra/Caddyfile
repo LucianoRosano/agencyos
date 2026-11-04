@@ -1,0 +1,64 @@
+# AGENCYOS · Caddy (HTTPS automático con Let's Encrypt, compresión y cabeceras)
+# Variables (las pasa docker-compose desde infra/.env):
+#   APP_DOMAIN            dominio de producción (ej.: agencyos.com.ar)
+#   STAGING_DOMAIN        por defecto staging.APP_DOMAIN
+#   ACME_EMAIL            email para avisos de Let's Encrypt
+#   STAGING_BASIC_AUTH    on|off  (capa extra de usuario/contraseña delante de staging)
+#   STAGING_BASIC_AUTH_USER / STAGING_BASIC_AUTH_HASH (hash bcrypt de `caddy hash-password`)
+# La CSP con nonce la pone la app (apps/web/proxy.ts); acá van las cabeceras comunes y HSTS.
+
+# Caddy es el borde y no tiene `trusted_proxies`: descarta el X-Forwarded-For que mande el
+# cliente y lo reescribe con la IP real (la usan el rate limiting y el audit_log de la app).
+{
+	email {$ACME_EMAIL}
+}
+
+(security_headers) {
+	header {
+		defer
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+		-X-Powered-By
+	}
+}
+
+(common) {
+	encode zstd gzip
+	import security_headers
+	request_body {
+		max_size 25MB
+	}
+	log {
+		output stdout
+		format json
+	}
+}
+
+(staging_auth_off) {
+}
+
+(staging_auth_on) {
+	@protegido not path /api/health
+	basic_auth @protegido {
+		{$STAGING_BASIC_AUTH_USER} {$STAGING_BASIC_AUTH_HASH}
+	}
+}
+
+# ───────────── Producción ─────────────
+{$APP_DOMAIN:localhost} {
+	import common
+	reverse_proxy web:3000
+}
+
+# ───────────── Staging ─────────────
+{$STAGING_DOMAIN:staging.localhost} {
+	import common
+	header X-Robots-Tag "noindex, nofollow"
+	import staging_auth_{$STAGING_BASIC_AUTH:off}
+	reverse_proxy web-stg:3000
+}

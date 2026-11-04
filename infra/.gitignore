@@ -1,0 +1,9 @@
+# Estado local del VPS: historial de deploys, locks y estado de backups.
+.deploy/
+backups/
+# Configuración real de rclone (tokens de Google Drive y contraseñas de crypt).
+rclone/rclone.conf
+# Secretos (también cubiertos por el .gitignore raíz).
+.env
+.env.*
+!.env.example

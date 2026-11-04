@@ -1,0 +1,28 @@
+# AGENCYOS · plantilla de rclone (SIN secretos). El archivo real vive en el VPS en
+# ~/.config/rclone/rclone.conf del usuario de deploy (permisos 600) y NUNCA en el repo.
+#
+# Cómo se crea (ver docs/DEPLOYMENT.md, paso "Backups"):
+#   1. `rclone config` → n → nombre: gdrive → tipo: drive → scope: 3 (drive.file: solo ve lo que crea rclone)
+#      → sin client_id propio (o uno propio de Google Cloud para no compartir cuota)
+#      → "Use web browser to automatically authenticate?" = n → seguí las instrucciones con
+#        `rclone authorize "drive"` en tu PC e iniciá sesión con lucianorosanott@gmail.com.
+#   2. `rclone config` → n → nombre: agencyos-crypt → tipo: crypt → remote: gdrive:AGENCYOS-backups
+#      → filename_encryption: standard → directory_name_encryption: true
+#      → password: g (generar) → password2 (salt): g (generar)
+#      → GUARDÁ AMBAS en Bitwarden ("AGENCYOS · rclone crypt"). Sin ellas los backups son ilegibles.
+#   3. Probar: `rclone mkdir agencyos-crypt:prod && rclone lsd agencyos-crypt:`
+#
+# Así queda el archivo (los valores reales los escribe rclone, ofuscados):
+
+[gdrive]
+type = drive
+scope = drive.file
+# token = {"access_token":"…","refresh_token":"…"}   ← lo completa rclone
+
+[agencyos-crypt]
+type = crypt
+remote = gdrive:AGENCYOS-backups
+filename_encryption = standard
+directory_name_encryption = true
+# password = …    ← lo completa rclone (ofuscado; la contraseña real va a Bitwarden)
+# password2 = …   ← ídem (salt)

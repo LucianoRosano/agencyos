@@ -1,0 +1,16 @@
+# AGENCYOS · tareas programadas del host (lo instala infra/scripts/first-setup.sh en /etc/cron.d/agencyos).
+# Horas en la zona del servidor: harden-vps.sh la fija en America/Argentina/Buenos_Aires (ART).
+# __USER__ y __REPO__ se reemplazan al instalar.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# m  h  dom mon dow  usuario   comando
+# Backup diario de producción 03:00 ART (dump + archivos → Google Drive cifrado; 7/4/6).
+0    3  *   *   *    __USER__  cd __REPO__ && infra/scripts/backup.sh prod >>/var/log/agencyos/backup.log 2>&1
+
+# Prueba de restauración mensual (día 1, 04:30 ART): baja el último backup de Drive y lo restaura en un contenedor efímero.
+30   4  1   *   *    __USER__  cd __REPO__ && infra/scripts/restore-test.sh prod >>/var/log/agencyos/restore-test.log 2>&1
+
+# Limpieza semanal de caché de build de Docker (domingo 05:15 ART). Las imágenes las poda deploy.sh.
+15   5  *   *   0    __USER__  docker builder prune -f --filter until=336h >>/var/log/agencyos/docker-prune.log 2>&1

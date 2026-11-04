@@ -1,0 +1,71 @@
+name: Deploy staging
+
+# Cada push a main se despliega a https://staging.<dominio>.
+# Si todavía no hay VPS (faltan los secrets VPS_HOST/VPS_USER/VPS_SSH_KEY) el job se saltea con un aviso.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: ¿Hay VPS configurado?
+    runs-on: ubuntu-24.04
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -n "$VPS_HOST" ] && [ -n "$VPS_USER" ] && [ -n "$VPS_SSH_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy staging salteado::Faltan los secrets VPS_HOST, VPS_USER y/o VPS_SSH_KEY. Ver docs/DEPLOYMENT.md."
+          fi
+
+  deploy:
+    name: Deploy a staging
+    needs: check
+    if: needs.check.outputs.enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment:
+      name: staging
+    steps:
+      - name: Preparar SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "$VPS_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            echo "::warning::Sin VPS_KNOWN_HOSTS: se confía en la huella del primer contacto (cargalo para fijarla)."
+            ssh-keyscan -p "${VPS_PORT:-22}" -t ed25519 "$VPS_HOST" > ~/.ssh/known_hosts
+          fi
+      - name: Deploy (infra/scripts/deploy.sh staging)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        # La clave de CI está restringida en el VPS a infra/scripts/ci-ssh-gate.sh.
+        run: ssh -p "${VPS_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 "$VPS_USER@$VPS_HOST" "deploy staging $GITHUB_SHA"
+      - name: Limpiar clave
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
