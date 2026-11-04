@@ -1,6 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 import { expectNoHorizontalScroll, login, shot } from "./helpers";
 
+/** Captura sin los toasts encima (duran 8 s con "Deshacer" y tapan el contenido). */
+async function cleanShot(page: Page, name: string, project: string) {
+  const style = await page.addStyleTag({ content: "[data-sonner-toaster]{display:none !important}" });
+  await shot(page, name, project);
+  await style.evaluate((el) => el.remove());
+}
+
 async function moveTo(page: Page, title: string, stage: string, label: string) {
   const sel = page.getByLabel(`Etapa de «${title}»`);
   await sel.selectOption(stage);
@@ -55,10 +62,11 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await expect(page.getByText("Todavía no hay titulares fiscales.")).toBeVisible();
   await page.getByRole("button", { name: "Ocultar" }).click();
   await expectNoHorizontalScroll(page);
-  await shot(page, "crm-cliente-ficha", tag);
+  await cleanShot(page, "crm-cliente-ficha", tag);
 
   // Pipeline
-  await page.goto("/crm/oportunidades");
+  // Filtrado por título: la corrida es independiente de otras oportunidades de la base
+  await page.goto(`/crm/oportunidades?q=${encodeURIComponent(opp)}`);
   await expect(page.getByRole("link", { name: opp })).toBeVisible();
   await moveTo(page, opp, "contacted", "Contactado");
   await moveTo(page, opp, "meeting", "Reunión");
@@ -75,7 +83,7 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   // Suma ponderada en la columna: 1.500.000 × 40 %
   await expect(page.locator('section[data-stage="negotiation"]')).toContainText("$ 600.000");
   await expectNoHorizontalScroll(page);
-  await shot(page, "crm-pipeline-kanban", tag);
+  await cleanShot(page, "crm-pipeline-kanban", tag);
 
   // «Perdida» exige motivo (se cancela)
   await page.getByLabel(`Etapa de «${opp}»`).selectOption("lost");
@@ -98,17 +106,35 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await expect(page.getByLabel("Estado del cliente")).toHaveValue("active");
 
   // Vista tabla
-  await page.goto("/crm/oportunidades?vista=tabla");
+  await page.goto(`/crm/oportunidades?vista=tabla&q=${encodeURIComponent(opp)}`);
   await expect(page.getByLabel(`Etapa de «${opp}»`).first()).toHaveValue("won");
   await expectNoHorizontalScroll(page);
   await shot(page, "crm-pipeline-tabla", tag);
+
+  // Ficha de la oportunidad ganada
+  await page.getByRole("link", { name: opp }).first().click();
+  await page.waitForURL(/\/crm\/oportunidades\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: opp })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Crear proyecto" })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await cleanShot(page, "crm-oportunidad", tag);
+
+  // Todas las pestañas de la ficha del cliente responden y no desbordan
+  for (const t of ["contactos", "interacciones", "oportunidades", "proyectos", "presupuestos", "dinero", "actividad"]) {
+    await page.goto(`${clientUrl}/${t}`);
+    await expect(page.getByRole("heading", { name: client })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+  }
+  await expect(page.getByText("Ganó la oportunidad")).toBeVisible();
 
   // Listas de clientes y contactos
   await page.goto("/crm/clientes");
   await expect(page.getByRole("link", { name: client }).first()).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "crm-clientes", tag);
-  await page.goto("/crm/contactos");
-  await expect(page.getByRole("link", { name: "Sofía Prueba" }).first()).toBeVisible();
+  await page.goto("/crm/contactos?q=Sof%C3%ADa");
+  await page.getByRole("link", { name: "Sofía Prueba" }).first().click();
+  await page.waitForURL(/\/crm\/contactos\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: "Sofía Prueba" })).toBeVisible();
   await expectNoHorizontalScroll(page);
 });

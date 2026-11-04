@@ -440,8 +440,12 @@ export const interactionInput = z
 
 /** Fecha + hora de Argentina (UTC-3, sin horario de verano) → instante. */
 function arInstant(date?: string, time?: string) {
-  if (!date) return now();
-  return new Date(`${date}T${time ?? "12:00"}:00-03:00`);
+  const n = now();
+  if (!date) return n;
+  const at = new Date(`${date}T${time ?? "12:00"}:00-03:00`);
+  // Si es "este minuto" (los valores por defecto del formulario), se usa el instante exacto.
+  const diff = n.getTime() - at.getTime();
+  return diff >= 0 && diff < 60_000 ? n : at;
 }
 
 export async function logInteraction(ctx: Ctx, raw: unknown) {

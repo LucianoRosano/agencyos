@@ -5,7 +5,7 @@ import { cn, Dot } from "@agencyos/ui";
 import { CornerDownRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { dueTone, STAGE_COLOR, STAGE_ORDER, type StageKey, weightedByCurrency } from "./shared";
+import { dueTone, OPEN_STAGES, STAGE_COLOR, STAGE_ORDER, type StageKey, weightedByCurrency } from "./shared";
 import { type OppLite, type QuoteLite, StageSelect, useStageChange } from "./stage-change";
 
 export type PipelineOpp = OppLite & {
@@ -17,11 +17,11 @@ export type PipelineOpp = OppLite & {
   expectedClose: string | null;
 };
 
-function Money({ items, weighted = true, empty = "—" }: { items: PipelineOpp[]; weighted?: boolean; empty?: string }) {
+function Money({ items, weighted = true, empty = "—", inline }: { items: PipelineOpp[]; weighted?: boolean; empty?: string; inline?: boolean }) {
   const sums = weightedByCurrency(items, weighted);
   if (!sums.length) return <span className="text-text-faint">{empty}</span>;
   return (
-    <span className="flex flex-col items-end gap-0.5">
+    <span className={inline ? "flex flex-wrap gap-x-3 whitespace-nowrap" : "flex flex-col items-end gap-0.5 whitespace-nowrap"}>
       {sums.map(([cur, v]) => (
         <span key={cur}>{formatMoney(v, cur)}</span>
       ))}
@@ -75,7 +75,7 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
                     <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text-muted">{o.probability}%</td>
                     <td className="px-3 py-2.5 text-right font-mono text-[13px] text-text-muted"><Money items={[o]} /></td>
                     <td className="max-w-[240px] px-3 py-2.5">
-                      {o.nextAction ? (
+                      {o.nextAction && OPEN_STAGES.includes(o.stage) ? (
                         <span className="flex items-baseline gap-2"><span className="truncate text-text">{o.nextAction}</span>{due ? <span className={cn("shrink-0 font-mono text-[12px]", due.cls)}>{due.text}</span> : null}</span>
                       ) : <span className="text-text-faint">—</span>}
                     </td>
@@ -104,13 +104,29 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
 
   return (
     <>
-      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:thin] md:mx-0 md:px-0">
+      {/* Celular/tablet: columnas con scroll horizontal. Desktop ancho: 5 etapas abiertas arriba y cierres abajo, sin scroll. */}
+      <nav aria-label="Ir a la etapa" className="no-scrollbar -mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:px-0 xl:hidden">
+        {STAGE_ORDER.map((stage) => {
+          const n = items.filter((o) => o.stage === stage).length;
+          const cls = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-[12px] text-text-muted";
+          const inner = (
+            <>
+              <Dot color={STAGE_COLOR[stage] ?? "#8A93A6"} />
+              {L.stage[stage]}
+              <span className="font-mono text-text-faint">{n}</span>
+            </>
+          );
+          return n ? <a key={stage} href={`#etapa-${stage}`} className={cls}>{inner}</a> : <span key={stage} className={cn(cls, "opacity-60")}>{inner}</span>;
+        })}
+      </nav>
+      <div className="-mx-4 flex snap-x items-start gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:thin] md:mx-0 md:px-0 xl:grid xl:grid-cols-10 xl:items-stretch xl:overflow-visible xl:pb-0">
         {STAGE_ORDER.map((stage) => {
           const list = items.filter((o) => o.stage === stage);
           const closed = stage === "won" || stage === "lost";
           return (
             <section
               key={stage}
+              id={`etapa-${stage}`}
               aria-label={`${L.stage[stage]}: ${list.length}`}
               data-stage={stage}
               onDragOver={(e) => {
@@ -125,24 +141,27 @@ export function PipelineView({ opps, quotes, view }: { opps: PipelineOpp[]; quot
                 if (o) request(o, stage);
               }}
               className={cn(
-                "flex w-[82vw] max-w-[320px] shrink-0 snap-start flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface/60 p-2.5 transition-colors md:w-[264px]",
+                "flex w-[82vw] max-w-[320px] shrink-0 snap-start flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface/60 p-2.5 transition-colors md:w-[264px] xl:w-auto xl:max-w-none xl:min-w-0",
+                closed ? "xl:col-span-5" : "xl:col-span-2",
+                // En el celular no se arrastra: las columnas vacías se ocultan (los chips muestran el conteo)
+                list.length === 0 && "max-md:hidden",
                 over === stage && "border-accent bg-accent-soft/40",
               )}
             >
-              <header className="flex items-start justify-between gap-2 px-1.5 pt-1 pb-1.5">
-                <h2 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">
+              <header className="px-1.5 pt-1 pb-1.5">
+                <h2 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] whitespace-nowrap text-text-muted">
                   <Dot color={STAGE_COLOR[stage] ?? "#8A93A6"} />
                   {L.stage[stage]}
                   <span className="text-text-faint">{list.length}</span>
                 </h2>
-                <span className="text-right font-mono text-[12px] text-text" title={closed ? "Suma del valor" : "Suma ponderada (valor × probabilidad)"}>
-                  {stage === "lost" ? <span className="text-text-faint">—</span> : <Money items={list} weighted={!closed} empty="" />}
-                </span>
+                <p className="mt-1 min-h-[18px] font-mono text-[12px] text-text" title={closed ? "Suma del valor" : "Suma ponderada (valor × probabilidad)"}>
+                  {stage === "lost" ? null : <Money items={list} weighted={!closed} empty="" inline />}
+                </p>
               </header>
-              <ul className="flex flex-col gap-2">
+              <ul className={cn("flex flex-col gap-2", closed && "xl:grid xl:grid-cols-2")}>
                 {list.map((o) => <OppCard key={o.id} o={o} request={request} pending={pending} draggable />)}
               </ul>
-              {list.length === 0 ? <p className="px-1 py-6 text-center text-[12px] text-text-faint">Soltá acá</p> : null}
+              {list.length === 0 ? <p className={cn("px-1 text-center text-[12px] text-text-faint", closed ? "py-3" : "py-6")}>{closed ? `Sin oportunidades ${stage === "won" ? "ganadas" : "perdidas"} en los últimos 90 días` : "Vacía"}</p> : null}
             </section>
           );
         })}

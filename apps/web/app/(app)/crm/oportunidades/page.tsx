@@ -44,7 +44,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         description={
           open.length ? (
             <span className="font-mono text-[13px]">
-              {open.length} abiertas · ponderado {weighted.length ? weighted.map(([cur, v]) => formatMoney(v, cur)).join(" + ") : "—"}
+              {open.length} {open.length === 1 ? "abierta" : "abiertas"} · ponderado {weighted.length ? weighted.map(([cur, v]) => formatMoney(v, cur)).join(" + ") : "—"}
             </span>
           ) : undefined
         }

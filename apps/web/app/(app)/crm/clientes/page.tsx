@@ -11,6 +11,7 @@ import { requireCtx } from "@/lib/session";
 export const metadata = { title: "Clientes" };
 
 const FILTERS = ["todos", "prospect", "active", "paused", "finished", "archived"] as const;
+const PLURAL: Record<string, string> = { todos: "Todos", prospect: "Prospectos", active: "Activos", paused: "En pausa", finished: "Terminados", archived: "Archivados" };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
@@ -36,7 +37,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       <CrmNav active="clientes" />
       <FilterChips
         active={status ?? "todos"}
-        items={FILTERS.map((k) => ({ key: k, label: k === "todos" ? "Todos" : label(L.clientStatus, k), href: href(k), count: k === "todos" ? notArchived : (counts[k] ?? 0) }))}
+        items={FILTERS.map((k) => ({ key: k, label: PLURAL[k] ?? k, href: href(k), count: k === "todos" ? notArchived : (counts[k] ?? 0) }))}
       />
       <SearchBox action="/crm/clientes" q={sp.q} placeholder="Buscar por nombre, rubro o ciudad…" hidden={{ estado: sp.estado }} />
 

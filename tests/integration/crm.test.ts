@@ -204,6 +204,14 @@ describe("CRM", () => {
     await expect(moveToTrash(a, "client", cb.id)).rejects.toThrow();
   });
 
+  it("los campos opcionales vacíos de un formulario se aceptan como ausentes", async () => {
+    const ctx = await makeWorkspace();
+    const c = await createClient(ctx, { name: "Desde form", tradeName: "", industry: "", website: "", city: "", province: "", source: "", spaceId: "", notesMd: "", contactName: "", contactRole: "", contactEmail: "", contactPhone: "" });
+    expect(c.tradeName).toBeNull();
+    const o = await createOpportunity(ctx, { clientId: c.id, title: "X", valueAmount: "", nextAction: "", nextActionDue: "", expectedClose: "" });
+    expect(o.valueAmount).toBeNull();
+  });
+
   it("permisos MCP: write:crm crea; sin alcance no puede fusionar ni eliminar", async () => {
     const ctx = await makeWorkspace();
     const bot = agentCtx(ctx, ["read:all", "write:crm"]);

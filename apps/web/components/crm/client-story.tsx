@@ -73,10 +73,8 @@ export function ClientStory({
           {idx < shown.length - 1 ? <span aria-hidden className="absolute top-9 bottom-1 left-[15px] w-px bg-border" /> : null}
           <span className={cn("grid size-8 shrink-0 place-items-center rounded-full border [&>svg]:size-3.5", it.tone)}>{it.icon}</span>
           <div className="min-w-0 flex-1 pt-1">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-[14px] font-medium text-text">{it.title}</p>
-              {it.actions ? <div className="-mt-1.5 shrink-0">{it.actions}</div> : null}
-            </div>
+            <p className={cn("text-[14px] font-medium text-text", it.actions && "pr-10")}>{it.title}</p>
+            {it.actions ? <div className="absolute top-0 right-0">{it.actions}</div> : null}
             <p className="mt-0.5 font-mono text-[11px] text-text-faint" title={formatDateTime(it.at)}>
               {formatDateTime(it.at)} · {relativeFromDate(it.at)}{it.meta ? ` · ${it.meta}` : ""}
             </p>

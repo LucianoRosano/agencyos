@@ -1,7 +1,7 @@
 "use client";
 
 import { L } from "@agencyos/core";
-import { Button, cn, Menu, MenuItem, MenuSeparator, Select, Sheet } from "@agencyos/ui";
+import { Button, Menu, MenuItem, MenuSeparator, Select, Sheet } from "@agencyos/ui";
 import { Archive, ArchiveRestore, GitMerge, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -19,6 +19,7 @@ export function ClientStatusSelect({ id, status }: { id: string; status: string 
   const { exec, pending } = useAction();
   const [value, setValue] = useState(status);
   return (
+    <div className="w-40 shrink-0">
     <Select
       aria-label="Estado del cliente"
       value={value}
@@ -29,12 +30,12 @@ export function ClientStatusSelect({ id, status }: { id: string; status: string 
         setValue(next);
         exec(() => setClientStatusAction(id, next), { success: `Estado: ${L.clientStatus[next as keyof typeof L.clientStatus]}`, undo: () => setClientStatusAction(id, prev) });
       }}
-      className={cn("w-40")}
     >
       {Object.entries(L.clientStatus).map(([k, l]) => (
         <option key={k} value={k}>{l}</option>
       ))}
     </Select>
+    </div>
   );
 }
 
