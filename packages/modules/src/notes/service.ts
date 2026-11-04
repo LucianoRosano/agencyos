@@ -1,4 +1,4 @@
-import { assertCan, type Ctx, conflict, notFound, todayAR, validation, zDate, zOptDate, zOptText, zOptUuid, zRequired } from "@agencyos/core";
+import { assertCan, type Ctx, conflict, notFound, todayAR, validation, zDate, zOptDate, zOptUuid, zRequired } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
@@ -25,7 +25,8 @@ export const noteInput = z
   .object({
     title: zRequired(200, "El título"),
     spaceId: zOptUuid,
-    folderPath: zOptText(300),
+    // (zOptText de core falla con "" en zod 4: se usa el preprocess por fuera del optional)
+    folderPath: z.preprocess(emptyToUndef, z.string().trim().max(300, "Máximo 300 caracteres").optional()),
     bodyMd: z.string().max(500_000, "La nota es demasiado larga").optional(),
     entityType: z.preprocess(emptyToUndef, z.enum(NOTE_ENTITY_TYPES).optional()),
     entityId: zOptUuid,

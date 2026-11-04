@@ -21,7 +21,7 @@ const noteCols = {
   entityId: schema.note.entityId,
   spaceName: schema.space.name,
   spaceColor: schema.space.color,
-  snippet: sql<string>`left(regexp_replace(regexp_replace(${schema.note.bodyMd}, '^---.*?\\n---\\s*', ''), '[#>*_\`\\[\\]]+', '', 'g'), 180)`,
+  snippet: sql<string>`left(regexp_replace(regexp_replace(regexp_replace(${schema.note.bodyMd}, '^---.*?\\n---\\s*', ''), '[#>*_\`\\[\\]]+', '', 'g'), '\\s+', ' ', 'g'), 180)`,
 };
 
 /** Lista de notas: búsqueda de texto completo (tolerante a tildes y errores leves) + filtros, orden por modificación. */
@@ -140,7 +140,9 @@ export async function connectionsOf(ctx: Ctx, type: string, id: string) {
   const byType = new Map<string, string[]>();
   for (const c of acc.values()) byType.set(c.type, [...(byType.get(c.type) ?? []), c.id]);
   const titles = new Map<string, Titled>();
-  await Promise.all([...byType].map(async ([t, ids]) => (await entityTitles(ctx, t, ids)).forEach((v, k) => titles.set(`${t}:${k}`, v))));
+  await Promise.all([...byType].map(async ([t, ids]) => {
+    for (const [k, v] of await entityTitles(ctx, t, ids)) titles.set(`${t}:${k}`, v);
+  }));
   const list: Connection[] = [];
   for (const [key, c] of acc) {
     const t = titles.get(key);

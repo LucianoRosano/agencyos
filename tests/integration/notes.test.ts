@@ -121,7 +121,7 @@ describe("notas: frontmatter, carpetas, búsqueda y diaria", () => {
     expect(n.folderPath).toBe("Facultad/PSEC");
     expect(n.frontmatter).toMatchObject({ tags: ["facultad", "Parcial"] });
     expect(n.aliases).toEqual(["PSEC 1"]);
-    await createNote(ctx, { title: "Otra", bodyMd: "nada" });
+    await createNote(ctx, { title: "Otra", bodyMd: "nada", folderPath: "", spaceId: "", entityType: "", entityId: "" }); // formulario vacío
     expect((await listNotes(ctx, { folder: "Facultad" })).map((r) => r.id)).toEqual([n.id]);
     expect((await listNotes(ctx, { tag: "parcial" })).map((r) => r.id)).toEqual([n.id]);
     expect((await listNotes(ctx, { q: "programacion" })).map((r) => r.id)).toEqual([n.id]);
@@ -222,7 +222,7 @@ describe("notas: exportación y Cerebro", () => {
     await createNote(ctx, { title: "Glosario", aliases: "Términos" });
     const { data, count } = await exportNotesZip(ctx);
     expect(count).toBe(2);
-    const zip = readZip(data);
+    const zip = readZip(new Uint8Array(data));
     expect([...zip.keys()].sort()).toEqual(["Facultad/PSEC/Resumen- unidad 1.md", "Glosario.md"]);
     const md = zip.get("Facultad/PSEC/Resumen- unidad 1.md") ?? "";
     expect(md).toMatch(/^---\ntags:\n {2}- psec\ncreado: \d{4}-\d{2}-\d{2}\nactualizado: /);

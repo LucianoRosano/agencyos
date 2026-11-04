@@ -10,7 +10,7 @@ import { type Frontmatter, parseFrontmatter, safeFileName, stringifyFrontmatter 
  * Exporta todas las notas a un ZIP compatible con un vault de Obsidian:
  * un `.md` por nota (frontmatter YAML + cuerpo), respetando las carpetas.
  */
-export async function exportNotesZip(ctx: Ctx): Promise<{ data: Uint8Array; count: number; filename: string }> {
+export async function exportNotesZip(ctx: Ctx): Promise<{ data: ArrayBuffer; count: number; filename: string }> {
   assertCan(ctx, "read", "note");
   assertCan(ctx, "read", "export");
   const db = getDb();
@@ -36,7 +36,7 @@ export async function exportNotesZip(ctx: Ctx): Promise<{ data: Uint8Array; coun
     data.actualizado = toISODateAR(n.updatedAt);
     zip.file(path, `${stringifyFrontmatter(data)}${fm.body}`, { date: n.updatedAt });
   }
-  const data = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+  const data = await zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" });
   await audit(db, ctx, { action: "notes.exported", targetType: "note", after: { count: rows.length } });
   return { data, count: rows.length, filename: `agencyos-notas-${toISODateAR(new Date())}.zip` };
 }
