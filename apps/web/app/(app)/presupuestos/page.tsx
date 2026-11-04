@@ -70,7 +70,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
       </form>
       {rows.length ? (
         <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-          <div className="hidden grid-cols-[120px_minmax(0,1fr)_120px_150px_120px] gap-4 border-b border-border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint md:grid">
+          <div className="hidden grid-cols-[150px_minmax(0,1fr)_120px_150px_120px] gap-4 border-b border-border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint md:grid">
             <span>Número</span>
             <span>Presupuesto</span>
             <span>Estado</span>
@@ -84,9 +84,9 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                 <li key={q.id} className="border-b border-border last:border-0">
                   <Link
                     href={`/presupuestos/${q.id}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-4 py-3.5 transition-colors hover:bg-surface-2 md:grid-cols-[120px_minmax(0,1fr)_120px_150px_120px] md:items-center"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-4 py-3.5 transition-colors hover:bg-surface-2 md:grid-cols-[150px_minmax(0,1fr)_120px_150px_120px] md:items-center"
                   >
-                    <span className="font-mono text-[12px] text-text-muted md:text-[13px]">
+                    <span className="whitespace-nowrap font-mono text-[12px] text-text-muted md:text-[13px]">
                       {q.number}
                       {version && version > 1 ? <span className="text-text-faint"> · v{version}</span> : null}
                     </span>
