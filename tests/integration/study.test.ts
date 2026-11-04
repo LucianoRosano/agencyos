@@ -47,6 +47,12 @@ describe("facultad: materias y evaluaciones", () => {
     await expect(createCourse(ctx, { name: "X", finalGrade: "11" })).rejects.toThrow(/0 a 10/);
     const c = await createCourse(ctx, { name: "Mate", finalGrade: "8,5", status: "aprobada" });
     expect(c.finalGrade).toBe("8.50");
+    // un formulario con todos los opcionales vacíos (FormData → "")
+    const empty = await createCourse(ctx, { name: "Vacía", program: "", term: "", commission: "", teachers: "", status: "cursando", finalGrade: "", color: "", schedule: "[]", notesMd: "" });
+    expect(empty.program).toBeNull();
+    const a = await createAssessment(ctx, empty.id, { kind: "tp", title: "", date: "2030-01-01", time: "", topicsMd: "", targetGrade: "", grade: "" });
+    expect(a.title).toBeNull();
+    expect(a.grade).toBeNull();
   });
 
   it("edita la materia y cambia el estado", async () => {
