@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
-import { ChevronDown, Crosshair, Plus } from "lucide-react";
+import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { setSpaceAction } from "@/app/actions/shell";
@@ -21,6 +21,7 @@ export function Topbar({ data }: { data: ShellData }) {
           {title}
         </Link>
       </nav>
+      <BellLink count={data.counts.notifications ?? 0} />
       <Menu
         trigger={
           <button type="button" className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong">
@@ -64,5 +65,14 @@ export function Topbar({ data }: { data: ShellData }) {
         <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
       </Button>
     </header>
+  );
+}
+
+export function BellLink({ count, className }: { count: number; className?: string }) {
+  return (
+    <Link href="/notificaciones" aria-label={count ? `Notificaciones: ${count} sin leer` : "Notificaciones"} className={`relative grid size-10 place-items-center rounded-[9px] border border-border bg-surface text-text-muted hover:text-text ${className ?? ""}`}>
+      <Bell className="size-[18px]" />
+      {count ? <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 font-mono text-[10px] text-white">{count > 99 ? "99+" : count}</span> : null}
+    </Link>
   );
 }

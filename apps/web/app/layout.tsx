@@ -3,14 +3,14 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";
 import { Toaster } from "sonner";
+import { ServiceWorkerRegister } from "@/components/sw-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "AGENCYOS", template: "%s · AGENCYOS" },
   description: "Centro de mando de la agencia, los proyectos y el conocimiento de Luciano.",
   applicationName: "AGENCYOS",
-  manifest: "/manifest.webmanifest",
-  icons: { icon: "/icons/icon.svg", apple: "/icons/icon-192.png" },
+    icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: "AGENCYOS", statusBarStyle: "black-translucent" },
 };
@@ -44,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         {children}
+        <ServiceWorkerRegister />
         <Toaster
           theme={theme}
           position="bottom-right"

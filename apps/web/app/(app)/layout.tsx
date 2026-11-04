@@ -1,5 +1,6 @@
 import { getDb, schema } from "@agencyos/db";
 import { pendingCount } from "@agencyos/modules/inbox/service";
+import { unreadCount } from "@agencyos/modules/notifications/service";
 import { scoped } from "@agencyos/modules/shared/db";
 import { listSpacesWithCounts } from "@agencyos/modules/spaces/service";
 import { and, count, inArray, notInArray } from "drizzle-orm";
@@ -16,19 +17,20 @@ import { requireCtx } from "@/lib/session";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCtx();
   const db = getDb();
-  const [spaces, inbox, [projects], [clients], selectedSpace, theme] = await Promise.all([
+  const [spaces, inbox, [projects], [clients], selectedSpace, theme, unread] = await Promise.all([
     listSpacesWithCounts(ctx),
     pendingCount(ctx),
     db.select({ n: count() }).from(schema.project).where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived"]))),
     db.select({ n: count() }).from(schema.client).where(and(scoped(schema.client, ctx), inArray(schema.client.status, ["active", "prospect", "paused"]))),
     getSelectedSpace(),
     cookies().then((c) => c.get("ag-theme")?.value ?? "dark"),
+    unreadCount(ctx),
   ]);
   const data: ShellData = {
     user: { name: ctx.user.name, email: ctx.user.email },
     role: ctx.role,
     enabledModules: ctx.workspace.enabledModules,
-    counts: { inbox, projects: projects?.n ?? 0, clients: clients?.n ?? 0 },
+    counts: { inbox, projects: projects?.n ?? 0, clients: clients?.n ?? 0, notifications: unread },
     spaces: spaces.map((s) => ({ id: s.id, name: s.name, color: s.color, projects: s.projects })),
     selectedSpace,
     theme,
