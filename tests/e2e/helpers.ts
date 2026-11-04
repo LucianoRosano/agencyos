@@ -18,6 +18,7 @@ export async function login(page: Page) {
   if (page.url().includes("/setup")) {
     await page.fill("[name=password]", OWNER.password);
     await page.fill("[name=password2]", OWNER.password);
+    if (await page.locator("[name=token]").count()) await page.fill("[name=token]", process.env.E2E_SETUP_TOKEN ?? "e2e-setup-token");
     await page.click("button[type=submit]");
     await page.waitForURL("**/seguridad/2fa");
     await page.fill("[name=password]", OWNER.password);

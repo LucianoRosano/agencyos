@@ -38,14 +38,14 @@
   --border-strong: rgba(10, 12, 18, 0.18);
   --text: #0b0d12;
   --text-muted: #5a6275;
-  --text-faint: #6b7385;
+  --text-faint: #636b7d;
   --accent: #5b3df5;
   --accent-2: #0891b2;
   --accent-text: #5b3df5;
   --accent-soft: rgba(91, 61, 245, 0.1);
-  --success: #059669;
-  --warning: #b45309;
-  --danger: #e11d48;
+  --success: #047857;
+  --warning: #9a4508;
+  --danger: #be123c;
   --success-soft: rgba(5, 150, 105, 0.1);
   --warning-soft: rgba(180, 83, 9, 0.1);
   --danger-soft: rgba(225, 29, 72, 0.08);

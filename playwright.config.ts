@@ -41,6 +41,7 @@ export default defineConfig({
           AUTH_SECRET: "e2e-secret-0123456789abcdef0123456789abcdef",
           AUTH_HIBP: "off",
           AUTH_RATE_LIMIT: "off",
+          SETUP_TOKEN: "e2e-setup-token",
           APP_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111",
         },
       },
