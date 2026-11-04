@@ -1,6 +1,6 @@
 import {
   addDays, assertCan, type Ctx, conflict, formatMoney, fromCents, L, label, notFound, systemCtx, toCents, todayAR, validation, zBool, zCurrency, zDate, zMoney,
-  zOptMoney, zOptText, zOptUuid, zRequired,
+  zOptMoney, zOptUuid, zRequired,
 } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
@@ -15,6 +15,8 @@ export const QUOTE_STATUSES = ["draft", "sent", "viewed", "accepted", "rejected"
 export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 
 const emptyToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
+/** Texto opcional: "" → undefined (zOptText de core falla con strings vacíos en Zod 4). */
+const zOptStr = (max: number) => z.preprocess(emptyToUndef, z.string().trim().max(max, `Máximo ${max} caracteres`).optional());
 const emptyToZero = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? "0" : v);
 
 // --- Catálogo de servicios ---
@@ -22,13 +24,14 @@ const emptyToZero = (v: unknown) => (v === undefined || v === null || (typeof v 
 export const serviceInput = z
   .object({
     name: zRequired(160, "El nombre"),
-    descriptionMd: zOptText(20000),
-    deliverablesMd: zOptText(20000),
+    descriptionMd: zOptStr(20000),
+    deliverablesMd: zOptStr(20000),
     unit: z.enum(SERVICE_UNITS, { error: "Unidad inválida" }).default("project"),
     priceArs: zOptMoney,
     priceUsd: zOptMoney,
     projectTemplateId: zOptUuid,
-    active: zBool.default(false),
+    /** Sin dato → activo. El formulario manda "false" (oculto) y "on" (casilla). */
+    active: z.preprocess((v) => (v === undefined ? true : v), zBool),
   });
 
 async function assertTemplate(t: Tx, ctx: Ctx, id: string | undefined) {
@@ -142,11 +145,11 @@ export const quoteInput = z
     exchangeRateRef: zRate,
     issueDate: zDate,
     validUntil: zDate,
-    introMd: zOptText(20000),
-    scopeMd: zOptText(20000),
-    exclusionsMd: zOptText(20000),
-    termsMd: zOptText(20000),
-    notesMd: zOptText(20000),
+    introMd: zOptStr(20000),
+    scopeMd: zOptStr(20000),
+    exclusionsMd: zOptStr(20000),
+    termsMd: zOptStr(20000),
+    notesMd: zOptStr(20000),
     items: z.array(quoteItemInput, { error: "Agregá al menos un ítem" }).min(1, "Agregá al menos un ítem").max(100, "Máximo 100 ítems"),
     globalDiscountType: z.enum(DISCOUNT_TYPES).default("none"),
     globalDiscountValue: zPercentOrAmount,
@@ -474,7 +477,7 @@ export async function acceptQuote(ctx: Ctx, id: string, raw: unknown) {
 
 export async function rejectQuote(ctx: Ctx, id: string, reason?: string | null) {
   assertCan(ctx, "update", "quote");
-  const why = zOptText(500).parse(reason ?? undefined);
+  const why = zOptStr(500).parse(reason ?? undefined);
   return getDb().transaction(async (t) => {
     const { q } = await loadQuote(t, ctx, id);
     if (!["sent", "viewed", "expired"].includes(q.status)) throw conflict("Solo se puede rechazar un presupuesto enviado.");

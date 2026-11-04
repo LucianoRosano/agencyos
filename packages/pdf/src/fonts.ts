@@ -13,11 +13,11 @@ export function geistFontPath(): string | null {
   const cwd = process.cwd();
   const bases = [path.join(cwd, "package.json"), path.join(cwd, "apps", "web", "package.json"), path.join(cwd, "..", "web", "package.json"), path.join(cwd, "..", "..", "apps", "web", "package.json")];
   for (const base of bases) {
-    if (!existsSync(base)) continue;
+    if (!existsSync(/*turbopackIgnore: true*/ base)) continue;
     try {
       const entry = createRequire(base).resolve("geist/font/sans"); // …/geist/dist/sans.js
       const file = path.join(path.dirname(entry), REL);
-      if (existsSync(file)) return file;
+      if (existsSync(/*turbopackIgnore: true*/ file)) return file;
     } catch {
       // probar la siguiente base
     }
@@ -29,7 +29,7 @@ let fontCache: Buffer | null | undefined;
 export function geistFontBuffer(): Buffer | null {
   if (fontCache === undefined) {
     const p = geistFontPath();
-    fontCache = p ? readFileSync(p) : null;
+    fontCache = p ? readFileSync(/*turbopackIgnore: true*/ p) : null;
   }
   return fontCache;
 }

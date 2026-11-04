@@ -61,8 +61,10 @@ describe("presupuestos", () => {
   it("calcula los totales en el servidor (descuento por ítem y global)", async () => {
     const ctx = await makeWorkspace();
     const c = await makeClient(ctx);
-    const q = await createQuote(ctx, baseQuote(c.id));
+    // los formularios mandan "" en los textos vacíos
+    const q = await createQuote(ctx, baseQuote(c.id, { introMd: "", notesMd: "", exchangeRateRef: "", contactId: "" }));
     const d = await getQuote(ctx, q.id);
+    expect(d?.current?.introMd).toBeNull();
     expect(d?.current?.subtotal).toBe("445000.00");
     expect(d?.current?.discountTotal).toBe("60250.00");
     expect(d?.current?.total).toBe("384750.00");
@@ -143,7 +145,7 @@ describe("presupuestos", () => {
     const ctx = await makeWorkspace();
     const c = await makeClient(ctx);
     const tpl = (await listTemplates(ctx)).find((t) => t.key === "tienda-online");
-    const svc = await createService(ctx, { name: "Tienda online", unit: "project", priceArs: "300000", projectTemplateId: tpl?.id, active: "on" });
+    const svc = await createService(ctx, { name: "Tienda online", unit: "project", priceArs: "300000", priceUsd: "", descriptionMd: "", projectTemplateId: tpl?.id, active: "on" });
     const q = await createQuote(
       ctx,
       baseQuote(c.id, {
