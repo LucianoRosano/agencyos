@@ -26,13 +26,10 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
   const view = (VIEWS.find((v) => v.key === sp.ver)?.key ?? "hoy") as TaskView;
   const board = sp.vista === "kanban";
   const spaceId = await getSelectedSpace();
-  const [rows, projects, spaces] = await Promise.all([
-    listTasks(ctx, { view: board ? "todas" : view, spaceId, q: sp.q }),
-    projectOpts(ctx),
-    spaceOpts(ctx),
-  ]);
+  const [rows, projects, spaces] = await Promise.all([listTasks(ctx, { view: board ? "todas" : view, spaceId, q: sp.q }), projectOpts(ctx), spaceOpts(ctx)]);
   const tasks: TaskRowData[] = rows.map((r) => ({ ...r.t, projectName: r.projectName, clientName: r.clientName, spaceColor: r.spaceColor }));
-  const qs = (o: Record<string, string>) => `/tareas?${new URLSearchParams({ ...(sp.ver ? { ver: sp.ver } : {}), ...(sp.vista ? { vista: sp.vista } : {}), ...o })}`;
+  const qs = (o: Record<string, string>) =>
+    `/tareas?${new URLSearchParams({ ...(sp.ver ? { ver: sp.ver } : {}), ...(sp.vista ? { vista: sp.vista } : {}), ...o })}`;
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
@@ -42,9 +39,21 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
         actions={
           <>
             <Button asChild variant="ghost" size="sm" aria-label={board ? "Ver como lista" : "Ver como kanban"}>
-              <Link href={board ? qs({ vista: "lista" }) : qs({ vista: "kanban" })}>{board ? <List className="size-4" /> : <Columns3 className="size-4" />} {board ? "Lista" : "Kanban"}</Link>
+              <Link href={board ? qs({ vista: "lista" }) : qs({ vista: "kanban" })}>
+                {board ? <List className="size-4" /> : <Columns3 className="size-4" />} {board ? "Lista" : "Kanban"}
+              </Link>
             </Button>
-            <NewTaskSheet projects={projects} spaces={spaces} defaults={{ dueDate: view === "hoy" ? todayAR() : "", spaceId: spaceId ?? "" }} openInitially={sp.nueva === "1"} trigger={<Button variant="primary"><Plus className="size-4" /> Nueva tarea</Button>} />
+            <NewTaskSheet
+              projects={projects}
+              spaces={spaces}
+              defaults={{ dueDate: view === "hoy" ? todayAR() : "", spaceId: spaceId ?? "" }}
+              openInitially={sp.nueva === "1"}
+              trigger={
+                <Button variant="primary">
+                  <Plus className="size-4" /> Nueva tarea
+                </Button>
+              }
+            />
           </>
         }
       />
@@ -52,12 +61,21 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
       <form className="mb-4" action="/tareas">
         {sp.ver ? <input type="hidden" name="ver" value={sp.ver} /> : null}
         {sp.vista ? <input type="hidden" name="vista" value={sp.vista} /> : null}
-        <input name="q" defaultValue={sp.q} placeholder="Buscar en tareas…" className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm" />
+        <input
+          name="q"
+          defaultValue={sp.q}
+          placeholder="Buscar en tareas…"
+          className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm"
+        />
       </form>
       {board ? (
         <TaskBoard tasks={tasks} />
       ) : tasks.length ? (
-        <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">{tasks.map((t) => <TaskRow key={t.id} task={t} />)}</ul>
+        <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">
+          {tasks.map((t) => (
+            <TaskRow key={t.id} task={t} />
+          ))}
+        </ul>
       ) : (
         <EmptyState
           icon={<CircleCheck />}

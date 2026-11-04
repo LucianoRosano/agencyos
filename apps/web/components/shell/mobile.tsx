@@ -4,10 +4,10 @@ import { Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
 import { Brain, BriefcaseBusiness, FileText, FolderKanban, Plus, Sun, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Logo } from "@/components/logo";
 import { setSpaceAction } from "@/app/actions/shell";
-import { BottomLink } from "./nav-link";
+import { Logo } from "@/components/logo";
 import { navFor } from "./nav-config";
+import { BottomLink } from "./nav-link";
 import { openCapture, SearchIconButton } from "./palette-trigger";
 import { initials, type ShellData } from "./sidebar";
 
@@ -23,7 +23,11 @@ export function MobileHeader({ data }: { data: ShellData }) {
         <SearchIconButton />
         <Menu
           trigger={
-            <button type="button" aria-label="Más: módulos y configuración" className="grid size-11 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold">
+            <button
+              type="button"
+              aria-label="Más: módulos y configuración"
+              className="grid size-11 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold"
+            >
               {initials(data.user.name)}
             </button>
           }
@@ -36,11 +40,23 @@ export function MobileHeader({ data }: { data: ShellData }) {
           ))}
           <MenuSeparator />
           <MenuLabel>Espacio</MenuLabel>
-          <MenuItem onSelect={async () => { await setSpaceAction("all"); router.refresh(); }}>
+          <MenuItem
+            onSelect={async () => {
+              await setSpaceAction("all");
+              router.refresh();
+            }}
+          >
             {!data.selectedSpace ? "● " : ""}Todos los espacios
           </MenuItem>
           {data.spaces.map((s) => (
-            <MenuItem key={s.id} icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />} onSelect={async () => { await setSpaceAction(s.id); router.refresh(); }}>
+            <MenuItem
+              key={s.id}
+              icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />}
+              onSelect={async () => {
+                await setSpaceAction(s.id);
+                router.refresh();
+              }}
+            >
               {data.selectedSpace === s.id ? "● " : ""}
               {s.name}
             </MenuItem>
@@ -74,7 +90,11 @@ export function BottomNav({ data }: { data: ShellData }) {
           <Plus className="size-7" strokeWidth={2} />
         </button>
       </div>
-      {hasNotes ? <BottomLink href="/notas" icon={<FileText />} label="Notas" /> : <BottomLink href="/crm/clientes" match="/crm" icon={<BriefcaseBusiness />} label="CRM" />}
+      {hasNotes ? (
+        <BottomLink href="/notas" icon={<FileText />} label="Notas" />
+      ) : (
+        <BottomLink href="/crm/clientes" match="/crm" icon={<BriefcaseBusiness />} label="CRM" />
+      )}
       {hasBrain ? <BottomLink href="/cerebro" icon={<Brain />} label="Cerebro" /> : <BottomLink href="/finanzas" icon={<Wallet />} label="Finanzas" />}
     </nav>
   );

@@ -88,8 +88,5 @@ export const assessment = pgTable(
     targetGrade: numeric("target_grade", { precision: 4, scale: 2 }),
     grade: numeric("grade", { precision: 4, scale: 2 }),
   },
-  (t) => [
-    index("assessment_course").on(t.courseId, t.date),
-    check("assessment_kind", sql`${t.kind} in ('parcial','tp','final','recuperatorio','otro')`),
-  ],
+  (t) => [index("assessment_course").on(t.courseId, t.date), check("assessment_kind", sql`${t.kind} in ('parcial','tp','final','recuperatorio','otro')`)],
 );

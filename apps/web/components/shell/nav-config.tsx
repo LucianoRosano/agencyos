@@ -1,6 +1,16 @@
 import {
-  Brain, BriefcaseBusiness, Calendar, ChartNoAxesCombined, CircleCheck, FileSignature, FileText, FolderKanban,
-  GraduationCap, Inbox, Sun, Wallet,
+  Brain,
+  BriefcaseBusiness,
+  Calendar,
+  ChartNoAxesCombined,
+  CircleCheck,
+  FileSignature,
+  FileText,
+  FolderKanban,
+  GraduationCap,
+  Inbox,
+  Sun,
+  Wallet,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -27,9 +37,26 @@ export function navFor(enabled: string[]) {
 
 /** Títulos de migas por prefijo de ruta. */
 export const ROUTE_TITLES: [string, string][] = [
-  ["/hoy", "Hoy"], ["/negocio", "Negocio"], ["/bandeja", "Bandeja"], ["/proyectos/plantillas", "Plantillas"], ["/proyectos", "Proyectos"],
-  ["/tareas", "Tareas"], ["/crm/contactos", "Contactos"], ["/crm/oportunidades", "Oportunidades"], ["/crm", "Clientes"],
-  ["/presupuestos/servicios", "Servicios"], ["/presupuestos", "Presupuestos"], ["/finanzas", "Finanzas"], ["/notas", "Notas"],
-  ["/cerebro", "Cerebro"], ["/calendario", "Calendario"], ["/facultad", "Facultad"], ["/foco", "Modo foco"], ["/papelera", "Papelera"],
-  ["/configuracion", "Configuración"], ["/espacios", "Espacios"], ["/actividad", "Actividad"], ["/notificaciones", "Notificaciones"],
+  ["/hoy", "Hoy"],
+  ["/negocio", "Negocio"],
+  ["/bandeja", "Bandeja"],
+  ["/proyectos/plantillas", "Plantillas"],
+  ["/proyectos", "Proyectos"],
+  ["/tareas", "Tareas"],
+  ["/crm/contactos", "Contactos"],
+  ["/crm/oportunidades", "Oportunidades"],
+  ["/crm", "Clientes"],
+  ["/presupuestos/servicios", "Servicios"],
+  ["/presupuestos", "Presupuestos"],
+  ["/finanzas", "Finanzas"],
+  ["/notas", "Notas"],
+  ["/cerebro", "Cerebro"],
+  ["/calendario", "Calendario"],
+  ["/facultad", "Facultad"],
+  ["/foco", "Modo foco"],
+  ["/papelera", "Papelera"],
+  ["/configuracion", "Configuración"],
+  ["/espacios", "Espacios"],
+  ["/actividad", "Actividad"],
+  ["/notificaciones", "Notificaciones"],
 ];

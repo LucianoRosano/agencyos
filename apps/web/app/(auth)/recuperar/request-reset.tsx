@@ -16,7 +16,9 @@ export function RequestReset({ emailOk }: { emailOk: boolean }) {
           El envío de mails (Brevo) todavía no está configurado. Mientras tanto, la contraseña se restablece desde el servidor con:
         </p>
         <pre className="overflow-x-auto rounded-lg bg-surface-2 p-3 font-mono text-[12px]">pnpm admin reset-password</pre>
-        <Link href="/login" className="text-[13px] text-text-muted underline">Volver</Link>
+        <Link href="/login" className="text-[13px] text-text-muted underline">
+          Volver
+        </Link>
       </div>
     );
   }
@@ -25,7 +27,9 @@ export function RequestReset({ emailOk }: { emailOk: boolean }) {
       <div className="flex flex-col gap-3">
         <h1 className="text-xl font-semibold">Revisá tu email</h1>
         <p className="text-sm text-text-muted">Si el email corresponde al dueño, te llegó un enlace que vence en 15 minutos.</p>
-        <Link href="/login" className="text-[13px] text-text-muted underline">Volver</Link>
+        <Link href="/login" className="text-[13px] text-text-muted underline">
+          Volver
+        </Link>
       </div>
     );
   }
@@ -44,8 +48,12 @@ export function RequestReset({ emailOk }: { emailOk: boolean }) {
       <Field label="Email del dueño" name="email">
         <Input id="email" name="email" type="email" required autoFocus />
       </Field>
-      <Button type="submit" variant="primary" loading={pending}>Enviar enlace</Button>
-      <Link href="/login" className="text-center text-[13px] text-text-muted underline">Volver</Link>
+      <Button type="submit" variant="primary" loading={pending}>
+        Enviar enlace
+      </Button>
+      <Link href="/login" className="text-center text-[13px] text-text-muted underline">
+        Volver
+      </Link>
     </form>
   );
 }

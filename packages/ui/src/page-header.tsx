@@ -39,7 +39,9 @@ export function Tabs({ items, active }: { items: { href: string; label: string; 
           aria-current={active === it.key ? "page" : undefined}
           className={cn(
             "relative flex h-10 shrink-0 items-center gap-2 px-3 text-sm transition-colors",
-            active === it.key ? "text-text after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-[image:var(--gradient)]" : "text-text-muted hover:text-text",
+            active === it.key
+              ? "text-text after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-[image:var(--gradient)]"
+              : "text-text-muted hover:text-text",
           )}
         >
           {it.label}

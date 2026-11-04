@@ -18,7 +18,7 @@ test("asistente de arranque con la plantilla Tienda → primera acción en Hoy @
   await expect(page.getByRole("heading", { name: `Tienda e2e ${info.project.name}` })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "proyecto-ficha", info.project.name);
-  await page.goto("/proyectos/" + page.url().split("/").pop() + "/etapas");
+  await page.goto(`/proyectos/${page.url().split("/").pop()}/etapas`);
   await expect(page.getByText("Checklist de lanzamiento")).toBeVisible();
   await page.goto("/tareas?ver=hoy");
   await expect(page.getByText(`Primera acción ${info.project.name}`)).toBeVisible();

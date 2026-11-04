@@ -10,7 +10,7 @@ export function toCents(value: string | number): bigint {
   const neg = s.startsWith("-");
   const [int = "0", dec = ""] = s.replace("-", "").split(".");
   // redondeo half-up al centavo
-  const d3 = (dec + "000").slice(0, 3);
+  const d3 = `${dec}000`.slice(0, 3);
   let cents = BigInt(int) * 100n + BigInt(d3.slice(0, 2));
   if (Number(d3[2]) >= 5) cents += 1n;
   return neg ? -cents : cents;

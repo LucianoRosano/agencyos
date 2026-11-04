@@ -36,7 +36,16 @@ export async function seedStructure(t: Tx, workspaceId: string, userId: string) 
   ];
   await t.insert(schema.category).values(cats);
   await t.insert(schema.projectTemplate).values(
-    PROJECT_TEMPLATES.map((tpl, i) => ({ workspaceId, key: tpl.key, name: tpl.name, kind: tpl.kind, description: tpl.description, definition: tpl.definition, sort: i, createdBy: userId })),
+    PROJECT_TEMPLATES.map((tpl, i) => ({
+      workspaceId,
+      key: tpl.key,
+      name: tpl.name,
+      kind: tpl.kind,
+      description: tpl.description,
+      definition: tpl.definition,
+      sort: i,
+      createdBy: userId,
+    })),
   );
   await t.insert(schema.quoteTemplate).values({ workspaceId, ...DEFAULT_QUOTE_TEMPLATE, isDefault: true, createdBy: userId });
   return { spaces, ledgers };

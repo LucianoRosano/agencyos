@@ -3,7 +3,11 @@ import { cn } from "@agencyos/ui";
 /** Isotipo cuadrado con borde cónico Plasma/Ion + "AGENCYOS" en mono espaciado con "OS" en gradiente. */
 export function Isotype({ className }: { className?: string }) {
   return (
-    <span aria-hidden className={cn("relative inline-grid size-7 shrink-0 place-items-center rounded-[8px] p-[2px]", className)} style={{ background: "conic-gradient(from 210deg, #7C5CFF, #22D3EE, #7C5CFF)" }}>
+    <span
+      aria-hidden
+      className={cn("relative inline-grid size-7 shrink-0 place-items-center rounded-[8px] p-[2px]", className)}
+      style={{ background: "conic-gradient(from 210deg, #7C5CFF, #22D3EE, #7C5CFF)" }}
+    >
       <span className="grid size-full place-items-center rounded-[6px] bg-bg">
         <span className="size-2.5 rounded-[3px] bg-[image:var(--gradient)]" />
       </span>

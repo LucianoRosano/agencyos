@@ -1,9 +1,9 @@
 "use server";
 
+import { timingSafeEqual } from "node:crypto";
 import { type Result, toResultError, validation } from "@agencyos/core";
 import { getAuth } from "@agencyos/modules/auth/server";
 import { createOwner } from "@agencyos/modules/setup/service";
-import { timingSafeEqual } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";

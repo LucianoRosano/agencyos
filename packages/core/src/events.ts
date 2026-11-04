@@ -1,4 +1,4 @@
-import { schema, type DbOrTx } from "@agencyos/db";
+import { type DbOrTx, schema } from "@agencyos/db";
 import type { Ctx } from "./context";
 
 export type EventInput = {

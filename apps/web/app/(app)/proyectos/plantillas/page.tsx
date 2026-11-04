@@ -12,7 +12,12 @@ export default async function TemplatesPage() {
   const templates = await listTemplates(ctx);
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader eyebrow="Proyectos" title="Plantillas" description="Generan etapas, tareas fechadas, checklist, nota inicial y preguntas al cliente. Guardá cualquier proyecto como plantilla desde su menú." accent="#7C5CFF" />
+      <PageHeader
+        eyebrow="Proyectos"
+        title="Plantillas"
+        description="Generan etapas, tareas fechadas, checklist, nota inicial y preguntas al cliente. Guardá cualquier proyecto como plantilla desde su menú."
+        accent="#7C5CFF"
+      />
       <div className="grid gap-4 md:grid-cols-2">
         {templates.map((t) => (
           <Card key={t.id} className="flex flex-col gap-3 p-5">
@@ -23,6 +28,7 @@ export default async function TemplatesPage() {
             </div>
             <ol className="flex flex-wrap gap-1.5">
               {t.definition.phases.map((p, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista estática de una plantilla; dos etapas pueden llamarse igual
                 <li key={`${p.name}-${i}`} className="rounded-md border border-border px-2 py-0.5 text-[12px] text-text-muted">
                   {p.name} <span className="font-mono text-text-faint">{p.tasks.length}</span>
                 </li>
@@ -30,7 +36,9 @@ export default async function TemplatesPage() {
             </ol>
             <div className="mt-auto flex items-center justify-between pt-2">
               {t.key ? <span className="text-[12px] text-text-faint">Plantilla inicial</span> : <DeleteTemplateButton id={t.id} name={t.name} />}
-              <Button asChild variant="primary" size="sm"><Link href={`/proyectos/nuevo?plantilla=${t.id}`}>Usar</Link></Button>
+              <Button asChild variant="primary" size="sm">
+                <Link href={`/proyectos/nuevo?plantilla=${t.id}`}>Usar</Link>
+              </Button>
             </div>
           </Card>
         ))}

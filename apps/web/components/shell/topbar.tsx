@@ -23,8 +23,15 @@ export function Topbar({ data }: { data: ShellData }) {
       </nav>
       <Menu
         trigger={
-          <button type="button" className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong">
-            <span aria-hidden className="size-2.5 rounded-full" style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }} />
+          <button
+            type="button"
+            className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong"
+          >
+            <span
+              aria-hidden
+              className="size-2.5 rounded-full"
+              style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+            />
             {selected ? selected.name : "Todos los espacios"}
             <ChevronDown className="size-4 text-text-muted" />
           </button>

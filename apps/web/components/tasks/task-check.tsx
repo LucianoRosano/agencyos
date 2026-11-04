@@ -3,7 +3,19 @@
 import { cn } from "@agencyos/ui";
 import { Check } from "lucide-react";
 
-export function TaskCheck({ done, onToggle, label, size = "md", disabled }: { done: boolean; onToggle: () => void; label: string; size?: "md" | "lg"; disabled?: boolean }) {
+export function TaskCheck({
+  done,
+  onToggle,
+  label,
+  size = "md",
+  disabled,
+}: {
+  done: boolean;
+  onToggle: () => void;
+  label: string;
+  size?: "md" | "lg";
+  disabled?: boolean;
+}) {
   return (
     <button
       type="button"

@@ -27,8 +27,10 @@ export const projectInput = z
     notesMd: zOptText(50000),
   })
   .superRefine((v, c) => {
-    if (v.status === "in_progress" && !v.nextAction?.trim()) c.addIssue({ code: "custom", path: ["nextAction"], message: "Un proyecto en curso necesita su siguiente acción" });
-    if (v.startDate && v.targetDate && v.targetDate < v.startDate) c.addIssue({ code: "custom", path: ["targetDate"], message: "La fecha objetivo es anterior al inicio" });
+    if (v.status === "in_progress" && !v.nextAction?.trim())
+      c.addIssue({ code: "custom", path: ["nextAction"], message: "Un proyecto en curso necesita su siguiente acción" });
+    if (v.startDate && v.targetDate && v.targetDate < v.startDate)
+      c.addIssue({ code: "custom", path: ["targetDate"], message: "La fecha objetivo es anterior al inicio" });
   });
 
 async function defaultSpace(t: Tx, ctx: Ctx, clientId?: string) {
@@ -38,7 +40,15 @@ async function defaultSpace(t: Tx, ctx: Ctx, clientId?: string) {
   return pick.id;
 }
 
-async function addChangelog(t: Tx, ctx: Ctx, projectId: string, title: string, kind: "auto" | "manual" | "release" = "auto", bodyMd?: string, version?: string) {
+async function addChangelog(
+  t: Tx,
+  ctx: Ctx,
+  projectId: string,
+  title: string,
+  kind: "auto" | "manual" | "release" = "auto",
+  bodyMd?: string,
+  version?: string,
+) {
   await t.insert(schema.changelogEntry).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, kind, title, bodyMd, version });
 }
 
@@ -75,7 +85,10 @@ export async function createFromTemplate(ctx: Ctx, raw: unknown, outer?: Tx) {
   assertCan(ctx, "create", "project");
   const input = wizardInput.parse(raw);
   const run = async (t: Tx) => {
-    const [tpl] = await t.select().from(schema.projectTemplate).where(and(eq(schema.projectTemplate.id, input.templateId), scoped(schema.projectTemplate, ctx)));
+    const [tpl] = await t
+      .select()
+      .from(schema.projectTemplate)
+      .where(and(eq(schema.projectTemplate.id, input.templateId), scoped(schema.projectTemplate, ctx)));
     if (!tpl) throw notFound("La plantilla");
     const start = input.startDate ?? todayAR();
     const spaceId = input.spaceId ?? (await defaultSpace(t, ctx, input.clientId));
@@ -108,7 +121,15 @@ export async function createFromTemplate(ctx: Ctx, raw: unknown, outer?: Tx) {
       const lastOffset = Math.max(0, ...ph.tasks.map((x) => x.offsetDays ?? 0));
       const [phase] = await t
         .insert(schema.projectPhase)
-        .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId: p.id, name: ph.name, sort: i, status: i === 0 ? "in_progress" : "pending", dueDate: addDays(start, lastOffset) })
+        .values({
+          workspaceId: ctx.workspaceId,
+          createdBy: ctx.userId,
+          projectId: p.id,
+          name: ph.name,
+          sort: i,
+          status: i === 0 ? "in_progress" : "pending",
+          dueDate: addDays(start, lastOffset),
+        })
         .returning();
       if (i === 0) firstPhaseId = phase?.id ?? null;
       if (phase && ph.tasks.length) {
@@ -142,7 +163,13 @@ export async function createFromTemplate(ctx: Ctx, raw: unknown, outer?: Tx) {
       sort: -1,
     });
     await addChangelog(t, ctx, p.id, `Proyecto creado con la plantilla «${tpl.name}»`);
-    await recordEvent(t, ctx, { type: "proyecto.creado", entityType: "project", entityId: p.id, summary: `Arrancó el proyecto «${p.name}» (${tpl.name})`, payload: { templateId: tpl.id } });
+    await recordEvent(t, ctx, {
+      type: "proyecto.creado",
+      entityType: "project",
+      entityId: p.id,
+      summary: `Arrancó el proyecto «${p.name}» (${tpl.name})`,
+      payload: { templateId: tpl.id },
+    });
     await recalcProjectProgress(t, p.id);
     return p;
   };
@@ -153,7 +180,10 @@ export async function updateProject(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "project");
   const input = projectInput.parse(raw);
   return getDb().transaction(async (t) => {
-    const [before] = await t.select().from(schema.project).where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
+    const [before] = await t
+      .select()
+      .from(schema.project)
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
     if (!before) throw notFound("El proyecto");
     const [row] = await t
       .update(schema.project)
@@ -165,7 +195,7 @@ export async function updateProject(ctx: Ctx, id: string, raw: unknown) {
         definitionOfDone: input.definitionOfDone ?? null,
         startDate: input.startDate ?? null,
         targetDate: input.targetDate ?? null,
-        deliveredDate: input.deliveredDate ?? (input.status === "done" ? before.deliveredDate ?? todayAR() : null),
+        deliveredDate: input.deliveredDate ?? (input.status === "done" ? (before.deliveredDate ?? todayAR()) : null),
         nextAction: input.nextAction ?? null,
         notesMd: input.notesMd ?? null,
         lastActivityAt: new Date(),
@@ -199,9 +229,23 @@ export async function setNextAction(ctx: Ctx, id: string, nextAction: string, al
       .returning();
     if (!row) throw notFound("El proyecto");
     if (alsoTask) {
-      await t.insert(schema.task).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, assigneeId: ctx.userId, title: text, spaceId: row.spaceId, projectId: id, priority: 2, dueDate: todayAR() });
+      await t.insert(schema.task).values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        assigneeId: ctx.userId,
+        title: text,
+        spaceId: row.spaceId,
+        projectId: id,
+        priority: 2,
+        dueDate: todayAR(),
+      });
     }
-    await recordEvent(t, ctx, { type: "proyecto.siguiente_accion", entityType: "project", entityId: id, summary: `Definió la siguiente acción de «${row.name}»: ${text}` });
+    await recordEvent(t, ctx, {
+      type: "proyecto.siguiente_accion",
+      entityType: "project",
+      entityId: id,
+      summary: `Definió la siguiente acción de «${row.name}»: ${text}`,
+    });
     return row;
   });
 }
@@ -209,16 +253,26 @@ export async function setNextAction(ctx: Ctx, id: string, nextAction: string, al
 export async function setProjectStatus(ctx: Ctx, id: string, status: (typeof PROJECT_STATUSES)[number]) {
   assertCan(ctx, "update", "project");
   return getDb().transaction(async (t) => {
-    const [p] = await t.select().from(schema.project).where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
+    const [p] = await t
+      .select()
+      .from(schema.project)
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
-    if (status === "in_progress" && !p.nextAction?.trim()) throw validation("Definí la siguiente acción antes de pasarlo a «En curso»", { nextAction: "Obligatoria" });
+    if (status === "in_progress" && !p.nextAction?.trim())
+      throw validation("Definí la siguiente acción antes de pasarlo a «En curso»", { nextAction: "Obligatoria" });
     const [row] = await t
       .update(schema.project)
-      .set({ status, lastActivityAt: new Date(), deliveredDate: status === "done" ? p.deliveredDate ?? todayAR() : p.deliveredDate })
+      .set({ status, lastActivityAt: new Date(), deliveredDate: status === "done" ? (p.deliveredDate ?? todayAR()) : p.deliveredDate })
       .where(eq(schema.project.id, id))
       .returning();
     await addChangelog(t, ctx, id, `Estado: ${label(L.projectStatus, p.status)} → ${label(L.projectStatus, status)}`);
-    await recordEvent(t, ctx, { type: "proyecto.estado_cambiado", entityType: "project", entityId: id, summary: `Pasó «${p.name}» a ${label(L.projectStatus, status).toLowerCase()}`, payload: { from: p.status, to: status } });
+    await recordEvent(t, ctx, {
+      type: "proyecto.estado_cambiado",
+      entityType: "project",
+      entityId: id,
+      summary: `Pasó «${p.name}» a ${label(L.projectStatus, status).toLowerCase()}`,
+      payload: { from: p.status, to: status },
+    });
     return row;
   });
 }
@@ -228,8 +282,14 @@ export async function addPhase(ctx: Ctx, projectId: string, raw: unknown) {
   assertCan(ctx, "update", "project");
   const input = z.object({ name: zRequired(120, "El nombre"), dueDate: zOptDate }).parse(raw);
   return getDb().transaction(async (t) => {
-    const [{ n } = { n: 0 }] = await t.select({ n: sql<number>`count(*)::int` }).from(schema.projectPhase).where(and(eq(schema.projectPhase.projectId, projectId), scoped(schema.projectPhase, ctx)));
-    const [row] = await t.insert(schema.projectPhase).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, name: input.name, dueDate: input.dueDate ?? null, sort: n }).returning();
+    const [{ n } = { n: 0 }] = await t
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.projectPhase)
+      .where(and(eq(schema.projectPhase.projectId, projectId), scoped(schema.projectPhase, ctx)));
+    const [row] = await t
+      .insert(schema.projectPhase)
+      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, name: input.name, dueDate: input.dueDate ?? null, sort: n })
+      .returning();
     return row;
   });
 }
@@ -237,10 +297,19 @@ export async function addPhase(ctx: Ctx, projectId: string, raw: unknown) {
 export async function setPhaseStatus(ctx: Ctx, phaseId: string, status: "pending" | "in_progress" | "done") {
   assertCan(ctx, "update", "project");
   return getDb().transaction(async (t) => {
-    const [row] = await t.update(schema.projectPhase).set({ status }).where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx))).returning();
+    const [row] = await t
+      .update(schema.projectPhase)
+      .set({ status })
+      .where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx)))
+      .returning();
     if (!row) throw notFound("La etapa");
     await addChangelog(t, ctx, row.projectId, `Etapa «${row.name}»: ${label(L.phaseStatus, status).toLowerCase()}`);
-    await recordEvent(t, ctx, { type: "proyecto.etapa_cambiada", entityType: "project", entityId: row.projectId, summary: `Etapa «${row.name}» → ${label(L.phaseStatus, status).toLowerCase()}` });
+    await recordEvent(t, ctx, {
+      type: "proyecto.etapa_cambiada",
+      entityType: "project",
+      entityId: row.projectId,
+      summary: `Etapa «${row.name}» → ${label(L.phaseStatus, status).toLowerCase()}`,
+    });
     return row;
   });
 }
@@ -250,9 +319,21 @@ export async function addBlocker(ctx: Ctx, projectId: string, raw: unknown) {
   assertCan(ctx, "update", "project");
   const input = z.object({ waitingFor: zRequired(200, "A quién o qué esperás"), revisitOn: zOptDate }).parse(raw);
   return getDb().transaction(async (t) => {
-    const [p] = await t.select().from(schema.project).where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
+    const [p] = await t
+      .select()
+      .from(schema.project)
+      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
-    const [row] = await t.insert(schema.blocker).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, waitingFor: input.waitingFor, revisitOn: input.revisitOn ?? addDays(todayAR(), 3) }).returning();
+    const [row] = await t
+      .insert(schema.blocker)
+      .values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        projectId,
+        waitingFor: input.waitingFor,
+        revisitOn: input.revisitOn ?? addDays(todayAR(), 3),
+      })
+      .returning();
     await recordEvent(t, ctx, { type: "proyecto.bloqueado", entityType: "project", entityId: projectId, summary: `«${p.name}» espera a: ${input.waitingFor}` });
     return row;
   });
@@ -260,14 +341,22 @@ export async function addBlocker(ctx: Ctx, projectId: string, raw: unknown) {
 
 export async function resolveBlocker(ctx: Ctx, blockerId: string) {
   assertCan(ctx, "update", "project");
-  const [row] = await getDb().update(schema.blocker).set({ resolvedAt: new Date() }).where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.blocker)
+    .set({ resolvedAt: new Date() })
+    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx)))
+    .returning();
   if (!row) throw notFound("El bloqueo");
   return row;
 }
 
 export async function postponeBlocker(ctx: Ctx, blockerId: string, days = 3) {
   assertCan(ctx, "update", "project");
-  const [row] = await getDb().update(schema.blocker).set({ revisitOn: addDays(todayAR(), days) }).where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx))).returning();
+  const [row] = await getDb()
+    .update(schema.blocker)
+    .set({ revisitOn: addDays(todayAR(), days) })
+    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx)))
+    .returning();
   if (!row) throw notFound("El bloqueo");
   return row;
 }
@@ -284,14 +373,30 @@ export async function addDecision(ctx: Ctx, projectId: string, raw: unknown) {
   assertCan(ctx, "update", "project");
   const input = decisionInput.parse(raw);
   return getDb().transaction(async (t) => {
-    const [p] = await t.select().from(schema.project).where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
+    const [p] = await t
+      .select()
+      .from(schema.project)
+      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
     const [row] = await t
       .insert(schema.decision)
-      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, title: input.title, rationaleMd: input.rationaleMd, decidedOn: input.decidedOn ?? todayAR(), approvedBy: input.approvedBy ?? ctx.actor.name })
+      .values({
+        workspaceId: ctx.workspaceId,
+        createdBy: ctx.userId,
+        projectId,
+        title: input.title,
+        rationaleMd: input.rationaleMd,
+        decidedOn: input.decidedOn ?? todayAR(),
+        approvedBy: input.approvedBy ?? ctx.actor.name,
+      })
       .returning();
     await t.update(schema.project).set({ lastActivityAt: new Date() }).where(eq(schema.project.id, projectId));
-    await recordEvent(t, ctx, { type: "decision.registrada", entityType: "project", entityId: projectId, summary: `Registró la decisión «${input.title}» en «${p.name}»` });
+    await recordEvent(t, ctx, {
+      type: "decision.registrada",
+      entityType: "project",
+      entityId: projectId,
+      summary: `Registró la decisión «${input.title}» en «${p.name}»`,
+    });
     return row;
   });
 }
@@ -301,7 +406,10 @@ export async function addDeliverable(ctx: Ctx, projectId: string, raw: unknown) 
   assertCan(ctx, "update", "project");
   const input = z.object({ title: zRequired(200, "El título"), dueDate: zOptDate, contentMd: zOptText(5000) }).parse(raw);
   return getDb().transaction(async (t) => {
-    const [row] = await t.insert(schema.deliverable).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, ...input }).returning();
+    const [row] = await t
+      .insert(schema.deliverable)
+      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, ...input })
+      .returning();
     await recordEvent(t, ctx, { type: "entrega.creada", entityType: "project", entityId: projectId, summary: `Agregó la entrega «${input.title}»` });
     return row;
   });
@@ -316,8 +424,19 @@ export async function setDeliverableStatus(ctx: Ctx, id: string, status: "pendin
       .where(and(eq(schema.deliverable.id, id), scoped(schema.deliverable, ctx)))
       .returning();
     if (!row) throw notFound("La entrega");
-    await addChangelog(t, ctx, row.projectId, `Entrega «${row.title}»: ${label(L.deliverableStatus, status).toLowerCase()}`, status === "approved" ? "release" : "auto");
-    await recordEvent(t, ctx, { type: status === "approved" ? "entrega.aprobada" : "entrega.estado_cambiado", entityType: "project", entityId: row.projectId, summary: `Entrega «${row.title}» → ${label(L.deliverableStatus, status).toLowerCase()}` });
+    await addChangelog(
+      t,
+      ctx,
+      row.projectId,
+      `Entrega «${row.title}»: ${label(L.deliverableStatus, status).toLowerCase()}`,
+      status === "approved" ? "release" : "auto",
+    );
+    await recordEvent(t, ctx, {
+      type: status === "approved" ? "entrega.aprobada" : "entrega.estado_cambiado",
+      entityType: "project",
+      entityId: row.projectId,
+      summary: `Entrega «${row.title}» → ${label(L.deliverableStatus, status).toLowerCase()}`,
+    });
     return row;
   });
 }
@@ -336,10 +455,21 @@ export async function saveAsTemplate(ctx: Ctx, projectId: string, name: string) 
   assertCan(ctx, "create", "project");
   const tplName = zRequired(120, "El nombre").parse(name);
   const db = getDb();
-  const [p] = await db.select().from(schema.project).where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
+  const [p] = await db
+    .select()
+    .from(schema.project)
+    .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
   if (!p) throw notFound("El proyecto");
-  const phases = await db.select().from(schema.projectPhase).where(and(eq(schema.projectPhase.projectId, projectId), scoped(schema.projectPhase, ctx))).orderBy(asc(schema.projectPhase.sort));
-  const tasks = await db.select().from(schema.task).where(and(eq(schema.task.projectId, projectId), scoped(schema.task, ctx))).orderBy(asc(schema.task.sort));
+  const phases = await db
+    .select()
+    .from(schema.projectPhase)
+    .where(and(eq(schema.projectPhase.projectId, projectId), scoped(schema.projectPhase, ctx)))
+    .orderBy(asc(schema.projectPhase.sort));
+  const tasks = await db
+    .select()
+    .from(schema.task)
+    .where(and(eq(schema.task.projectId, projectId), scoped(schema.task, ctx)))
+    .orderBy(asc(schema.task.sort));
   const start = p.startDate ?? todayAR();
   const off = (d: string | null) => (d ? Math.max(0, Math.round((Date.parse(d) - Date.parse(start)) / 86_400_000)) : 0);
   const definition: TemplateDefinition = {
@@ -349,7 +479,10 @@ export async function saveAsTemplate(ctx: Ctx, projectId: string, name: string) 
     })),
     initialNote: p.notesMd ?? undefined,
   };
-  const [row] = await db.insert(schema.projectTemplate).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: tplName, kind: p.kind, description: `Basada en «${p.name}»`, definition, sort: 100 }).returning();
+  const [row] = await db
+    .insert(schema.projectTemplate)
+    .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: tplName, kind: p.kind, description: `Basada en «${p.name}»`, definition, sort: 100 })
+    .returning();
   return row;
 }
 

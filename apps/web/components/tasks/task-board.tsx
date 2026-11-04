@@ -38,7 +38,10 @@ export function TaskBoard({ tasks }: { tasks: TaskRowData[] }) {
               const id = e.dataTransfer.getData("text/task");
               if (id) move(id, col);
             }}
-            className={cn("flex w-[78vw] shrink-0 snap-start flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface/60 p-3 md:w-auto", over === col && "border-accent")}
+            className={cn(
+              "flex w-[78vw] shrink-0 snap-start flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface/60 p-3 md:w-auto",
+              over === col && "border-accent",
+            )}
           >
             <h3 className="flex items-center justify-between px-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">
               {L.taskStatus[col]} <span className="text-text-faint">{list.length}</span>

@@ -63,7 +63,9 @@ function createAuth() {
     trustedOrigins: [baseURL],
     plugins: [
       twoFactor({ issuer: "AGENCYOS", backupCodeOptions: { amount: 10 } }),
-      ...(process.env.AUTH_HIBP === "off" ? [] : [haveIBeenPwned({ customPasswordCompromisedMessage: "Esa contraseña apareció en filtraciones públicas. Elegí otra." })]),
+      ...(process.env.AUTH_HIBP === "off"
+        ? []
+        : [haveIBeenPwned({ customPasswordCompromisedMessage: "Esa contraseña apareció en filtraciones públicas. Elegí otra." })]),
       nextCookies(),
     ],
   });
