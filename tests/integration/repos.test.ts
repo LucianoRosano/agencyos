@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { getDb, schema } from "@agencyos/db";
+import { buildMcpServer } from "@agencyos/modules/mcp/server";
+import { createMcpToken, ctxFromToken } from "@agencyos/modules/mcp/tokens";
 import { createProject } from "@agencyos/modules/projects/service";
 import { FAKE_WEBHOOK_SECRET, setGitHubClient, signWebhook } from "@agencyos/modules/repos/github";
 import { FAKE_ACCOUNT, FAKE_INSTALLATION_ID, FakeGitHub } from "@agencyos/modules/repos/github-fake";
@@ -16,6 +18,8 @@ import {
   updateLinks,
 } from "@agencyos/modules/repos/service";
 import { getToday } from "@agencyos/modules/today/queries";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { agentCtx, makeWorkspace } from "./helpers";
@@ -256,5 +260,28 @@ describe("repositorios (GitHub simulado)", () => {
     const linked = await listRepos(ctx, { projectId: project.id });
     expect(linked.map((r) => r.r.name)).toEqual(["cli-libreriauno-wp-tienda"]);
     expect(linked[0]?.r.clientId).toBe(cl?.id);
+  });
+
+  it("MCP: listar_repositorios y proponer_plan_repos (queda pendiente de aprobación)", async () => {
+    const ctx = await connected();
+    const { token } = await createMcpToken(ctx, { name: "Claude Code" });
+    const bot = await ctxFromToken(token);
+    if (!bot) throw new Error("token");
+    const server = buildMcpServer(bot);
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await server.connect(a);
+    const client = new Client({ name: "test", version: "1" });
+    await client.connect(b);
+    const text = (r: unknown) => (r as { content: { text: string }[] }).content[0]?.text ?? "";
+    const list = await client.callTool({ name: "listar_repositorios", arguments: { solo_desvios: true } });
+    expect(list.isError).toBeFalsy();
+    const repos = JSON.parse(text(list)) as { nombre: string; desvios: unknown[] }[];
+    expect(repos.some((r) => r.nombre.endsWith("Panel_Sofia") && r.desvios.length > 0)).toBe(true);
+    const prop = await client.callTool({ name: "proponer_plan_repos", arguments: {} });
+    expect(prop.isError).toBeFalsy();
+    const { id } = JSON.parse(text(prop)) as { id: string };
+    expect((await getPlan(ctx, id))?.plan).toMatchObject({ status: "pending_approval", createdByType: "agent" });
+    await executeApprovedPlans();
+    expect(fake.calls.filter((c) => c.method !== "listRepos")).toEqual([]);
   });
 });

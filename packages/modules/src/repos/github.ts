@@ -25,9 +25,15 @@ export function appConfigFromEnv(env: NodeJS.ProcessEnv = process.env): AppConfi
   return { appId, privateKey, webhookSecret, slug: env.GITHUB_APP_SLUG?.trim() || null };
 }
 
-/** El modo simulado solo existe fuera de producción y con GITHUB_FAKE=1 explícito. */
+/**
+ * El modo simulado exige GITHUB_FAKE=1 explícito y además estar fuera de producción
+ * (NODE_ENV !== "production") o servido en localhost: `next start` de los e2e corre con NODE_ENV=production
+ * pero con APP_URL http://localhost:<puerto>. Con un dominio real (https) nunca se activa.
+ */
 export function fakeModeEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.GITHUB_FAKE === "1" && env.NODE_ENV !== "production";
+  if (env.GITHUB_FAKE !== "1") return false;
+  if (env.NODE_ENV !== "production") return true;
+  return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test((env.APP_URL ?? "").replace(/\/$/, ""));
 }
 
 export const FAKE_WEBHOOK_SECRET = "fake-webhook-secret-solo-tests";

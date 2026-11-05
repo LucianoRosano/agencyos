@@ -56,6 +56,8 @@ export default defineConfig({
           AUTH_RATE_LIMIT: "off",
           SETUP_TOKEN: "e2e-setup-token",
           APP_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111",
+          // GitHub simulado (solo fuera de producción): e2e de Repositorios.
+          GITHUB_FAKE: "1",
         },
       },
 });

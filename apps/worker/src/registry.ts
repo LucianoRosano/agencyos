@@ -1,3 +1,4 @@
+import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -13,4 +14,6 @@ export const JOBS: Job[] = [
   { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
+  { name: "repos-execute-plans", cron: "* * * * *", run: () => reposExecutePlans(), quiet: true },
+  { name: "repos-daily-sync", cron: "0 4 * * *", run: () => reposDailySync() },
 ];

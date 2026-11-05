@@ -1,5 +1,5 @@
 import { createPublicKey, generateKeyPairSync, verify } from "node:crypto";
-import { createAppJwt, signWebhook, verifyWebhookSignature } from "@agencyos/modules/repos/github";
+import { createAppJwt, fakeModeEnabled, signWebhook, verifyWebhookSignature } from "@agencyos/modules/repos/github";
 import { planActionsFor } from "@agencyos/modules/repos/plan";
 import {
   buildRepoName,
@@ -238,5 +238,15 @@ describe("seguridad: HMAC de webhooks y JWT RS256", () => {
     expect(verify("sha256", Buffer.from(`${h}.${p}`), createPublicKey(publicKey.export({ type: "spki", format: "pem" })), Buffer.from(s, "base64url"))).toBe(
       true,
     );
+  });
+});
+
+describe("modo simulado", () => {
+  it("solo con GITHUB_FAKE=1 y nunca en producción con dominio real", () => {
+    expect(fakeModeEnabled({ NODE_ENV: "test" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(fakeModeEnabled({ GITHUB_FAKE: "1", NODE_ENV: "test" } as NodeJS.ProcessEnv)).toBe(true);
+    expect(fakeModeEnabled({ GITHUB_FAKE: "1", NODE_ENV: "production", APP_URL: "https://agencyos.com.ar" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(fakeModeEnabled({ GITHUB_FAKE: "1", NODE_ENV: "production" } as NodeJS.ProcessEnv)).toBe(false);
+    expect(fakeModeEnabled({ GITHUB_FAKE: "1", NODE_ENV: "production", APP_URL: "http://localhost:3305" } as NodeJS.ProcessEnv)).toBe(true);
   });
 });
