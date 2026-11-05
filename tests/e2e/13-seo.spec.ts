@@ -67,7 +67,13 @@ test("auditar el sitio de prueba → problemas → comparar dos corridas → CSV
   // 2) Problemas esperados del sitio fixture
   await page.getByRole("link", { name: /^Problemas/ }).click();
   await page.waitForURL(/\/problemas$/);
-  for (const t of ["Falta la meta description", "Enlace interno roto", "Cadena de redirecciones", "JSON-LD con error de sintaxis", "URL del sitemap bloqueada por robots.txt"])
+  for (const t of [
+    "Falta la meta description",
+    "Enlace interno roto",
+    "Cadena de redirecciones",
+    "JSON-LD con error de sintaxis",
+    "URL del sitemap bloqueada por robots.txt",
+  ])
     await expect(page.getByRole("heading", { name: new RegExp(t) })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "seo-problemas", info.project.name);

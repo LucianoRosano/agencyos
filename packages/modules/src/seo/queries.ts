@@ -358,7 +358,7 @@ export function detailText(d: Record<string, unknown>): string {
 /** Datos del informe PDF (marca de la agencia desde la configuración del workspace). Estructura de `SeoReportDoc` de @agencyos/pdf. */
 export async function buildReportDoc(ctx: Ctx, auditId: string) {
   const a = await getAudit(ctx, auditId);
-  if (!a || a.audit.status !== "completed") return null;
+  if (a?.audit.status !== "completed") return null;
   const [groups, perf, ws, comparable] = await Promise.all([
     listIssueGroups(ctx, auditId),
     getPerformance(ctx, auditId),

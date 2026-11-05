@@ -254,7 +254,7 @@ export async function IssuesPanel({ ctx, data, sp }: { ctx: AppCtx; data: AuditD
               {g.def.fix}
             </p>
             {g.items.some((i) => i.url) ? (
-              <details className="mt-3 group" open={g.count <= 3}>
+              <details className="mt-3 group" open={g.count === 1}>
                 <summary className="flex min-h-11 cursor-pointer items-center text-[13px] text-text-muted hover:text-text">
                   {g.count === 1 ? "Ver la URL afectada" : `Ver las ${g.count} URLs afectadas`}
                 </summary>
@@ -607,8 +607,8 @@ function CompareList({ title, rows, tone, empty }: { title: string; rows: Compar
                   <span className="font-mono text-[12px] text-text-muted">{r.urls.length}</span>
                 </summary>
                 <ul className="mt-2 flex flex-col gap-1 pl-1">
-                  {r.urls.slice(0, 30).map((u, i) => (
-                    <li key={`${u}-${i}`} className="truncate font-mono text-[12px] text-text-muted">
+                  {r.urls.slice(0, 30).map((u) => (
+                    <li key={u ?? "sitio"} className="truncate font-mono text-[12px] text-text-muted">
                       {u ?? "Todo el sitio"}
                     </li>
                   ))}

@@ -46,7 +46,7 @@ export function resolveRedirect(pages: Map<string, CrawledPage>, start: string, 
   const hops: { url: string; status: number }[] = [];
   const seen = new Set<string>([start]);
   let cur = pages.get(start);
-  while (cur && cur.redirectTo && cur.status && cur.status >= 300 && cur.status < 400) {
+  while (cur?.redirectTo && cur.status && cur.status >= 300 && cur.status < 400) {
     hops.push({ url: cur.url, status: cur.status });
     if (seen.has(cur.redirectTo) || hops.length > max) return { hops, final: cur.redirectTo, finalStatus: null as number | null, loop: true };
     seen.add(cur.redirectTo);
