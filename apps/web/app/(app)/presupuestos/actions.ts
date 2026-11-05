@@ -54,3 +54,35 @@ export const previewQuoteAction = async (payload: unknown, meta: { number?: stri
     },
     { revalidate: false },
   );
+
+export async function createPublicLinkAction(id: string, days = 30) {
+  const { createPublicLink } = await import("@agencyos/modules/quotes/public");
+  return run(async (ctx) => {
+    const r = await createPublicLink(ctx, id, days);
+    const base = process.env.APP_URL ?? "http://localhost:3000";
+    return { url: `${base}/p/${r.token}`, expiresAt: r.expiresAt.toISOString() };
+  });
+}
+
+export async function revokePublicLinkAction(id: string) {
+  const { revokePublicLink } = await import("@agencyos/modules/quotes/public");
+  return run((ctx) => revokePublicLink(ctx, id));
+}
+
+/** Envía el enlace por email al contacto (solo si Brevo está configurado; lo dispara Luciano). */
+export async function emailPublicLinkAction(id: string, url: string, to: string) {
+  const { sendEmail, emailConfigured } = await import("@agencyos/modules/shared/email");
+  const { z } = await import("zod");
+  return run(async (ctx) => {
+    if (!emailConfigured()) throw new Error("El email (Brevo) todavía no está configurado.");
+    const email = z.string().email("Email inválido").parse(to);
+    if (!url.startsWith(process.env.APP_URL ?? "http")) throw new Error("Enlace inválido");
+    const name = ctx.workspace.settings.agencyName ?? "Luciano Rosano";
+    const sent = await sendEmail({ to: email, subject: `Presupuesto de ${name}`, text: `Hola,\n\nTe comparto el presupuesto. Podés verlo, descargarlo y aceptarlo desde este enlace:\n${url}\n\nCualquier duda, respondé este mail.\n\n${name}` });
+    if (!sent) throw new Error("No se pudo enviar el email.");
+    const { audit } = await import("@agencyos/core/events");
+    const { getDb } = await import("@agencyos/db");
+    await audit(getDb(), ctx, { action: "quote.sent_by_email", targetType: "quote", targetId: id, after: { to: email } });
+    return true;
+  });
+}

@@ -98,6 +98,7 @@ export async function getQuote(ctx: Ctx, id: string) {
       q: schema.quote,
       clientName: schema.client.name,
       contactName: schema.contact.name,
+      contactEmail: schema.contact.email,
       opportunityTitle: schema.opportunity.title,
       opportunityStage: schema.opportunity.stage,
       projectName: schema.project.name,
