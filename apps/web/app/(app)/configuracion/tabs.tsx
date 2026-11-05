@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { key: "perfil", label: "Perfil", href: "/configuracion" },
   { key: "seguridad", label: "Seguridad", href: "/configuracion/seguridad" },
+  { key: "notificaciones", label: "Notificaciones", href: "/configuracion/notificaciones" },
   { key: "workspace", label: "Agencia", href: "/configuracion/workspace" },
   { key: "modulos", label: "Módulos", href: "/configuracion/modulos" },
   { key: "integraciones", label: "Integraciones", href: "/configuracion/integraciones" },

@@ -13,12 +13,21 @@ type Vapid = { publicKey: string; privateKey: string };
 
 async function vapidFor(workspaceId: string): Promise<Vapid> {
   const db = getDb();
-  const [row] = await db.select().from(schema.integration).where(and(eq(schema.integration.workspaceId, workspaceId), eq(schema.integration.provider, "webpush")));
+  const [row] = await db
+    .select()
+    .from(schema.integration)
+    .where(and(eq(schema.integration.workspaceId, workspaceId), eq(schema.integration.provider, "webpush")));
   if (row?.secretEnc) return { publicKey: String(row.config.publicKey), privateKey: decryptSecret(row.secretEnc) };
   const keys = webpush.generateVAPIDKeys();
   await db
     .insert(schema.integration)
-    .values({ workspaceId, provider: "webpush", name: "Notificaciones push", config: { publicKey: keys.publicKey }, secretEnc: encryptSecret(keys.privateKey) });
+    .values({
+      workspaceId,
+      provider: "webpush",
+      name: "Notificaciones push",
+      config: { publicKey: keys.publicKey },
+      secretEnc: encryptSecret(keys.privateKey),
+    });
   return keys;
 }
 
@@ -42,13 +51,20 @@ export async function savePushSubscription(ctx: Ctx, raw: unknown, userAgent?: s
 
 export async function removePushSubscription(ctx: Ctx, endpoint: string) {
   if (!ctx.userId) return;
-  await getDb().delete(schema.pushSubscription).where(and(eq(schema.pushSubscription.endpoint, endpoint), eq(schema.pushSubscription.userId, ctx.userId)));
+  await getDb()
+    .delete(schema.pushSubscription)
+    .where(and(eq(schema.pushSubscription.endpoint, endpoint), eq(schema.pushSubscription.userId, ctx.userId)));
 }
 
 export async function listPushDevices(ctx: Ctx) {
   if (!ctx.userId) return [];
   return getDb()
-    .select({ id: schema.pushSubscription.id, endpoint: schema.pushSubscription.endpoint, userAgent: schema.pushSubscription.userAgent, createdAt: schema.pushSubscription.createdAt })
+    .select({
+      id: schema.pushSubscription.id,
+      endpoint: schema.pushSubscription.endpoint,
+      userAgent: schema.pushSubscription.userAgent,
+      createdAt: schema.pushSubscription.createdAt,
+    })
     .from(schema.pushSubscription)
     .where(and(eq(schema.pushSubscription.userId, ctx.userId), eq(schema.pushSubscription.workspaceId, ctx.workspaceId)));
 }
@@ -64,7 +80,10 @@ export async function channelsFor(userId: string, eventType: string) {
 
 export async function setPreference(ctx: Ctx, eventType: string, channels: { inApp: boolean; push: boolean; email: boolean }) {
   if (!ctx.userId) return;
-  const type = z.string().regex(/^[a-z_]+\.[a-z_]+$/).parse(eventType);
+  const type = z
+    .string()
+    .regex(/^[a-z_]+\.[a-z_]+$/)
+    .parse(eventType);
   await getDb()
     .insert(schema.notificationPreference)
     .values({ workspaceId: ctx.workspaceId, userId: ctx.userId, eventType: type, ...channels })

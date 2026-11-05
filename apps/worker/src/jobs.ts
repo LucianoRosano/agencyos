@@ -1,6 +1,8 @@
 import { todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
+import { channelsFor, sendPush } from "@agencyos/modules/push/service";
 import { sendEmail } from "@agencyos/modules/shared/email";
+import { entityHref } from "@agencyos/modules/shared/entities";
 import { getToday } from "@agencyos/modules/today/queries";
 import { purgeTrash } from "@agencyos/modules/trash/service";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
@@ -30,7 +32,7 @@ export async function dispatchOutbox(limit = 500) {
     const builder = NOTIFY[ev.type];
     const fromAgent = ev.actorType === "agent";
     const title = builder ? builder(ev.payload as Record<string, unknown>, "") : null;
-    if (builder || fromAgent) {
+    if (fromAgent || (builder && title !== null)) {
       const [act] = ev.entityId
         ? await db
             .select({ summary: schema.activity.summary })
@@ -42,19 +44,33 @@ export async function dispatchOutbox(limit = 500) {
         .select({ userId: schema.membership.userId })
         .from(schema.membership)
         .where(and(eq(schema.membership.workspaceId, ev.workspaceId), inArray(schema.membership.role, ["owner", "admin"])));
+      const text = (title || act?.summary || ev.type).slice(0, 200);
+      const prefKey = fromAgent ? "agente.actividad" : ev.type;
+      const url = ev.entityType && ev.entityId ? entityHref(ev.entityType, ev.entityId) : "/hoy";
       for (const o of owners) {
-        await db
-          .insert(schema.notification)
-          .values({
-            workspaceId: ev.workspaceId,
-            userId: o.userId,
-            type: ev.type,
-            title: (title || act?.summary || ev.type).slice(0, 200),
-            entityType: ev.entityType,
-            entityId: ev.entityId,
-            dedupeKey: `ev:${ev.id}`,
-          })
-          .onConflictDoNothing();
+        const ch = await channelsFor(o.userId, prefKey);
+        if (ch.inApp) {
+          await db
+            .insert(schema.notification)
+            .values({
+              workspaceId: ev.workspaceId,
+              userId: o.userId,
+              type: ev.type,
+              title: text,
+              entityType: ev.entityType,
+              entityId: ev.entityId,
+              dedupeKey: `ev:${ev.id}`,
+            })
+            .onConflictDoNothing();
+        }
+        if (ch.push)
+          await sendPush(ev.workspaceId, o.userId, { title: "AGENCYOS", body: text, url, tag: ev.type }).catch((e) =>
+            log.warn({ err: String(e) }, "push falló"),
+          );
+        if (ch.email) {
+          const [u] = await db.select({ email: schema.user.email }).from(schema.user).where(eq(schema.user.id, o.userId));
+          if (u) await sendEmail({ to: u.email, subject: `AGENCYOS · ${text}`, text: `${text}\n\n${process.env.APP_URL ?? ""}${url}` });
+        }
       }
     }
     await db.update(schema.domainEvent).set({ dispatchedAt: new Date() }).where(eq(schema.domainEvent.id, ev.id));
@@ -86,16 +102,26 @@ export async function dailySummary() {
     const d = await getToday(ctx, { userId: o.userId });
     const c = d.counts;
     const title = `Hoy: ${c.forToday} para hoy · ${c.overdue} vencidas · ${d.catchUp.length} para ponerse al día`;
-    await db
-      .insert(schema.notification)
-      .values({ workspaceId: o.workspaceId, userId: o.userId, type: "resumen.diario", title, dedupeKey: `resumen:${today}` })
-      .onConflictDoNothing();
+    const ch = await channelsFor(o.userId, "resumen.diario");
+    const [pref] = await db
+      .select({ id: schema.notificationPreference.id })
+      .from(schema.notificationPreference)
+      .where(and(eq(schema.notificationPreference.userId, o.userId), eq(schema.notificationPreference.eventType, "resumen.diario")));
+    const wantsEmail = pref ? ch.email : true; // por defecto el resumen va por mail (si Brevo está configurado)
+    if (ch.inApp) {
+      await db
+        .insert(schema.notification)
+        .values({ workspaceId: o.workspaceId, userId: o.userId, type: "resumen.diario", title, dedupeKey: `resumen:${today}` })
+        .onConflictDoNothing();
+    }
+    if (ch.push) await sendPush(o.workspaceId, o.userId, { title: "Tu día en AGENCYOS", body: title, url: "/hoy", tag: "resumen" }).catch(() => 0);
     const lines = d.catchUp.slice(0, 10).map((i) => `• ${i.title} — ${i.subtitle}`);
-    await sendEmail({
-      to: o.email,
-      subject: `AGENCYOS · ${title}`,
-      text: `${title}\n\n${lines.join("\n")}\n\nAbrí AGENCYOS: ${process.env.APP_URL ?? ""}/hoy`,
-    });
+    if (wantsEmail)
+      await sendEmail({
+        to: o.email,
+        subject: `AGENCYOS · ${title}`,
+        text: `${title}\n\n${lines.join("\n")}\n\nAbrí AGENCYOS: ${process.env.APP_URL ?? ""}/hoy`,
+      });
   }
   return owners.length;
 }

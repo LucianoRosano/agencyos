@@ -31,7 +31,8 @@
     "drizzle-orm": "0.45.4",
     "playwright-core": "1.64.1",
     "typescript": "5.9.3",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "web-push": "3.6.7"
   },
   "dependencies": {
     "@agencyos/core": "workspace:*",

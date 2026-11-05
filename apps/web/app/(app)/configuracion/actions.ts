@@ -18,3 +18,36 @@ export const createTokenAction = async (_: S, fd: FormData) =>
   });
 export const revokeTokenAction = async (id: string) => run((ctx) => revokeMcpToken(ctx, id));
 export const confirmPasswordAction = async (password: string) => run((ctx) => verifyPassword(ctx.user.id, password), { revalidate: false });
+
+export const pushKeyAction = async () => {
+  const { publicVapidKey } = await import("@agencyos/modules/push/service");
+  return run((ctx) => publicVapidKey(ctx), { revalidate: false });
+};
+export const pushSubscribeAction = async (sub: unknown, ua: string) => {
+  const { savePushSubscription } = await import("@agencyos/modules/push/service");
+  return run((ctx) => savePushSubscription(ctx, sub, ua));
+};
+export const pushUnsubscribeAction = async (endpoint: string) => {
+  const { removePushSubscription } = await import("@agencyos/modules/push/service");
+  return run((ctx) => removePushSubscription(ctx, endpoint));
+};
+export const pushTestAction = async () => {
+  const { sendPush } = await import("@agencyos/modules/push/service");
+  return run(
+    async (ctx) => {
+      const n = await sendPush(ctx.workspaceId, ctx.user.id, {
+        title: "AGENCYOS",
+        body: "Las notificaciones push funcionan en este dispositivo.",
+        url: "/hoy",
+        tag: "prueba",
+      });
+      if (!n) throw new Error("No hay dispositivos suscriptos.");
+      return n;
+    },
+    { revalidate: false },
+  );
+};
+export const setPreferenceAction = async (eventType: string, channels: { inApp: boolean; push: boolean; email: boolean }) => {
+  const { setPreference } = await import("@agencyos/modules/push/service");
+  return run((ctx) => setPreference(ctx, eventType, channels));
+};
