@@ -70,7 +70,14 @@ export async function startSeoFixture(): Promise<SeoFixture> {
       case "/sitemap.xml":
         res.writeHead(200, { "content-type": "application/xml" });
         return res.end(
-          `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${["/", "/servicios", "/contacto", "/privado/panel", "/vieja", "/solo-sitemap"]
+          `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[
+            "/",
+            "/servicios",
+            "/contacto",
+            "/privado/panel",
+            "/vieja",
+            "/solo-sitemap",
+          ]
             .map((p) => `<url><loc>${base}${p}</loc></url>`)
             .join("")}</urlset>`,
         );
@@ -104,7 +111,9 @@ export async function startSeoFixture(): Promise<SeoFixture> {
           }),
         );
       case "/contacto":
-        return html(page({ title: "Contacto", desc: DESC, h1: ["Contacto"], robots: "noindex, follow", canonical: `${base}/contacto`, body: `<p>${LOREM}</p>` }));
+        return html(
+          page({ title: "Contacto", desc: DESC, h1: ["Contacto"], robots: "noindex, follow", canonical: `${base}/contacto`, body: `<p>${LOREM}</p>` }),
+        );
       case "/nosotros":
         if (version === 2) return html("<h1>Error</h1>", 500);
         return html(page({ desc: DESC, h1: ["Nosotros"], og: false, lang: false, canonical: `${base}/nosotros`, body: "<p>Somos pocos.</p>" }));
@@ -117,10 +126,15 @@ export async function startSeoFixture(): Promise<SeoFixture> {
         res.writeHead(302, { location: "/servicios" });
         return res.end();
       case "/lenta":
-        setTimeout(() => html(page({ title: "Página lenta de la agencia", desc: DESC, h1: ["Lenta"], canonical: `${base}/lenta`, body: `<p>${LOREM}</p>` })), 900);
+        setTimeout(
+          () => html(page({ title: "Página lenta de la agencia", desc: DESC, h1: ["Lenta"], canonical: `${base}/lenta`, body: `<p>${LOREM}</p>` })),
+          900,
+        );
         return;
       case "/solo-sitemap":
-        return html(page({ title: "Solo en el sitemap de la agencia", desc: DESC, h1: ["Huérfana"], canonical: `${base}/solo-sitemap`, body: `<p>${LOREM}</p>` }));
+        return html(
+          page({ title: "Solo en el sitemap de la agencia", desc: DESC, h1: ["Huérfana"], canonical: `${base}/solo-sitemap`, body: `<p>${LOREM}</p>` }),
+        );
       case "/privado/panel":
         return html(page({ title: "Panel privado", h1: ["Panel"] }));
       default:

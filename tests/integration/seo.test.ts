@@ -1,4 +1,5 @@
 import { getDb, schema } from "@agencyos/db";
+import { createProject } from "@agencyos/modules/projects/service";
 import { runAudit } from "@agencyos/modules/seo/crawler";
 import { getGoogleKeyForWorker } from "@agencyos/modules/seo/google-key";
 import { processQueuedAudits } from "@agencyos/modules/seo/jobs";
@@ -13,7 +14,6 @@ import {
   setScheduleActive,
   startAudit,
 } from "@agencyos/modules/seo/service";
-import { createProject } from "@agencyos/modules/projects/service";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type SeoFixture, startSeoFixture } from "../fixtures/seo-site";
@@ -144,7 +144,10 @@ describe("SEO Auditor", () => {
     const project = await createProject(ctx, { name: "SEO del sitio" });
     const r = await createTasksFromIssues(ctx, { auditId: id, code: "meta_description_missing", mode: "group", projectId: project.id });
     expect(r.created).toHaveLength(1);
-    const [task] = await getDb().select().from(schema.task).where(eq(schema.task.id, r.created[0]?.id as string));
+    const [task] = await getDb()
+      .select()
+      .from(schema.task)
+      .where(eq(schema.task.id, r.created[0]?.id as string));
     expect(task?.projectId).toBe(project.id);
     expect(task?.title).toMatch(/^SEO · Falta la meta description/);
     expect(task?.descriptionMd).toMatch(/Cómo corregirlo/);

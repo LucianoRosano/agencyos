@@ -1,7 +1,7 @@
+import { gzipSync } from "node:zlib";
 import { decodeEntities, isValidHreflang, parseHtml, robotsDirectives } from "@agencyos/modules/seo/html";
 import { blocksEverything, groupFor, isAllowed, parseRobots } from "@agencyos/modules/seo/robots";
 import { parseSitemap, sitemapText } from "@agencyos/modules/seo/sitemap";
-import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 
 const UA = "AGENCYOS-SEO-Auditor/1.0 (+lucianorosanott@gmail.com)";

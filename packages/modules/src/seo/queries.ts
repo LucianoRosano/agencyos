@@ -1,15 +1,15 @@
 import { assertCan, type Ctx, todayAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, ilike, inArray, isNotNull, or, type SQL, sql } from "drizzle-orm";
-import { getDb, scoped } from "../shared/db";
 import { brandFromSettings } from "../quotes/queries";
+import { getDb, scoped } from "../shared/db";
 import { type IssueDef, issueDef, SEO_CATEGORIES, SEO_LABELS, SEO_SEVERITIES, type SeoCategory, type SeoSeverity } from "./catalog";
 import { type AuditSummary, sameOrigin } from "./config";
-import { findGoogleKeyRow, type GoogleKeyConfig } from "./google-key";
 import { CRUX_DAILY_QUOTA, PSI_DAILY_QUOTA, QUOTA_WARN_RATIO } from "./google";
+import { findGoogleKeyRow, type GoogleKeyConfig } from "./google-key";
 
-export { SEO_CATEGORIES, SEO_LABELS, SEO_SEVERITIES };
 export type { AuditSummary };
+export { SEO_CATEGORIES, SEO_LABELS, SEO_SEVERITIES };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SEV_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -169,7 +169,14 @@ export async function getPerformance(ctx: Ctx, auditId: string) {
     db
       .select({ url: schema.seoPage.url, ttfbMs: schema.seoPage.ttfbMs, sizeBytes: schema.seoPage.sizeBytes })
       .from(schema.seoPage)
-      .where(and(eq(schema.seoPage.workspaceId, ctx.workspaceId), eq(schema.seoPage.auditId, auditId), eq(schema.seoPage.statusCode, 200), isNotNull(schema.seoPage.ttfbMs)))
+      .where(
+        and(
+          eq(schema.seoPage.workspaceId, ctx.workspaceId),
+          eq(schema.seoPage.auditId, auditId),
+          eq(schema.seoPage.statusCode, 200),
+          isNotNull(schema.seoPage.ttfbMs),
+        ),
+      )
       .orderBy(desc(schema.seoPage.ttfbMs))
       .limit(10),
   ]);
@@ -201,7 +208,14 @@ export async function compareAudits(ctx: Ctx, targetId: string, baseId: string) 
   if (!t || !b) return null;
   if (!sameOrigin(t.audit.rootUrl, b.audit.rootUrl)) return { error: "Solo se comparan auditorías del mismo sitio." as const };
   const rows = await getDb()
-    .select({ auditId: schema.seoIssue.auditId, code: schema.seoIssue.code, url: schema.seoIssue.url, fp: schema.seoIssue.fingerprint, severity: schema.seoIssue.severity, category: schema.seoIssue.category })
+    .select({
+      auditId: schema.seoIssue.auditId,
+      code: schema.seoIssue.code,
+      url: schema.seoIssue.url,
+      fp: schema.seoIssue.fingerprint,
+      severity: schema.seoIssue.severity,
+      category: schema.seoIssue.category,
+    })
     .from(schema.seoIssue)
     .where(and(eq(schema.seoIssue.workspaceId, ctx.workspaceId), inArray(schema.seoIssue.auditId, [t.audit.id, b.audit.id])));
   const inT = new Map(rows.filter((r) => r.auditId === t.audit.id).map((r) => [r.fp, r]));
@@ -335,22 +349,85 @@ export function detailText(d: Record<string, unknown>): string {
   if (v("to")) parts.push(`→ ${v("to")}`);
   if (v("final")) parts.push(`destino final ${v("final")}`);
   if (Array.isArray(v("hops"))) parts.push(`${(v("hops") as unknown[]).length} saltos`);
-  if (Array.isArray(v("from")) && (v("from") as unknown[]).length) parts.push(`enlazada desde ${(v("from") as string[]).slice(0, 3).join(", ")}${(v("from") as unknown[]).length > 3 ? "…" : ""}`);
+  if (Array.isArray(v("from")) && (v("from") as unknown[]).length)
+    parts.push(`enlazada desde ${(v("from") as string[]).slice(0, 3).join(", ")}${(v("from") as unknown[]).length > 3 ? "…" : ""}`);
   if (Array.isArray(v("resources")) && (v("resources") as unknown[]).length) parts.push((v("resources") as string[]).slice(0, 2).join(", "));
   return parts.join(" · ");
 }
 
-/** Datos para el informe PDF (marca de la agencia desde la configuración del workspace). */
-export async function reportData(ctx: Ctx & { workspace?: { settings: unknown } }, auditId: string) {
+/** Datos del informe PDF (marca de la agencia desde la configuración del workspace). Estructura de `SeoReportDoc` de @agencyos/pdf. */
+export async function buildReportDoc(ctx: Ctx, auditId: string) {
   const a = await getAudit(ctx, auditId);
-  if (!a) return null;
-  const [groups, perf, ws] = await Promise.all([
+  if (!a || a.audit.status !== "completed") return null;
+  const [groups, perf, ws, comparable] = await Promise.all([
     listIssueGroups(ctx, auditId),
     getPerformance(ctx, auditId),
     getDb().select({ settings: schema.workspace.settings }).from(schema.workspace).where(eq(schema.workspace.id, ctx.workspaceId)),
+    comparableAudits(ctx, auditId),
   ]);
-  const comparable = await comparableAudits(ctx, auditId);
   const prev = comparable.find((c) => c.createdAt < a.audit.createdAt);
   const cmp = prev ? await compareAudits(ctx, auditId, prev.id) : null;
-  return { ...a, groups, perf, brand: brandFromSettings(ws[0]?.settings as never), compare: cmp && !("error" in cmp) ? cmp : null };
+  const s = a.summary;
+  const brand = brandFromSettings(ws[0]?.settings as never);
+  const ms = (n: number | null) => (n === null ? "—" : `${(n / 1000).toLocaleString("es-AR", { maximumFractionDigits: 2 })} s`);
+  const g = s.google;
+  const googleNote = !g?.configured
+    ? "No se midió Lighthouse ni Core Web Vitals: falta configurar la API key gratuita de Google."
+    : g.psi.status === "quota" || g.crux.status === "quota"
+      ? "La cuota de las APIs de Google se agotó durante la auditoría: algunos datos de rendimiento faltan."
+      : null;
+  return {
+    brand: { name: brand.name, initials: brand.initials, email: brand.email, phone: brand.phone, website: brand.website },
+    host: a.host,
+    rootUrl: a.audit.rootUrl,
+    siteName: a.siteName,
+    auditedOn: a.audit.createdAt.toISOString().slice(0, 10),
+    score: a.audit.score,
+    formulaVersion: a.audit.scoreFormulaVersion ?? s.formula?.version ?? "",
+    formulaText: s.formula?.text ?? "",
+    pagesCrawled: a.audit.pagesCrawled,
+    stats: [
+      { label: "Páginas rastreadas", value: String(a.audit.pagesCrawled) },
+      { label: "Indexables", value: String(s.pages?.indexable ?? "—") },
+      { label: "Con error", value: String(s.pages?.errors ?? "—") },
+      { label: "Enlaces rotos", value: String((s.links?.brokenInternal ?? 0) + (s.links?.brokenExternal ?? 0)) },
+      { label: "TTFB mediano", value: s.pages?.medianTtfbMs != null ? `${s.pages.medianTtfbMs} ms` : "—" },
+      { label: "URLs en sitemap", value: s.sitemap?.found ? String(s.sitemap.urls) : "Sin sitemap" },
+    ],
+    categories: SEO_CATEGORIES.map((c) => {
+      const x = (s.categories?.[c] ?? {}) as Record<string, number>;
+      return { label: SEO_LABELS.category[c], score: x.score ?? null, critical: x.critical ?? 0, high: x.high ?? 0, medium: x.medium ?? 0, low: x.low ?? 0 };
+    }),
+    groups: groups.map((gr) => ({
+      severity: gr.severity,
+      severityLabel: SEO_LABELS.severity[gr.severity],
+      category: SEO_LABELS.category[gr.category],
+      title: gr.def.title,
+      why: gr.def.why,
+      fix: gr.def.fix,
+      count: gr.count,
+      urls: gr.items.map((i) => i.url).filter((u): u is string => Boolean(u)),
+    })),
+    lab: perf.lab.map((l) => ({
+      url: l.url,
+      strategy: SEO_LABELS.strategy[l.strategy] ?? l.strategy,
+      performance: l.performance,
+      accessibility: l.accessibility,
+      bestPractices: l.bestPractices,
+      seo: l.seo,
+    })),
+    field: perf.field.map((f) => ({
+      target: f.urlOrOrigin,
+      formFactor: SEO_LABELS.formFactor[f.formFactor] ?? f.formFactor,
+      hasData: f.hasData,
+      lcp: ms(f.lcpP75),
+      inp: f.inpP75 === null ? "—" : `${f.inpP75} ms`,
+      cls: f.clsP75 ?? "—",
+    })),
+    googleNote,
+    compare:
+      cmp && !("error" in cmp)
+        ? { previousOn: cmp.base.createdAt.toISOString().slice(0, 10), previousScore: cmp.base.score, scoreDelta: cmp.scoreDelta, ...cmp.counts }
+        : null,
+  };
 }

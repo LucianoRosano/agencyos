@@ -47,7 +47,16 @@ export type AuditSummary = {
   sitemap?: { found: boolean; files: string[]; urls: number; error: string | null; notCrawled: number; checked: boolean };
   https?: { rootIsHttps: boolean; hsts: boolean; httpRedirectsToHttps: boolean | null };
   links?: { internal: number; external: number; externalChecked: number; brokenInternal: number; brokenExternal: number };
-  pages?: { total: number; html: number; indexable: number; ok: number; redirects: number; errors: number; medianTtfbMs: number | null; p90TtfbMs: number | null };
+  pages?: {
+    total: number;
+    html: number;
+    indexable: number;
+    ok: number;
+    redirects: number;
+    errors: number;
+    medianTtfbMs: number | null;
+    p90TtfbMs: number | null;
+  };
   google?: {
     configured: boolean;
     psi: { status: "ok" | "partial" | "error" | "quota" | "skipped"; errors: string[] };
@@ -58,7 +67,6 @@ export type AuditSummary = {
   regression?: { previousAuditId: string; scoreDelta: number; newCritical: number } | null;
 };
 
-
 export function sameOrigin(a: string, b: string) {
   try {
     const x = new URL(a);
@@ -68,4 +76,3 @@ export function sameOrigin(a: string, b: string) {
     return false;
   }
 }
-

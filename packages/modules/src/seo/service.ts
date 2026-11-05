@@ -83,7 +83,8 @@ async function insertAudit(
     .select({ id: schema.seoAudit.id, rootUrl: schema.seoAudit.rootUrl })
     .from(schema.seoAudit)
     .where(and(scoped(schema.seoAudit, ctx), inArray(schema.seoAudit.status, ["queued", "running"])));
-  if (active.some((a) => sameOrigin(a.rootUrl, v.rootUrl))) throw conflict("Ya hay una auditoría en cola o en curso para este sitio. Esperá a que termine o cancelala.");
+  if (active.some((a) => sameOrigin(a.rootUrl, v.rootUrl)))
+    throw conflict("Ya hay una auditoría en cola o en curso para este sitio. Esperá a que termine o cancelala.");
   const [row] = await t
     .insert(schema.seoAudit)
     .values({ workspaceId: ctx.workspaceId, createdBy, rootUrl: v.rootUrl, siteId: v.siteId, config: v.config, status: "queued", summary: {} })
@@ -144,7 +145,12 @@ export async function cancelAudit(ctx: Ctx, id: string) {
       .where(and(eq(schema.seoAudit.id, a.id), inArray(schema.seoAudit.status, ["queued", "running"])))
       .returning();
     if (!row) throw conflict("La auditoría ya terminó");
-    await recordEvent(t, ctx, { type: "auditoria.cancelada", entityType: "seo_audit", entityId: a.id, summary: `Canceló la auditoría SEO de ${hostOf(a.rootUrl)}` });
+    await recordEvent(t, ctx, {
+      type: "auditoria.cancelada",
+      entityType: "seo_audit",
+      entityId: a.id,
+      summary: `Canceló la auditoría SEO de ${hostOf(a.rootUrl)}`,
+    });
     return row;
   });
 }
@@ -219,7 +225,12 @@ export async function createTasksFromIssues(ctx: Ctx, raw: unknown) {
       for (const i of issues) {
         const task = await createTask(
           ctx,
-          { title: `SEO · ${def.title}${i.url ? ` · ${shortUrl(i.url)}` : ""}`.slice(0, 300), descriptionMd: body([i.url]), projectId: projectId ?? undefined, priority },
+          {
+            title: `SEO · ${def.title}${i.url ? ` · ${shortUrl(i.url)}` : ""}`.slice(0, 300),
+            descriptionMd: body([i.url]),
+            projectId: projectId ?? undefined,
+            priority,
+          },
           t,
         );
         await t.update(schema.seoIssue).set({ taskId: task.id }).where(eq(schema.seoIssue.id, i.id));
@@ -302,7 +313,12 @@ export async function saveGoogleApiKey(ctx: Ctx, raw: unknown) {
       if (!row) throw new Error("No se pudo guardar la API key");
       id = row.id;
     }
-    await audit(t, ctx, { action: "integration.secret_saved", targetType: "integration", targetId: id, after: { provider: GOOGLE_PROVIDER, kind: GOOGLE_KEY_KIND } });
+    await audit(t, ctx, {
+      action: "integration.secret_saved",
+      targetType: "integration",
+      targetId: id,
+      after: { provider: GOOGLE_PROVIDER, kind: GOOGLE_KEY_KIND },
+    });
     await recordEvent(t, ctx, { type: "integracion.configurada", entityType: "integration", entityId: id, summary: "Configuró la API key de Google para SEO" });
     return { id, last4 };
   });
@@ -318,7 +334,12 @@ export async function removeGoogleApiKey(ctx: Ctx) {
       .set({ secretEnc: null, status: "disabled", config: { kind: GOOGLE_KEY_KIND } })
       .where(and(eq(schema.integration.id, existing.id), eq(schema.integration.workspaceId, ctx.workspaceId)));
     await audit(t, ctx, { action: "integration.secret_removed", targetType: "integration", targetId: existing.id });
-    await recordEvent(t, ctx, { type: "integracion.eliminada", entityType: "integration", entityId: existing.id, summary: "Quitó la API key de Google para SEO" });
+    await recordEvent(t, ctx, {
+      type: "integracion.eliminada",
+      entityType: "integration",
+      entityId: existing.id,
+      summary: "Quitó la API key de Google para SEO",
+    });
     return { id: existing.id };
   });
 }
@@ -331,7 +352,13 @@ export const scheduleInput = z.object({
   frequency: z.enum(["weekly", "monthly"], { error: "Elegí la frecuencia" }).default("monthly"),
   maxPages: z.preprocess(emptyToUndef, zInt(1, 2000).default(300)),
   maxDepth: z.preprocess(emptyToUndef, zInt(0, 50).default(10)),
-  firstRunOn: z.preprocess(emptyToUndef, z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida").optional()),
+  firstRunOn: z.preprocess(
+    emptyToUndef,
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida")
+      .optional(),
+  ),
   note: zOptText(300),
 });
 
@@ -414,7 +441,13 @@ export async function enqueueDueSchedules(today = todayAR()) {
     try {
       await db.transaction(async (t) => {
         const cfg = configFrom(s.config);
-        await insertAudit(t, ctx, { rootUrl: s.rootUrl, siteId: s.siteId, config: { ...cfg, scheduleId: s.id } }, `Auditoría SEO programada de ${hostOf(s.rootUrl)}`, null);
+        await insertAudit(
+          t,
+          ctx,
+          { rootUrl: s.rootUrl, siteId: s.siteId, config: { ...cfg, scheduleId: s.id } },
+          `Auditoría SEO programada de ${hostOf(s.rootUrl)}`,
+          null,
+        );
         await t
           .update(schema.seoSchedule)
           .set({ nextRunOn: nextRunAfter(today, s.frequency) })

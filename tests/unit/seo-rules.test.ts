@@ -84,7 +84,12 @@ describe("reglas de problemas", () => {
   it("duplicados de título y description entre páginas indexables", () => {
     const a = pg("https://ej.com/a", GOOD.replace("https://ej.com/", "https://ej.com/a"));
     const b = pg("https://ej.com/b", GOOD.replace("https://ej.com/", "https://ej.com/b"));
-    const issues = detectIssues({ pages: [a, b], links: [], external: new Map(), site: facts({ sitemap: { found: false, error: null, urls: new Set(), checked: true } }) });
+    const issues = detectIssues({
+      pages: [a, b],
+      links: [],
+      external: new Map(),
+      site: facts({ sitemap: { found: false, error: null, urls: new Set(), checked: true } }),
+    });
     expect(issues.filter((i) => i.code === "title_duplicate").map((i) => i.url)).toEqual(["https://ej.com/a", "https://ej.com/b"]);
     expect(issues.some((i) => i.code === "meta_description_duplicate")).toBe(true);
     expect(issues.some((i) => i.code === "sitemap_missing")).toBe(true);

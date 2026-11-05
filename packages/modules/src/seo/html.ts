@@ -98,7 +98,8 @@ export function parseAttrs(raw: string): Record<string, string> {
 }
 
 /** Comentarios, bloques de texto crudo (script/style/…) y etiquetas, en orden. */
-const TOKEN = /<!--[\s\S]*?-->|<(script|style|noscript|template|textarea)\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/\1\s*>|<(\/?)([a-zA-Z][a-zA-Z0-9:-]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>|<!doctype[^>]*>/gi;
+const TOKEN =
+  /<!--[\s\S]*?-->|<(script|style|noscript|template|textarea)\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/\1\s*>|<(\/?)([a-zA-Z][a-zA-Z0-9:-]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>|<!doctype[^>]*>/gi;
 
 const VOID = new Set(["br", "img", "meta", "link", "input", "hr", "source", "base", "area", "col", "embed", "param", "track", "wbr"]);
 

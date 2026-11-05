@@ -133,7 +133,7 @@ export const ISSUES = {
     severity: "low",
     title: "Falta la etiqueta canonical",
     why: "Sin canonical, variantes con parámetros pueden competir entre sí como contenido duplicado.",
-    fix: "Agregá <link rel=\"canonical\" href=\"URL absoluta\"> apuntando a la versión preferida.",
+    fix: 'Agregá <link rel="canonical" href="URL absoluta"> apuntando a la versión preferida.',
   },
   canonical_multiple: {
     category: "indexing",
@@ -232,21 +232,21 @@ export const ISSUES = {
     severity: "medium",
     title: "Imágenes sin atributo alt",
     why: "El alt describe la imagen a lectores de pantalla y a Google Imágenes.",
-    fix: "Agregá un alt descriptivo a cada imagen (alt=\"\" solo para imágenes decorativas).",
+    fix: 'Agregá un alt descriptivo a cada imagen (alt="" solo para imágenes decorativas).',
   },
   lang_missing: {
     category: "content",
     severity: "low",
     title: "Falta el idioma del documento (<html lang>)",
     why: "Ayuda a buscadores y lectores de pantalla a saber en qué idioma está la página.",
-    fix: "Agregá lang=\"es-AR\" (o el que corresponda) a la etiqueta <html>.",
+    fix: 'Agregá lang="es-AR" (o el que corresponda) a la etiqueta <html>.',
   },
   viewport_missing: {
     category: "content",
     severity: "medium",
     title: "Falta la meta viewport (no apta para celular)",
     why: "Google indexa la versión para celular; sin viewport la página se ve como de escritorio achicada.",
-    fix: "Agregá <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">.",
+    fix: 'Agregá <meta name="viewport" content="width=device-width, initial-scale=1">.',
   },
   // — Enlaces —
   broken_internal_link: {

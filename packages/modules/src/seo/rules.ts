@@ -1,5 +1,5 @@
-import { isValidHreflang, type ParsedPage, robotsDirectives } from "./html";
 import type { IssueCode } from "./catalog";
+import { isValidHreflang, type ParsedPage, robotsDirectives } from "./html";
 
 /** Datos del rastreo que consumen las reglas (puras, sin red ni base: se testean con fixtures). */
 export type CrawledPage = {
@@ -108,7 +108,8 @@ export function detectIssues(input: {
       const r = resolveRedirect(byUrl, p.url);
       if (r.loop) add("redirect_loop", p.url, { hops: r.hops });
       else if (r.hops.length > 1) add("redirect_chain", p.url, { hops: r.hops, final: r.final });
-      if ((p.status === 302 || p.status === 307) && p.redirectTo && byUrl.has(p.redirectTo)) add("temporary_redirect", p.url, { status: p.status, to: p.redirectTo });
+      if ((p.status === 302 || p.status === 307) && p.redirectTo && byUrl.has(p.redirectTo))
+        add("temporary_redirect", p.url, { status: p.status, to: p.redirectTo });
     }
     if (p.ttfbMs !== null && p.status === 200) {
       if (p.ttfbMs > 1800) add("very_slow_ttfb", p.url, { ttfbMs: p.ttfbMs });

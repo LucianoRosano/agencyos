@@ -12,12 +12,20 @@ const base = (prod: string) => (allowLocalForTests() && process.env.SEO_GOOGLE_A
 const PSI_URL = () => `${base("https://www.googleapis.com")}/pagespeedonline/v5/runPagespeed`;
 const CRUX_URL = () => `${base("https://chromeuxreport.googleapis.com")}/v1/records:queryRecord`;
 
-export type LabMetrics = { lcpMs: number | null; fcpMs: number | null; tbtMs: number | null; cls: number | null; speedIndexMs: number | null; ttiMs: number | null };
+export type LabMetrics = {
+  lcpMs: number | null;
+  fcpMs: number | null;
+  tbtMs: number | null;
+  cls: number | null;
+  speedIndexMs: number | null;
+  ttiMs: number | null;
+};
 export type PsiResult = { performance: number | null; accessibility: number | null; bestPractices: number | null; seo: number | null; lab: LabMetrics };
 export type CruxResult = { lcpP75: number | null; inpP75: number | null; clsP75: number | null; period: string | null };
 export type GoogleError = { status: number | null; message: string; quota: boolean; invalidKey: boolean };
 
-const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : null);
+const num = (v: unknown): number | null =>
+  typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : null;
 const score100 = (v: unknown) => {
   const n = num(v);
   return n === null ? null : Math.round(n * 100);
@@ -76,10 +84,19 @@ function googleError(status: number | null, body: string): GoogleError {
   }
   const quota = status === 429 || /quota|rate limit/i.test(message);
   const invalidKey = status === 400 && /api key/i.test(message);
-  return { status, message: quota ? "Cuota de Google agotada por ahora (429). Probá más tarde." : invalidKey ? "La API key de Google no es válida." : message, quota, invalidKey };
+  return {
+    status,
+    message: quota ? "Cuota de Google agotada por ahora (429). Probá más tarde." : invalidKey ? "La API key de Google no es válida." : message,
+    quota,
+    invalidKey,
+  };
 }
 
-export async function runPsi(apiKey: string, url: string, strategy: "mobile" | "desktop"): Promise<{ ok: true; data: PsiResult } | { ok: false; error: GoogleError }> {
+export async function runPsi(
+  apiKey: string,
+  url: string,
+  strategy: "mobile" | "desktop",
+): Promise<{ ok: true; data: PsiResult } | { ok: false; error: GoogleError }> {
   const q = new URLSearchParams({ url, strategy, key: apiKey, locale: "es" });
   for (const c of ["performance", "accessibility", "best-practices", "seo"]) q.append("category", c);
   try {

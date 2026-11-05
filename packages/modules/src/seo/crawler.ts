@@ -3,16 +3,17 @@ import { recordEvent } from "@agencyos/core/events";
 import { type DbOrTx, getDb, schema } from "@agencyos/db";
 import { and, desc, eq, inArray, isNull, lt, ne } from "drizzle-orm";
 import { assertPublicUrl, SsrfError } from "../shared/safe-fetch";
+import { type AuditSummary, configFrom, sameOrigin } from "./config";
 import { allowLocalForTests, type Fetcher, isLocalHost, SEO_USER_AGENT, seoFetch } from "./fetcher";
 import { CRUX_DAILY_QUOTA, PSI_DAILY_QUOTA, runCrux, runPsi } from "./google";
 import { parseHtml } from "./html";
 import { blocksEverything, groupFor, isAllowed, parseRobots, type RobotsGroup } from "./robots";
-import { computeIndexable, type CrawledLink, type CrawledPage, detectIssues, type FieldResult, type LabResult, type LinkCheck, type SiteFacts } from "./rules";
+import { type CrawledLink, type CrawledPage, computeIndexable, detectIssues, type FieldResult, type LabResult, type LinkCheck, type SiteFacts } from "./rules";
 import { classify, computeScore, fingerprint, normalizeUrl, SCORE_FORMULA_TEXT, SCORE_FORMULA_VERSION, SEVERITY_WEIGHTS } from "./score";
 import { parseSitemap, sitemapText } from "./sitemap";
-import { type AuditSummary, configFrom, sameOrigin } from "./config";
 
 export { type AuditConfig, type AuditSummary, configFrom, DEFAULT_CONFIG, sameOrigin } from "./config";
+
 import { getGoogleKeyForWorker, recordGoogleUsage } from "./google-key";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -72,7 +73,12 @@ export async function runAudit(auditId: string, fetcher: Fetcher = seoFetch): Pr
     .returning();
   if (!a) return null;
   const ctx = systemCtx(a.workspaceId);
-  await recordEvent(db, ctx, { type: "auditoria.iniciada", entityType: "seo_audit", entityId: a.id, summary: `Empezó la auditoría SEO de ${hostOf(a.rootUrl)}` });
+  await recordEvent(db, ctx, {
+    type: "auditoria.iniciada",
+    entityType: "seo_audit",
+    entityId: a.id,
+    summary: `Empezó la auditoría SEO de ${hostOf(a.rootUrl)}`,
+  });
   try {
     const status = await crawlAndStore(a, ctx, fetcher);
     return { status };
@@ -114,7 +120,9 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
     try {
       await assertPublicUrl(root);
     } catch (e) {
-      throw new Error(`Destino no permitido: ${e instanceof Error ? e.message : "URL inválida"}. Solo se auditan sitios públicos por http/https en los puertos 80 y 443.`);
+      throw new Error(
+        `Destino no permitido: ${e instanceof Error ? e.message : "URL inválida"}. Solo se auditan sitios públicos por http/https en los puertos 80 y 443.`,
+      );
     }
   }
   const hostKey = (h: string) => h.toLowerCase().replace(/^www\./, "");
@@ -338,7 +346,11 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
   } else {
     for (const u of [root, ...[...sitemapUrls].slice(0, 50)]) blocked.set(u, []);
   }
-  summary.truncated = timeUp() ? "Se alcanzó el tiempo máximo de la auditoría" : seen.size >= cfg.maxPages ? `Se alcanzó el límite de ${cfg.maxPages} páginas` : null;
+  summary.truncated = timeUp()
+    ? "Se alcanzó el tiempo máximo de la auditoría"
+    : seen.size >= cfg.maxPages
+      ? `Se alcanzó el límite de ${cfg.maxPages} páginas`
+      : null;
 
   const pageList = [...pages.values()];
   await progress(true);
@@ -346,7 +358,11 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
     await storeRows(db, a, pageList, links, new Map(), [], [], []);
     await db
       .update(schema.seoAudit)
-      .set({ finishedAt: new Date(), pagesCrawled: pages.size, summary: { ...summary, durationMs: Date.now() - started } as unknown as Record<string, unknown> })
+      .set({
+        finishedAt: new Date(),
+        pagesCrawled: pages.size,
+        summary: { ...summary, durationMs: Date.now() - started } as unknown as Record<string, unknown>,
+      })
       .where(eq(schema.seoAudit.id, a.id));
     return "cancelled";
   }
@@ -380,7 +396,9 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
   if (key && !cancelled) {
     const g = summary.google;
     const usage = await recordGoogleUsage(a.workspaceId, { psi: 0, crux: 0 });
-    const targets = (cfg.lighthouseUrls.length ? cfg.lighthouseUrls : [finalRoot]).map((u) => normalizeUrl(u)).filter((u): u is string => Boolean(u) && isInternal(u as string));
+    const targets = (cfg.lighthouseUrls.length ? cfg.lighthouseUrls : [finalRoot])
+      .map((u) => normalizeUrl(u))
+      .filter((u): u is string => Boolean(u) && isInternal(u as string));
     let psiOk = 0;
     let psiCalls = 0;
     psi: for (const u of targets) {
@@ -434,7 +452,14 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
           continue;
         }
         if (r.data) cruxData++;
-        field.push({ urlOrOrigin, formFactor, hasData: Boolean(r.data), lcpP75: r.data?.lcpP75 ?? null, inpP75: r.data?.inpP75 ?? null, clsP75: r.data?.clsP75 ?? null });
+        field.push({
+          urlOrOrigin,
+          formFactor,
+          hasData: Boolean(r.data),
+          lcpP75: r.data?.lcpP75 ?? null,
+          inpP75: r.data?.inpP75 ?? null,
+          clsP75: r.data?.clsP75 ?? null,
+        });
       }
     }
     if (g.crux.status === "skipped") g.crux.status = cruxData ? "ok" : g.crux.errors.length && !field.length ? "error" : "no_data";
@@ -557,7 +582,9 @@ async function crawlAndStore(a: Audit, ctx: Ctx, fetcher: Fetcher): Promise<stri
     if (regression) {
       const what = [
         regression.scoreDelta <= -5 ? `el puntaje bajó ${Math.abs(regression.scoreDelta)} puntos` : null,
-        regression.newCritical ? `${regression.newCritical} problema${regression.newCritical === 1 ? "" : "s"} crítico${regression.newCritical === 1 ? "" : "s"} nuevo${regression.newCritical === 1 ? "" : "s"}` : null,
+        regression.newCritical
+          ? `${regression.newCritical} problema${regression.newCritical === 1 ? "" : "s"} crítico${regression.newCritical === 1 ? "" : "s"} nuevo${regression.newCritical === 1 ? "" : "s"}`
+          : null,
       ]
         .filter(Boolean)
         .join(" y ");
@@ -750,11 +777,7 @@ function chunks<T>(arr: T[], n: number): T[][] {
 }
 
 /** Notificación in-app (campana) para dueños y admins del workspace. Idempotente por dedupeKey. */
-export async function notifyOwners(
-  t: DbOrTx,
-  workspaceId: string,
-  n: { type: string; title: string; body?: string; entityId: string; dedupeKey: string },
-) {
+export async function notifyOwners(t: DbOrTx, workspaceId: string, n: { type: string; title: string; body?: string; entityId: string; dedupeKey: string }) {
   const owners = await t
     .select({ userId: schema.membership.userId })
     .from(schema.membership)
@@ -762,6 +785,15 @@ export async function notifyOwners(
   for (const o of owners)
     await t
       .insert(schema.notification)
-      .values({ workspaceId, userId: o.userId, type: n.type, title: n.title.slice(0, 200), body: n.body ?? null, entityType: "seo_audit", entityId: n.entityId, dedupeKey: n.dedupeKey })
+      .values({
+        workspaceId,
+        userId: o.userId,
+        type: n.type,
+        title: n.title.slice(0, 200),
+        body: n.body ?? null,
+        entityType: "seo_audit",
+        entityId: n.entityId,
+        dedupeKey: n.dedupeKey,
+      })
       .onConflictDoNothing();
 }
