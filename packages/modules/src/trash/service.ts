@@ -29,6 +29,9 @@ const RESOURCE: Partial<Record<EntityType, Resource>> = {
   reminder: "reminder",
   inbox_item: "inbox",
   space: "space",
+  file: "project",
+  folder: "project",
+  reusable_template: "project",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: acceso genérico a columnas comunes
@@ -111,23 +114,29 @@ export async function purgeOne(ctx: Ctx, type: string, id: string) {
   if (type === "transaction") throw validation("Los movimientos se eliminan definitivamente solos a los 30 días (con su par de transferencia).");
   const { table, resource } = resolve(type);
   assertCan(ctx, "delete", resource);
-  return getDb().transaction(async (t) => {
-    const [row] = await t
-      .delete(table)
-      .where(and(eq(table.id, id), eq(table.workspaceId, ctx.workspaceId), isNotNull(table.deletedAt)))
-      .returning();
-    if (!row) throw notFound();
-    await t.insert(schema.auditLog).values({
-      workspaceId: ctx.workspaceId,
-      actorType: ctx.actor.type,
-      actorId: ctx.actor.id,
-      action: "entity.purged",
-      targetType: type,
-      targetId: id,
-      before: row as object,
+  return getDb()
+    .transaction(async (t) => {
+      const [row] = await t
+        .delete(table)
+        .where(and(eq(table.id, id), eq(table.workspaceId, ctx.workspaceId), isNotNull(table.deletedAt)))
+        .returning();
+      if (!row) throw notFound();
+      await t.insert(schema.auditLog).values({
+        workspaceId: ctx.workspaceId,
+        actorType: ctx.actor.type,
+        actorId: ctx.actor.id,
+        action: "entity.purged",
+        targetType: type,
+        targetId: id,
+        before: row as object,
+      });
+      return true;
+    })
+    .then(async (r) => {
+      // archivos: borrar del storage las versiones que quedaron huérfanas
+      if (type === "file") await (await import("../library/jobs")).cleanupOrphanFiles();
+      return r;
     });
-    return true;
-  });
 }
 
 export const trashCount = async (ctx: Ctx) => (await listTrash(ctx)).length;

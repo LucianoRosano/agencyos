@@ -72,7 +72,12 @@ export const L = {
     deliverable: "Entrega",
     inbox_item: "Ítem de Bandeja",
     assessment: "Evaluación",
+    file: "Archivo",
+    folder: "Carpeta",
+    reusable_template: "Plantilla",
   },
+  fileKind: { image: "Imagen", logo: "Logo", document: "Documento", pdf: "PDF", video: "Video", archive: "ZIP", font: "Tipografía", other: "Otro" },
+  templateKind: { document: "Documento", snippet: "Snippet", prompt: "Prompt", checklist: "Checklist" },
 } as const;
 
 export function label<T extends Record<string, string>>(map: T, key: string | null | undefined): string {

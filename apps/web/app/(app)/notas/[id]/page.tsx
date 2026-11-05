@@ -5,6 +5,7 @@ import { CalendarDays, ChevronLeft, Folder, Pin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LocalGraph } from "@/components/brain/local-graph";
+import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { Connections } from "@/components/notes/connections";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { NoteMenu, NotePropsSheet, UnlinkedMentions } from "@/components/notes/note-side";
@@ -152,6 +153,8 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
             </SectionLabel>
             <Connections groups={connections} />
           </Card>
+
+          <AttachmentsBlock ctx={ctx} entityType="note" entityId={id} className="p-4" emptyText="Sin archivos adjuntos a esta nota." />
 
           <Card className="p-4">
             <SectionLabel className="mb-3">Menciones no enlazadas</SectionLabel>

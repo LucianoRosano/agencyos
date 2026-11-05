@@ -4,6 +4,7 @@ import { Badge, Card, PageHeader, SectionLabel } from "@agencyos/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EntitySide } from "@/components/collab/entity-side";
+import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
 import { projectOpts, spaceOpts } from "@/lib/options";
@@ -67,6 +68,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <SectionLabel className="mb-3">Checklist</SectionLabel>
           <Checklist taskId={t.id} items={data.checklist.map((c) => ({ id: c.id, text: c.text, done: c.done }))} />
         </Card>
+        <AttachmentsBlock ctx={ctx} entityType="task" entityId={t.id} emptyText="Sin archivos. Adjuntá referencias, briefs o entregables." />
         {!t.parentTaskId ? (
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between">
