@@ -23,7 +23,7 @@ const emptyToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ?
 export const zAuditUrl = z.preprocess(
   (v) => {
     const s = emptyToUndef(v);
-    if (typeof s === "string" && !/^https?:\/\//i.test(s.trim())) return `https://${s.trim()}`;
+    if (typeof s === "string" && !/^[a-z][a-z0-9+.-]*:\/\//i.test(s.trim())) return `https://${s.trim()}`;
     return typeof s === "string" ? s.trim() : s;
   },
   z
@@ -32,7 +32,8 @@ export const zAuditUrl = z.preprocess(
     .refine((v) => {
       try {
         const u = new URL(v);
-        return (u.protocol === "http:" || u.protocol === "https:") && Boolean(u.hostname) && !u.username && !u.password;
+        const hostOk = u.hostname.includes(".") || u.hostname === "localhost" || u.hostname.startsWith("[");
+        return (u.protocol === "http:" || u.protocol === "https:") && hostOk && !u.username && !u.password;
       } catch {
         return false;
       }
