@@ -4,12 +4,12 @@ import { Badge, cn } from "@agencyos/ui";
 
 export const SEO_ACCENT = "#60A5FA";
 
-const SEV_TONE: Record<string, "danger" | "warning" | "info" | "neutral"> = { critical: "danger", high: "warning", medium: "info", low: "neutral" };
+const SEV_TONE: Record<string, "danger" | "warning" | "neutral"> = { critical: "danger", high: "warning", medium: "neutral", low: "neutral" };
 
 export function SeverityBadge({ severity, label }: { severity: string; label: string }) {
   return (
     <Badge tone={SEV_TONE[severity] ?? "neutral"}>
-      <span aria-hidden className={cn("inline-block size-1.5 rounded-full bg-current", severity === "low" && "opacity-60")} />
+      <span aria-hidden className="inline-block size-1.5 rounded-full" style={{ background: SEV_COLOR[severity] ?? "currentColor" }} />
       {label}
     </Badge>
   );

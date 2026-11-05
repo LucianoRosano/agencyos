@@ -61,7 +61,7 @@ export async function SummaryPanel({ data, comparable }: { data: AuditData; comp
   const delta = prev && prev.score !== null && a.score !== null ? a.score - prev.score : null;
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid gap-5 lg:grid-cols-[380px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[380px_1fr] [&>*]:min-w-0">
         <Card className="flex flex-col items-center gap-4 p-5 text-center">
           <SectionLabel className="self-start">Puntaje</SectionLabel>
           <ScoreRing score={a.score} size={168} />
@@ -100,7 +100,7 @@ export async function SummaryPanel({ data, comparable }: { data: AuditData; comp
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3 [&>*]:min-w-0">
         <Card className="p-5">
           <SectionLabel className="mb-4">Rastreo</SectionLabel>
           <dl className="grid grid-cols-2 gap-4">
@@ -701,7 +701,7 @@ export async function ComparePanel({
               por fingerprint (tipo de problema + URL).
             </p>
           </Card>
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2 [&>*]:min-w-0">
             <Card className="p-5">
               <SectionLabel className="mb-3">Por categoría</SectionLabel>
               <ul className="flex flex-col divide-y divide-border">
@@ -737,7 +737,7 @@ export async function ComparePanel({
               </ul>
             </Card>
           </div>
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-3 [&>*]:min-w-0">
             <CompareList title={`Nuevos · ${cmp.counts.added}`} rows={cmp.added} tone="var(--danger)" empty="Ningún problema nuevo." />
             <CompareList title={`Resueltos · ${cmp.counts.resolved}`} rows={cmp.resolved} tone="var(--success)" empty="Nada resuelto todavía." />
             <CompareList title={`Persistentes · ${cmp.counts.persistent}`} rows={cmp.persistent} tone="var(--text-muted)" empty="Sin problemas persistentes." />
@@ -755,7 +755,7 @@ export async function ComparePanel({
 export function ReportPanel({ data }: { data: AuditData }) {
   const id = data.audit.id;
   return (
-    <div className="grid gap-5 md:grid-cols-2">
+    <div className="grid gap-5 md:grid-cols-2 [&>*]:min-w-0">
       <Card className="flex flex-col gap-3 p-5">
         <SectionLabel icon={<FileText />}>Informe PDF</SectionLabel>
         <p className="text-[14px] text-text-muted">
