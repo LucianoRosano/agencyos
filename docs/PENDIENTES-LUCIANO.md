@@ -42,7 +42,7 @@ Ordenado por valor. Ninguno bloquea el uso diario.
 
 ### F2 · Producción de sitios
 - **Website Factory** completo (briefing, requerimientos, blueprint, contenidos, revisiones, checklist de 17 áreas, documentación).
-- **Biblioteca de archivos** (y con ella: adjuntos en movimientos/comprobantes, interacciones y notas; kit de marca).
+- Biblioteca (✅ hecha): falta la **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña), adjuntos en **interacciones** del CRM, **mover carpetas** de lugar y la **cuota editable desde Configuración** (hoy se cambia con `workspace.settings.storageQuotaMb`, por defecto 5000 MB).
 - **Activos técnicos:** dominios, hosting y certificados con vencimientos (hoy se cargan como "vencimientos" sueltos), productos propios e instalaciones.
 - Presupuestos: **envío por email + enlace público** con aceptación online ("Visto").
 

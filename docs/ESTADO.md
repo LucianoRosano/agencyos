@@ -25,6 +25,9 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Worker pg-boss: outbox → notificaciones, vencimientos diarios, resumen 8:00 (in-app + email si hay Brevo), purga de papelera.
 - ✅ Carga inicial de tus datos reales (`pnpm admin import-inicial`, primero muestra el plan).
 
+### Segunda vuelta (F2)
+- ✅ **Biblioteca** (`/biblioteca`): subida por arrastrar o elegir (varios, con progreso) con validación por magic bytes, SVG sanitizado, nombres normalizados, máximo 100 MB y cuota por workspace; miniaturas WebP (sharp); cliente → proyecto → carpetas, vistas Logos/Imágenes/Documentos/Últimos, búsqueda y filtros, grilla y lista; ficha con metadatos, etiquetas, **versiones** (descargar y restaurar) y "adjuntado en"; descarga con **URL firmada de 5 min** + sesión; **kit de marca** por cliente (`/biblioteca/marca/<cliente>`); **plantillas** con `{{variables}}` (`/biblioteca/plantillas`); **adjuntos** en tareas, notas, clientes (pestaña Archivos) y comprobantes de movimientos; al purgar de la papelera se borra del almacenamiento (más job diario de huérfanos).
+
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 
