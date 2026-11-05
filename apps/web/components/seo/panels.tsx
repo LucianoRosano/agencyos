@@ -116,7 +116,7 @@ export async function SummaryPanel({ data, comparable }: { data: AuditData; comp
             <li className="flex justify-between gap-3">
               <span className="text-text-muted">robots.txt</span>
               <span className="text-right text-text">
-                {s.robots?.found ? `${s.robots.rules} reglas para el auditor` : "No encontrado"}
+                {s.robots?.found ? `${s.robots.rules} regla${s.robots.rules === 1 ? "" : "s"} para el auditor` : "No encontrado"}
                 {s.robots?.blocksAll ? " · bloquea todo" : ""}
               </span>
             </li>
