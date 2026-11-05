@@ -27,14 +27,16 @@ export default async function HostingPage({ searchParams }: { searchParams: Prom
         <ul className="flex flex-col gap-2">
           {rows.map(({ h, clientName, credentialLabel }) => (
             <li key={h.id}>
-              <Card className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-5">
+              <Card className="relative flex flex-col gap-3 p-4 pr-14 md:flex-row md:items-center md:gap-5 md:pr-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Server className="size-4 shrink-0 text-text-muted" aria-hidden />
-                    <h3 className="truncate text-[15px] font-medium text-text">
-                      {h.provider}
-                      {h.plan ? <span className="font-normal text-text-muted"> · {h.plan}</span> : null}
-                    </h3>
+                    <span className="flex min-w-0 max-w-full items-center gap-2">
+                      <Server className="size-4 shrink-0 text-text-muted" aria-hidden />
+                      <h3 className="truncate text-[15px] font-medium text-text">
+                        {h.provider}
+                        {h.plan ? <span className="font-normal text-text-muted"> · {h.plan}</span> : null}
+                      </h3>
+                    </span>
                     {clientName ? <EntityChip color="#22D3EE">{clientName}</EntityChip> : null}
                   </div>
                   <p className="mt-1 truncate text-[13px] text-text-muted">{h.location ?? "Sin ubicación cargada"}</p>
@@ -50,7 +52,7 @@ export default async function HostingPage({ searchParams }: { searchParams: Prom
                     </span>
                   ) : null}
                 </div>
-                <div className="flex justify-end">
+                <div className="absolute top-1.5 right-1.5 md:static">
                   <HostingMenu
                     openInitially={sp.ver === h.id}
                     options={options}

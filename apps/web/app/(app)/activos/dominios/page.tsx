@@ -27,11 +27,13 @@ export default async function DominiosPage({ searchParams }: { searchParams: Pro
         <ul className="flex flex-col gap-2">
           {rows.map(({ d, clientName, siteName, credentialLabel, rdapAt }) => (
             <li key={d.id} data-domain={d.name}>
-              <Card className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-5">
+              <Card className="relative flex flex-col gap-3 p-4 pr-14 md:flex-row md:items-center md:gap-5 md:pr-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Globe className="size-4 shrink-0 text-text-muted" aria-hidden />
-                    <h3 className="truncate font-mono text-[15px] text-text">{d.name}</h3>
+                    <span className="flex min-w-0 max-w-full items-center gap-2">
+                      <Globe className="size-4 shrink-0 text-text-muted" aria-hidden />
+                      <h3 className="truncate font-mono text-[15px] text-text">{d.name}</h3>
+                    </span>
                     {clientName ? <EntityChip color="#22D3EE">{clientName}</EntityChip> : null}
                     {siteName ? <EntityChip color="#F472B6">{siteName}</EntityChip> : null}
                   </div>
@@ -60,7 +62,7 @@ export default async function DominiosPage({ searchParams }: { searchParams: Pro
                     </span>
                   ) : null}
                 </div>
-                <div className="flex justify-end">
+                <div className="absolute top-1.5 right-1.5 md:static">
                   <DomainMenu
                     openInitially={sp.ver === d.id}
                     options={options}

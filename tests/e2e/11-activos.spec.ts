@@ -31,6 +31,7 @@ test("dominio que vence en 10 días → Hoy; producto propio con instalación y 
   await expect(dd).toBeHidden();
   await expect(page.getByRole("heading", { name: domain })).toBeVisible();
   await expect(page.locator(`[data-domain="${domain}"]`).getByText("vence en 10 d")).toBeVisible();
+  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 15_000 });
   await expectNoHorizontalScroll(page);
   await shot(page, "activos-dominios", info.project.name);
 
@@ -54,7 +55,10 @@ test("dominio que vence en 10 días → Hoy; producto propio con instalación y 
 
   // Producto propio + versión 1.0.0 + instalación
   await page.goto("/activos/productos");
-  await page.getByRole("button", { name: /Nuevo producto|Crear el primero/ }).first().click();
+  await page
+    .getByRole("button", { name: /Nuevo producto|Crear el primero/ })
+    .first()
+    .click();
   const pd = page.getByRole("dialog", { name: "Nuevo producto propio" });
   await pd.locator("#name").fill(product);
   await pd.getByRole("button", { name: "Crear" }).click();
@@ -83,6 +87,8 @@ test("dominio que vence en 10 días → Hoy; producto propio con instalación y 
   await expect(page.getByText(/1 tarea creada/).first()).toBeVisible();
   await expect(page.locator(`[data-installation="${client}"]`).getByText("→ v1.1.0 disponible")).toBeVisible();
   await expectNoHorizontalScroll(page);
+  // axe sin toasts animándose (la opacidad intermedia da falsos positivos de contraste).
+  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 15_000 });
   await expectAccessible(page);
   await shot(page, "activos-producto", info.project.name);
 

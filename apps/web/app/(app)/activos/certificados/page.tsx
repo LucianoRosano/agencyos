@@ -49,7 +49,7 @@ export default async function CertificadosPage({ searchParams }: { searchParams:
             <ul className="flex flex-col gap-2">
               {rows.map(({ c, clientName, siteName }) => (
                 <li key={c.id}>
-                  <Card className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-5">
+                  <Card className="relative flex flex-col gap-3 p-4 pr-14 md:flex-row md:items-center md:gap-5 md:pr-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone={c.kind === "arca" ? "warning" : c.kind === "ssl" ? "success" : "neutral"}>{CERT_KIND[c.kind] ?? c.kind}</Badge>
@@ -63,7 +63,7 @@ export default async function CertificadosPage({ searchParams }: { searchParams:
                       <DueText expiresOn={c.expiresOn} today={today} notify={c.notifyDaysBefore} />
                       <p className="font-mono text-[11px] text-text-faint">aviso {c.notifyDaysBefore} d antes</p>
                     </div>
-                    <div className="flex justify-end">
+                    <div className="absolute top-1.5 right-1.5 md:static">
                       <CertificateMenu
                         openInitially={sp.ver === c.id}
                         options={options}
