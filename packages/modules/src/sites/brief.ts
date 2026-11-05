@@ -199,11 +199,19 @@ export function briefProgress(kind: string, answers: Record<string, unknown>) {
   return { done, total: fields.length };
 }
 
+/** Saludo y cierre del mensaje de preguntas (la lista numerada va en el medio). */
+export function questionsMessageParts(opts: { clientName?: string | null; siteName: string; brand: string }) {
+  const hi = opts.clientName ? `¡Hola, ${opts.clientName}!` : "¡Hola!";
+  return {
+    intro: `${hi} Para avanzar con «${opts.siteName}» necesito que me respondas estas preguntas. Podés contestar por acá, en el orden que quieras:`,
+    outro: `Gracias. ${opts.brand}`,
+  };
+}
+
 /** Texto listo para pegar en WhatsApp. */
 export function questionsMessage(questions: string[], opts: { clientName?: string | null; siteName: string; brand: string }) {
-  const hi = opts.clientName ? `¡Hola, ${opts.clientName}!` : "¡Hola!";
-  const list = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
-  return `${hi} Para avanzar con «${opts.siteName}» necesito que me respondas estas preguntas. Podés contestar por acá, en el orden que quieras:\n\n${list}\n\nGracias. ${opts.brand}`;
+  const { intro, outro } = questionsMessageParts(opts);
+  return `${intro}\n\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}\n\n${outro}`;
 }
 
 /** Texto plano de una respuesta para la UI y el PDF. */
