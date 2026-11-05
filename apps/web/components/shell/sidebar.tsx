@@ -1,7 +1,7 @@
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { navFor } from "./nav-config";
+import { NAV_GROUP_LABEL, type NavGroup, navFor } from "./nav-config";
 import { NavLink } from "./nav-link";
 import { OpenPaletteButton } from "./palette-trigger";
 import { ThemeToggle } from "./theme-toggle";
@@ -38,13 +38,22 @@ export function Sidebar({ data }: { data: ShellData }) {
         <OpenPaletteButton />
       </div>
       <nav className="mt-4 flex-1 overflow-y-auto px-3 pb-4" aria-label="Principal">
-        <ul className="flex flex-col gap-0.5">
-          {items.map((it) => (
-            <li key={it.key}>
-              <NavLink href={it.href} icon={it.icon} label={it.label} count={it.countKey ? data.counts[it.countKey] : undefined} match={it.match} />
-            </li>
-          ))}
-        </ul>
+        {([undefined, "agencia", "conocimiento", "sistema"] as (NavGroup | undefined)[]).map((g) => {
+          const groupItems = items.filter((it) => it.group === g);
+          if (!groupItems.length) return null;
+          return (
+            <div key={g ?? "principal"}>
+              {g ? <p className="mt-6 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">{NAV_GROUP_LABEL[g]}</p> : null}
+              <ul className="flex flex-col gap-0.5">
+                {groupItems.map((it) => (
+                  <li key={it.key}>
+                    <NavLink href={it.href} icon={it.icon} label={it.label} count={it.countKey ? data.counts[it.countKey] : undefined} match={it.match} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
         <p className="mt-7 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">Espacios</p>
         <ul className="flex flex-col gap-0.5">
           {data.spaces.map((s) => (

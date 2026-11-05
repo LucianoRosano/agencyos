@@ -21,28 +21,39 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type NavItem = { key: string; href: string; label: string; icon: ReactNode; module?: string; match?: string; countKey?: string };
+export type NavGroup = "agencia" | "conocimiento" | "sistema";
+export type NavItem = { key: string; href: string; label: string; icon: ReactNode; module?: string; match?: string; countKey?: string; group?: NavGroup };
+export const NAV_GROUP_LABEL: Record<NavGroup, string> = { agencia: "Agencia", conocimiento: "Conocimiento", sistema: "Sistema" };
 
 export const NAV: NavItem[] = [
   { key: "hoy", href: "/hoy", label: "Hoy", icon: <Sun /> },
   { key: "bandeja", href: "/bandeja", label: "Bandeja", icon: <Inbox />, module: "inbox", countKey: "inbox" },
-  { key: "proyectos", href: "/proyectos", label: "Proyectos", icon: <FolderKanban />, module: "projects", countKey: "projects" },
-  { key: "tareas", href: "/tareas", label: "Tareas", icon: <CircleCheck />, module: "projects" },
-  { key: "clientes", href: "/crm/clientes", label: "Clientes", icon: <BriefcaseBusiness />, module: "crm", match: "/crm", countKey: "clients" },
-  { key: "presupuestos", href: "/presupuestos", label: "Presupuestos", icon: <FileSignature />, module: "quotes" },
-  { key: "notas", href: "/notas", label: "Notas", icon: <FileText />, module: "notes" },
-  { key: "cerebro", href: "/cerebro", label: "Cerebro", icon: <Brain />, module: "brain" },
-  { key: "finanzas", href: "/finanzas", label: "Finanzas", icon: <Wallet />, module: "finance" },
-  { key: "negocio", href: "/negocio", label: "Negocio", icon: <ChartNoAxesCombined /> },
-  { key: "calendario", href: "/calendario", label: "Calendario", icon: <Calendar />, module: "calendar" },
-  { key: "facultad", href: "/facultad", label: "Facultad", icon: <GraduationCap />, module: "study" },
-  { key: "sitios", href: "/sitios", label: "Sitios", icon: <LayoutTemplate />, module: "sites" },
-  { key: "activos", href: "/activos", label: "Activos técnicos", icon: <Server />, module: "assets" },
-  { key: "seo", href: "/seo", label: "SEO", icon: <Radar />, module: "seo" },
-  { key: "repositorios", href: "/repositorios", label: "Repositorios", icon: <GitBranch />, module: "repos" },
-  { key: "biblioteca", href: "/biblioteca", label: "Biblioteca", icon: <Library />, module: "library" },
-  { key: "automatizaciones", href: "/automatizaciones", label: "Automatizaciones", icon: <Workflow />, module: "automations" },
-  { key: "ia", href: "/ia", label: "IA", icon: <Sparkles />, module: "ai" },
+  { key: "negocio", href: "/negocio", label: "Negocio", icon: <ChartNoAxesCombined />, group: "agencia" },
+  {
+    key: "clientes",
+    href: "/crm/clientes",
+    label: "Clientes",
+    icon: <BriefcaseBusiness />,
+    module: "crm",
+    match: "/crm",
+    countKey: "clients",
+    group: "agencia",
+  },
+  { key: "proyectos", href: "/proyectos", label: "Proyectos", icon: <FolderKanban />, module: "projects", countKey: "projects", group: "agencia" },
+  { key: "tareas", href: "/tareas", label: "Tareas", icon: <CircleCheck />, module: "projects", group: "agencia" },
+  { key: "presupuestos", href: "/presupuestos", label: "Presupuestos", icon: <FileSignature />, module: "quotes", group: "agencia" },
+  { key: "finanzas", href: "/finanzas", label: "Finanzas", icon: <Wallet />, module: "finance", group: "agencia" },
+  { key: "sitios", href: "/sitios", label: "Sitios", icon: <LayoutTemplate />, module: "sites", group: "agencia" },
+  { key: "activos", href: "/activos", label: "Activos técnicos", icon: <Server />, module: "assets", group: "agencia" },
+  { key: "seo", href: "/seo", label: "SEO", icon: <Radar />, module: "seo", group: "agencia" },
+  { key: "repositorios", href: "/repositorios", label: "Repositorios", icon: <GitBranch />, module: "repos", group: "agencia" },
+  { key: "biblioteca", href: "/biblioteca", label: "Biblioteca", icon: <Library />, module: "library", group: "agencia" },
+  { key: "notas", href: "/notas", label: "Notas", icon: <FileText />, module: "notes", group: "conocimiento" },
+  { key: "cerebro", href: "/cerebro", label: "Cerebro", icon: <Brain />, module: "brain", group: "conocimiento" },
+  { key: "calendario", href: "/calendario", label: "Calendario", icon: <Calendar />, module: "calendar", group: "conocimiento" },
+  { key: "facultad", href: "/facultad", label: "Facultad", icon: <GraduationCap />, module: "study", group: "conocimiento" },
+  { key: "automatizaciones", href: "/automatizaciones", label: "Automatizaciones", icon: <Workflow />, module: "automations", group: "sistema" },
+  { key: "ia", href: "/ia", label: "IA", icon: <Sparkles />, module: "ai", group: "sistema" },
 ];
 
 export function navFor(enabled: string[]) {
