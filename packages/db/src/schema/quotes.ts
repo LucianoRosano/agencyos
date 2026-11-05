@@ -35,6 +35,9 @@ export const quote = pgTable(
     viewedAt: tz("viewed_at"),
     decidedAt: tz("decided_at"),
     projectId: uuid("project_id"),
+    /** Enlace público (F2): solo se guarda el hash del token. */
+    publicTokenHash: text("public_token_hash"),
+    publicExpiresAt: tz("public_expires_at"),
   },
   (t) => [
     uniqueIndex("quote_number").on(t.workspaceId, t.number),

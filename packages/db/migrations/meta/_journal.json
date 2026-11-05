@@ -15,6 +15,20 @@
       "when": 1793809972179,
       "tag": "0001_busqueda_y_auditoria",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793845310043,
+      "tag": "0002_f2_a_f6",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793845320629,
+      "tag": "0003_modulos_y_busqueda_f2",
+      "breakpoints": true
     }
   ]
 }

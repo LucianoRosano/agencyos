@@ -1,18 +1,10 @@
 import { closeDb } from "@agencyos/db";
 import { PgBoss } from "pg-boss";
-import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
+import { dispatchOutbox } from "./jobs";
 import { log } from "./log";
+import { JOBS } from "./registry";
 
 const TZ = "America/Buenos_Aires";
-
-/** Trabajos del sistema (docs/02 M09 "desde el MVP"). Reintentos exponenciales; idempotentes. */
-const JOBS: { name: string; cron: string; run: () => Promise<unknown> }[] = [
-  { name: "outbox-dispatch", cron: "* * * * *", run: () => dispatchOutbox() },
-  { name: "heartbeat", cron: "*/5 * * * *", run: async () => true },
-  { name: "daily-due-dates", cron: "5 6 * * *", run: () => dailyDueDates() },
-  { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
-  { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
-];
 
 async function main() {
   const url = process.env.DATABASE_URL;

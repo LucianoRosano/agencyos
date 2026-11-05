@@ -91,4 +91,9 @@ export const ENTITY_COLORS: Record<string, string> = {
   task: "#60A5FA",
   quote: "#A78BFA",
   opportunity: "#22D3EE",
+  repository: "#E8EBF2",
+  file: "#FB923C",
+  seo_audit: "#60A5FA",
+  automation_rule: "#2DD4BF",
+  domain: "#F472B6",
 };

@@ -15,7 +15,14 @@ export const OPTIONAL_MODULES = [
   { key: "brain", label: "Cerebro", description: "Grafo de todo lo conectado." },
   { key: "calendar", label: "Calendario", description: "Todas las fechas del sistema en un lugar." },
   { key: "study", label: "Facultad", description: "Materias, evaluaciones y apuntes." },
-  { key: "ai", label: "IA / MCP", description: "Servidor MCP para que Claude opere AGENCYOS." },
+  { key: "ai", label: "IA / MCP", description: "Servidor MCP para que Claude opere AGENCYOS y agentes internos." },
+  { key: "sites", label: "Sitios (Website Factory)", description: "Producción de sitios: briefing, estructura, contenidos, revisiones y publicación." },
+  { key: "assets", label: "Activos técnicos", description: "Dominios, hosting, certificados, productos propios e instalaciones; monitoreo." },
+  { key: "seo", label: "SEO Auditor", description: "Auditorías SEO con datos reales y comparación en el tiempo." },
+  { key: "repos", label: "Repositorios", description: "GitHub ordenado: estándar, puntaje de salud y planes con aprobación." },
+  { key: "library", label: "Biblioteca", description: "Archivos, versiones, kits de marca y plantillas reutilizables." },
+  { key: "automations", label: "Automatizaciones", description: "Reglas: cuando pasa X, hacer Y (con aprobación para lo externo)." },
+  { key: "review", label: "Revisión semanal", description: "Asistente guiado para cerrar la semana." },
 ] as const;
 
 export const workspaceInput = z.object({

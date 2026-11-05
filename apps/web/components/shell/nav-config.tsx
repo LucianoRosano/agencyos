@@ -7,10 +7,17 @@ import {
   FileSignature,
   FileText,
   FolderKanban,
+  GitBranch,
   GraduationCap,
   Inbox,
+  LayoutTemplate,
+  Library,
+  Radar,
+  Server,
+  Sparkles,
   Sun,
   Wallet,
+  Workflow,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -29,6 +36,13 @@ export const NAV: NavItem[] = [
   { key: "negocio", href: "/negocio", label: "Negocio", icon: <ChartNoAxesCombined /> },
   { key: "calendario", href: "/calendario", label: "Calendario", icon: <Calendar />, module: "calendar" },
   { key: "facultad", href: "/facultad", label: "Facultad", icon: <GraduationCap />, module: "study" },
+  { key: "sitios", href: "/sitios", label: "Sitios", icon: <LayoutTemplate />, module: "sites" },
+  { key: "activos", href: "/activos", label: "Activos técnicos", icon: <Server />, module: "assets" },
+  { key: "seo", href: "/seo", label: "SEO", icon: <Radar />, module: "seo" },
+  { key: "repositorios", href: "/repositorios", label: "Repositorios", icon: <GitBranch />, module: "repos" },
+  { key: "biblioteca", href: "/biblioteca", label: "Biblioteca", icon: <Library />, module: "library" },
+  { key: "automatizaciones", href: "/automatizaciones", label: "Automatizaciones", icon: <Workflow />, module: "automations" },
+  { key: "ia", href: "/ia", label: "IA", icon: <Sparkles />, module: "ai" },
 ];
 
 export function navFor(enabled: string[]) {
@@ -56,6 +70,15 @@ export const ROUTE_TITLES: [string, string][] = [
   ["/foco", "Modo foco"],
   ["/papelera", "Papelera"],
   ["/configuracion", "Configuración"],
+  ["/sitios", "Sitios"],
+  ["/activos", "Activos técnicos"],
+  ["/seo", "SEO"],
+  ["/repositorios", "Repositorios"],
+  ["/biblioteca", "Biblioteca"],
+  ["/automatizaciones", "Automatizaciones"],
+  ["/ia", "IA"],
+  ["/revision-semanal", "Revisión semanal"],
+  ["/aprobaciones", "Aprobaciones"],
   ["/espacios", "Espacios"],
   ["/actividad", "Actividad"],
   ["/notificaciones", "Notificaciones"],

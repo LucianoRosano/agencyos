@@ -4,7 +4,25 @@ import { count, eq } from "drizzle-orm";
 import { getAuth } from "../auth/server";
 import { DEFAULT_CATEGORIES, DEFAULT_QUOTE_TEMPLATE, PROJECT_TEMPLATES } from "./templates";
 
-export const DEFAULT_MODULES = ["inbox", "crm", "projects", "quotes", "finance", "notes", "brain", "calendar", "study", "ai"];
+export const DEFAULT_MODULES = [
+  "inbox",
+  "crm",
+  "projects",
+  "quotes",
+  "finance",
+  "notes",
+  "brain",
+  "calendar",
+  "study",
+  "ai",
+  "sites",
+  "assets",
+  "seo",
+  "repos",
+  "library",
+  "automations",
+  "review",
+];
 
 export async function isSetupDone(): Promise<boolean> {
   const [row] = await getDb().select({ n: count() }).from(schema.membership);

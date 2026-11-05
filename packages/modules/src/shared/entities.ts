@@ -24,6 +24,23 @@ export const ENTITIES = {
   deliverable: { table: schema.deliverable, title: "title", href: (_id: string) => `/proyectos` },
   account: { table: schema.moneyAccount, title: "name", href: (_id: string) => `/finanzas/cuentas` },
   project_template: { table: schema.projectTemplate, title: "name", href: (_id: string) => `/proyectos/plantillas` },
+  site: { table: schema.site, title: "name", href: (id: string) => `/sitios/${id}` },
+  domain: { table: schema.domain, title: "name", href: (_id: string) => `/activos/dominios` },
+  hosting: { table: schema.hosting, title: "provider", href: (_id: string) => `/activos/hosting` },
+  certificate: { table: schema.certificate, title: "subject", href: (_id: string) => `/activos/certificados` },
+  credential_ref: { table: schema.credentialRef, title: "label", href: (_id: string) => `/activos` },
+  own_product: { table: schema.ownProduct, title: "name", href: (id: string) => `/activos/productos/${id}` },
+  installation: { table: schema.installation, title: "configRefMd", href: (_id: string) => `/activos/productos` },
+  file: { table: schema.file, title: "name", href: (id: string) => `/biblioteca/archivo/${id}` },
+  folder: { table: schema.folder, title: "name", href: (id: string) => `/biblioteca?carpeta=${id}` },
+  reusable_template: { table: schema.reusableTemplate, title: "name", href: (_id: string) => `/biblioteca/plantillas` },
+  seo_audit: { table: schema.seoAudit, title: "rootUrl", href: (id: string) => `/seo/${id}` },
+  automation_rule: { table: schema.automationRule, title: "name", href: (id: string) => `/automatizaciones/${id}` },
+  repository: { table: schema.repository, title: "fullName", href: (id: string) => `/repositorios/${id}` },
+  comment: { table: schema.comment, title: "bodyMd", href: (_id: string) => `/hoy` },
+  saved_view: { table: schema.savedView, title: "name", href: (_id: string) => `/hoy` },
+  time_entry: { table: schema.timeEntry, title: "note", href: (_id: string) => `/proyectos` },
+  note_template: { table: schema.noteTemplate, title: "name", href: (_id: string) => `/notas` },
 } as const;
 
 export type EntityType = keyof typeof ENTITIES;
