@@ -66,7 +66,7 @@ export default async function MonitoreoPage() {
                       }}
                     />
                   </div>
-                  <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                  <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div>
                       <div className="mb-1.5 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
                         <span>Últimas 24 h</span>

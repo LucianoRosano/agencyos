@@ -84,7 +84,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         ))}
       </dl>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <Card className="p-4 md:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <SectionLabel icon={<MonitorSmartphone />}>Instalaciones</SectionLabel>

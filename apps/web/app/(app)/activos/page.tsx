@@ -51,7 +51,7 @@ export default async function ActivosPage() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <BlockCard icon={<CalendarClock />} title="Próximos vencimientos · 90 días">
           {due.length ? (
             <ul className="flex flex-col">
