@@ -29,6 +29,9 @@ const RESOURCE: Partial<Record<EntityType, Resource>> = {
   reminder: "reminder",
   inbox_item: "inbox",
   space: "space",
+  file: "project",
+  folder: "project",
+  reusable_template: "project",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: acceso genérico a columnas comunes
@@ -127,6 +130,10 @@ export async function purgeOne(ctx: Ctx, type: string, id: string) {
       before: row as object,
     });
     return true;
+  }).then(async (r) => {
+    // archivos: borrar del storage las versiones que quedaron huérfanas
+    if (type === "file") await (await import("../library/jobs")).cleanupOrphanFiles();
+    return r;
   });
 }
 
