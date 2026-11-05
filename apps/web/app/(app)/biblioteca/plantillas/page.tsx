@@ -22,7 +22,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
     <div className="mx-auto max-w-6xl">
       <Link
         href="/biblioteca"
-        className="-ml-1 mb-3 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text md:h-8"
+        className="-ml-1 mb-6 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text md:mb-9 md:h-8"
       >
         <ChevronLeft className="size-4" /> Biblioteca
       </Link>

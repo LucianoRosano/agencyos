@@ -27,7 +27,12 @@ function makePng(w: number, h: number, rgb: [number, number, number]) {
   ihdr[9] = 2;
   const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array.from({ length: w }, () => rgb).flat())]);
   const raw = Buffer.concat(Array.from({ length: h }, () => row));
-  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
 }
 
 const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
@@ -75,7 +80,10 @@ test("biblioteca: subir PNG y PDF → miniatura → nueva versión → adjuntar 
   await page.waitForURL(/\/biblioteca\/archivo\/[0-9a-f-]{36}$/);
   const fileUrl = page.url();
   await page.getByRole("button", { name: "Nueva versión" }).click();
-  await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: png, mimeType: "image/png", buffer: makePng(400, 200, [30, 120 + (n % 60), 250]) });
+  await page
+    .getByRole("dialog")
+    .locator('input[type="file"]')
+    .setInputFiles({ name: png, mimeType: "image/png", buffer: makePng(400, 200, [30, 120 + (n % 60), 250]) });
   await expect(page.getByText("Nueva versión subida")).toBeVisible({ timeout: 20_000 });
   await page.keyboard.press("Escape");
   await expect(page.locator('[data-version="2"]')).toBeVisible();
@@ -96,7 +104,10 @@ test("biblioteca: subir PNG y PDF → miniatura → nueva versión → adjuntar 
   await page.waitForURL(/\/tareas\/[0-9a-f-]{36}$/);
   await page.getByRole("button", { name: "De la biblioteca" }).click();
   await page.getByRole("dialog").getByPlaceholder("Buscar archivos…").fill(`logo-${p}`);
-  await page.getByRole("dialog").getByRole("button", { name: new RegExp(png) }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: new RegExp(png) })
+    .click();
   await expect(page.getByText(`Adjuntaste «${png}»`)).toBeVisible();
   const attached = page.locator('[data-attachments^="task:"]').getByRole("link", { name: png, exact: true });
   await expect(attached).toBeVisible();
@@ -126,4 +137,56 @@ test("biblioteca: un .exe renombrado a .png es rechazado", async ({ page }, info
   await expect(page.getByText(/no es un \.png real/).first()).toBeVisible({ timeout: 15_000 });
   await page.reload();
   await expect(page.locator(`[data-file="${name}"]`)).toHaveCount(0);
+});
+
+test("plantillas con variables y kit de marca del cliente @visual", async ({ page }, info) => {
+  test.setTimeout(120_000);
+  const p = slug(info.project.name);
+  await login(page);
+
+  // plantilla: crear → usar completando la variable
+  await page.goto("/biblioteca/plantillas");
+  await page.getByRole("button", { name: "Nueva plantilla" }).first().click();
+  const dlg = page.getByRole("dialog", { name: "Nueva plantilla" });
+  await dlg.locator("#name").fill(`Bienvenida ${p}`);
+  await dlg.locator("#kind").selectOption("snippet");
+  await dlg.locator("#bodyMd").fill("Hola {{nombre}}, ya está tu sitio.");
+  await dlg.getByRole("button", { name: "Crear plantilla" }).click();
+  await expect(page.getByText("Plantilla creada")).toBeVisible();
+  const card = page.locator(`[data-template="Bienvenida ${p}"]`);
+  await card.getByRole("button", { name: "Usar" }).click();
+  const use = page.getByRole("dialog", { name: `Usar «Bienvenida ${p}»` });
+  await use.getByLabel("Valor de nombre").fill("Ana");
+  await expect(use.locator("[data-template-output]")).toHaveText("Hola Ana, ya está tu sitio.");
+  await page.keyboard.press("Escape");
+  await expectNoHorizontalScroll(page);
+  await shot(page, "biblioteca-plantillas", info.project.name);
+
+  // kit de marca: cliente nuevo → pestaña Archivos → armar kit (logo subido + color)
+  await page.goto("/crm/clientes/nuevo");
+  await page.fill("#name", `Marca e2e ${p}`);
+  await page.getByRole("button", { name: "Crear cliente" }).click();
+  await page.waitForURL(/\/crm\/clientes\/[0-9a-f-]{36}$/);
+  const clientId = page.url().split("/").pop();
+  await page.goto(`/crm/clientes/${clientId}/archivos`);
+  await expect(page.getByText("Kit de marca").first()).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await page.getByRole("link", { name: "Armar" }).click();
+  await page.waitForURL(`**/biblioteca/marca/${clientId}`);
+  await page.getByRole("button", { name: "Agregar color" }).click();
+  await page.getByLabel("Nombre del color 1").fill("Primario");
+  await page.getByLabel("Hex del color 1").fill("#7C5CFF");
+  await page
+    .getByLabel("Subir logos")
+    .setInputFiles({ name: `isotipo-${p}.png`, mimeType: "image/png", buffer: makePng(64, 64, [124, 92, 255 - (seed(p) % 50)]) });
+  await expect(page.getByRole("button", { name: `Quitar isotipo-${p}.png` })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Guardar kit de marca" }).click();
+  await expect(page.getByText("Kit de marca guardado")).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Hex del color 1")).toHaveValue("#7C5CFF");
+  await expect(page.getByRole("button", { name: `Quitar isotipo-${p}.png` })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await shot(page, "biblioteca-marca", info.project.name);
+  await page.goto("/biblioteca?vista=logos");
+  await expect(page.locator(`[data-file="isotipo-${p}.png"]`).first()).toBeVisible();
 });
