@@ -2,7 +2,7 @@
 
 import { Button, Card, Input, SectionLabel } from "@agencyos/ui";
 import { BookOpen, Palette, Plus, Shapes, Type, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { saveBrandKitAction } from "@/app/(app)/biblioteca/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { TextAreaField } from "@/components/fields";
@@ -27,6 +27,11 @@ export function BrandKitEditor({
   const [fonts, setFonts] = useState<Font[]>(initial.fonts);
   const [logos, setLogos] = useState<KitFile[]>(initial.logos);
   const [guidelines, setGuidelines] = useState<KitFile | null>(initial.guidelines);
+  // al guardar, el servidor trae las miniaturas firmadas: se completan sin remontar el formulario (así no se pierde el aviso)
+  useEffect(() => {
+    setLogos((prev) => prev.map((l) => initial.logos.find((x) => x.id === l.id) ?? l));
+    setGuidelines((prev) => (prev && initial.guidelines?.id === prev.id ? initial.guidelines : prev));
+  }, [initial.logos, initial.guidelines]);
   const addLogo = (f: KitFile) => setLogos((prev) => (prev.some((x) => x.id === f.id) ? prev : [...prev, f]));
 
   return (

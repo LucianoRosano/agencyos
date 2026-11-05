@@ -39,7 +39,6 @@ export default async function BrandKitPage({ params }: { params: Promise<{ clien
         }
       />
       <BrandKitEditor
-        key={data.kit?.updatedAt.getTime() ?? 0}
         clientId={clientId}
         initial={{ colors: data.colors, fonts: data.fonts, logos: data.logos, guidelines: data.guidelines, notesMd: data.notesMd }}
       />
