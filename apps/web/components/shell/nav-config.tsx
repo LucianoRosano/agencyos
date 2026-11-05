@@ -2,6 +2,7 @@ import {
   Brain,
   BriefcaseBusiness,
   Calendar,
+  CalendarCheck,
   ChartNoAxesCombined,
   CircleCheck,
   FileSignature,
@@ -52,6 +53,7 @@ export const NAV: NavItem[] = [
   { key: "cerebro", href: "/cerebro", label: "Cerebro", icon: <Brain />, module: "brain", group: "conocimiento" },
   { key: "calendario", href: "/calendario", label: "Calendario", icon: <Calendar />, module: "calendar", group: "conocimiento" },
   { key: "facultad", href: "/facultad", label: "Facultad", icon: <GraduationCap />, module: "study", group: "conocimiento" },
+  { key: "revision", href: "/revision-semanal", label: "Revisión semanal", icon: <CalendarCheck />, module: "review", group: "sistema" },
   { key: "automatizaciones", href: "/automatizaciones", label: "Automatizaciones", icon: <Workflow />, module: "automations", group: "sistema" },
   { key: "ia", href: "/ia", label: "IA", icon: <Sparkles />, module: "ai", group: "sistema" },
 ];
