@@ -31,6 +31,7 @@ export const ENTITIES = {
   credential_ref: { table: schema.credentialRef, title: "label", href: (_id: string) => `/activos` },
   own_product: { table: schema.ownProduct, title: "name", href: (id: string) => `/activos/productos/${id}` },
   installation: { table: schema.installation, title: "configRefMd", href: (_id: string) => `/activos/productos` },
+  site_environment: { table: schema.siteEnvironment, title: "url", href: (_id: string) => `/activos/monitoreo` },
   file: { table: schema.file, title: "name", href: (id: string) => `/biblioteca/archivo/${id}` },
   folder: { table: schema.folder, title: "name", href: (id: string) => `/biblioteca?carpeta=${id}` },
   reusable_template: { table: schema.reusableTemplate, title: "name", href: (_id: string) => `/biblioteca/plantillas` },

@@ -1,6 +1,8 @@
 import { addDays, addMonths, type Ctx, can, diffDays, endOfMonth, isoWeek, startOfMonth, todayAR, toISODateAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
+import { assetDueDates, assetKindLabel } from "../assets/queries";
+import { downEnvironments } from "../monitoring/queries";
 import { getDb, scoped } from "../shared/db";
 
 /**
@@ -23,7 +25,9 @@ export type CatchUpItem = {
     | "opportunity"
     | "interaction"
     | "inbox"
-    | "approval";
+    | "approval"
+    | "asset"
+    | "site_down";
   title: string;
   subtitle: string;
   severity: "critical" | "high" | "medium" | "low";
@@ -156,6 +160,9 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
         .orderBy(desc(schema.approval.createdAt)),
     ]);
 
+  // Activos técnicos (dominios, hosting, certificados) y sitios caídos (Monitoreo).
+  const [assetDue, sitesDown] = await Promise.all([assetDueDates(ctx, { to: addDays(today, 365) }), downEnvironments(ctx)]);
+
   // Sin permiso de finanzas no se muestran montos, pagos ni cobros.
   if (!can(ctx, "read", "finance")) {
     payables.length = 0;
@@ -242,6 +249,36 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
       entityId: r.id,
       href: "/hoy",
       date: r.dueDate,
+    });
+  }
+  for (const a of assetDue) {
+    const d = diffDays(a.expiresOn, today);
+    if (d > a.notifyDaysBefore) continue;
+    items.push({
+      key: `asset-${a.kind}-${a.id}`,
+      kind: "asset",
+      title: `Renovar ${assetKindLabel(a).toLowerCase()} ${a.title}${a.clientName ? ` · ${a.clientName}` : ""}`,
+      subtitle:
+        d < 0
+          ? `${assetKindLabel(a)} · venció hace ${-d} d`
+          : d === 0
+            ? `${assetKindLabel(a)} · vence hoy`
+            : `${assetKindLabel(a)} · vence ${a.expiresOn.slice(8, 10)}/${a.expiresOn.slice(5, 7)} · quedan ${d} días`,
+      severity: d <= 7 ? "critical" : "medium",
+      entityId: a.id,
+      href: a.href,
+      date: a.expiresOn,
+    });
+  }
+  for (const e of sitesDown) {
+    items.push({
+      key: `down-${e.id}`,
+      kind: "site_down",
+      title: `${e.siteName} está caído`,
+      subtitle: `Monitoreo · ${e.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}${e.lastSeenAt ? ` · respondió por última vez ${toISODateAR(e.lastSeenAt) === today ? "hoy" : `el ${toISODateAR(e.lastSeenAt).slice(8, 10)}/${toISODateAR(e.lastSeenAt).slice(5, 7)}`}` : ""}`,
+      severity: "critical",
+      entityId: e.id,
+      href: "/activos/monitoreo",
     });
   }
   for (const { p, clientName } of projects) {
@@ -448,6 +485,9 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
       ...reminders
         .filter((r) => r.dueDate >= today && r.dueDate <= end)
         .map((r) => ({ key: `rm-${r.id}`, date: r.dueDate, title: r.title, kind: "Vencimiento", color: "#F472B6", href: "/hoy" })),
+      ...assetDue
+        .filter((a) => a.expiresOn >= today && a.expiresOn <= end)
+        .map((a) => ({ key: `as-${a.kind}-${a.id}`, date: a.expiresOn, title: `Vence ${a.title}`, kind: assetKindLabel(a), color: "#E879F9", href: a.href })),
       ...opps
         .filter(({ o }) => o.nextActionDue && o.nextActionDue >= today && o.nextActionDue <= end)
         .map(({ o, clientName }) => ({

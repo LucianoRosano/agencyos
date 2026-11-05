@@ -1,3 +1,4 @@
+import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -13,4 +14,7 @@ export const JOBS: Job[] = [
   { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
+  { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },
+  { name: "monitoring-daily", cron: "15 6 * * *", run: () => runDailyMonitoring() },
+  { name: "monitoring-purge", cron: "45 4 * * *", run: () => purgeUptimeChecks(90) },
 ];

@@ -1,6 +1,7 @@
 import { type Ctx, formatMoney, L, label, subMoney, zDate } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, eq, gte, inArray, isNotNull, isNull, lte, notInArray, type SQL } from "drizzle-orm";
+import { assetDueDates, assetKindLabel } from "../assets/queries";
 import { getDb, scoped } from "../shared/db";
 import { type CalendarItem, type CalendarSource, SOURCE_KEYS, sourceMeta } from "./sources";
 
@@ -28,7 +29,7 @@ export async function getCalendarItems(ctx: Ctx, q: CalendarQuery): Promise<Cale
   const skip = <T>(s: CalendarSource, fn: () => Promise<T[]>): Promise<T[]> => (want.has(s) ? fn() : Promise.resolve([]));
   const inRange = (col: Parameters<typeof gte>[0]): SQL => and(gte(col, from), lte(col, to)) as SQL;
 
-  const [tasks, phases, deliverables, assessments, receivables, payables, subs, reminders, opps, interactions] = await Promise.all([
+  const [tasks, phases, deliverables, assessments, receivables, payables, subs, reminders, opps, interactions, assets] = await Promise.all([
     skip("task", () =>
       db
         .select({ t: schema.task, projectName: schema.project.name })
@@ -120,6 +121,7 @@ export async function getCalendarItems(ctx: Ctx, q: CalendarQuery): Promise<Cale
         .from(schema.interaction)
         .leftJoin(schema.client, eq(schema.client.id, schema.interaction.clientId))
         .where(and(scoped(schema.interaction, ctx), isNotNull(schema.interaction.nextStep), inRange(schema.interaction.nextStepDue)))),
+    skip("asset", () => assetDueDates(ctx, { from, to })),
   ]);
 
   const c = (s: CalendarSource) => sourceMeta(s).color;
@@ -223,6 +225,16 @@ export async function getCalendarItems(ctx: Ctx, q: CalendarQuery): Promise<Cale
       subtitle: "Próximo paso de una conversación",
       href: `/crm/clientes/${i.clientId}`,
       color: c("crm"),
+    })),
+    ...assets.map((a) => ({
+      key: `asset-${a.kind}-${a.id}`,
+      source: "asset" as const,
+      date: a.expiresOn,
+      time: null,
+      title: `Vence ${a.title}`,
+      subtitle: [assetKindLabel(a), a.clientName].filter(Boolean).join(" · "),
+      href: a.href,
+      color: c("asset"),
     })),
   ];
   return items.sort((a, b) => a.date.localeCompare(b.date) || (a.time ?? "99:99").localeCompare(b.time ?? "99:99") || a.title.localeCompare(b.title, "es"));

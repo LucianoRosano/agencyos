@@ -8,6 +8,7 @@ export const CALENDAR_SOURCES = [
   { key: "payable", label: "Pagos", color: "#F43F5E" },
   { key: "subscription", label: "Suscripciones", color: "#2DD4BF" },
   { key: "reminder", label: "Vencimientos", color: "#F472B6" },
+  { key: "asset", label: "Activos técnicos", color: "#E879F9" },
   { key: "crm", label: "CRM", color: "#22D3EE" },
 ] as const;
 
