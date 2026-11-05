@@ -36,12 +36,17 @@ export const blueprintTree = z
       pageKeys.add(p.key);
       const secKeys = new Set<string>();
       p.sections.forEach((s, j) => {
-        if (secKeys.has(s.key)) c.addIssue({ code: "custom", path: ["pages", i, "sections", j, "key"], message: `Sección repetida en «${p.title}»: «${s.title}»` });
+        if (secKeys.has(s.key))
+          c.addIssue({ code: "custom", path: ["pages", i, "sections", j, "key"], message: `Sección repetida en «${p.title}»: «${s.title}»` });
         secKeys.add(s.key);
         const slotKeys = new Set<string>();
         s.slots.forEach((sl, k) => {
           if (slotKeys.has(sl.key))
-            c.addIssue({ code: "custom", path: ["pages", i, "sections", j, "slots", k, "key"], message: `Slot repetido en «${p.title} › ${s.title}»: «${sl.label}»` });
+            c.addIssue({
+              code: "custom",
+              path: ["pages", i, "sections", j, "slots", k, "key"],
+              message: `Slot repetido en «${p.title} › ${s.title}»: «${sl.label}»`,
+            });
           slotKeys.add(sl.key);
         });
       });

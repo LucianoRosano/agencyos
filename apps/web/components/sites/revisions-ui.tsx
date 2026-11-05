@@ -15,7 +15,11 @@ type Item = { id: string; pageRef: string | null; description: string; priority:
 export function OpenRoundButton({ siteId, next, primary = true }: { siteId: string; next: number; primary?: boolean }) {
   const { exec, pending } = useAction();
   return (
-    <Button variant={primary ? "primary" : "secondary"} loading={pending} onClick={() => exec(() => openRoundAction(siteId), { success: `Ronda R${next} abierta` })}>
+    <Button
+      variant={primary ? "primary" : "secondary"}
+      loading={pending}
+      onClick={() => exec(() => openRoundAction(siteId), { success: `Ronda R${next} abierta` })}
+    >
       <Plus className="size-4" /> Abrir ronda R{next}
     </Button>
   );

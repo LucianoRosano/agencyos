@@ -67,7 +67,10 @@ describe("sitios (Website Factory)", () => {
     const envs = await getDb().select().from(schema.siteEnvironment).where(eq(schema.siteEnvironment.siteId, site.id));
     expect(envs.map((e) => e.kind)).toEqual(["staging"]);
 
-    const [note] = await getDb().select().from(schema.note).where(eq(schema.note.id, site.docsNoteId as string));
+    const [note] = await getDb()
+      .select()
+      .from(schema.note)
+      .where(eq(schema.note.id, site.docsNoteId as string));
     expect(note?.title).toBe("Documentación técnica · Tienda Librería");
     expect(note?.entityType).toBe("project");
     const [link] = await getDb()
@@ -201,7 +204,8 @@ describe("sitios (Website Factory)", () => {
       .from(schema.domainEvent)
       .where(and(eq(schema.domainEvent.entityId, site.id), eq(schema.domainEvent.type, "sitio.estado_publicacion_cambiado")));
     expect(ev).toHaveLength(2);
-    expect((ev.find((e) => (e.payload as { to: string }).to === "live")?.payload as { forcedWithPending: number }).forcedWithPending).toBeGreaterThan(0);
+    const liveEv = ev.find((e) => (e.payload as { to: string }).to === "live");
+    expect((liveEv?.payload as { forcedWithPending?: number } | undefined)?.forcedWithPending).toBeGreaterThan(0);
 
     // Con todos los críticos hechos, publica sin confirmar
     const other = await createSite(ctx, { name: "Institucional", kind: "institutional" });

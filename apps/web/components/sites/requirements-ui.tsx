@@ -122,7 +122,13 @@ export function RequirementList({ items }: { items: Req[] }) {
                   </option>
                 ))}
               </Select>
-              <Button variant="ghost" size="icon" aria-label="Subir" disabled={i === 0 || pending} onClick={() => exec(() => moveRequirementAction(r.id, "up"))}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Subir"
+                disabled={i === 0 || pending}
+                onClick={() => exec(() => moveRequirementAction(r.id, "up"))}
+              >
                 <ArrowUp className="size-4" />
               </Button>
               <Button

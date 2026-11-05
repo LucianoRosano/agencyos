@@ -126,11 +126,7 @@ export const LAUNCH_AREAS: LaunchArea[] = [
   {
     key: "backups",
     title: "Backups",
-    items: [
-      { text: "Backup automático diario configurado", critical: true },
-      { text: "Copia fuera del hosting" },
-      { text: "Restauración probada en staging" },
-    ],
+    items: [{ text: "Backup automático diario configurado", critical: true }, { text: "Copia fuera del hosting" }, { text: "Restauración probada en staging" }],
   },
   {
     key: "hosting_dominio",

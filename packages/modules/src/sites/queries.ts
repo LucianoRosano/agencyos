@@ -200,13 +200,19 @@ export async function siteAssets(ctx: Ctx, site: { id: string; clientId: string 
     db
       .select({ d: schema.domain, credential: schema.credentialRef.label, credentialPath: schema.credentialRef.itemPath })
       .from(schema.domain)
-      .leftJoin(schema.credentialRef, and(eq(schema.credentialRef.id, schema.domain.credentialRefId), eq(schema.credentialRef.workspaceId, schema.domain.workspaceId)))
+      .leftJoin(
+        schema.credentialRef,
+        and(eq(schema.credentialRef.id, schema.domain.credentialRefId), eq(schema.credentialRef.workspaceId, schema.domain.workspaceId)),
+      )
       .where(and(scoped(schema.domain, ctx), byClient(schema.domain)))
       .orderBy(asc(schema.domain.name)),
     db
       .select({ h: schema.hosting, credential: schema.credentialRef.label, credentialPath: schema.credentialRef.itemPath })
       .from(schema.hosting)
-      .leftJoin(schema.credentialRef, and(eq(schema.credentialRef.id, schema.hosting.credentialRefId), eq(schema.credentialRef.workspaceId, schema.hosting.workspaceId)))
+      .leftJoin(
+        schema.credentialRef,
+        and(eq(schema.credentialRef.id, schema.hosting.credentialRefId), eq(schema.credentialRef.workspaceId, schema.hosting.workspaceId)),
+      )
       .where(
         and(
           scoped(schema.hosting, ctx),
@@ -284,7 +290,10 @@ export async function siteDocs(ctx: Ctx, site: { id: string; docsNoteId: string 
       status: schema.installation.status,
     })
     .from(schema.installation)
-    .innerJoin(schema.ownProduct, and(eq(schema.ownProduct.id, schema.installation.productId), eq(schema.ownProduct.workspaceId, schema.installation.workspaceId)))
+    .innerJoin(
+      schema.ownProduct,
+      and(eq(schema.ownProduct.id, schema.installation.productId), eq(schema.ownProduct.workspaceId, schema.installation.workspaceId)),
+    )
     .leftJoin(
       schema.ownProductVersion,
       and(eq(schema.ownProductVersion.id, schema.installation.versionId), eq(schema.ownProductVersion.workspaceId, schema.installation.workspaceId)),

@@ -89,7 +89,15 @@ async function createDocsNote(t: Tx, ctx: Ctx, s: SiteRow) {
   });
   await t
     .insert(schema.link)
-    .values({ workspaceId: ctx.workspaceId, fromType: "note", fromId: note.id, toType: "site", toId: s.id, kind: "docs", createdBy: ctx.userId ?? ctx.actor.id })
+    .values({
+      workspaceId: ctx.workspaceId,
+      fromType: "note",
+      fromId: note.id,
+      toType: "site",
+      toId: s.id,
+      kind: "docs",
+      createdBy: ctx.userId ?? ctx.actor.id,
+    })
     .onConflictDoNothing();
   await t.update(schema.site).set({ docsNoteId: note.id }).where(eq(schema.site.id, s.id));
   return note;
@@ -135,10 +143,10 @@ export async function createSite(ctx: Ctx, raw: unknown) {
       })
       .returning();
     if (!row) throw new Error("No se pudo crear el sitio");
-    await t.insert(schema.siteBrief).values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId: row.id, answers: {}, questionsForClient: [], version: 1 });
     await t
-      .insert(schema.launchCheck)
-      .values(launchSeed(row.kind).map((c) => ({ ...c, workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId: row.id })));
+      .insert(schema.siteBrief)
+      .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId: row.id, answers: {}, questionsForClient: [], version: 1 });
+    await t.insert(schema.launchCheck).values(launchSeed(row.kind).map((c) => ({ ...c, workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId: row.id })));
     if (row.prodUrl) await insertEnv(t, ctx, row.id, "prod", row.prodUrl);
     if (row.stagingUrl) await insertEnv(t, ctx, row.id, "staging", row.stagingUrl);
     const note = await createDocsNote(t, ctx, row);
@@ -280,7 +288,10 @@ export async function generateBriefQuestions(ctx: Ctx, siteId: string) {
 /** Guarda la lista de preguntas editada a mano (una por línea). */
 export async function saveBriefQuestions(ctx: Ctx, siteId: string, rawText: unknown) {
   assertCan(ctx, "update", "project");
-  const text = z.string().max(20000, "Demasiado largo").parse(typeof rawText === "string" ? rawText : "");
+  const text = z
+    .string()
+    .max(20000, "Demasiado largo")
+    .parse(typeof rawText === "string" ? rawText : "");
   const questions = text
     .split("\n")
     .map((l) =>
@@ -322,7 +333,12 @@ export async function addRequirement(ctx: Ctx, siteId: string, raw: unknown) {
       .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId, ...input, acceptanceMd: input.acceptanceMd ?? null, sort: (m ?? -1) + 1 })
       .returning();
     await touch(t, siteId);
-    await recordEvent(t, ctx, { type: "sitio.requerimiento_agregado", entityType: "site", entityId: siteId, summary: `Agregó el requerimiento «${input.title}» a «${s.name}»` });
+    await recordEvent(t, ctx, {
+      type: "sitio.requerimiento_agregado",
+      entityType: "site",
+      entityId: siteId,
+      summary: `Agregó el requerimiento «${input.title}» a «${s.name}»`,
+    });
     return row;
   });
 }
@@ -550,7 +566,12 @@ export async function openRevisionRound(ctx: Ctx, siteId: string) {
       .insert(schema.revisionRound)
       .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, siteId, number, status: "open" })
       .returning();
-    await recordEvent(t, ctx, { type: "revision.ronda_abierta", entityType: "site", entityId: siteId, summary: `Abrió la ronda de revisión R${number} de «${s.name}»` });
+    await recordEvent(t, ctx, {
+      type: "revision.ronda_abierta",
+      entityType: "site",
+      entityId: siteId,
+      summary: `Abrió la ronda de revisión R${number} de «${s.name}»`,
+    });
     return row;
   });
 }
@@ -686,7 +707,13 @@ export async function saveEnvironment(ctx: Ctx, siteId: string, envId: string | 
   return getDb().transaction(async (t) => {
     const s = await loadSite(t, ctx, siteId, true);
     await assertOwned(t, ctx, schema.hosting, input.hostingId, "El hosting");
-    const values = { kind: input.kind, url: input.url as string, hostingId: input.hostingId ?? null, phpVersion: input.phpVersion ?? null, wpVersion: input.wpVersion ?? null };
+    const values = {
+      kind: input.kind,
+      url: input.url as string,
+      hostingId: input.hostingId ?? null,
+      phpVersion: input.phpVersion ?? null,
+      wpVersion: input.wpVersion ?? null,
+    };
     let row: typeof schema.siteEnvironment.$inferSelect | undefined;
     if (envId) {
       [row] = await t
@@ -799,8 +826,12 @@ export async function ensureDocsNote(ctx: Ctx, siteId: string) {
       if (n) return { id: n.id };
     }
     const note = await createDocsNote(t, ctx, s);
-    await recordEvent(t, ctx, { type: "sitio.documentacion_creada", entityType: "site", entityId: siteId, summary: `Creó la documentación técnica de «${s.name}»` });
+    await recordEvent(t, ctx, {
+      type: "sitio.documentacion_creada",
+      entityType: "site",
+      entityId: siteId,
+      summary: `Creó la documentación técnica de «${s.name}»`,
+    });
     return { id: note.id };
   });
 }
-

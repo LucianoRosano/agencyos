@@ -145,6 +145,10 @@ describe("checklist de lanzamiento", () => {
     const inst = launchSeed("institutional");
     expect(new Set(inst.map((c) => c.area)).size).toBe(17);
     expect(inst.filter((c) => c.area === "woocommerce").every((c) => c.status === "na")).toBe(true);
-    expect(launchSeed("store").filter((c) => c.area === "woocommerce").every((c) => c.status === "todo")).toBe(true);
+    expect(
+      launchSeed("store")
+        .filter((c) => c.area === "woocommerce")
+        .every((c) => c.status === "todo"),
+    ).toBe(true);
   });
 });

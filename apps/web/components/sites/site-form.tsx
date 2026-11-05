@@ -34,7 +34,14 @@ function SiteFields({ clients, projects, defaults, edit }: { clients: Opt[]; pro
             if (p && !edit && PROJECT_TO_SITE[p.kind]) setKind(PROJECT_TO_SITE[p.kind] as string);
           }}
         />
-        <SelectField label="Cliente" name="clientId" value={clientId} onChange={(e) => setClientId(e.target.value)} placeholder="Sin cliente" options={clients} />
+        <SelectField
+          label="Cliente"
+          name="clientId"
+          value={clientId}
+          onChange={(e) => setClientId(e.target.value)}
+          placeholder="Sin cliente"
+          options={clients}
+        />
         <SelectField label="Tipo de sitio" name="kind" value={kind} onChange={(e) => setKind(e.target.value)} options={opts(L.siteKind)} />
         <SelectField label="Stack" name="stack" defaultValue={v("stack") || (kind === "store" ? "woocommerce" : "wordpress")} options={opts(L.siteStack)} />
         <TextField label="URL de producción" name="prodUrl" defaultValue={v("prodUrl")} inputMode="url" placeholder="ejemplo.com.ar" />

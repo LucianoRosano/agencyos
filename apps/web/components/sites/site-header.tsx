@@ -6,13 +6,7 @@ import { Archive, ArchiveRestore, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-  archiveSiteAction,
-  deleteSiteAction,
-  restoreSiteAction,
-  setPublicationStatusAction,
-  unarchiveSiteAction,
-} from "@/app/(app)/sitios/actions";
+import { archiveSiteAction, deleteSiteAction, restoreSiteAction, setPublicationStatusAction, unarchiveSiteAction } from "@/app/(app)/sitios/actions";
 import { useAction } from "@/components/use-action";
 import { PUB_ORDER } from "./shared";
 
@@ -99,7 +93,11 @@ export function SiteMenu({ id, name, archived }: { id: string; name: string; arc
         danger
         icon={<Trash2 />}
         onSelect={() => {
-          if (!confirm(`¿Mandar «${name}» a la papelera? Desaparece de las listas; el briefing, la estructura y el checklist quedan guardados. Restaurable 30 días.`))
+          if (
+            !confirm(
+              `¿Mandar «${name}» a la papelera? Desaparece de las listas; el briefing, la estructura y el checklist quedan guardados. Restaurable 30 días.`,
+            )
+          )
             return;
           exec(() => deleteSiteAction(id), { success: "Sitio en la papelera", undo: () => restoreSiteAction(id), onDone: () => router.push("/sitios") });
         }}

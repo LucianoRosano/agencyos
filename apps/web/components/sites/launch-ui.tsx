@@ -61,7 +61,19 @@ export function LaunchStatusToggle({ id, status, item }: { id: string; status: s
   );
 }
 
-export function LaunchEditSheet({ id, item, status, ownerType, evidenceMd }: { id: string; item: string; status: string; ownerType: string; evidenceMd: string | null }) {
+export function LaunchEditSheet({
+  id,
+  item,
+  status,
+  ownerType,
+  evidenceMd,
+}: {
+  id: string;
+  item: string;
+  status: string;
+  ownerType: string;
+  evidenceMd: string | null;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet

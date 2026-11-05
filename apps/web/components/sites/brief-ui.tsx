@@ -9,7 +9,15 @@ import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
 
-type Field = { key: string; label: string; kind: "text" | "textarea" | "select" | "multi" | "date"; options?: string[]; hint?: string; placeholder?: string; question?: string };
+type Field = {
+  key: string;
+  label: string;
+  kind: "text" | "textarea" | "select" | "multi" | "date";
+  options?: string[];
+  hint?: string;
+  placeholder?: string;
+  question?: string;
+};
 type Block = { key: string; title: string; description?: string; fields: Field[] };
 type Answers = Record<string, string | string[]>;
 
@@ -77,7 +85,18 @@ export function BriefForm({ siteId, blocks, answers, version }: { siteId: string
                     />
                   );
                 if (f.kind === "textarea")
-                  return <TextAreaField key={f.key} className={cls} label={f.label} name={f.key} defaultValue={str(f.key)} rows={3} placeholder={f.placeholder} hint={f.hint} />;
+                  return (
+                    <TextAreaField
+                      key={f.key}
+                      className={cls}
+                      label={f.label}
+                      name={f.key}
+                      defaultValue={str(f.key)}
+                      rows={3}
+                      placeholder={f.placeholder}
+                      hint={f.hint}
+                    />
+                  );
                 return (
                   <TextField
                     key={f.key}

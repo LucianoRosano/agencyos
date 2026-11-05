@@ -16,7 +16,11 @@ export function SlotStatusSelect({ id, status, label }: { id: string; status: st
   const [value, setValue] = useState(status);
   return (
     <span className="relative inline-flex w-full sm:w-40">
-      <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-2 -translate-y-1/2 rounded-full" style={{ background: SLOT_COLOR[value] }} />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 left-3 size-2 -translate-y-1/2 rounded-full"
+        style={{ background: SLOT_COLOR[value] }}
+      />
       <Select
         aria-label={`Estado de «${label}»`}
         value={value}

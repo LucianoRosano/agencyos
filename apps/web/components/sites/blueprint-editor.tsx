@@ -59,20 +59,49 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
 
   function addPage() {
     const title = `Página ${tree.pages.length + 1}`;
-    const key = keyFor(title, tree.pages.map((p) => p.key));
+    const key = keyFor(
+      title,
+      tree.pages.map((p) => p.key),
+    );
     setPages([...tree.pages, { key, title, path: `/${key}`, sections: [] }]);
     setSel(tree.pages.length);
   }
   function addSection() {
     if (!page) return;
     const title = `Sección ${page.sections.length + 1}`;
-    setPage({ ...page, sections: [...page.sections, { key: keyFor(title, page.sections.map((s) => s.key)), title, slots: [] }] });
+    setPage({
+      ...page,
+      sections: [
+        ...page.sections,
+        {
+          key: keyFor(
+            title,
+            page.sections.map((s) => s.key),
+          ),
+          title,
+          slots: [],
+        },
+      ],
+    });
   }
   function addSlot(si: number, kind = "text") {
     const s = page?.sections[si];
     if (!s) return;
     const label = L.slotKind[kind as keyof typeof L.slotKind] ?? "Slot";
-    setSection(si, { ...s, slots: [...s.slots, { key: keyFor(label, s.slots.map((x) => x.key)), kind, label }] });
+    setSection(si, {
+      ...s,
+      slots: [
+        ...s.slots,
+        {
+          key: keyFor(
+            label,
+            s.slots.map((x) => x.key),
+          ),
+          kind,
+          label,
+        },
+      ],
+    });
   }
 
   function save() {
@@ -105,14 +134,33 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
           <ol className="flex flex-col gap-1">
             {tree.pages.map((p, i) => (
               <li key={p.key} className={cn("flex items-center gap-1 rounded-[var(--radius-control)]", i === sel && "bg-surface-2")}>
-                <button type="button" onClick={() => setSel(i)} className="flex min-h-11 min-w-0 flex-1 flex-col items-start justify-center px-2 text-left" aria-current={i === sel}>
+                <button
+                  type="button"
+                  onClick={() => setSel(i)}
+                  className="flex min-h-11 min-w-0 flex-1 flex-col items-start justify-center px-2 text-left"
+                  aria-current={i === sel}
+                >
                   <span className="w-full truncate text-[14px] text-text">{p.title}</span>
                   <span className="w-full truncate font-mono text-[11px] text-text-faint">{p.path ?? `/${p.key}`}</span>
                 </button>
-                <IconBtn label={`Subir «${p.title}»`} disabled={i === 0} onClick={() => (setPages(move(tree.pages, i, -1)), setSel(i - 1))}>
+                <IconBtn
+                  label={`Subir «${p.title}»`}
+                  disabled={i === 0}
+                  onClick={() => {
+                    setPages(move(tree.pages, i, -1));
+                    setSel(i - 1);
+                  }}
+                >
                   <ArrowUp className="size-4" />
                 </IconBtn>
-                <IconBtn label={`Bajar «${p.title}»`} disabled={i === tree.pages.length - 1} onClick={() => (setPages(move(tree.pages, i, 1)), setSel(i + 1))}>
+                <IconBtn
+                  label={`Bajar «${p.title}»`}
+                  disabled={i === tree.pages.length - 1}
+                  onClick={() => {
+                    setPages(move(tree.pages, i, 1));
+                    setSel(i + 1);
+                  }}
+                >
                   <ArrowDown className="size-4" />
                 </IconBtn>
               </li>
@@ -132,7 +180,12 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-[13px] font-medium text-text-muted">Ruta</span>
-                <Input value={page.path ?? ""} maxLength={200} className="font-mono" onChange={(e) => setPage({ ...page, path: e.target.value || undefined })} />
+                <Input
+                  value={page.path ?? ""}
+                  maxLength={200}
+                  className="font-mono"
+                  onChange={(e) => setPage({ ...page, path: e.target.value || undefined })}
+                />
               </label>
               <Button
                 type="button"
@@ -170,7 +223,10 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
                 </div>
                 <ul className="flex flex-col gap-2">
                   {s.slots.map((sl, k) => (
-                    <li key={sl.key} className="flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-2 sm:flex-row sm:items-center">
+                    <li
+                      key={sl.key}
+                      className="flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-bg-elevated p-2 sm:flex-row sm:items-center"
+                    >
                       <Select
                         aria-label="Tipo de slot"
                         value={sl.kind}
@@ -186,12 +242,20 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
                       <div className="flex min-w-0 flex-1 items-center gap-1">
                         <label className="min-w-0 flex-1">
                           <span className="sr-only">Nombre del slot</span>
-                          <Input value={sl.label} maxLength={120} onChange={(e) => setSection(si, { ...s, slots: s.slots.map((x, i) => (i === k ? { ...x, label: e.target.value } : x)) })} />
+                          <Input
+                            value={sl.label}
+                            maxLength={120}
+                            onChange={(e) => setSection(si, { ...s, slots: s.slots.map((x, i) => (i === k ? { ...x, label: e.target.value } : x)) })}
+                          />
                         </label>
                         <IconBtn label={`Subir «${sl.label}»`} disabled={k === 0} onClick={() => setSection(si, { ...s, slots: move(s.slots, k, -1) })}>
                           <ArrowUp className="size-4" />
                         </IconBtn>
-                        <IconBtn label={`Bajar «${sl.label}»`} disabled={k === s.slots.length - 1} onClick={() => setSection(si, { ...s, slots: move(s.slots, k, 1) })}>
+                        <IconBtn
+                          label={`Bajar «${sl.label}»`}
+                          disabled={k === s.slots.length - 1}
+                          onClick={() => setSection(si, { ...s, slots: move(s.slots, k, 1) })}
+                        >
                           <ArrowDown className="size-4" />
                         </IconBtn>
                         <IconBtn label={`Quitar «${sl.label}»`} onClick={() => setSection(si, { ...s, slots: s.slots.filter((_, i) => i !== k) })}>
@@ -246,7 +310,10 @@ export function TemplatePicker({
         variant={hasTree ? "secondary" : "primary"}
         loading={pending}
         onClick={() => {
-          if (hasTree && !confirm("Se crea una versión nueva con la plantilla. Los slots que no estén en la plantilla se archivan (con su contenido). ¿Seguir?"))
+          if (
+            hasTree &&
+            !confirm("Se crea una versión nueva con la plantilla. Los slots que no estén en la plantilla se archivan (con su contenido). ¿Seguir?")
+          )
             return;
           exec(() => applyTemplateAction(siteId, value), {
             success: "Estructura generada desde la plantilla",

@@ -63,9 +63,10 @@ export function renderBriefHtml(doc: BriefDoc, opts: { fontCss?: string } = {}):
   const h2 = (t: string) => `<h2><span class="idx">${String(++idx).padStart(2, "0")}</span>${esc(t)}</h2>`;
   const blocks = doc.blocks
     .map(
-      (bl) => `<section class="block">${h2(bl.title)}<table class="rows"><tbody>${bl.rows
-        .map((r) => `<tr><td class="k">${esc(r.label)}</td><td>${r.value?.trim() ? multiline(r.value) : '<span class="missing">Falta</span>'}</td></tr>`)
-        .join("")}</tbody></table></section>`,
+      (bl) =>
+        `<section class="block">${h2(bl.title)}<table class="rows"><tbody>${bl.rows
+          .map((r) => `<tr><td class="k">${esc(r.label)}</td><td>${r.value?.trim() ? multiline(r.value) : '<span class="missing">Falta</span>'}</td></tr>`)
+          .join("")}</tbody></table></section>`,
     )
     .join("");
   const questions = doc.questions.length

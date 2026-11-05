@@ -1,8 +1,9 @@
 import "server-only";
 import { type Ctx, diffDays, formatDate, formatDateTime, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
+import { brandFromSettings } from "@agencyos/modules/quotes/queries";
 import { BLUEPRINT_TEMPLATES, TEMPLATE_KINDS } from "@agencyos/modules/sites/blueprint";
-import { answerText, briefBlocksFor, briefProgress, generateQuestions, questionsMessageParts } from "@agencyos/modules/sites/brief";
+import { briefBlocksFor, briefProgress, generateQuestions, questionsMessageParts } from "@agencyos/modules/sites/brief";
 import { areaTitle, isCriticalCheck, LAUNCH_AREAS } from "@agencyos/modules/sites/checklist";
 import {
   getBlueprint,
@@ -19,7 +20,6 @@ import {
   siteFiles,
   siteMonitoring,
 } from "@agencyos/modules/sites/queries";
-import { brandFromSettings } from "@agencyos/modules/quotes/queries";
 import { Badge, BlockCard, Button, Card, cn, Dot, EmptyState, Progress, SectionLabel } from "@agencyos/ui";
 import {
   Activity,
@@ -51,8 +51,8 @@ import { DeleteEnvironmentButton, EnvironmentSheet } from "./env-ui";
 import { EnsureDocsButton, LaunchEditSheet, LaunchStatusToggle, NewLaunchCheckSheet } from "./launch-ui";
 import { NewRequirementSheet, RequirementList } from "./requirements-ui";
 import { CloseRoundButton, EditItemSheet, ItemStatusSelect, NewItemSheet, OpenRoundButton } from "./revisions-ui";
-import { PublicationStatusSelect } from "./site-header";
 import { pct, REVISION_TONE, SITES_ACCENT, SLOT_COLOR, SLOT_STATUS_ORDER, SLOT_TONE } from "./shared";
+import { PublicationStatusSelect } from "./site-header";
 
 type P = { ctx: Ctx & { workspace: { settings: unknown } }; site: SiteSummary };
 
@@ -101,7 +101,9 @@ export async function RequirementsTab({ ctx, site }: P) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[12px] text-text-muted">
-          {reqs.length ? `${done}/${reqs.length} cumplidos · must ${by("must")} · should ${by("should")} · could ${by("could")} · won't ${by("wont")}` : "MoSCoW"}
+          {reqs.length
+            ? `${done}/${reqs.length} cumplidos · must ${by("must")} · should ${by("should")} · could ${by("could")} · won't ${by("wont")}`
+            : "MoSCoW"}
         </p>
         {reqs.length ? <NewRequirementSheet siteId={site.s.id} /> : null}
       </div>
@@ -182,7 +184,8 @@ export async function StructureTab({ ctx, site, page, editing }: P & { page?: st
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone="accent">v{bp.current.version}</Badge>
           <span className="text-[13px] text-text-muted">
-            {tree.pages.length} páginas · {slots.length} slots · {bp.current.source === "template" ? "desde plantilla" : "manual"} · {formatDate(bp.current.createdAt)}
+            {tree.pages.length} páginas · {slots.length} slots · {bp.current.source === "template" ? "desde plantilla" : "manual"} ·{" "}
+            {formatDate(bp.current.createdAt)}
           </span>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -319,7 +322,10 @@ export async function ContentTab({ ctx, site, status }: P & { status?: string })
         <Link
           href={base}
           aria-current={!filter ? "page" : undefined}
-          className={cn("flex h-9 items-center gap-2 rounded-full border border-border px-3 text-[13px]", !filter ? "bg-surface-2 text-text" : "text-text-muted")}
+          className={cn(
+            "flex h-9 items-center gap-2 rounded-full border border-border px-3 text-[13px]",
+            !filter ? "bg-surface-2 text-text" : "text-text-muted",
+          )}
         >
           Todos <span className="font-mono text-[11px]">{slots.length}</span>
         </Link>
@@ -328,7 +334,10 @@ export async function ContentTab({ ctx, site, status }: P & { status?: string })
             key={s}
             href={`${base}?estado=${s}`}
             aria-current={filter === s ? "page" : undefined}
-            className={cn("flex h-9 items-center gap-2 rounded-full border border-border px-3 text-[13px]", filter === s ? "bg-surface-2 text-text" : "text-text-muted")}
+            className={cn(
+              "flex h-9 items-center gap-2 rounded-full border border-border px-3 text-[13px]",
+              filter === s ? "bg-surface-2 text-text" : "text-text-muted",
+            )}
           >
             <Dot color={SLOT_COLOR[s] as string} /> {L.slotStatus[s]} <span className="font-mono text-[11px]">{counts[s]}</span>
           </Link>
@@ -367,7 +376,14 @@ export async function ContentTab({ ctx, site, status }: P & { status?: string })
                   </div>
                   <div className="flex items-center gap-1 pl-[18px] sm:pl-0">
                     <SlotStatusSelect id={row.id} status={row.status} label={sl.label} />
-                    <SlotEditSheet id={row.id} title={sl.label} kindLabel={kindLabel(sl.kind)} status={row.status} assigneeType={row.assigneeType} bodyMd={row.bodyMd} />
+                    <SlotEditSheet
+                      id={row.id}
+                      title={sl.label}
+                      kindLabel={kindLabel(sl.kind)}
+                      status={row.status}
+                      assigneeType={row.assigneeType}
+                      bodyMd={row.bodyMd}
+                    />
                   </div>
                 </li>
               ))}
@@ -416,7 +432,10 @@ export async function ResourcesTab({ ctx, site }: P) {
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {files.map((f) => (
           <li key={f.id}>
-            <Link href={`/biblioteca/archivo/${f.id}`} className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-bg-elevated p-3 hover:border-border-strong">
+            <Link
+              href={`/biblioteca/archivo/${f.id}`}
+              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-bg-elevated p-3 hover:border-border-strong"
+            >
               <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 font-mono text-[10px] uppercase text-text-muted">
                 {(f.name.split(".").pop() ?? f.kind).slice(0, 4)}
               </span>
@@ -486,7 +505,9 @@ export async function RevisionsTab({ ctx, site }: P) {
                     <div className="flex min-w-0 flex-1 items-start gap-3">
                       <span className="mt-0.5 font-mono text-[12px] text-text-faint">P{it.priority}</span>
                       <div className="min-w-0">
-                        <p className={cn("text-[14px] whitespace-pre-wrap", it.status === "resolved" ? "text-text-muted line-through" : "text-text")}>{it.description}</p>
+                        <p className={cn("text-[14px] whitespace-pre-wrap", it.status === "resolved" ? "text-text-muted line-through" : "text-text")}>
+                          {it.description}
+                        </p>
                         <p className="font-mono text-[11px] text-text-faint">
                           {it.pageRef ?? "Sin página"} · {it.assignee ? label(L.siteAssignee, it.assignee) : "sin responsable"}
                         </p>
@@ -527,7 +548,11 @@ function Expiry({ on }: { on: string | null }) {
 }
 
 export async function HostingTab({ ctx, site }: P) {
-  const [assets, envs, hostings] = await Promise.all([siteAssets(ctx, { id: site.s.id, clientId: site.s.clientId }), listEnvironments(ctx, site.s.id), hostingOptions(ctx)]);
+  const [assets, envs, hostings] = await Promise.all([
+    siteAssets(ctx, { id: site.s.id, clientId: site.s.clientId }),
+    listEnvironments(ctx, site.s.id),
+    hostingOptions(ctx),
+  ]);
   const hostingOpts = hostings.map((h) => ({ value: h.id, label: h.plan ? `${h.provider} · ${h.plan}` : h.provider }));
   const empty = !assets.domains.length && !assets.hostings.length && !assets.certificates.length;
   return (
@@ -546,11 +571,17 @@ export async function HostingTab({ ctx, site }: P) {
                   {label(L.envKind, e.kind)}
                 </Badge>
                 <div className="min-w-0 flex-1">
-                  <a href={e.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate font-mono text-[13px] text-accent-2 hover:underline">
+                  <a
+                    href={e.url}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="block truncate font-mono text-[13px] text-accent-2 hover:underline"
+                  >
                     {e.url.replace(/^https?:\/\//, "")}
                   </a>
                   <p className="text-[12px] text-text-muted">
-                    {hostingProvider ? `${hostingProvider}${hostingPlan ? ` · ${hostingPlan}` : ""}` : "Sin hosting vinculado"} · PHP {e.phpVersion ?? "—"} · WordPress {e.wpVersion ?? "—"}
+                    {hostingProvider ? `${hostingProvider}${hostingPlan ? ` · ${hostingPlan}` : ""}` : "Sin hosting vinculado"} · PHP {e.phpVersion ?? "—"} ·
+                    WordPress {e.wpVersion ?? "—"}
                   </p>
                 </div>
                 <div className="flex gap-1">
@@ -561,7 +592,12 @@ export async function HostingTab({ ctx, site }: P) {
             ))}
           </ul>
         ) : (
-          <EmptyState compact title="Sin entornos" description="Cargá producción y staging: URL, hosting y versiones de PHP y WordPress." action={<EnvironmentSheet siteId={site.s.id} hostings={hostingOpts} />} />
+          <EmptyState
+            compact
+            title="Sin entornos"
+            description="Cargá producción y staging: URL, hosting y versiones de PHP y WordPress."
+            action={<EnvironmentSheet siteId={site.s.id} hostings={hostingOpts} />}
+          />
         )}
       </BlockCard>
 
@@ -580,7 +616,15 @@ export async function HostingTab({ ctx, site }: P) {
         </Card>
       ) : (
         <>
-          <BlockCard icon={<Globe />} title="Dominio" action={<Link href="/activos" className="text-[13px] text-text-muted hover:text-text">activos →</Link>}>
+          <BlockCard
+            icon={<Globe />}
+            title="Dominio"
+            action={
+              <Link href="/activos" className="text-[13px] text-text-muted hover:text-text">
+                activos →
+              </Link>
+            }
+          >
             {assets.domains.length ? (
               <ul className="flex flex-col gap-3">
                 {assets.domains.map(({ d, credential, credentialPath }) => (
@@ -729,7 +773,9 @@ export async function LaunchTab({ ctx, site }: P) {
               {items.map((c) => (
                 <li key={c.id} className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
-                    <p className={cn("text-[14px]", c.status === "done" ? "text-text-muted line-through" : c.status === "na" ? "text-text-faint" : "text-text")}>
+                    <p
+                      className={cn("text-[14px]", c.status === "done" ? "text-text-muted line-through" : c.status === "na" ? "text-text-faint" : "text-text")}
+                    >
                       {c.item}
                       {isCriticalCheck(c.area, c.item) ? (
                         <Badge tone="danger" className="ml-2 h-5 align-middle">
@@ -855,7 +901,11 @@ export async function MonitoringTab({ ctx, site }: P) {
             key={e.id}
             icon={<HeartPulse />}
             title={`${label(L.envKind, e.kind)} · ${e.url.replace(/^https?:\/\//, "")}`}
-            action={<Badge tone={last || e.lastStatus ? (up ? "success" : "danger") : "neutral"}>{last || e.lastStatus ? (up ? "En línea" : "Caído") : "Sin datos"}</Badge>}
+            action={
+              <Badge tone={last || e.lastStatus ? (up ? "success" : "danger") : "neutral"}>
+                {last || e.lastStatus ? (up ? "En línea" : "Caído") : "Sin datos"}
+              </Badge>
+            }
           >
             <dl className="grid grid-cols-2 gap-3 text-[13px]">
               <div>
@@ -885,7 +935,11 @@ export async function MonitoringTab({ ctx, site }: P) {
                   .slice(0, 60)
                   .reverse()
                   .map((c) => (
-                    <span key={c.id} className={cn("w-full rounded-sm", c.ok ? "h-full bg-success/70" : "h-full bg-danger")} title={`${formatDateTime(c.checkedAt)} · ${c.ok ? "ok" : (c.error ?? c.statusCode)}`} />
+                    <span
+                      key={c.id}
+                      className={cn("w-full rounded-sm", c.ok ? "h-full bg-success/70" : "h-full bg-danger")}
+                      title={`${formatDateTime(c.checkedAt)} · ${c.ok ? "ok" : (c.error ?? c.statusCode)}`}
+                    />
                   ))}
               </div>
             ) : null}
