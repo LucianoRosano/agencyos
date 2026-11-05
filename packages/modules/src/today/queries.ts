@@ -23,7 +23,11 @@ export type CatchUpItem = {
     | "opportunity"
     | "interaction"
     | "inbox"
-    | "approval";
+    | "approval"
+    | "repo_secrets"
+    | "repo_red"
+    | "repo_pr"
+    | "repo_plan";
   title: string;
   subtitle: string;
   severity: "critical" | "high" | "medium" | "low";
@@ -322,6 +326,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
       entityId: a.id,
       href: "/aprobaciones",
     });
+  items.push(...(await repoCatchUp(ctx)));
   items.sort((a, b) => SEV[a.severity] - SEV[b.severity] || (a.date ?? "9999").localeCompare(b.date ?? "9999"));
 
   // --- Foco ---
@@ -580,6 +585,80 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
 }
 
 export type TodayData = Awaited<ReturnType<typeof getToday>>;
+
+/** Repositorios (docs/15 §6): fuera de estándar (rojo; secretos = crítico), PR de Claude abiertos y planes por aprobar. */
+async function repoCatchUp(ctx: Ctx): Promise<CatchUpItem[]> {
+  if (!can(ctx, "read", "project")) return [];
+  const db = getDb();
+  const R = schema.repository;
+  const [red, secrets, prs, plans] = await Promise.all([
+    db
+      .select({ id: R.id, fullName: R.fullName, score: R.healthScore })
+      .from(R)
+      .where(and(scoped(R, ctx), eq(R.archived, false), lt(R.healthScore, 70)))
+      .orderBy(asc(R.healthScore))
+      .limit(20),
+    db
+      .select({ repositoryId: schema.repoCheck.repositoryId })
+      .from(schema.repoCheck)
+      .where(and(eq(schema.repoCheck.workspaceId, ctx.workspaceId), eq(schema.repoCheck.checkKey, "secretos"), eq(schema.repoCheck.status, "fail"))),
+    db
+      .select({ e: schema.repoEvent, fullName: R.fullName })
+      .from(schema.repoEvent)
+      .innerJoin(R, eq(R.id, schema.repoEvent.repositoryId))
+      .where(and(eq(schema.repoEvent.workspaceId, ctx.workspaceId), eq(schema.repoEvent.kind, "pr"), sql`${schema.repoEvent.at} > now() - interval '60 days'`, isNull(R.deletedAt)))
+      .orderBy(asc(schema.repoEvent.at)),
+    db
+      .select()
+      .from(schema.repoPlan)
+      .where(and(scoped(schema.repoPlan, ctx), eq(schema.repoPlan.status, "pending_approval")))
+      .orderBy(desc(schema.repoPlan.createdAt)),
+  ]);
+  const out: CatchUpItem[] = [];
+  const secretSet = new Set(secrets.map((s) => s.repositoryId));
+  for (const r of red) {
+    const leaked = secretSet.has(r.id);
+    out.push({
+      key: `repo-${r.id}`,
+      kind: leaked ? "repo_secrets" : "repo_red",
+      title: leaked ? `${r.fullName}: gitleaks encontró secretos` : `${r.fullName} fuera de estándar`,
+      subtitle: leaked ? "Repositorio · rotar el secreto y limpiar" : `Repositorio · salud ${r.score ?? 0}/100`,
+      severity: leaked ? "critical" : "medium",
+      entityId: r.id,
+      href: `/repositorios/${r.id}/estandar`,
+    });
+  }
+  // PR: el último evento de cada (repo, número) decide si sigue abierto.
+  const last = new Map<string, { e: typeof schema.repoEvent.$inferSelect; fullName: string }>();
+  for (const p of prs) {
+    const n = (p.e.payloadExcerpt as { number?: number }).number;
+    if (n !== undefined) last.set(`${p.e.repositoryId}#${n}`, p);
+  }
+  for (const { e, fullName } of last.values()) {
+    const x = e.payloadExcerpt as { action?: string; number?: number; title?: string; claude?: boolean; url?: string };
+    if (!x.claude || !["opened", "reopened", "synchronize", "ready_for_review", "edited"].includes(x.action ?? "")) continue;
+    out.push({
+      key: `repopr-${e.repositoryId}-${x.number}`,
+      kind: "repo_pr",
+      title: `Revisar PR #${x.number} de Claude en ${fullName}`,
+      subtitle: x.title ?? "Pull request",
+      severity: "medium",
+      entityId: e.repositoryId ?? "",
+      href: `/repositorios/${e.repositoryId}/actividad`,
+    });
+  }
+  for (const p of plans)
+    out.push({
+      key: `repoplan-${p.id}`,
+      kind: "repo_plan",
+      title: p.name,
+      subtitle: p.createdByType === "agent" ? "Plan de repositorios propuesto por Claude · aprobar" : "Plan de repositorios esperando aprobación",
+      severity: "medium",
+      entityId: p.id,
+      href: `/repositorios/planes/${p.id}`,
+    });
+  return out;
+}
 
 /** Resumen de dinero del mes + 6 meses (por moneda; nunca convierte con tasas inventadas). */
 export async function moneySummary(ctx: Ctx, today = todayAR()) {
