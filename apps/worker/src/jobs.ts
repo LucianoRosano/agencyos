@@ -1,5 +1,6 @@
 import { todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
+import { handleEvent as handleAutomationEvent } from "@agencyos/modules/automations/service";
 import { sendEmail } from "@agencyos/modules/shared/email";
 import { getToday } from "@agencyos/modules/today/queries";
 import { purgeTrash } from "@agencyos/modules/trash/service";
@@ -57,6 +58,8 @@ export async function dispatchOutbox(limit = 500) {
           .onConflictDoNothing();
       }
     }
+    // Automatizaciones (M09): idempotente por (regla, evento); nunca lanza.
+    await handleAutomationEvent(ev);
     await db.update(schema.domainEvent).set({ dispatchedAt: new Date() }).where(eq(schema.domainEvent.id, ev.id));
   }
   return events.length;

@@ -72,6 +72,8 @@ export const L = {
     deliverable: "Entrega",
     inbox_item: "Ítem de Bandeja",
     assessment: "Evaluación",
+    automation_rule: "Automatización",
+    webhook_endpoint: "Webhook",
   },
 } as const;
 

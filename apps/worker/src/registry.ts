@@ -1,3 +1,4 @@
+import { automationsTick } from "@agencyos/modules/automations/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -13,4 +14,5 @@ export const JOBS: Job[] = [
   { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
+  { name: "automations-tick", cron: "* * * * *", run: () => automationsTick(), quiet: true },
 ];
