@@ -2,6 +2,7 @@
 
 import { Button, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Check, Copy, KeyRound, MoreHorizontal, Pause, Play, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -73,13 +74,16 @@ export function NewEndpointSheet({ baseUrl }: { baseUrl: string }) {
   const [open, setOpen] = useState(false);
   const [direction, setDirection] = useState("in");
   const [created, setCreated] = useState<{ id: string; secret: string; direction: string } | null>(null);
+  const router = useRouter();
+  const close = () => {
+    setOpen(false);
+    if (created) router.refresh();
+    setCreated(null);
+  };
   return (
     <Sheet
       open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) setCreated(null);
-      }}
+      onOpenChange={(o) => (o ? setOpen(true) : close())}
       title={created ? "Webhook creado" : "Nuevo webhook"}
       description={created ? undefined : "Entrante: otro sistema avisa a AGENCYOS. Saliente: una regla le avisa a otro sistema."}
       trigger={
@@ -93,10 +97,7 @@ export function NewEndpointSheet({ baseUrl }: { baseUrl: string }) {
           secret={created.secret}
           direction={created.direction}
           url={`${baseUrl}/api/webhooks/in/${created.id}`}
-          onClose={() => {
-            setOpen(false);
-            setCreated(null);
-          }}
+          onClose={close}
         />
       ) : (
         <ActionForm

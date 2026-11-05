@@ -22,6 +22,7 @@ test("regla desde plantilla → evento desde la UI → prueba y ejecución regis
   await expect(page.locator("#act-0-title")).toHaveValue("Preparar carpeta y accesos de {{proyecto.nombre}}");
   await page.fill("#rule-name", `Preparar ${p}`);
   await expectNoHorizontalScroll(page);
+  await expectAccessible(page);
   await shot(page, "automatizaciones-constructor", p);
   await page.getByRole("button", { name: "Guardar regla" }).click();
   await page.waitForURL(/\/automatizaciones\/[0-9a-f-]{36}$/);

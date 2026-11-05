@@ -7,7 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EditLink, ResultList, RuleMenu, RuleToggle, TestPanel } from "@/components/automations/rule-ui";
-import { AUTO_ACCENT, RuleStateBadge, RunStatusBadge } from "@/components/automations/shared";
+import { AUTO_ACCENT, AUTO_TEXT, RuleStateBadge, RunStatusBadge } from "@/components/automations/shared";
 import { requireCtx } from "@/lib/session";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -88,7 +88,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
         <div className="flex min-w-0 flex-col gap-5">
           <Card className="p-4 md:p-5">
             <SectionLabel icon={<Zap />} className="mb-3">
-              <span style={{ color: AUTO_ACCENT }}>01</span> · Cuándo
+              <span className={AUTO_TEXT}>01</span> · Cuándo
             </SectionLabel>
             <p className="text-[15px] text-text">{rule.triggerKind === "schedule" ? data.trigger : eventLabel(rule.eventType)}</p>
             {data.next.length ? (
@@ -98,7 +98,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
             ) : null}
 
             <SectionLabel icon={<Braces />} className="mt-6 mb-3">
-              <span style={{ color: AUTO_ACCENT }}>02</span> · Si se cumple
+              <span className={AUTO_TEXT}>02</span> · Si se cumple
             </SectionLabel>
             {conds.length ? (
               <ul className="flex flex-col gap-1.5 text-[14px]">
@@ -121,13 +121,13 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
             )}
 
             <SectionLabel icon={<ListOrdered />} className="mt-6 mb-3">
-              <span style={{ color: AUTO_ACCENT }}>03</span> · Entonces
+              <span className={AUTO_TEXT}>03</span> · Entonces
             </SectionLabel>
             <ol className="flex flex-col gap-2">
               {actions.map((a, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad
                 <li key={i} className="flex items-start gap-3">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-md font-mono text-[11px]" style={{ background: `${AUTO_ACCENT}26`, color: AUTO_ACCENT }}>
+                  <span className={`grid size-6 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[11px] ${AUTO_TEXT}`}>
                     {i + 1}
                   </span>
                   <span className="min-w-0 text-[14px]">
@@ -150,7 +150,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
                       <details className="group px-1 py-2.5">
                         <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1">
                           <RunStatusBadge status={r.status} />
-                          {r.dryRun ? <Badge tone="info">Prueba</Badge> : null}
+                          {r.dryRun ? <Badge tone="neutral">Prueba</Badge> : null}
                           <span className="min-w-0 flex-1 truncate text-[14px] text-text">{eventLabel(inp.evento?.tipo)}</span>
                           <span className="font-mono text-[11px] text-text-faint" title={formatDateTime(r.startedAt)}>
                             {relativeFromDate(r.startedAt)}

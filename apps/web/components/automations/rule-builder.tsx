@@ -153,7 +153,7 @@ function Step({ n, title, icon, children, aside }: { n: string; title: string; i
     <Card className="p-4 md:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <SectionLabel icon={icon}>
-          <span className="text-[#2DD4BF]">{n}</span> · {title}
+          <span className="text-teal-700 dark:text-[#2DD4BF]">{n}</span> · {title}
         </SectionLabel>
         {aside}
       </div>
@@ -189,13 +189,11 @@ export function RuleBuilder({
   initial,
   action,
   submitLabel,
-  redirectTo,
 }: {
   meta: BuilderMeta;
   initial: RuleInput;
   action: (prev: Result<{ id: string }> | null, fd: FormData) => Promise<Result<{ id: string }>>;
   submitLabel: string;
-  redirectTo?: (id: string) => string;
 }) {
   const [s, setS] = useState<State>(() => initialState(initial));
   const fields = useFields(meta, s);
@@ -222,7 +220,7 @@ export function RuleBuilder({
   const vars = allFields.filter((f) => f.path !== "evento.tipo" && f.path !== "evento.actor");
 
   return (
-    <ActionForm action={action} successMessage="Regla guardada" redirectTo={redirectTo ? (d) => redirectTo(d.id) : undefined} className="gap-5">
+    <ActionForm action={action} successMessage="Regla guardada" redirectTo={(d) => `/automatizaciones/${d.id}`} className="gap-5">
       <input type="hidden" name="payload" value={JSON.stringify(toPayload(s))} />
       <Card className="p-4 md:p-5">
         <Labeled label="Nombre de la regla" htmlFor="rule-name">
@@ -296,7 +294,7 @@ export function RuleBuilder({
                 <Input id="rule-time" type="time" value={s.schedule.time} onChange={(e) => patch({ schedule: { ...s.schedule, time: e.target.value || "09:00" } })} />
               </Labeled>
             </div>
-            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] text-[#2DD4BF]">
+            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] text-teal-700 dark:text-[#2DD4BF]">
               <CalendarClock className="size-4" /> {describeSchedule(s.schedule, meta.weekdays)}
             </p>
             <Err path="schedule" />
@@ -446,7 +444,7 @@ export function RuleBuilder({
               // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad de la acción
               <li key={i} className="rounded-[var(--radius-control)] border border-border bg-bg-elevated/60 p-3 md:p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[12px] text-[#2DD4BF]">{i + 1}</span>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[12px] text-teal-700 dark:text-[#2DD4BF]">{i + 1}</span>
                   <p className="flex-1 truncate text-[14px] font-medium text-text">{meta.actions.find((x) => x.key === a.type)?.label ?? a.type}</p>
                   <Button type="button" variant="ghost" size="icon" className="size-11 md:size-9" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>
                     <ArrowUp className="size-4" />

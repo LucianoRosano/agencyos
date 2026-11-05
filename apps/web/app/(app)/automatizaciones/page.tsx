@@ -4,7 +4,7 @@ import { Button, Card, EmptyState, PageHeader, SectionLabel } from "@agencyos/ui
 import { CalendarClock, ChevronRight, LayoutTemplate, Plus, Webhook, Workflow, Zap } from "lucide-react";
 import Link from "next/link";
 import { RuleToggle } from "@/components/automations/rule-ui";
-import { AUTO_ACCENT, RuleStateBadge, RunStatusBadge } from "@/components/automations/shared";
+import { AUTO_ACCENT, AUTO_TEXT, RuleStateBadge, RunStatusBadge } from "@/components/automations/shared";
 import { requireCtx } from "@/lib/session";
 
 export const metadata = { title: "Automatizaciones" };
@@ -48,8 +48,7 @@ export default async function AutomationsPage() {
                 <Card className="flex flex-col gap-3 p-4 transition-colors hover:border-border-strong md:flex-row md:items-center md:gap-5 md:p-5">
                   <Link href={`/automatizaciones/${rule.id}`} className="group flex min-w-0 flex-1 items-start gap-3">
                     <span
-                      className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 [&>svg]:size-[18px]"
-                      style={{ color: AUTO_ACCENT }}
+                      className={`grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 [&>svg]:size-[18px] ${AUTO_TEXT}`}
                       aria-hidden
                     >
                       {rule.triggerKind === "schedule" ? <CalendarClock /> : <Zap />}

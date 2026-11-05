@@ -18,7 +18,8 @@ export const restoreRuleAction = async (id: string) => run((ctx) => restoreFromT
 export const previewRuleAction = async (id: string) => run((ctx) => svc.previewRule(ctx, id), { revalidate: false });
 export const runRuleNowAction = async (id: string) => run((ctx) => svc.runRuleNow(ctx, id));
 
-export const createEndpointAction = async (_: S, fd: FormData) => run((ctx) => svc.createEndpoint(ctx, obj(fd)));
+// sin revalidar: el secreto se muestra una sola vez y la lista se refresca al cerrar
+export const createEndpointAction = async (_: S, fd: FormData) => run((ctx) => svc.createEndpoint(ctx, obj(fd)), { revalidate: false });
 export const rotateEndpointSecretAction = async (id: string) => run((ctx) => svc.rotateEndpointSecret(ctx, id));
 export const setEndpointActiveAction = async (id: string, active: boolean) => run((ctx) => svc.setEndpointActive(ctx, id, active));
 export const deleteEndpointAction = async (id: string) => run((ctx) => moveToTrash(ctx, "webhook_endpoint", id));

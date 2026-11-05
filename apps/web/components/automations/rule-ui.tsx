@@ -147,11 +147,11 @@ export function TestPanel({ id, active, testMode, isEvent }: { id: string; activ
           ? "Simulá la regla con el último evento real de su tipo: ves qué haría, sin crear, enviar ni cambiar nada."
           : "Simulá la regla con los elementos que hoy cumplen la programación, sin escribir nada."}
       </p>
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
         <Button
           variant="secondary"
           loading={loading}
-          className="h-11 md:h-10"
+          className="h-11 md:h-10 lg:w-full"
           onClick={() =>
             start(async () => {
               const r = await previewRuleAction(id);
@@ -169,7 +169,7 @@ export function TestPanel({ id, active, testMode, isEvent }: { id: string; activ
           variant="outline"
           loading={pending}
           disabled={!active}
-          className="h-11 md:h-10"
+          className="h-11 md:h-10 lg:w-full"
           title={active ? undefined : "Activá la regla para ejecutarla"}
           onClick={() => {
             if (!testMode && !confirm(isEvent ? "¿Ejecutar la regla de verdad con el último evento real?" : "¿Ejecutar la regla de verdad ahora?")) return;
@@ -192,7 +192,7 @@ export function TestPanel({ id, active, testMode, isEvent }: { id: string; activ
                 // biome-ignore lint/suspicious/noArrayIndexKey: resultado efímero
                 <li key={i} className="flex flex-col gap-2">
                   <p className="flex flex-wrap items-center gap-2 text-[13px]">
-                    <Badge tone="info">Simulación</Badge>
+                    <Badge tone="neutral">Simulación</Badge>
                     <span className="min-w-0 truncate text-text-muted">{it.label}</span>
                   </p>
                   {it.result.output.conditions?.length ? (

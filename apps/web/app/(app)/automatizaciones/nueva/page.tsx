@@ -30,7 +30,7 @@ export default async function NewRulePage({ searchParams }: { searchParams: Prom
         description={tpl ? `${tpl.description} Revisala y guardala: queda activa.` : "Cuándo corre, qué se tiene que cumplir y qué hace, en ese orden."}
         accent={AUTO_ACCENT}
       />
-      <RuleBuilder meta={meta} initial={initial} action={createRuleAction} submitLabel="Guardar regla" redirectTo={(id) => `/automatizaciones/${id}`} />
+      <RuleBuilder meta={meta} initial={initial} action={createRuleAction} submitLabel="Guardar regla" />
     </div>
   );
 }

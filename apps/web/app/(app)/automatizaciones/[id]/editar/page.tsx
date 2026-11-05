@@ -33,7 +33,6 @@ export default async function EditRulePage({ params }: { params: Promise<{ id: s
         initial={ruleToInput(data.rule)}
         action={updateRuleAction.bind(null, id)}
         submitLabel="Guardar cambios"
-        redirectTo={() => `/automatizaciones/${id}`}
       />
     </div>
   );
