@@ -1,3 +1,4 @@
+import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -13,4 +14,7 @@ export const JOBS: Job[] = [
   { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
+  // SEO (M07): la cola es la tabla seo_audit (status queued); cada minuto se procesan de a una. Programadas: diario 3:20.
+  { name: "seo-audit", cron: "* * * * *", run: () => processQueuedAudits(), quiet: true },
+  { name: "seo-schedules", cron: "20 3 * * *", run: () => dailySeoSchedules() },
 ];

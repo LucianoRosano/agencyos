@@ -87,6 +87,8 @@ export async function safeFetch(
     timeoutMs?: number;
     maxRedirects?: number;
     userAgent?: string;
+    /** false: devuelve la respuesta 3xx tal cual (el llamador sigue y revalida cada salto). Por defecto true. */
+    followRedirects?: boolean;
   } = {},
 ): Promise<SafeResponse> {
   const maxRedirects = opts.maxRedirects ?? 5;
@@ -96,6 +98,7 @@ export async function safeFetch(
   for (let i = 0; i <= maxRedirects; i++) {
     const { url, ip, family } = await assertPublicUrl(current);
     const res = await once(url, ip, family, { ...opts, method });
+    if (opts.followRedirects === false) return { ...res, url: current, redirects };
     if ([301, 302, 303, 307, 308].includes(res.status) && res.headers.location) {
       const next = new URL(res.headers.location, url).toString();
       redirects.push(next);

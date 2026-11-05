@@ -72,6 +72,8 @@ export const L = {
     deliverable: "Entrega",
     inbox_item: "Ítem de Bandeja",
     assessment: "Evaluación",
+    seo_audit: "Auditoría SEO",
+    seo_schedule: "Auditoría programada",
   },
 } as const;
 
