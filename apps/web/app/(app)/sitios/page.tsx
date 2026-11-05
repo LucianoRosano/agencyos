@@ -67,7 +67,7 @@ export default async function SitesPage({ searchParams }: { searchParams: Promis
         </Button>
       </form>
       {rows.length ? (
-        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ s, clientName, slotsDone, slotsTotal, checksDone, checksTotal, openItems }) => (
             <li key={s.id}>
               <Link

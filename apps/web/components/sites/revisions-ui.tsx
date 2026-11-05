@@ -45,7 +45,7 @@ function ItemFields({ item, pages }: { item?: Item; pages: string[] }) {
   return (
     <>
       <TextAreaField label="Qué hay que cambiar" name="description" required defaultValue={item?.description} rows={3} maxLength={4000} />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField label="Página" name="pageRef" defaultValue={item?.pageRef ?? ""} list="revision-pages" placeholder="Ej.: Inicio" maxLength={160} />
         <datalist id="revision-pages">
           {pages.map((p) => (

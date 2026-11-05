@@ -27,7 +27,7 @@ function MultiField({ field, value }: { field: Field; value: string[] }) {
   return (
     <fieldset className="flex flex-col gap-1.5">
       <legend className="mb-1.5 text-[13px] font-medium text-text-muted">{field.label}</legend>
-      <div className="grid gap-x-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         {field.options?.map((o) => (
           <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 text-[14px] text-text">
             <Checkbox name={`${field.key}[]`} value={o} defaultChecked={value.includes(o)} />
@@ -61,7 +61,7 @@ export function BriefForm({ siteId, blocks, answers, version }: { siteId: string
               ) : null}
             </div>
             {b.description ? <p className="-mt-2 mb-4 text-[13px] text-text-muted">{b.description}</p> : null}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {b.fields.map((f) => {
                 const full = f.kind === "textarea" || f.kind === "multi";
                 const cls = full ? "md:col-span-2" : undefined;

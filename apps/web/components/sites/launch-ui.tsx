@@ -89,7 +89,7 @@ export function LaunchEditSheet({
       }
     >
       <ActionForm action={updateLaunchCheckAction.bind(null, id)} successMessage="Ítem actualizado" onSuccess={() => setOpen(false)}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Estado" name="status" defaultValue={status} options={opts(L.launchStatus)} />
           <SelectField label="Responsable" name="ownerType" defaultValue={ownerType} options={opts(L.siteAssignee)} />
         </div>

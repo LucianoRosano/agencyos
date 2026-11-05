@@ -24,7 +24,7 @@ function RequirementFields({ r }: { r?: Req }) {
   return (
     <>
       <TextField label="Requerimiento" name="title" required defaultValue={r?.title} placeholder="Ej.: Pagar con Mercado Pago" maxLength={200} />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField label="Prioridad (MoSCoW)" name="moscow" defaultValue={r?.moscow ?? "must"} options={opts(L.moscow)} />
         <SelectField label="Estado" name="status" defaultValue={r?.status ?? "pending"} options={opts(L.requirementStatus)} />
       </div>

@@ -21,7 +21,7 @@ function SiteFields({ clients, projects, defaults, edit }: { clients: Opt[]; pro
   return (
     <>
       <TextField label="Nombre del sitio" name="name" required defaultValue={v("name")} placeholder="Ej.: Tienda Librería Uno" maxLength={160} />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SelectField
           label="Proyecto"
           name="projectId"

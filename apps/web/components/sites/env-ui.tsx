@@ -33,7 +33,7 @@ export function EnvironmentSheet({ siteId, env, hostings }: { siteId: string; en
       }
     >
       <ActionForm action={saveEnvironmentAction.bind(null, siteId, env?.id ?? null)} successMessage="Entorno guardado" onSuccess={() => setOpen(false)}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Entorno" name="kind" defaultValue={env?.kind ?? "prod"} options={opts(L.envKind)} />
           <TextField label="URL" name="url" required defaultValue={env?.url ?? ""} inputMode="url" placeholder="ejemplo.com.ar" />
           <SelectField

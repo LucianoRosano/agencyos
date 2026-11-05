@@ -68,7 +68,7 @@ export async function BriefTab({ ctx, site }: P) {
   const brand = brandFromSettings(ctx.workspace.settings as Parameters<typeof brandFromSettings>[0]);
   const parts = questionsMessageParts({ clientName: site.clientName, siteName: site.s.name, brand: brand.name });
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex items-center gap-3">
           <Progress value={pct(prog.done, prog.total)} className="flex-1" label="Avance del briefing" />
@@ -198,7 +198,7 @@ export async function StructureTab({ ctx, site, page, editing }: P & { page?: st
         </div>
       </div>
       <StatusLegend />
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         <Card className="h-fit p-2">
           <SectionLabel className="px-2 pt-2 pb-1">Páginas</SectionLabel>
           <nav aria-label="Páginas del sitio">
@@ -245,7 +245,7 @@ export async function StructureTab({ ctx, site, page, editing }: P & { page?: st
                 <Card key={sec.key} className="p-4">
                   <SectionLabel className="mb-3">{sec.title}</SectionLabel>
                   {sec.slots.length ? (
-                    <ul className="grid gap-2 sm:grid-cols-2">
+                    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       {sec.slots.map((sl) => {
                         const row = map.get(`${current.key}/${sec.key}/${sl.key}`);
                         const status = row?.status ?? "pending";
@@ -429,7 +429,7 @@ export async function ResourcesTab({ ctx, site }: P) {
           </Link>
         </Button>
       </div>
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {files.map((f) => (
           <li key={f.id}>
             <Link
@@ -556,7 +556,7 @@ export async function HostingTab({ ctx, site }: P) {
   const hostingOpts = hostings.map((h) => ({ value: h.id, label: h.plan ? `${h.provider} · ${h.plan}` : h.provider }));
   const empty = !assets.domains.length && !assets.hostings.length && !assets.certificates.length;
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <BlockCard
         icon={<Server />}
         title="Entornos"
@@ -575,7 +575,7 @@ export async function HostingTab({ ctx, site }: P) {
                     href={e.url}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="block truncate font-mono text-[13px] text-accent-2 hover:underline"
+                    className="block truncate font-mono text-[13px] text-accent-text hover:underline"
                   >
                     {e.url.replace(/^https?:\/\//, "")}
                   </a>
@@ -731,7 +731,7 @@ export async function LaunchTab({ ctx, site }: P) {
   const done = checks.filter((c) => c.status !== "todo").length;
   return (
     <div className="flex flex-col gap-4">
-      <Card className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center md:p-5">
+      <Card className="grid grid-cols-1 gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center md:p-5">
         <div className="min-w-0">
           <SectionLabel icon={<Rocket />} className="mb-2">
             Estado de publicación
@@ -807,7 +807,7 @@ export async function LaunchTab({ ctx, site }: P) {
 export async function DocsTab({ ctx, site }: P) {
   const [docs, activity] = await Promise.all([siteDocs(ctx, site.s), listActivity(ctx, { entityType: "site", entityId: site.s.id, limit: 40 })]);
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px]">
       <div className="flex min-w-0 flex-col gap-5">
         {docs.note ? (
           <BlockCard
@@ -889,7 +889,7 @@ export async function MonitoringTab({ ctx, site }: P) {
       </Card>
     );
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {envs.map(({ e }) => {
         const list = checks.filter((c) => c.siteEnvironmentId === e.id);
         const last = list[0];

@@ -125,7 +125,7 @@ export default async function SitePage({
         <div className="min-w-0">
           <p className="text-text-muted">Producción</p>
           {s.prodUrl ? (
-            <a href={s.prodUrl} target="_blank" rel="noopener noreferrer nofollow" className="flex min-w-0 items-center gap-1 text-accent-2 hover:underline">
+            <a href={s.prodUrl} target="_blank" rel="noopener noreferrer nofollow" className="flex min-w-0 items-center gap-1 text-accent-text hover:underline">
               <span className="truncate font-mono text-[12px]">{host(s.prodUrl)}</span>
               <ExternalLink className="size-3 shrink-0" />
             </a>
@@ -136,7 +136,12 @@ export default async function SitePage({
         <div className="min-w-0">
           <p className="text-text-muted">Staging</p>
           {s.stagingUrl ? (
-            <a href={s.stagingUrl} target="_blank" rel="noopener noreferrer nofollow" className="flex min-w-0 items-center gap-1 text-accent-2 hover:underline">
+            <a
+              href={s.stagingUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="flex min-w-0 items-center gap-1 text-accent-text hover:underline"
+            >
               <span className="truncate font-mono text-[12px]">{host(s.stagingUrl)}</span>
               <ExternalLink className="size-3 shrink-0" />
             </a>

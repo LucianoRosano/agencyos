@@ -128,7 +128,7 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
           </Button>
         </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         <Card className="h-fit p-3">
           <SectionLabel className="mb-2 px-1">Páginas</SectionLabel>
           <ol className="flex flex-col gap-1">
@@ -173,7 +173,7 @@ export function BlueprintEditor({ siteId, initial, nextVersion }: { siteId: stri
 
         {page ? (
           <div className="flex min-w-0 flex-col gap-3">
-            <Card className="grid gap-3 p-4 md:grid-cols-[1fr_220px_auto] md:items-end">
+            <Card className="grid grid-cols-1 gap-3 p-4 md:grid-cols-[1fr_220px_auto] md:items-end">
               <label className="flex flex-col gap-1.5">
                 <span className="text-[13px] font-medium text-text-muted">Título de la página</span>
                 <Input value={page.title} maxLength={120} onChange={(e) => setPage({ ...page, title: e.target.value })} />

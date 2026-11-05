@@ -7,7 +7,7 @@ export default function Loading() {
       <Skeleton className="h-9 w-64" />
       <Skeleton className="h-16 w-full" />
       <Skeleton className="h-10 w-full" />
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         <Skeleton className="hidden h-72 lg:block" />
         <div className="flex flex-col gap-3">
           {["a", "b", "c"].map((k) => (

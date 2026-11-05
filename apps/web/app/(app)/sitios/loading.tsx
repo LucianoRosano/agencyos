@@ -6,7 +6,7 @@ export default function Loading() {
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-9 w-48" />
       <Skeleton className="h-10 w-full" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {["a", "b", "c"].map((k) => (
           <Skeleton key={k} className="h-44" />
         ))}

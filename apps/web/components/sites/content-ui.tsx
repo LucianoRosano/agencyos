@@ -79,7 +79,7 @@ export function SlotEditSheet({
       }
     >
       <ActionForm action={updateSlotAction.bind(null, id)} successMessage="Contenido guardado" onSuccess={() => setOpen(false)}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <SelectField label="Estado" name="status" defaultValue={status} options={opts(L.slotStatus)} />
           <SelectField label="Responsable" name="assigneeType" defaultValue={assigneeType} options={opts(L.siteAssignee)} />
         </div>
