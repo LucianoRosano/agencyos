@@ -1,10 +1,11 @@
 "use client";
 
 import { formatDate } from "@agencyos/core";
-import { Button, EntityChip, Menu, MenuItem, MenuSeparator } from "@agencyos/ui";
-import { ArrowLeftRight, FileText, MoreHorizontal, Pencil, Repeat, Trash2 } from "lucide-react";
+import { Button, EntityChip, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
+import { ArrowLeftRight, FileText, MoreHorizontal, Paperclip, Pencil, Repeat, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { deleteTransactionAction, restoreTransactionAction } from "@/app/(app)/finanzas/actions";
+import { Attachments } from "@/components/library/attachments";
 import { useAction } from "@/components/use-action";
 import { Amount, type FormOptions } from "./shared";
 import { TransactionSheet, type TxDefaults } from "./tx-form";
@@ -45,6 +46,7 @@ const catName = (t: TxItem) => (t.categoryName ? (t.parentCategoryName ? `${t.pa
 /** Lista de movimientos: tabla en desktop, tarjetas en el celular. */
 export function TransactionList({ items, options, showLedger }: { items: TxItem[]; options: FormOptions; showLedger?: boolean }) {
   const [editing, setEditing] = useState<TxDefaults | null>(null);
+  const [receipt, setReceipt] = useState<TxItem | null>(null);
   return (
     <>
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
@@ -87,7 +89,7 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                   <Amount value={t.amount} currency={t.currency} kind={t.kind} />
                 </td>
                 <td className="px-2 py-2 text-right">
-                  <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} />
+                  <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} />
                 </td>
               </tr>
             ))}
@@ -122,12 +124,22 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                   </div>
                 ) : null}
               </div>
-              <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} />
+              <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} />
             </li>
           ))}
         </ul>
       </div>
       {editing ? <TransactionSheet key={editing.id} options={options} defaults={editing} open onOpenChange={(o) => !o && setEditing(null)} /> : null}
+      {receipt ? (
+        <Sheet open onOpenChange={(o) => !o && setReceipt(null)} title="Comprobantes" description={`${title(receipt)} · ${formatDate(receipt.date)}`}>
+          <Attachments
+            entityType="transaction"
+            entityId={receipt.id}
+            emptyText="Sin comprobantes. Subí la factura, el ticket o la captura de la transferencia."
+            uploadLabel="Subir comprobante"
+          />
+        </Sheet>
+      ) : null}
     </>
   );
 }
@@ -154,7 +166,7 @@ function KindIcon({ t }: { t: TxItem }) {
   return <span aria-hidden className={`mx-[5px] block size-1.5 shrink-0 rounded-full ${t.kind === "income" ? "bg-success" : "bg-text-faint"}`} />;
 }
 
-function RowMenu({ t, onEdit }: { t: TxItem; onEdit: () => void }) {
+function RowMenu({ t, onEdit, onReceipt }: { t: TxItem; onEdit: () => void; onReceipt: () => void }) {
   const { exec } = useAction();
   const transfer = t.kind.startsWith("transfer");
   return (
@@ -170,6 +182,9 @@ function RowMenu({ t, onEdit }: { t: TxItem; onEdit: () => void }) {
           Editar
         </MenuItem>
       ) : null}
+      <MenuItem icon={<Paperclip />} onSelect={onReceipt}>
+        Comprobantes
+      </MenuItem>
       {t.receivableId && t.kind === "income" ? (
         <MenuItem icon={<FileText />} onSelect={() => window.open(`/finanzas/constancia/${t.id}`, "_blank", "noopener")}>
           Constancia

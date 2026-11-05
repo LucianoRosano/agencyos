@@ -1,10 +1,10 @@
-import type { Ctx } from "@agencyos/core";
+import { assertCan, type Ctx } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { signPath, verifySignedPath } from "../shared/crypto";
 import { getDb, scoped } from "../shared/db";
 import { ENTITIES, type EntityType, entityHref, isEntityType } from "../shared/entities";
-import { verifySignedPath, signPath } from "../shared/crypto";
-import { quotaBytes, storageUsed } from "./service";
+import { ATTACHABLE, quotaBytes, storageUsed } from "./service";
 
 export const SMART_VIEWS = ["logos", "imagenes", "documentos", "ultimos"] as const;
 export type SmartView = (typeof SMART_VIEWS)[number];
@@ -19,6 +19,9 @@ export type FileFilters = {
   folderId?: string;
   /** solo archivos sueltos (sin carpeta) del nivel actual */
   rootOnly?: boolean;
+  /** nivel del explorador: sin cliente / sin proyecto */
+  noClient?: boolean;
+  noProject?: boolean;
   limit?: number;
 };
 
@@ -40,6 +43,7 @@ export function verifyFileUrl(id: string, params: URLSearchParams) {
 // --- Listados ---
 
 export async function listFiles(ctx: Ctx, f: FileFilters = {}) {
+  assertCan(ctx, "read", "project");
   const db = getDb();
   const where = [scoped(schema.file, ctx)];
   if (f.view === "logos") where.push(eq(schema.file.kind, "logo"));
@@ -47,7 +51,9 @@ export async function listFiles(ctx: Ctx, f: FileFilters = {}) {
   else if (f.view === "documentos") where.push(inArray(schema.file.kind, ["document", "pdf"]));
   if (f.kind) where.push(eq(schema.file.kind, f.kind));
   if (f.clientId) where.push(eq(schema.file.clientId, f.clientId));
+  else if (f.noClient) where.push(isNull(schema.file.clientId));
   if (f.projectId) where.push(eq(schema.file.projectId, f.projectId));
+  else if (f.noProject) where.push(isNull(schema.file.projectId));
   if (f.siteId) where.push(eq(schema.file.siteId, f.siteId));
   if (f.folderId) where.push(eq(schema.file.folderId, f.folderId));
   else if (f.rootOnly) where.push(isNull(schema.file.folderId));
@@ -151,6 +157,7 @@ export async function siteOptions(ctx: Ctx) {
 // --- Ficha ---
 
 export async function getFile(ctx: Ctx, id: string) {
+  assertCan(ctx, "read", "project");
   const db = getDb();
   const [row] = await db
     .select({ f: schema.file, clientName: schema.client.name, projectName: schema.project.name, siteName: schema.site.name, folderName: schema.folder.name })
@@ -174,7 +181,11 @@ export async function getFile(ctx: Ctx, id: string) {
       .innerJoin(schema.tag, eq(schema.tag.id, schema.tagging.tagId))
       .where(and(eq(schema.tagging.workspaceId, ctx.workspaceId), eq(schema.tagging.entityType, "file"), eq(schema.tagging.entityId, id)))
       .orderBy(asc(schema.tag.name)),
-    db.select({ id: schema.user.id, name: schema.user.name }).from(schema.user).innerJoin(schema.membership, eq(schema.membership.userId, schema.user.id)).where(eq(schema.membership.workspaceId, ctx.workspaceId)),
+    db
+      .select({ id: schema.user.id, name: schema.user.name })
+      .from(schema.user)
+      .innerJoin(schema.membership, eq(schema.membership.userId, schema.user.id))
+      .where(eq(schema.membership.workspaceId, ctx.workspaceId)),
   ]);
   const who = new Map(uploaders.map((u) => [u.id, u.name]));
   return {
@@ -211,13 +222,20 @@ async function attachmentTargets(ctx: Ctx, fileId: string) {
       .from(table)
       .where(and(eq(table.id, a.entityId), scoped(table, ctx, { withArchived: true })));
     if (!e) continue;
-    out.push({ id: a.id, entityType: a.entityType, entityId: a.entityId, title: String(e.title ?? "").slice(0, 120), href: entityHref(a.entityType, a.entityId) });
+    out.push({
+      id: a.id,
+      entityType: a.entityType,
+      entityId: a.entityId,
+      title: String(e.title ?? "").slice(0, 120),
+      href: entityHref(a.entityType, a.entityId),
+    });
   }
   return out;
 }
 
 /** Adjuntos de una entidad (para el componente <Attachments>). */
 export async function attachmentsOf(ctx: Ctx, entityType: string, entityId: string) {
+  assertCan(ctx, "read", ATTACHABLE[entityType as EntityType] ?? "project");
   if (!/^[0-9a-f-]{36}$/i.test(entityId)) return [];
   const rows = await getDb()
     .select({ a: schema.fileAttachment, f: schema.file })
@@ -269,7 +287,13 @@ export async function storageUsage(ctx: Ctx) {
 export async function libraryTree(ctx: Ctx) {
   const db = getDb();
   const rows = await db
-    .select({ clientId: schema.file.clientId, clientName: schema.client.name, projectId: schema.file.projectId, projectName: schema.project.name, n: sql<number>`count(*)::int` })
+    .select({
+      clientId: schema.file.clientId,
+      clientName: schema.client.name,
+      projectId: schema.file.projectId,
+      projectName: schema.project.name,
+      n: sql<number>`count(*)::int`,
+    })
     .from(schema.file)
     .leftJoin(schema.client, and(eq(schema.client.id, schema.file.clientId), eq(schema.client.workspaceId, schema.file.workspaceId)))
     .leftJoin(schema.project, and(eq(schema.project.id, schema.file.projectId), eq(schema.project.workspaceId, schema.file.workspaceId)))

@@ -57,7 +57,17 @@ async function assertQuota(t: Tx, ctx: Ctx, extra: number) {
 
 // --- Preparación del archivo (fuera de la transacción) ---
 
-type Prepared = { name: string; ext: string; mime: string; kind: string; data: Buffer; hash: string; width: number | null; height: number | null; thumb: Buffer | null };
+type Prepared = {
+  name: string;
+  ext: string;
+  mime: string;
+  kind: string;
+  data: Buffer;
+  hash: string;
+  width: number | null;
+  height: number | null;
+  thumb: Buffer | null;
+};
 
 async function prepare(rawName: string, raw: Buffer): Promise<Prepared> {
   if (raw.length > MAX_FILE_BYTES) throw validation("El archivo supera los 100 MB.", { file: "Máximo 100 MB" });
@@ -508,15 +518,18 @@ export async function detachFile(ctx: Ctx, attachmentId: string) {
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const jsonArray = <T extends z.ZodTypeAny>(item: T) =>
-  z.preprocess((v) => {
-    if (typeof v !== "string") return v ?? [];
-    if (!v.trim()) return [];
-    try {
-      return JSON.parse(v);
-    } catch {
-      return null;
-    }
-  }, z.array(item, { error: "Formato inválido" }));
+  z.preprocess(
+    (v) => {
+      if (typeof v !== "string") return v ?? [];
+      if (!v.trim()) return [];
+      try {
+        return JSON.parse(v);
+      } catch {
+        return null;
+      }
+    },
+    z.array(item, { error: "Formato inválido" }),
+  );
 
 export const brandKitInput = z.object({
   colors: jsonArray(z.object({ name: z.string().trim().max(40).default(""), hex: z.string().trim().regex(HEX, "Color hex inválido (#RRGGBB)") })).pipe(

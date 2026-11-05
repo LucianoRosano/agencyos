@@ -25,7 +25,7 @@ function crc32(buf: Buffer) {
   return ~c >>> 0;
 }
 /** PNG RGB sólido mínimo (para no depender de fixtures). */
-export function makePng(w: number, h: number, rgb: [number, number, number]) {
+function makePng(w: number, h: number, rgb: [number, number, number]) {
   const chunk = (type: string, data: Buffer) => {
     const len = Buffer.alloc(4);
     len.writeUInt32BE(data.length);
@@ -41,7 +41,12 @@ export function makePng(w: number, h: number, rgb: [number, number, number]) {
   ihdr[9] = 2;
   const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array.from({ length: w }, () => rgb).flat())]);
   const raw = Buffer.concat(Array.from({ length: h }, () => row));
-  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
 }
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 
@@ -94,7 +99,9 @@ describe("biblioteca: subida", () => {
   });
 
   it("sanitiza SVG al guardar", async () => {
-    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" onload="alert(1)"><script>alert(2)</script><rect width="10" height="10" fill="#f00"/></svg>');
+    const svg = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" onload="alert(1)"><script>alert(2)</script><rect width="10" height="10" fill="#f00"/></svg>',
+    );
     const { file } = await lib.uploadFile(A, "icono.svg", svg);
     const stored = (await getStorage().get(file.storageKey)).toString("utf8");
     expect(stored).not.toMatch(/script|onload/);

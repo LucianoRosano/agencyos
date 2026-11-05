@@ -33,7 +33,9 @@ export async function cleanupOrphanFiles(): Promise<{ blobs: number; versions: n
   }
   const att = await db.execute(sql`delete from file_attachment a where not exists (select 1 from file f where f.id = a.file_id)`);
   if (blobs || versions) {
-    await db.insert(schema.auditLog).values({ actorType: "system", action: "library.orphans_cleaned", after: { blobs, versions, attachments: att.rowCount ?? 0 } });
+    await db
+      .insert(schema.auditLog)
+      .values({ actorType: "system", action: "library.orphans_cleaned", after: { blobs, versions, attachments: att.rowCount ?? 0 } });
   }
   return { blobs, versions, attachments: att.rowCount ?? 0 };
 }

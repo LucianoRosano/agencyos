@@ -106,7 +106,11 @@ export function normalizeFileName(raw: string): string {
     stem = s;
     ext = "";
   }
-  stem = stem.trim().slice(0, 120 - (ext ? ext.length + 1 : 0)).trim() || "archivo";
+  stem =
+    stem
+      .trim()
+      .slice(0, 120 - (ext ? ext.length + 1 : 0))
+      .trim() || "archivo";
   s = ext ? `${stem}.${ext}` : stem;
   return s;
 }
@@ -117,7 +121,8 @@ export type DetectedType = { ext: string; mime: string; kind: FileKind };
 export function detectType(name: string, data: Buffer): DetectedType {
   const ext = extOf(name);
   const def = TYPES[ext];
-  if (!def) throw validation(`Tipo de archivo no permitido${ext ? ` (.${ext})` : ""}. Permitidos: ${ALLOWED_EXTENSIONS.join(", ")}.`, { file: "Tipo no permitido" });
+  if (!def)
+    throw validation(`Tipo de archivo no permitido${ext ? ` (.${ext})` : ""}. Permitidos: ${ALLOWED_EXTENSIONS.join(", ")}.`, { file: "Tipo no permitido" });
   if (data.length === 0) throw validation("El archivo está vacío.", { file: "Vacío" });
   if (!def.check(data)) {
     const real = sniff(data);

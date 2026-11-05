@@ -33,6 +33,7 @@ import { InteractionForm, InteractionSheet, NextStepDone } from "@/components/cr
 import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
 import { type PipelineOpp, PipelineView } from "@/components/crm/pipeline";
 import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, STAGE_COLOR } from "@/components/crm/shared";
+import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectCard } from "@/components/project-card";
 import { renderMarkdown } from "@/lib/markdown";
@@ -47,6 +48,7 @@ const ALL_TABS = [
   { key: "proyectos", label: "Proyectos" },
   { key: "presupuestos", label: "Presupuestos" },
   { key: "dinero", label: "Dinero" },
+  { key: "archivos", label: "Archivos" },
   { key: "actividad", label: "Actividad" },
 ];
 
@@ -521,6 +523,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       ) : null}
 
       {tab === "dinero" && data.canSeeMoney ? <MoneyTab clientId={id} ctx={ctx} /> : null}
+
+      {tab === "archivos" ? <ClientFilesTab ctx={ctx} clientId={id} /> : null}
 
       {tab === "actividad" ? (
         <Card className="p-5">
