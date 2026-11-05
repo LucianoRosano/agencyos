@@ -49,6 +49,10 @@ export async function globalSearch(ctx: Ctx, q: string, opts: { types?: string[]
       type: "course",
       q: sql`select 'course', id, name, term, similarity(f_search_norm(name), ${norm}) from course where workspace_id = ${ws} and deleted_at is null and (f_search_norm(name) like ${like} or f_search_norm(name) % ${norm})`,
     },
+    {
+      type: "site",
+      q: sql`select 'site', id, name, coalesce(prod_url, staging_url, kind), similarity(f_search_norm(name || ' ' || coalesce(prod_url,'')), ${norm}) from site where workspace_id = ${ws} and deleted_at is null and (f_search_norm(name || ' ' || coalesce(prod_url,'')) like ${like} or f_search_norm(name) % ${norm})`,
+    },
   ].filter((p) => !opts.types || opts.types.includes(p.type));
   if (!parts.length) return [];
   const union = sql.join(

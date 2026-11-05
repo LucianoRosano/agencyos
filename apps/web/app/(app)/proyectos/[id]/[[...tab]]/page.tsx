@@ -1,8 +1,9 @@
 import { formatDate, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
 import { getProject } from "@agencyos/modules/projects/queries";
-import { Badge, Card, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
-import { CornerDownRight, ListChecks } from "lucide-react";
+import { siteForProject } from "@agencyos/modules/sites/queries";
+import { Badge, Button, Card, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
+import { CornerDownRight, LayoutTemplate, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
@@ -60,7 +61,13 @@ export default async function ProjectPage({
   const openTasks = data.tasks.filter((t) => !t.parentTaskId && ["todo", "doing", "waiting"].includes(t.status));
   const doneTasks = data.tasks.filter((t) => !t.parentTaskId && t.status === "done");
   const activeBlockers = data.blockers.filter((b) => !b.resolvedAt);
-  const [projects, spaces, clients] = await Promise.all([projectOpts(ctx), spaceOpts(ctx), clientOpts(ctx)]);
+  const sitesOn = ctx.workspace.enabledModules.includes("sites") && (p.kind === "website" || p.kind === "store");
+  const [projects, spaces, clients, site] = await Promise.all([
+    projectOpts(ctx),
+    spaceOpts(ctx),
+    clientOpts(ctx),
+    sitesOn ? siteForProject(ctx, p.id) : Promise.resolve(null),
+  ]);
   const phaseName = new Map(data.phases.map((ph) => [ph.id, ph.name]));
   const today = todayAR();
 
@@ -87,6 +94,13 @@ export default async function ProjectPage({
         accent="#7C5CFF"
         actions={
           <>
+            {sitesOn ? (
+              <Button asChild variant={site ? "ghost" : "primary"}>
+                <Link href={site ? `/sitios/${site.id}` : `/sitios/nuevo?proyecto=${p.id}`}>
+                  <LayoutTemplate className="size-4" /> {site ? "Ver sitio" : "Crear sitio"}
+                </Link>
+              </Button>
+            ) : null}
             <EditProjectSheet
               id={p.id}
               spaces={spaces}
