@@ -3,6 +3,7 @@ import { clientStatusCounts, listClients } from "@agencyos/modules/crm/queries";
 import { Badge, Button, EmptyState, PageHeader } from "@agencyos/ui";
 import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
+import { filterByTag, ListToolbar } from "@/components/collab/list-toolbar";
 import { CrmNav, FilterChips, SearchBox } from "@/components/crm/crm-nav";
 import { CLIENT_STATUS_TONE, CRM_ACCENT } from "@/components/crm/shared";
 import { getSelectedSpace } from "@/lib/prefs";
@@ -25,7 +26,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const ctx = await requireCtx();
   const status = FILTERS.find((f) => f === sp.estado && f !== "todos");
   const spaceId = await getSelectedSpace();
-  const [rows, counts] = await Promise.all([listClients(ctx, { status, q: sp.q, spaceId }), clientStatusCounts(ctx, spaceId)]);
+  const [allRows, counts] = await Promise.all([listClients(ctx, { status, q: sp.q, spaceId }), clientStatusCounts(ctx, spaceId)]);
+  const rows = await filterByTag(ctx, "client", sp.etiqueta, allRows, (r) => r.c.id);
   const notArchived = Object.entries(counts).reduce((a, [k, n]) => (k === "archived" ? a : a + n), 0);
   const href = (k: string) => `/crm/clientes?${new URLSearchParams({ estado: k, ...(sp.q ? { q: sp.q } : {}) })}`;
 
@@ -48,7 +50,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
         active={status ?? "todos"}
         items={FILTERS.map((k) => ({ key: k, label: PLURAL[k] ?? k, href: href(k), count: k === "todos" ? notArchived : (counts[k] ?? 0) }))}
       />
-      <SearchBox action="/crm/clientes" q={sp.q} placeholder="Buscar por nombre, rubro o ciudad…" hidden={{ estado: sp.estado }} />
+      <SearchBox action="/crm/clientes" q={sp.q} placeholder="Buscar por nombre, rubro o ciudad…" hidden={{ estado: sp.estado, etiqueta: sp.etiqueta }} />
+      <ListToolbar ctx={ctx} module="clientes" basePath="/crm/clientes" sp={sp} />
 
       {rows.length ? (
         <>

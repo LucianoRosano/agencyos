@@ -3,6 +3,7 @@ import { listProjects } from "@agencyos/modules/projects/queries";
 import { Button, EmptyState, PageHeader, Tabs } from "@agencyos/ui";
 import { FolderKanban, LayoutTemplate, Plus } from "lucide-react";
 import Link from "next/link";
+import { filterByTag, ListToolbar } from "@/components/collab/list-toolbar";
 import { ProjectCard } from "@/components/project-card";
 import { getSelectedSpace } from "@/lib/prefs";
 import { requireCtx } from "@/lib/session";
@@ -23,7 +24,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const ctx = await requireCtx();
   const f = sp.estado && sp.estado !== "activos" ? sp.estado : undefined;
-  const rows = await listProjects(ctx, { status: f, spaceId: await getSelectedSpace(), q: sp.q });
+  const rows = await filterByTag(
+    ctx,
+    "project",
+    sp.etiqueta,
+    await listProjects(ctx, { status: f, spaceId: await getSelectedSpace(), q: sp.q }),
+    (r) => r.p.id,
+  );
   const stalledDays = ctx.workspace.settings.stalledDays ?? 14;
   const today = todayAR();
   return (
@@ -50,6 +57,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <Tabs active={sp.estado ?? "activos"} items={FILTERS.map((x) => ({ key: x.key, label: x.label, href: `/proyectos?estado=${x.key}` }))} />
       <form className="mb-5" action="/proyectos">
         {sp.estado ? <input type="hidden" name="estado" value={sp.estado} /> : null}
+        {sp.etiqueta ? <input type="hidden" name="etiqueta" value={sp.etiqueta} /> : null}
         <input
           name="q"
           defaultValue={sp.q}
@@ -58,6 +66,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           className="h-10 w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:max-w-sm md:text-sm"
         />
       </form>
+      <ListToolbar ctx={ctx} module="proyectos" basePath="/proyectos" sp={sp} />
       {rows.length ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ p, clientName, spaceName, spaceColor }) => (

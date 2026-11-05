@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
 import { EditClientSheet } from "@/components/crm/client-form";
 import { ClientMenu, ClientStatusSelect } from "@/components/crm/client-menu";
 import { ClientStory } from "@/components/crm/client-story";
@@ -178,7 +179,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       <Tabs active={tab} items={TABS.map((t) => ({ ...t, href: t.key === "resumen" ? base : `${base}/${t.key}`, count: counts[t.key] }))} />
 
       {tab === "resumen" ? (
-        <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-5">
             <BlockCard icon={<ListTodo />} title="Próximos pasos">
               {steps.length ? (
@@ -357,6 +358,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             <BlockCard icon={<NotebookText />} title="Notas internas">
               <MarkdownView html={renderMarkdown(c.notesMd)} className="text-[14px]" empty="Sin notas. Editá el cliente para agregarlas (Markdown)." />
             </BlockCard>
+            <EntitySide ctx={ctx} type="client" id={id} />
           </div>
         </div>
       ) : null}

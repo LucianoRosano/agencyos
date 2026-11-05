@@ -6,6 +6,7 @@ import { BriefcaseBusiness, Info, MessageSquarePlus, MessagesSquare, Star } from
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
 import { ContactMenu, EditContactSheet } from "@/components/crm/contact-forms";
 import { ContactLinks } from "@/components/crm/contact-links";
 import { KIND_ICON } from "@/components/crm/icons";
@@ -66,7 +67,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
           </>
         }
       />
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-w-0 flex-col gap-5">
           <BlockCard icon={<MessagesSquare />} title="Conversaciones">
             {data.interactions.length ? (
@@ -157,6 +158,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               <p className="text-[14px] text-text-muted">No está vinculado a ningún cliente. Vinculalo desde la pestaña Contactos de un cliente.</p>
             )}
           </BlockCard>
+          <EntitySide ctx={ctx} type="contact" id={id} comments={false} />
           <BlockCard title="Notas">
             <MarkdownView html={renderMarkdown(ct.notesMd)} className="text-[14px]" empty="Sin notas." />
           </BlockCard>

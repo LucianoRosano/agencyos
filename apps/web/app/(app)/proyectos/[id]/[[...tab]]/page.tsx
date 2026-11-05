@@ -6,6 +6,7 @@ import { CornerDownRight, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
@@ -120,7 +121,7 @@ export default async function ProjectPage({
       />
 
       {tab === "resumen" ? (
-        <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex flex-col gap-5">
             <Card className="p-5">
               <SectionLabel className="mb-3">Siguiente acción</SectionLabel>
@@ -186,6 +187,7 @@ export default async function ProjectPage({
               <SectionLabel className="mb-3">Agregar bloqueo</SectionLabel>
               <BlockerList projectId={p.id} blockers={[]} formOnly />
             </Card>
+            <EntitySide ctx={ctx} type="project" id={p.id} />
           </div>
         </div>
       ) : null}

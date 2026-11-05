@@ -78,7 +78,11 @@ export async function emailPublicLinkAction(id: string, url: string, to: string)
     const email = z.string().email("Email inválido").parse(to);
     if (!url.startsWith(process.env.APP_URL ?? "http")) throw new Error("Enlace inválido");
     const name = ctx.workspace.settings.agencyName ?? "Luciano Rosano";
-    const sent = await sendEmail({ to: email, subject: `Presupuesto de ${name}`, text: `Hola,\n\nTe comparto el presupuesto. Podés verlo, descargarlo y aceptarlo desde este enlace:\n${url}\n\nCualquier duda, respondé este mail.\n\n${name}` });
+    const sent = await sendEmail({
+      to: email,
+      subject: `Presupuesto de ${name}`,
+      text: `Hola,\n\nTe comparto el presupuesto. Podés verlo, descargarlo y aceptarlo desde este enlace:\n${url}\n\nCualquier duda, respondé este mail.\n\n${name}`,
+    });
     if (!sent) throw new Error("No se pudo enviar el email.");
     const { audit } = await import("@agencyos/core/events");
     const { getDb } = await import("@agencyos/db");

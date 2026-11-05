@@ -45,9 +45,18 @@ export function renderMarkdown(md: string | null | undefined, resolveWikilink?: 
       "input",
       "span",
     ],
-    allowedAttributes: { a: ["href", "class", "title"], span: ["class", "data-missing"], input: ["type", "checked", "disabled"], code: ["class"] },
+    allowedAttributes: {
+      a: ["href", "class", "title"],
+      span: ["class", "data-missing"],
+      input: ["type", "checked", "disabled", "aria-label"],
+      code: ["class"],
+    },
     allowedSchemes: ["http", "https", "mailto"],
     transformTags: {
+      input: (_tag, attribs) => ({
+        tagName: "input",
+        attribs: { ...attribs, disabled: "", "aria-label": attribs.checked !== undefined ? "Ítem hecho" : "Ítem pendiente" },
+      }),
       a: (tag, attribs) => ({
         tagName: "a",
         attribs: attribs.href?.startsWith("/") ? attribs : { ...attribs, target: "_blank", rel: "noopener noreferrer nofollow" },

@@ -5,9 +5,10 @@ import { acceptancePreview, editorOptions, getQuote, getQuoteDocument, shareText
 import { Badge, Button, Card, PageHeader, SectionLabel, Tabs } from "@agencyos/ui";
 import { ArrowRight, FolderKanban, Lock } from "lucide-react";
 import Link from "next/link";
-import { PublicLinkSheet } from "@/components/quotes/public-link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
+import { PublicLinkSheet } from "@/components/quotes/public-link";
 import { AcceptSheet, NewVersionButton, PdfButton, QuoteMenu, RejectSheet, SendSheet } from "@/components/quotes/quote-actions";
 import { QuoteEditor } from "@/components/quotes/quote-editor";
 import { QuotePreviewFrame } from "@/components/quotes/quote-preview-frame";
@@ -78,7 +79,15 @@ export default async function QuotePage({
         actions={
           <>
             <PdfButton id={id} />
-            {["sent", "viewed"].includes(q.status) ? <PublicLinkSheet id={id} number={q.number} hasLink={Boolean(q.publicTokenHash && q.publicExpiresAt && q.publicExpiresAt > new Date())} contactEmail={data.contactEmail ?? null} emailEnabled={Boolean(process.env.BREVO_API_KEY)} /> : null}
+            {["sent", "viewed"].includes(q.status) ? (
+              <PublicLinkSheet
+                id={id}
+                number={q.number}
+                hasLink={Boolean(q.publicTokenHash && q.publicExpiresAt && q.publicExpiresAt > new Date())}
+                contactEmail={data.contactEmail ?? null}
+                emailEnabled={Boolean(process.env.BREVO_API_KEY)}
+              />
+            ) : null}
             {q.status === "draft" ? <SendSheet id={id} number={q.number} text={text} validUntil={v.validUntil} today={today} /> : null}
             {canDecide && accept ? (
               <>
@@ -198,6 +207,7 @@ export default async function QuotePage({
                 ) : null}
               </Card>
             ) : null}
+            <EntitySide ctx={ctx} type="quote" id={id} />
           </div>
         </div>
       ) : null}

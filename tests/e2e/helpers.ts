@@ -45,8 +45,15 @@ export async function login(page: Page) {
 
 /** Sin scroll horizontal (docs/09 §3.11). */
 export async function expectNoHorizontalScroll(page: Page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow, "scroll horizontal").toBeLessThanOrEqual(1);
+  const { overflow, culprits } = await page.evaluate(() => {
+    const w = document.documentElement.clientWidth;
+    const culprits = [...document.querySelectorAll("body *")]
+      .filter((el) => el.getBoundingClientRect().right > w + 1)
+      .slice(0, 5)
+      .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 80)}`);
+    return { overflow: document.documentElement.scrollWidth - w, culprits };
+  });
+  expect(overflow, `scroll horizontal (${culprits.join(" | ")})`).toBeLessThanOrEqual(1);
 }
 
 export async function shot(page: Page, name: string, project: string) {

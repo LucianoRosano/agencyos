@@ -3,6 +3,7 @@ import { getTask } from "@agencyos/modules/tasks/queries";
 import { Badge, Card, PageHeader, SectionLabel } from "@agencyos/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EntitySide } from "@/components/collab/entity-side";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
 import { projectOpts, spaceOpts } from "@/lib/options";
@@ -92,6 +93,9 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             )}
           </Card>
         ) : null}
+        <div className="grid gap-6 md:grid-cols-2">
+          <EntitySide ctx={ctx} type="task" id={t.id} />
+        </div>
       </div>
     </div>
   );

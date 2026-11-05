@@ -20,7 +20,7 @@ export function Progress({
       aria-valuenow={v}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={label}
+      aria-label={label ?? `Avance ${v}%`}
     >
       <div className={cn("h-full rounded-full transition-[width] duration-500", fill)} style={{ width: `${v}%` }} />
     </div>

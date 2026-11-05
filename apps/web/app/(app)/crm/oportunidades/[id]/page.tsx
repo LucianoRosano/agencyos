@@ -5,6 +5,7 @@ import { Activity, CornerDownRight, FileSignature, Info, Route } from "lucide-re
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
 import { EditOpportunitySheet, OpportunityMenu } from "@/components/crm/opportunity-form";
 import { LinkedQuotes, OpportunityStage } from "@/components/crm/opportunity-stage";
 import { CRM_ACCENT, dueTone } from "@/components/crm/shared";
@@ -74,7 +75,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
         <OpportunityStage opp={lite} quotes={quotes} />
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-w-0 flex-col gap-5">
           {!closed ? (
             <BlockCard icon={<CornerDownRight />} title="Próxima acción">
@@ -101,47 +102,50 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
             <ActivityList rows={data.activity} />
           </BlockCard>
         </div>
-        <Card className="h-fit p-5">
-          <SectionLabel icon={<Info />} className="mb-4">
-            Propiedades
-          </SectionLabel>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]">
-            <dt className="text-text-muted">Etapa</dt>
-            <dd>
-              <Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{label(L.stage, o.stage)}</Badge>
-            </dd>
-            <dt className="text-text-muted">Cliente</dt>
-            <dd className="min-w-0 truncate">
-              <Link href={`/crm/clientes/${o.clientId}`} className="text-text hover:underline">
-                {clientName}
-              </Link>
-            </dd>
-            <dt className="text-text-muted">Valor</dt>
-            <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</dd>
-            <dt className="text-text-muted">Probabilidad</dt>
-            <dd className="font-mono text-[13px]">{o.probability}%</dd>
-            <dt className="text-text-muted">Ponderado</dt>
-            <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(percentOf(o.valueAmount, o.probability), o.valueCurrency) : "—"}</dd>
-            <dt className="text-text-muted">Cierre est.</dt>
-            <dd className="font-mono text-[13px]">{formatDate(o.expectedClose)}</dd>
-            {o.wonAt ? (
-              <>
-                <dt className="text-text-muted">Ganada</dt>
-                <dd className="font-mono text-[13px]">{formatDateTime(o.wonAt)}</dd>
-              </>
-            ) : null}
-            {o.lostAt ? (
-              <>
-                <dt className="text-text-muted">Perdida</dt>
-                <dd className="font-mono text-[13px]">{formatDateTime(o.lostAt)}</dd>
-                <dt className="text-text-muted">Motivo</dt>
-                <dd>{label(L.lostReason, o.lostReason)}</dd>
-              </>
-            ) : null}
-            <dt className="text-text-muted">Alta</dt>
-            <dd className="font-mono text-[13px]">{formatDate(o.createdAt)}</dd>
-          </dl>
-        </Card>
+        <div className="flex min-w-0 flex-col gap-5">
+          <Card className="h-fit p-5">
+            <SectionLabel icon={<Info />} className="mb-4">
+              Propiedades
+            </SectionLabel>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]">
+              <dt className="text-text-muted">Etapa</dt>
+              <dd>
+                <Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{label(L.stage, o.stage)}</Badge>
+              </dd>
+              <dt className="text-text-muted">Cliente</dt>
+              <dd className="min-w-0 truncate">
+                <Link href={`/crm/clientes/${o.clientId}`} className="text-text hover:underline">
+                  {clientName}
+                </Link>
+              </dd>
+              <dt className="text-text-muted">Valor</dt>
+              <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</dd>
+              <dt className="text-text-muted">Probabilidad</dt>
+              <dd className="font-mono text-[13px]">{o.probability}%</dd>
+              <dt className="text-text-muted">Ponderado</dt>
+              <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(percentOf(o.valueAmount, o.probability), o.valueCurrency) : "—"}</dd>
+              <dt className="text-text-muted">Cierre est.</dt>
+              <dd className="font-mono text-[13px]">{formatDate(o.expectedClose)}</dd>
+              {o.wonAt ? (
+                <>
+                  <dt className="text-text-muted">Ganada</dt>
+                  <dd className="font-mono text-[13px]">{formatDateTime(o.wonAt)}</dd>
+                </>
+              ) : null}
+              {o.lostAt ? (
+                <>
+                  <dt className="text-text-muted">Perdida</dt>
+                  <dd className="font-mono text-[13px]">{formatDateTime(o.lostAt)}</dd>
+                  <dt className="text-text-muted">Motivo</dt>
+                  <dd>{label(L.lostReason, o.lostReason)}</dd>
+                </>
+              ) : null}
+              <dt className="text-text-muted">Alta</dt>
+              <dd className="font-mono text-[13px]">{formatDate(o.createdAt)}</dd>
+            </dl>
+          </Card>
+          <EntitySide ctx={ctx} type="opportunity" id={o.id} />
+        </div>
       </div>
     </div>
   );
