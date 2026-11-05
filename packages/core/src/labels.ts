@@ -51,6 +51,26 @@ export const L = {
   spaceKind: { agency: "Agencia", personal: "Personal", study: "Facultad", custom: "Propio" },
   inboxType: { task: "Tarea", note: "Nota", idea: "Idea", expense: "Gasto", link: "Link" },
   reminderKind: { domain: "Dominio", hosting: "Hosting", subscription: "Suscripción", certificate: "Certificado", deadline: "Vencimiento", other: "Otro" },
+  // --- Sitios (M06) ---
+  siteKind: {
+    institutional: "Institucional",
+    landing: "Landing",
+    store: "Tienda WooCommerce",
+    catalog: "Catálogo",
+    b2b: "Mayorista B2B",
+    blog: "Blog",
+    app: "App / panel a medida",
+  },
+  siteStack: { wordpress: "WordPress + Kadence", woocommerce: "WooCommerce", php: "PHP propio", nextjs: "Next.js", other: "Otro" },
+  publicationStatus: { building: "En construcción", staging: "Staging", ready: "Listo para publicar", live: "Publicado", maintenance: "En mantenimiento" },
+  slotKind: { title: "Título", text: "Texto", image: "Imagen", cta: "CTA", product: "Producto", form: "Formulario" },
+  slotStatus: { pending: "Pendiente", draft: "Borrador", review: "En revisión", approved: "Aprobado", published: "Publicado" },
+  siteAssignee: { user: "Luciano", client: "Cliente", agent: "Content Agent" },
+  moscow: { must: "Must · imprescindible", should: "Should · importante", could: "Could · deseable", wont: "Won't · esta vez no" },
+  requirementStatus: { pending: "Pendiente", in_progress: "En curso", done: "Cumplido" },
+  revisionItemStatus: { open: "Abierto", in_progress: "En curso", resolved: "Resuelto", postponed: "Pospuesto" },
+  launchStatus: { todo: "Pendiente", done: "Hecho", na: "No aplica" },
+  envKind: { prod: "Producción", staging: "Staging" },
   entityType: {
     client: "Cliente",
     contact: "Contacto",
@@ -72,6 +92,9 @@ export const L = {
     deliverable: "Entrega",
     inbox_item: "Ítem de Bandeja",
     assessment: "Evaluación",
+    site: "Sitio",
+    site_requirement: "Requerimiento",
+    site_environment: "Entorno",
   },
 } as const;
 

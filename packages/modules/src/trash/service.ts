@@ -29,6 +29,9 @@ const RESOURCE: Partial<Record<EntityType, Resource>> = {
   reminder: "reminder",
   inbox_item: "inbox",
   space: "space",
+  site: "project",
+  site_requirement: "project",
+  site_environment: "project",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: acceso genérico a columnas comunes
