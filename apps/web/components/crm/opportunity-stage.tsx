@@ -6,20 +6,19 @@ import { Check, FileSignature, FolderPlus, Unlink } from "lucide-react";
 import Link from "next/link";
 import { unlinkQuoteAction } from "@/app/(app)/crm/actions";
 import { useAction } from "@/components/use-action";
-import { STAGE_COLOR, STAGE_ORDER } from "./shared";
+import { DEFAULT_STAGES, type StageDef, stageColor } from "./shared";
 import { type OppLite, type QuoteLite, StageSelect, useStageChange } from "./stage-change";
 
-const OPEN = STAGE_ORDER.slice(0, 5);
-
 /** Etapas como pasos (botones) + cierre ganada/perdida; mismo flujo de reglas que el kanban. */
-export function OpportunityStage({ opp, quotes }: { opp: OppLite; quotes: QuoteLite[] }) {
-  const { request, dialogs, pending } = useStageChange({ quotes });
-  const idx = OPEN.indexOf(opp.stage as (typeof OPEN)[number]);
+export function OpportunityStage({ opp, quotes, stages = DEFAULT_STAGES }: { opp: OppLite; quotes: QuoteLite[]; stages?: StageDef[] }) {
+  const { request, dialogs, pending } = useStageChange({ quotes, stages });
+  const open = stages.filter((s) => s.kind === "open");
+  const idx = open.findIndex((s) => s.key === opp.stage);
   const closed = opp.stage === "won" || opp.stage === "lost";
   return (
     <div className="flex flex-col gap-4">
-      <ol className="hidden grid-cols-5 gap-1.5 md:grid" aria-label="Etapas del pipeline">
-        {OPEN.map((s, i) => {
+      <ol className="hidden grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-1.5 md:grid" aria-label="Etapas del pipeline">
+        {open.map(({ key: s, name }, i) => {
           const done = closed ? opp.stage === "won" : i < idx;
           const current = s === opp.stage;
           return (
@@ -38,15 +37,15 @@ export function OpportunityStage({ opp, quotes }: { opp: OppLite; quotes: QuoteL
                       : "border-border text-text-faint hover:text-text hover:border-border-strong",
                 )}
               >
-                {done ? <Check className="size-3.5 text-success" /> : <span className="size-2 rounded-full" style={{ background: STAGE_COLOR[s] }} />}
-                <span className="truncate">{L.stage[s]}</span>
+                {done ? <Check className="size-3.5 text-success" /> : <span className="size-2 rounded-full" style={{ background: stageColor(s, stages) }} />}
+                <span className="truncate">{name}</span>
               </button>
             </li>
           );
         })}
       </ol>
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <StageSelect opp={opp} request={request} disabled={pending} className="md:hidden" />
+        <StageSelect opp={opp} request={request} disabled={pending} stages={stages} className="md:hidden" />
         <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex">
           <Button variant="secondary" disabled={pending || opp.stage === "won"} onClick={() => request(opp, "won")} className="text-success">
             <Check className="size-4" /> Ganada

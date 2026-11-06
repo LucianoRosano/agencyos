@@ -98,6 +98,8 @@ export const L = {
     site: "Sitio",
     site_requirement: "Requerimiento",
     site_environment: "Entorno",
+    time_entry: "Registro de horas",
+    note_template: "Plantilla de nota",
   },
   fileKind: { image: "Imagen", logo: "Logo", document: "Documento", pdf: "PDF", video: "Video", archive: "ZIP", font: "Tipografía", other: "Otro" },
   templateKind: { document: "Documento", snippet: "Snippet", prompt: "Prompt", checklist: "Checklist" },

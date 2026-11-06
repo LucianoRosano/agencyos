@@ -1,5 +1,6 @@
 import { formatDate, formatDateTime, formatMoney, L, label, percentOf } from "@agencyos/core";
 import { getOpportunity } from "@agencyos/modules/crm/queries";
+import { pipelineFor } from "@agencyos/modules/crm/stages";
 import { Badge, BlockCard, Card, cn, PageHeader, SectionLabel } from "@agencyos/ui";
 import { Activity, CornerDownRight, FileSignature, Info, Route } from "lucide-react";
 import Link from "next/link";
@@ -24,11 +25,21 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
   const data = await getOpportunity(ctx, id);
   if (!data) notFound();
   const { o, clientName } = data;
-  const clients = await clientOpts(ctx);
+  const [clients, { stages, stageOf }] = await Promise.all([clientOpts(ctx), pipelineFor(ctx, [o])]);
+  const stageKey = stageOf.get(o.id) ?? o.stage;
+  const stageLabel = stages.find((s) => s.key === stageKey)?.name ?? label(L.stage, o.stage);
   if (!clients.some((c) => c.value === o.clientId)) clients.unshift({ value: o.clientId, label: clientName });
   const due = dueTone(o.nextActionDue);
   const closed = o.stage === "won" || o.stage === "lost";
-  const lite = { id: o.id, title: o.title, stage: o.stage, clientId: o.clientId, clientName, lostReason: o.lostReason, hasQuote: data.linkedQuotes.length > 0 };
+  const lite = {
+    id: o.id,
+    title: o.title,
+    stage: stageKey,
+    clientId: o.clientId,
+    clientName,
+    lostReason: o.lostReason,
+    hasQuote: data.linkedQuotes.length > 0,
+  };
   const quotes = data.quotes.map((q) => ({ ...q, clientId: o.clientId }));
 
   return (
@@ -70,9 +81,9 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
 
       <Card className="mb-5 p-4 md:p-5">
         <SectionLabel icon={<Route />} className="mb-4">
-          Etapa · {label(L.stage, o.stage)}
+          Etapa · {stageLabel}
         </SectionLabel>
-        <OpportunityStage opp={lite} quotes={quotes} />
+        <OpportunityStage opp={lite} quotes={quotes} stages={stages} />
       </Card>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -110,7 +121,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]">
               <dt className="text-text-muted">Etapa</dt>
               <dd>
-                <Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{label(L.stage, o.stage)}</Badge>
+                <Badge tone={o.stage === "won" ? "success" : o.stage === "lost" ? "danger" : "info"}>{stageLabel}</Badge>
               </dd>
               <dt className="text-text-muted">Cliente</dt>
               <dd className="min-w-0 truncate">
