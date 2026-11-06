@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
+import { ProjectRepos } from "@/components/repos/project-repos";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
@@ -34,6 +35,7 @@ const TABS = [
   { key: "etapas", label: "Etapas" },
   { key: "entregas", label: "Entregas" },
   { key: "decisiones", label: "Decisiones" },
+  { key: "repositorios", label: "Repositorios" },
   { key: "changelog", label: "Changelog" },
   { key: "actividad", label: "Actividad" },
 ];
@@ -351,6 +353,8 @@ export default async function ProjectPage({
           </Card>
         </div>
       ) : null}
+
+      {tab === "repositorios" ? <ProjectRepos ctx={ctx} projectId={p.id} projectName={p.name} hasClient={Boolean(p.clientId)} /> : null}
 
       {tab === "changelog" ? (
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">

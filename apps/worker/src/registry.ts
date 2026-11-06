@@ -1,6 +1,7 @@
 import { automationsTick } from "@agencyos/modules/automations/jobs";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
+import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";
 import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
@@ -25,4 +26,6 @@ export const JOBS: Job[] = [
   { name: "seo-audit", cron: "* * * * *", run: () => processQueuedAudits(), quiet: true },
   { name: "seo-schedules", cron: "20 3 * * *", run: () => dailySeoSchedules() },
   { name: "automations-tick", cron: "* * * * *", run: () => automationsTick(), quiet: true },
+  { name: "repos-execute-plans", cron: "* * * * *", run: () => reposExecutePlans(), quiet: true },
+  { name: "repos-daily-sync", cron: "0 4 * * *", run: () => reposDailySync() },
 ];

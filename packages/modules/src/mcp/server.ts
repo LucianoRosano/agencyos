@@ -7,6 +7,8 @@ import { z } from "zod";
 import { capture } from "../inbox/service";
 import { getProject, listProjects } from "../projects/queries";
 import { addDecision } from "../projects/service";
+import { getRepo, listRepos } from "../repos/queries";
+import { generatePlan } from "../repos/service";
 import { globalSearch } from "../search/service";
 import { getDb, scoped } from "../shared/db";
 import { listTasks } from "../tasks/queries";
@@ -377,6 +379,53 @@ export function buildMcpServer(ctx: Ctx) {
     wrap("eliminar_elemento", async (a: { tipo: string; id: string }) => {
       await moveToTrash(ctx, a.tipo, a.id);
       return { ok: true };
+    }),
+  );
+
+  server.registerTool(
+    "listar_repositorios",
+    {
+      title: "Listar repositorios",
+      description: "Repositorios de GitHub sincronizados, con alcance, puntaje de salud (0–100), vínculos y checks que no pasan.",
+      inputSchema: {
+        alcance: z.enum(["prod", "cli", "int", "tpl", "per", "edu"]).optional(),
+        solo_desvios: z.boolean().optional(),
+      },
+    },
+    wrap("listar_repositorios", async ({ alcance, solo_desvios }: { alcance?: string; solo_desvios?: boolean }) => {
+      assertCan(ctx, "read", "project");
+      const rows = await listRepos(ctx, { scope: alcance, band: solo_desvios ? "red" : undefined });
+      return Promise.all(
+        rows.map(async ({ r, clientName, projectName }) => {
+          const d = await getRepo(ctx, r.id);
+          return {
+            id: r.id,
+            nombre: r.fullName,
+            alcance: r.scope,
+            salud: r.healthScore,
+            archivado: r.archived,
+            cliente: clientName,
+            proyecto: projectName,
+            desvios: (d?.checks ?? [])
+              .filter((c) => c.status === "fail" || c.status === "warn")
+              .map((c) => ({ check: c.checkKey, estado: c.status, detalle: (c.details as { message?: string }).message })),
+          };
+        }),
+      );
+    }),
+  );
+
+  server.registerTool(
+    "proponer_plan_repos",
+    {
+      title: "Proponer plan de repositorios",
+      description:
+        "Genera un plan determinístico (convención de nombres, topics, descripción, archivos estándar vía PR, seguridad, protección) para los repositorios indicados o para todos. Queda pendiente: solo Luciano lo aprueba en AGENCYOS.",
+      inputSchema: { repositorios: z.array(z.string().uuid()).max(200).optional() },
+    },
+    wrap("proponer_plan_repos", async ({ repositorios }: { repositorios?: string[] }) => {
+      const plan = await generatePlan(ctx, { repositoryIds: repositorios });
+      return { ok: true, id: plan.id, nombre: plan.name, estado: "pendiente de aprobación", resumen: plan.summaryMd };
     }),
   );
 
