@@ -1,4 +1,5 @@
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
+import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -15,4 +16,7 @@ export const JOBS: Job[] = [
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
   { name: "library-orphans", cron: "45 4 * * *", run: () => cleanupOrphanFiles() },
+  { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },
+  { name: "monitoring-daily", cron: "15 6 * * *", run: () => runDailyMonitoring() },
+  { name: "monitoring-purge", cron: "45 4 * * *", run: () => purgeUptimeChecks(90) },
 ];
