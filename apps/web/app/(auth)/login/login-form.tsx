@@ -1,8 +1,9 @@
 "use client";
 
 import { Button, Field, Input } from "@agencyos/ui";
+import { Fingerprint } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
 type Step = "password" | "totp" | "backup";
@@ -11,6 +12,20 @@ export function LoginForm() {
   const [step, setStep] = useState<Step>("password");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [canPasskey, setCanPasskey] = useState(false);
+  useEffect(() => setCanPasskey("PublicKeyCredential" in window), []);
+
+  async function onPasskey() {
+    setError(null);
+    setPending(true);
+    const res = await authClient.signIn.passkey();
+    setPending(false);
+    if (res?.error) {
+      setError(res.error.status === 429 ? "Demasiados intentos. Esperá unos minutos." : "No se pudo entrar con la passkey.");
+      return;
+    }
+    window.location.href = "/hoy";
+  }
 
   async function onPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,7 +101,7 @@ export function LoginForm() {
         <p className="mt-1 text-sm text-text-muted">Tu centro de mando te espera.</p>
       </div>
       <Field label="Email" name="email">
-        <Input id="email" name="email" type="email" autoComplete="username" required autoFocus />
+        <Input id="email" name="email" type="email" autoComplete="username webauthn" required autoFocus />
       </Field>
       <Field label="Contraseña" name="password" error={error ?? undefined}>
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
@@ -94,6 +109,11 @@ export function LoginForm() {
       <Button type="submit" variant="primary" loading={pending} className="mt-1 w-full">
         Ingresar
       </Button>
+      {canPasskey ? (
+        <Button type="button" variant="secondary" className="w-full" onClick={onPasskey} disabled={pending}>
+          <Fingerprint className="size-4" /> Entrar con passkey
+        </Button>
+      ) : null}
       <Link href="/recuperar" className="text-center text-[13px] text-text-muted underline-offset-2 hover:underline">
         Olvidé mi contraseña
       </Link>
