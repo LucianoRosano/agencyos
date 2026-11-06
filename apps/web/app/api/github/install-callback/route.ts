@@ -23,7 +23,10 @@ export async function GET(req: Request) {
     await connectInstallation(ctx, id);
     await syncWorkspace(ctx).catch((e) => console.error("[github] primera sincronización", e instanceof Error ? e.message : e));
   } catch (e) {
-    return htmlPage("Error", `<h1>No se pudo conectar la instalación</h1><p>${escapeHtml(e instanceof Error ? e.message : "Error")}</p><p><a href="/repositorios">Volver</a></p>`);
+    return htmlPage(
+      "Error",
+      `<h1>No se pudo conectar la instalación</h1><p>${escapeHtml(e instanceof Error ? e.message : "Error")}</p><p><a href="/repositorios">Volver</a></p>`,
+    );
   }
   redirect("/repositorios");
 }

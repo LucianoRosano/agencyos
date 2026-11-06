@@ -189,7 +189,11 @@ export class FakeGitHub implements GitHubClient {
 
   async getInstallation(installationId: number): Promise<GhInstallation> {
     if (installationId !== FAKE_INSTALLATION_ID) throw new GitHubError(404, "GitHub: instalación inexistente");
-    return { id: installationId, account: { login: FAKE_ACCOUNT, type: "User" }, permissions: { metadata: "read", contents: "write", administration: "write" } };
+    return {
+      id: installationId,
+      account: { login: FAKE_ACCOUNT, type: "User" },
+      permissions: { metadata: "read", contents: "write", administration: "write" },
+    };
   }
 
   installation(installationId: number): InstallationApi {
@@ -205,7 +209,8 @@ export class FakeGitHub implements GitHubClient {
         return r ? pub(r) : null;
       },
       getFile: async (fullName, path) => this.get(fullName).files.get(path) ?? null,
-      listDir: async (fullName, path) => [...this.get(fullName).files.keys()].filter((k) => k.startsWith(`${path}/`) && !k.slice(path.length + 1).includes("/")),
+      listDir: async (fullName, path) =>
+        [...this.get(fullName).files.keys()].filter((k) => k.startsWith(`${path}/`) && !k.slice(path.length + 1).includes("/")),
       latestRun: async (fullName) => this.get(fullName).run,
       branchProtection: async (fullName) => this.get(fullName).protection,
       vulnerabilityAlerts: async (fullName) => this.get(fullName).alerts,

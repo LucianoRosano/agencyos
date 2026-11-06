@@ -91,7 +91,13 @@ describe("topics (§2.3)", () => {
   });
 
   it("propone topics sin adivinar el tipo y degrada activo sin push a mantenimiento", () => {
-    const t = proposeTopics({ topics: ["estado-activo"], scope: "cli", clientSlug: "sofia", language: "PHP", pushedAt: new Date(Date.now() - 200 * 86_400_000) });
+    const t = proposeTopics({
+      topics: ["estado-activo"],
+      scope: "cli",
+      clientSlug: "sofia",
+      language: "PHP",
+      pushedAt: new Date(Date.now() - 200 * 86_400_000),
+    });
     expect(t).toEqual(["alcance-cli", "cliente-sofia", "stack-php", "estado-mantenimiento"]);
   });
 });

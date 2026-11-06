@@ -24,7 +24,10 @@ export async function GET(req: Request) {
   try {
     app = await exchangeManifestCode(url.searchParams.get("code") ?? "");
   } catch (e) {
-    return htmlPage("Error", `<h1>No se pudo crear la App</h1><p>${escapeHtml(e instanceof Error ? e.message : "Error")}</p><p><a href="/repositorios">Volver</a></p>`);
+    return htmlPage(
+      "Error",
+      `<h1>No se pudo crear la App</h1><p>${escapeHtml(e instanceof Error ? e.message : "Error")}</p><p><a href="/repositorios">Volver</a></p>`,
+    );
   }
   await audit(getDb(), ctx, { action: "github.app.created", targetType: "github_app", targetId: String(app.id), after: { slug: app.slug, owner: app.owner } });
   const env = [

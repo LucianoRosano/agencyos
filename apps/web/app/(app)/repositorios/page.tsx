@@ -146,7 +146,12 @@ function NotConnected({ status }: { status: Awaited<ReturnType<typeof githubStat
   ];
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader eyebrow="Repositorios" title="Repositorios" description="Claude te organiza el GitHub: estándar verificable, planes con aprobación y registro." accent={REPOS_ACCENT} />
+      <PageHeader
+        eyebrow="Repositorios"
+        title="Repositorios"
+        description="Claude te organiza el GitHub: estándar verificable, planes con aprobación y registro."
+        accent={REPOS_ACCENT}
+      />
       <Card className="p-5 md:p-6">
         <SectionLabel icon={<GitBranch />} className="mb-4">
           Conectar GitHub

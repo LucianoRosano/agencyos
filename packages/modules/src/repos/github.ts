@@ -15,7 +15,6 @@ export * from "./github-types";
 
 // --- Configuración ---
 
-
 /** Lee la configuración de la App desde el entorno. `null` si falta algo (estado "sin App"). */
 export function appConfigFromEnv(env: NodeJS.ProcessEnv = process.env): AppConfig | null {
   const appId = env.GITHUB_APP_ID?.trim();
@@ -132,7 +131,8 @@ async function gh(
   } catch {
     data = text;
   }
-  if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") throw new GitHubError(429, "GitHub: límite de pedidos alcanzado. Se reintenta más tarde.");
+  if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0")
+    throw new GitHubError(429, "GitHub: límite de pedidos alcanzado. Se reintenta más tarde.");
   return { status: res.status, data };
 }
 
@@ -169,7 +169,8 @@ export class RealGitHub implements GitHubClient {
   }
 
   installation(installationId: number): InstallationApi {
-    const call = async (method: string, path: string, body?: unknown, accept?: string) => gh(method, path, { token: await this.token(installationId), body, accept });
+    const call = async (method: string, path: string, body?: unknown, accept?: string) =>
+      gh(method, path, { token: await this.token(installationId), body, accept });
     const repo = (fullName: string) => `/repos/${assertFullName(fullName)}`;
     return {
       async listRepos() {
@@ -307,7 +308,9 @@ export class RealGitHub implements GitHubClient {
 }
 
 /** Canje del código del flujo de manifest (no requiere autenticación; el código vence en 1 h y es de un solo uso). */
-export async function exchangeManifestCode(code: string): Promise<{ id: number; slug: string; pem: string; webhookSecret: string; htmlUrl: string; owner: string }> {
+export async function exchangeManifestCode(
+  code: string,
+): Promise<{ id: number; slug: string; pem: string; webhookSecret: string; htmlUrl: string; owner: string }> {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(code)) throw new GitHubError(400, "Código inválido");
   const r = await gh("POST", `/app-manifests/${encodeURIComponent(code)}/conversions`);
   if (r.status !== 201) fail(r.status, r.data, "canje del manifest");

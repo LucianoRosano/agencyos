@@ -85,16 +85,19 @@ export function PlanStatusBadge({ status }: { status: string }) {
 /** Diff legible: líneas con +/− en mono. */
 export function DiffView({ lines }: { lines: string[] }) {
   return (
-    <pre className="mt-2 max-h-64 overflow-auto rounded-[8px] border border-border bg-bg-elevated p-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap break-words">
-      {lines.map((l, i) => (
-        <span
-          // biome-ignore lint/suspicious/noArrayIndexKey: líneas estáticas
-          key={i}
-          className={cn("block", l.startsWith("+") ? "text-success" : l.startsWith("-") ? "text-danger" : "text-text-muted")}
-        >
-          {l}
-        </span>
-      ))}
-    </pre>
+    // Región con scroll: enfocable con teclado (axe scrollable-region-focusable).
+    <section aria-label="Cambios propuestos" className="mt-2 max-h-64 overflow-auto rounded-[8px] border border-border bg-bg-elevated focus-visible:outline-2">
+      <pre className="p-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap break-words">
+        {lines.map((l, i) => (
+          <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: líneas estáticas
+            key={i}
+            className={cn("block", l.startsWith("+") ? "text-success" : l.startsWith("-") ? "text-danger" : "text-text-muted")}
+          >
+            {l}
+          </span>
+        ))}
+      </pre>
+    </section>
   );
 }

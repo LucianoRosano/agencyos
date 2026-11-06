@@ -39,8 +39,7 @@ async function connected() {
   return ctx;
 }
 
-const repoByName = async (ctx: Awaited<ReturnType<typeof makeWorkspace>>, name: string) =>
-  (await listRepos(ctx)).find((r) => r.r.name === name)?.r ?? null;
+const repoByName = async (ctx: Awaited<ReturnType<typeof makeWorkspace>>, name: string) => (await listRepos(ctx)).find((r) => r.r.name === name)?.r ?? null;
 
 function hook(event: string, payload: unknown, opts: { delivery?: string; secret?: string } = {}) {
   const rawBody = JSON.stringify(payload);
@@ -101,7 +100,7 @@ describe("repositorios (GitHub simulado)", () => {
     // los archivos van en UN PR, nunca a main
     const prs = fake.calls.filter((c) => c.method === "openFilesPr");
     expect(prs).toHaveLength(1);
-    expect((prs[0]?.args as { base: string; branch: string }).branch).toMatch(/^agencyos\//);
+    expect((prs[0]?.args as { branch?: string } | undefined)?.branch).toMatch(/^agencyos\//);
     expect(fake.repos.get(`${FAKE_ACCOUNT}/cli-sofia-panel`)?.files.has("CLAUDE.md")).toBe(false);
     // renombrado en GitHub y en AGENCYOS
     const renamed = await getRepo(ctx, sofia?.id as string);
@@ -202,7 +201,13 @@ describe("repositorios (GitHub simulado)", () => {
   it("PR abierto por Claude aparece en «Ponerse al día» y desaparece al mergearse", async () => {
     const ctx = await connected();
     const base = { installation: { id: FAKE_INSTALLATION_ID }, repository: { id: 9001, full_name: `${FAKE_ACCOUNT}/prod-libreriaos-fiscal` } };
-    const pr = { number: 7, title: "chore: archivos estándar", html_url: "https://github.com/x/pull/7", user: { login: "agencyos[bot]" }, head: { ref: "agencyos/estandar" } };
+    const pr = {
+      number: 7,
+      title: "chore: archivos estándar",
+      html_url: "https://github.com/x/pull/7",
+      user: { login: "agencyos[bot]" },
+      head: { ref: "agencyos/estandar" },
+    };
     await hook("pull_request", { ...base, action: "opened", pull_request: pr });
     let today = await getToday(ctx, { userId: ctx.userId as string });
     expect(today.catchUp.some((i) => i.kind === "repo_pr" && i.title.includes("#7"))).toBe(true);
@@ -230,7 +235,10 @@ describe("repositorios (GitHub simulado)", () => {
     };
     expect((await hook("release", payload)).status).toBe(200);
     await hook("release", payload); // otra entrega del mismo release: no duplica
-    const versions = await db.select().from(schema.ownProductVersion).where(eq(schema.ownProductVersion.productId, prod?.id as string));
+    const versions = await db
+      .select()
+      .from(schema.ownProductVersion)
+      .where(eq(schema.ownProductVersion.productId, prod?.id as string));
     expect(versions.map((v) => v.version)).toEqual(["v1.2.0"]);
     const tasks = await db
       .select()
@@ -244,13 +252,20 @@ describe("repositorios (GitHub simulado)", () => {
     const [cl] = await getDb().insert(schema.client).values({ workspaceId: ctx.workspaceId, name: "Librería Uno" }).returning();
     const project = await createProject(ctx, { name: "Tienda Librería Uno", clientId: cl?.id });
     const tpl = await repoByName(ctx, "tpl-wp-plugin");
-    await expect(createRepoPlan(ctx, project.id, { templateId: (await repoByName(ctx, "edu-ungs-sistemas"))?.id, scope: "cli", name: "x", what: "y" })).rejects.toThrow(
-      /plantilla/,
-    );
-    const plan = await createRepoPlan(ctx, project.id, { templateId: tpl?.id, scope: "cli", tech: "WP", name: "Tienda", what: "Tienda online", stack: "woocommerce" });
+    await expect(
+      createRepoPlan(ctx, project.id, { templateId: (await repoByName(ctx, "edu-ungs-sistemas"))?.id, scope: "cli", name: "x", what: "y" }),
+    ).rejects.toThrow(/plantilla/);
+    const plan = await createRepoPlan(ctx, project.id, {
+      templateId: tpl?.id,
+      scope: "cli",
+      tech: "WP",
+      name: "Tienda",
+      what: "Tienda online",
+      stack: "woocommerce",
+    });
     const data = await getPlan(ctx, plan.id);
     expect(data?.actions[0]?.a.kind).toBe("create_repo");
-    expect((data?.actions[0]?.a.params as { name: string }).name).toBe("cli-libreriauno-wp-tienda");
+    expect((data?.actions[0]?.a.params as { name?: string } | undefined)?.name).toBe("cli-libreriauno-wp-tienda");
     await approvePlan(ctx, plan.id, { actionIds: data?.actions.map((a) => a.a.id) });
     await executeApprovedPlans();
     const created = fake.repos.get(`${FAKE_ACCOUNT}/cli-libreriauno-wp-tienda`);

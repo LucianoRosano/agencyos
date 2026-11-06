@@ -33,7 +33,10 @@ export async function ProjectRepos({ ctx, projectId, projectName, hasClient }: {
         <ul className="flex flex-col gap-2.5">
           {rows.map(({ r }) => (
             <li key={r.id}>
-              <Link href={`/repositorios/${r.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 hover:bg-surface-2/50">
+              <Link
+                href={`/repositorios/${r.id}`}
+                className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-4 hover:bg-surface-2/50"
+              >
                 <HealthRing score={r.healthScore} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-mono text-[14px] text-text">{r.name}</p>

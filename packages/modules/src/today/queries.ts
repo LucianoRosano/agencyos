@@ -606,7 +606,14 @@ async function repoCatchUp(ctx: Ctx): Promise<CatchUpItem[]> {
       .select({ e: schema.repoEvent, fullName: R.fullName })
       .from(schema.repoEvent)
       .innerJoin(R, eq(R.id, schema.repoEvent.repositoryId))
-      .where(and(eq(schema.repoEvent.workspaceId, ctx.workspaceId), eq(schema.repoEvent.kind, "pr"), sql`${schema.repoEvent.at} > now() - interval '60 days'`, isNull(R.deletedAt)))
+      .where(
+        and(
+          eq(schema.repoEvent.workspaceId, ctx.workspaceId),
+          eq(schema.repoEvent.kind, "pr"),
+          sql`${schema.repoEvent.at} > now() - interval '60 days'`,
+          isNull(R.deletedAt),
+        ),
+      )
       .orderBy(asc(schema.repoEvent.at)),
     db
       .select()

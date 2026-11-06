@@ -39,7 +39,10 @@ export interface InstallationApi {
   enableSecurity(fullName: string): Promise<void>;
   protectBranch(fullName: string, branch: string, requiredChecks: string[]): Promise<void>;
   /** Crea una rama nueva desde `base`, sube los archivos ahí y abre un PR. Nunca escribe en `base`. */
-  openFilesPr(fullName: string, p: { base: string; branch: string; title: string; body: string; files: FileChange[] }): Promise<{ number: number; url: string }>;
+  openFilesPr(
+    fullName: string,
+    p: { base: string; branch: string; title: string; body: string; files: FileChange[] },
+  ): Promise<{ number: number; url: string }>;
   /** Crea un repositorio PRIVADO desde una plantilla tpl-*. */
   createFromTemplate(p: { templateFullName: string; owner: string; name: string; description: string }): Promise<GhRepo>;
 }

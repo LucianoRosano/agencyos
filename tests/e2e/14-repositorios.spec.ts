@@ -41,7 +41,11 @@ test("repositorios: sincronizar → estándar → plan → aprobar → ejecució
   const row = isMobile ? page.locator('[data-repo-card="Panel_Sofia"]') : page.locator('[data-repo="Panel_Sofia"]');
   await expect(row).toBeVisible();
   await expect(row.getByRole("img", { name: /Salud \d+ de 100/ })).toBeVisible();
-  await expect(page.locator(isMobile ? '[data-repo-card="prod-libreriaos-fiscal"]' : '[data-repo="prod-libreriaos-fiscal"]').getByRole("img", { name: "Salud 100 de 100" })).toBeVisible();
+  await expect(
+    page
+      .locator(isMobile ? '[data-repo-card="prod-libreriaos-fiscal"]' : '[data-repo="prod-libreriaos-fiscal"]')
+      .getByRole("img", { name: "Salud 100 de 100" }),
+  ).toBeVisible();
   await expectNoHorizontalScroll(page);
   await expectAccessible(page);
   await shot(page, "repositorios-lista", tag);
@@ -79,8 +83,10 @@ test("repositorios: sincronizar → estándar → plan → aprobar → ejecució
   await expect(sheet.getByText("Contraseña incorrecta").first()).toBeVisible();
   await sheet.locator("#password").fill(OWNER.password);
   await sheet.getByRole("button", { name: "Aprobar y ejecutar" }).click();
-  await expect(page.getByText("Plan aprobado: se ejecuta en el próximo minuto")).toBeVisible();
+  // al aprobar, la página se revalida: el plan queda en cola para el worker
+  await expect(page.getByText(/El worker lo ejecuta en el próximo minuto/)).toBeVisible();
   await expect(page.getByText("Aprobado · en cola").first()).toBeVisible();
+  await expect(page.locator("[data-audit]")).toContainText("Plan aprobado (con reautenticación)");
 
   // 6. El worker ejecuta (proceso aparte, GitHub simulado)
   const out = runWorkerJob();

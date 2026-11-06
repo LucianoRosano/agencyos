@@ -68,7 +68,10 @@ export async function getRepo(ctx: Ctx, id: string) {
     .where(and(eq(T.id, id), scoped(T, ctx)));
   if (!row) return null;
   const [checks, events, siteLink] = await Promise.all([
-    db.select().from(schema.repoCheck).where(and(eq(schema.repoCheck.repositoryId, id), eq(schema.repoCheck.workspaceId, ctx.workspaceId))),
+    db
+      .select()
+      .from(schema.repoCheck)
+      .where(and(eq(schema.repoCheck.repositoryId, id), eq(schema.repoCheck.workspaceId, ctx.workspaceId))),
     db
       .select()
       .from(schema.repoEvent)
@@ -141,7 +144,11 @@ export async function listPlans(ctx: Ctx, opts: { status?: string; repositoryId?
     .limit(100);
   const counts = plans.length
     ? await db
-        .select({ planId: schema.repoPlanAction.planId, n: sql<number>`count(*)::int`, failed: sql<number>`count(*) filter (where ${schema.repoPlanAction.status} = 'failed')::int` })
+        .select({
+          planId: schema.repoPlanAction.planId,
+          n: sql<number>`count(*)::int`,
+          failed: sql<number>`count(*) filter (where ${schema.repoPlanAction.status} = 'failed')::int`,
+        })
         .from(schema.repoPlanAction)
         .where(
           inArray(

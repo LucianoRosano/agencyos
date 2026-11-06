@@ -3,6 +3,7 @@ import {
   type CheckStatus,
   ciTemplate,
   claudeMdTemplate,
+  gitignoreTemplate,
   nameFollowsConvention,
   PR_TEMPLATE,
   proposeDescription,
@@ -11,7 +12,6 @@ import {
   readmeTemplate,
   type StandardFileContext,
   suggestRepoName,
-  gitignoreTemplate,
 } from "./standard";
 
 /**
@@ -111,7 +111,12 @@ export function planActionsFor(r: PlanRepoInput, now = new Date()): PlannedActio
   // 3. Descripción
   if (st("descripcion") && st("descripcion") !== "pass") {
     const to = proposeDescription({ description: r.description, owner: r.owner.label, name, topics, language: r.language });
-    add("set_description", "low", { from: r.description, to, summary: "Descripción con el formato [Cliente] Qué es — stack", diff: [`- ${r.description ?? "(vacía)"}`, `+ ${to}`] });
+    add("set_description", "low", {
+      from: r.description,
+      to,
+      summary: "Descripción con el formato [Cliente] Qué es — stack",
+      diff: [`- ${r.description ?? "(vacía)"}`, `+ ${to}`],
+    });
   }
   // 4. Archivos estándar (todos en un solo PR por repositorio al ejecutar)
   const fctx: StandardFileContext = {
@@ -147,7 +152,13 @@ export function planActionsFor(r: PlanRepoInput, now = new Date()): PlannedActio
   } else if (st("gitignore") === "warn") {
     const missing = (det("gitignore").missing as string[] | undefined) ?? [];
     if (missing.length)
-      add("add_file", "low", { path: ".gitignore", mode: "complete", patterns: missing, summary: `Agregar al .gitignore: ${missing.join(", ")} (vía PR)`, diff: missing.map((m) => `+ ${m}`) });
+      add("add_file", "low", {
+        path: ".gitignore",
+        mode: "complete",
+        patterns: missing,
+        summary: `Agregar al .gitignore: ${missing.join(", ")} (vía PR)`,
+        diff: missing.map((m) => `+ ${m}`),
+      });
   }
   const gitleaksInCi = Boolean(det("secretos").gitleaksInCi);
   if (st("ci") === "fail" && !det("ci").hasWorkflows) {
@@ -162,10 +173,20 @@ export function planActionsFor(r: PlanRepoInput, now = new Date()): PlannedActio
     });
   } else if (!gitleaksInCi && st("secretos") !== "fail") {
     const content = ciTemplate(fctx.stacks, true);
-    add("add_file", "low", { path: ".github/workflows/gitleaks.yml", mode: "create", content, summary: "Workflow de gitleaks (vía PR)", diff: preview(content) });
+    add("add_file", "low", {
+      path: ".github/workflows/gitleaks.yml",
+      mode: "create",
+      content,
+      summary: "Workflow de gitleaks (vía PR)",
+      diff: preview(content),
+    });
   }
   // 5. Seguridad
-  if (st("seguridad") === "fail") add("enable_security", "low", { summary: "Activar alertas de Dependabot y correcciones automáticas", diff: ["+ vulnerability-alerts", "+ automated-security-fixes"] });
+  if (st("seguridad") === "fail")
+    add("enable_security", "low", {
+      summary: "Activar alertas de Dependabot y correcciones automáticas",
+      diff: ["+ vulnerability-alerts", "+ automated-security-fixes"],
+    });
   // 6. Protección de main (prod-* y cli-* activos)
   const active = topics.includes("estado-activo");
   if (st("rama_protegida") === "fail" && (r.scope === "prod" || r.scope === "cli") && active) {
@@ -174,7 +195,12 @@ export function planActionsFor(r: PlanRepoInput, now = new Date()): PlannedActio
       branch: r.defaultBranch,
       requiredChecks,
       summary: `Proteger ${r.defaultBranch}: PR obligatorio${requiredChecks.length ? ", CI en verde" : ""}, sin force-push ni borrado`,
-      diff: [`+ ${r.defaultBranch}: PR obligatorio`, ...(requiredChecks.length ? [`+ checks: ${requiredChecks.join(", ")}`] : []), "+ sin force-push", "+ sin borrado"],
+      diff: [
+        `+ ${r.defaultBranch}: PR obligatorio`,
+        ...(requiredChecks.length ? [`+ checks: ${requiredChecks.join(", ")}`] : []),
+        "+ sin force-push",
+        "+ sin borrado",
+      ],
     });
   }
   // 7. Archivado (solo si el topic ya dice archivado)

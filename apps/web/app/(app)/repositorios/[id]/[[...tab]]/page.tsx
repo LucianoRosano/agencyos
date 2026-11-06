@@ -217,7 +217,15 @@ export default async function RepoPage({ params }: { params: Promise<{ id: strin
             {data.events.length ? (
               <ul className="flex flex-col gap-2.5">
                 {data.events.map((e) => {
-                  const x = e.payloadExcerpt as { action?: string; ref?: string; number?: number; title?: string; tag?: string; url?: string; commits?: number };
+                  const x = e.payloadExcerpt as {
+                    action?: string;
+                    ref?: string;
+                    number?: number;
+                    title?: string;
+                    tag?: string;
+                    url?: string;
+                    commits?: number;
+                  };
                   const icon = e.kind === "pr" ? <GitPullRequest /> : e.kind === "release" ? <Tag /> : <GitCommitHorizontal />;
                   const text =
                     e.kind === "pr"
@@ -262,9 +270,15 @@ async function Links({ ctx, data }: { ctx: Awaited<ReturnType<typeof requireCtx>
   const current = { scope: r.scope ?? "", clientId: r.clientId ?? "", projectId: r.projectId ?? "", productId: r.productId ?? "", siteId: data.site?.id ?? "" };
   const s = o.suggestion;
   const sugg = [
-    s.client && !r.clientId ? { field: "clientId" as const, id: s.client.id, label: o.clients.find((c) => c.id === s.client?.id)?.name ?? "", what: "Cliente" } : null,
-    s.project && !r.projectId ? { field: "projectId" as const, id: s.project.id, label: o.projects.find((p) => p.id === s.project?.id)?.name ?? "", what: "Proyecto" } : null,
-    s.product && !r.productId ? { field: "productId" as const, id: s.product.id, label: o.products.find((p) => p.id === s.product?.id)?.name ?? "", what: "Producto" } : null,
+    s.client && !r.clientId
+      ? { field: "clientId" as const, id: s.client.id, label: o.clients.find((c) => c.id === s.client?.id)?.name ?? "", what: "Cliente" }
+      : null,
+    s.project && !r.projectId
+      ? { field: "projectId" as const, id: s.project.id, label: o.projects.find((p) => p.id === s.project?.id)?.name ?? "", what: "Proyecto" }
+      : null,
+    s.product && !r.productId
+      ? { field: "productId" as const, id: s.product.id, label: o.products.find((p) => p.id === s.product?.id)?.name ?? "", what: "Producto" }
+      : null,
   ].filter((x): x is NonNullable<typeof x> => !!x);
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_340px]">

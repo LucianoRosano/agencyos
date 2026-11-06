@@ -5,7 +5,7 @@ import { Bot, ExternalLink, ScrollText } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApprovePlanSheet, RejectPlanButton } from "@/components/repos/repo-ui";
-import { ACTION_STATUS, DiffView, PlanStatusBadge, RISK, REPOS_ACCENT } from "@/components/repos/shared";
+import { ACTION_STATUS, DiffView, PlanStatusBadge, REPOS_ACCENT, RISK } from "@/components/repos/shared";
 import { requireCtx } from "@/lib/session";
 
 const ACTION_LABEL: Record<string, string> = {
@@ -39,7 +39,9 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   if (!data) notFound();
   const { plan, actions } = data;
   const canDecide = plan.status === "pending_approval" && can(ctx, "manage", "settings");
-  const actionName = new Map(actions.map((x) => [x.a.id, `${ACTION_LABEL[x.a.kind] ?? x.a.kind} · ${x.repoName ?? (x.a.params as { name?: string }).name ?? ""}`]));
+  const actionName = new Map(
+    actions.map((x) => [x.a.id, `${ACTION_LABEL[x.a.kind] ?? x.a.kind} · ${x.repoName ?? (x.a.params as { name?: string }).name ?? ""}`]),
+  );
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -66,7 +68,11 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
               <RejectPlanButton planId={plan.id} />
               <ApprovePlanSheet
                 planId={plan.id}
-                actions={actions.map((x) => ({ id: x.a.id, label: `${actionName.get(x.a.id)} — ${(x.a.params as { summary?: string }).summary ?? ""}`, risk: x.a.risk }))}
+                actions={actions.map((x) => ({
+                  id: x.a.id,
+                  label: `${actionName.get(x.a.id)} — ${(x.a.params as { summary?: string }).summary ?? ""}`,
+                  risk: x.a.risk,
+                }))}
               />
             </>
           ) : null
@@ -74,7 +80,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
       />
       {plan.status === "approved" || plan.status === "executing" ? (
         <p className="mb-4 rounded-[10px] border border-border bg-surface px-4 py-3 text-[14px] text-text-muted">
-          Aprobado {plan.approvedAt ? formatDateTime(plan.approvedAt) : ""}{data.approverName ? ` por ${data.approverName}` : ""}. El worker lo ejecuta en el próximo minuto.
+          Aprobado {plan.approvedAt ? formatDateTime(plan.approvedAt) : ""}
+          {data.approverName ? ` por ${data.approverName}` : ""}. El worker lo ejecuta en el próximo minuto.
         </p>
       ) : null}
 
@@ -106,7 +113,12 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                 {p.diff?.length ? <DiffView lines={p.diff} /> : null}
                 {res?.error ? <p className="mt-2 text-[13px] text-danger">Error: {res.error}</p> : null}
                 {res?.url ? (
-                  <a href={res.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-accent-text hover:underline">
+                  <a
+                    href={res.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-accent-text hover:underline"
+                  >
                     <ExternalLink className="size-3.5" /> {res.pr ? `PR #${res.pr}` : "Abrir en GitHub"}
                   </a>
                 ) : null}
@@ -133,7 +145,9 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                       `${e.action.replace("github.", "GitHub · ")} — ${actionName.get(e.targetId ?? "") ?? ""}${after.status ? ` · ${after.status === "done" ? "ok" : "falló"}` : ""}`}
                     {after.error ? <span className="block text-danger">{after.error}</span> : null}
                   </span>
-                  <span className="font-mono text-[11px] text-text-faint">{e.actorType === "system" ? "worker" : e.actorType === "agent" ? "Claude" : "Luciano"}</span>
+                  <span className="font-mono text-[11px] text-text-faint">
+                    {e.actorType === "system" ? "worker" : e.actorType === "agent" ? "Claude" : "Luciano"}
+                  </span>
                 </li>
               );
             })}

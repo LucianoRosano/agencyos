@@ -4,9 +4,6 @@ import { Badge, Button, Checkbox, Sheet } from "@agencyos/ui";
 import { FilePlus2, GitPullRequestCreateArrow, PlugZap, RefreshCw, ShieldCheck, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ActionForm, SubmitButton } from "@/components/action-form";
-import { SelectField, TextField } from "@/components/fields";
-import { useAction } from "@/components/use-action";
 import {
   approvePlanAction,
   connectFakeAction,
@@ -17,6 +14,9 @@ import {
   syncReposAction,
   updateLinksAction,
 } from "@/app/(app)/repositorios/actions";
+import { ActionForm, SubmitButton } from "@/components/action-form";
+import { SelectField, TextField } from "@/components/fields";
+import { useAction } from "@/components/use-action";
 
 type Opt = { value: string; label: string };
 
@@ -37,7 +37,15 @@ export function SyncButton({ variant = "secondary" }: { variant?: "secondary" | 
   );
 }
 
-export function GeneratePlanButton({ repositoryIds, variant = "primary", label = "Generar plan" }: { repositoryIds?: string[]; variant?: "primary" | "secondary"; label?: string }) {
+export function GeneratePlanButton({
+  repositoryIds,
+  variant = "primary",
+  label = "Generar plan",
+}: {
+  repositoryIds?: string[];
+  variant?: "primary" | "secondary";
+  label?: string;
+}) {
   const { exec, pending } = useAction();
   const router = useRouter();
   return (
@@ -137,7 +145,11 @@ export function ApprovePlanSheet({ planId, actions }: { planId: string; actions:
         </Button>
       }
     >
-      <ActionForm action={approvePlanAction.bind(null, planId)} successMessage="Plan aprobado: se ejecuta en el próximo minuto" onSuccess={() => setOpen(false)}>
+      <ActionForm
+        action={approvePlanAction.bind(null, planId)}
+        successMessage="Plan aprobado: se ejecuta en el próximo minuto"
+        onSuccess={() => setOpen(false)}
+      >
         <fieldset className="flex flex-col">
           <legend className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Acciones</legend>
           {actions.map((a) => (
@@ -148,7 +160,14 @@ export function ApprovePlanSheet({ planId, actions }: { planId: string; actions:
             </label>
           ))}
         </fieldset>
-        <TextField label="Tu contraseña" name="password" type="password" autoComplete="current-password" required hint="Reautenticación: las acciones sobre GitHub son críticas." />
+        <TextField
+          label="Tu contraseña"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          hint="Reautenticación: las acciones sobre GitHub son críticas."
+        />
         <div className="flex justify-end">
           <SubmitButton>Aprobar y ejecutar</SubmitButton>
         </div>

@@ -151,8 +151,7 @@ export function inferLinks(
 // --- Topics (§2.3) ---
 
 export function topicsStatus(topics: string[], scope: RepoScope | null) {
-  const has = (prefix: string, values?: readonly string[]) =>
-    topics.some((t) => t.startsWith(prefix) && (!values || values.includes(t.slice(prefix.length))));
+  const has = (prefix: string, values?: readonly string[]) => topics.some((t) => t.startsWith(prefix) && (!values || values.includes(t.slice(prefix.length))));
   const required: { key: string; ok: boolean }[] = [
     { key: "alcance", ok: has("alcance-", REPO_SCOPES) },
     { key: "tipo", ok: has("tipo-", TOPIC_TYPES) },
@@ -276,12 +275,7 @@ export const README_SECTIONS: { key: string; label: string; match: RegExp }[] = 
   { key: "mantenimiento", label: "Mantenimiento", match: /^mantenimiento/ },
 ];
 
-const norm = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
+const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 export function readmeMissingSections(md: string): string[] {
   const headings = md
@@ -394,7 +388,9 @@ export function evaluateRepo(f: RepoFacts, now = new Date()): CheckResult[] {
     out.push({
       key: "nombre",
       status: "fail",
-      message: suggestion ? `No cumple la convención. Propuesto: ${suggestion}` : "No cumple la convención. Definí el alcance en Vínculos para proponer un nombre.",
+      message: suggestion
+        ? `No cumple la convención. Propuesto: ${suggestion}`
+        : "No cumple la convención. Definí el alcance en Vínculos para proponer un nombre.",
       details: { suggestion },
     });
   }
@@ -444,9 +440,7 @@ export function evaluateRepo(f: RepoFacts, now = new Date()): CheckResult[] {
   }
   // secretos: solo "pass" si la CI corre gitleaks en verde; si gitleaks falla, "fail"; si no, "no verificado".
   const gitleaksInCi = f.workflows.some((w) => /gitleaks/i.test(w.content));
-  const gitleaksStep = f.latestRun?.jobs
-    .flatMap((j) => [{ name: j.name, conclusion: j.conclusion }, ...j.steps])
-    .filter((s) => /gitleaks/i.test(s.name));
+  const gitleaksStep = f.latestRun?.jobs.flatMap((j) => [{ name: j.name, conclusion: j.conclusion }, ...j.steps]).filter((s) => /gitleaks/i.test(s.name));
   const gitleaksFailed = gitleaksStep?.some((s) => s.conclusion === "failure");
   const gitleaksOk = gitleaksStep?.length && gitleaksStep.every((s) => s.conclusion === "success");
   if (gitleaksFailed)

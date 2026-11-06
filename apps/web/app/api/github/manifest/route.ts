@@ -16,7 +16,8 @@ export async function GET() {
       "Falta el dominio",
       `<h1>Hace falta el dominio con https</h1><p>GitHub tiene que poder llamar a ${escapeHtml(appUrl || "AGENCYOS")}/api/webhooks/github.</p><p><a href="/repositorios">Volver</a></p>`,
     );
-  if (appConfigFromEnv()) return htmlPage("App ya configurada", `<h1>La GitHub App ya está configurada</h1><p><a href="/repositorios">Volver a Repositorios</a></p>`);
+  if (appConfigFromEnv())
+    return htmlPage("App ya configurada", `<h1>La GitHub App ya está configurada</h1><p><a href="/repositorios">Volver a Repositorios</a></p>`);
   const state = newOAuthState();
   (await cookies()).set("gh_state", state, { httpOnly: true, secure: true, sameSite: "lax", path: "/api/github", maxAge: 600 });
   const manifest = JSON.stringify(buildManifest(appUrl));

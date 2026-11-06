@@ -22,11 +22,11 @@ import {
   nameFollowsConvention,
   proposeDescription,
   REPO_SCOPES,
-  SCOPE_LABEL,
   type RepoFacts,
   type RepoScope,
   readmeMissingSections,
   readmeTemplate,
+  SCOPE_LABEL,
   slugPart,
   TOPIC_STACKS,
   TOPIC_TYPES,
@@ -90,7 +90,12 @@ export async function connectInstallation(ctx: Ctx, installationId: number) {
       summary: `Conectó GitHub (${inst.account.login})`,
       payload: { installationId: id },
     });
-    await audit(t, ctx, { action: "github.installation.connect", targetType: "github_installation", targetId: r.id, after: { installationId: id, account: inst.account.login } });
+    await audit(t, ctx, {
+      action: "github.installation.connect",
+      targetType: "github_installation",
+      targetId: r.id,
+      after: { installationId: id, account: inst.account.login },
+    });
     return r;
   });
   return row;
@@ -165,7 +170,14 @@ async function writeChecks(t: Tx, ctx: Ctx, repositoryId: string, checks: CheckR
   for (const c of checks) {
     await t
       .insert(schema.repoCheck)
-      .values({ workspaceId: ctx.workspaceId, repositoryId, checkKey: c.key, status: c.status, details: { message: c.message, ...(c.details ?? {}) }, checkedAt: now })
+      .values({
+        workspaceId: ctx.workspaceId,
+        repositoryId,
+        checkKey: c.key,
+        status: c.status,
+        details: { message: c.message, ...(c.details ?? {}) },
+        checkedAt: now,
+      })
       .onConflictDoUpdate({
         target: [schema.repoCheck.repositoryId, schema.repoCheck.checkKey],
         set: { status: c.status, details: { message: c.message, ...(c.details ?? {}) }, checkedAt: now },
@@ -384,7 +396,12 @@ export async function updateLinks(ctx: Ctx, repoId: string, raw: unknown) {
         createdBy: ctx.userId,
       });
     await refreshNameCheck(t, ctx, repoId);
-    await recordEvent(t, ctx, { type: "repo.vinculos_actualizados", entityType: "repository", entityId: repoId, summary: `Actualizó los vínculos de ${row.fullName}` });
+    await recordEvent(t, ctx, {
+      type: "repo.vinculos_actualizados",
+      entityType: "repository",
+      entityId: repoId,
+      summary: `Actualizó los vínculos de ${row.fullName}`,
+    });
     if (row.projectId && row.projectId !== before.projectId)
       await projectActivity(t, ctx, row.projectId, "repo.vinculado", `Vinculó el repositorio ${row.fullName}`);
     return row;
@@ -522,12 +539,13 @@ export async function createRepoPlan(ctx: Ctx, projectId: string, raw: unknown) 
       .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
       .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
     if (!p) throw notFound("El proyecto");
-    if (input.scope === "cli" && !p.c) throw validation("Un repositorio cli-* necesita que el proyecto tenga cliente.", { scope: "El proyecto no tiene cliente" });
+    if (input.scope === "cli" && !p.c)
+      throw validation("Un repositorio cli-* necesita que el proyecto tenga cliente.", { scope: "El proyecto no tiene cliente" });
     const [tpl] = await t
       .select()
       .from(T)
       .where(and(eq(T.id, input.templateId), scoped(T, ctx)));
-    if (!tpl || tpl.scope !== "tpl" || !tpl.installationId) throw validation("Elegí una plantilla tpl-*", { templateId: "Plantilla inválida" });
+    if (tpl?.scope !== "tpl" || !tpl.installationId) throw validation("Elegí una plantilla tpl-*", { templateId: "Plantilla inválida" });
     const [inst] = await t
       .select()
       .from(schema.githubInstallation)
@@ -596,7 +614,10 @@ export async function approvePlan(ctx: Ctx, planId: string, raw: unknown) {
       .for("update");
     if (!plan) throw notFound("El plan");
     if (plan.status !== "pending_approval") throw validation("Ese plan ya fue decidido.");
-    const actions = await t.select().from(schema.repoPlanAction).where(and(eq(schema.repoPlanAction.planId, planId), scoped(schema.repoPlanAction, ctx)));
+    const actions = await t
+      .select()
+      .from(schema.repoPlanAction)
+      .where(and(eq(schema.repoPlanAction.planId, planId), scoped(schema.repoPlanAction, ctx)));
     const chosen = new Set(input.actionIds);
     if (![...chosen].every((id) => actions.some((a) => a.id === id))) throw notFound("La acción");
     const skipped = actions.filter((a) => !chosen.has(a.id)).map((a) => a.id);
@@ -713,7 +734,13 @@ async function runAction(api: InstallationApi, repo: RepoRow | null, a: ActionRo
       await api.replaceTopics(r.fullName, (p.topics as string[]) ?? []);
       const files = (p.files as { path: string; content: string }[]) ?? [];
       const pr = files.length
-        ? await api.openFilesPr(r.fullName, { base: r.defaultBranch, branch: `${BRANCH_PREFIX}-inicial`, title: "docs: README y CLAUDE.md del proyecto (AGENCYOS)", body: "Creado desde AGENCYOS.", files })
+        ? await api.openFilesPr(r.fullName, {
+            base: r.defaultBranch,
+            branch: `${BRANCH_PREFIX}-inicial`,
+            title: "docs: README y CLAUDE.md del proyecto (AGENCYOS)",
+            body: "Creado desde AGENCYOS.",
+            files,
+          })
         : null;
       return { fullName: r.fullName, githubId: r.id, private: r.private, pr: pr?.number ?? null, url: pr?.url ?? null };
     }
@@ -741,7 +768,12 @@ export async function executePlan(planId: string) {
   const handledFiles = new Set<string>();
   for (const a of actions) {
     if (handledFiles.has(a.id)) continue;
-    const [repo] = a.repositoryId ? await db.select().from(T).where(and(eq(T.id, a.repositoryId), eq(T.workspaceId, plan.workspaceId))) : [null];
+    const [repo] = a.repositoryId
+      ? await db
+          .select()
+          .from(T)
+          .where(and(eq(T.id, a.repositoryId), eq(T.workspaceId, plan.workspaceId)))
+      : [null];
     const installationId = repo?.installationId ?? Number((a.params as Record<string, unknown>).installationId ?? 0);
     const group = a.kind === "add_file" ? actions.filter((x) => x.kind === "add_file" && x.repositoryId === a.repositoryId) : [a];
     let status: "done" | "failed" = "done";
@@ -798,7 +830,16 @@ export async function executePlan(planId: string) {
           await projectActivity(t, ctx, created.projectId, "repo.creado", `Se creó el repositorio ${created.fullName}`);
         }
       }
-      const label = { rename: "Renombró", set_topics: "Actualizó los topics de", set_description: "Actualizó la descripción de", add_file: "Abrió un PR con archivos estándar en", enable_security: "Activó la seguridad de", protect_branch: "Protegió la rama de", archive: "Archivó", create_repo: "Creó" }[a.kind as ActionKind];
+      const label = {
+        rename: "Renombró",
+        set_topics: "Actualizó los topics de",
+        set_description: "Actualizó la descripción de",
+        add_file: "Abrió un PR con archivos estándar en",
+        enable_security: "Activó la seguridad de",
+        protect_branch: "Protegió la rama de",
+        archive: "Archivó",
+        create_repo: "Creó",
+      }[a.kind as ActionKind];
       const target = String(result.fullName ?? repo?.fullName ?? (a.params as Record<string, unknown>).name ?? "");
       await recordEvent(t, ctx, {
         type: status === "done" ? "repo.accion_ejecutada" : "repo.accion_fallida",
@@ -864,7 +905,8 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
   const secret = webhookSecret();
   if (!secret) return { status: 503, body: "GitHub App no configurada" };
   if (!verifyWebhookSignature(secret, h.rawBody, h.signature)) return { status: 401, body: "Firma inválida" };
-  if (!h.deliveryId || !/^[A-Za-z0-9-]{1,100}$/.test(h.deliveryId) || !h.event || !/^[a-z_]{1,50}$/.test(h.event)) return { status: 400, body: "Encabezados inválidos" };
+  if (!h.deliveryId || !/^[A-Za-z0-9-]{1,100}$/.test(h.deliveryId) || !h.event || !/^[a-z_]{1,50}$/.test(h.event))
+    return { status: 400, body: "Encabezados inválidos" };
   let payload: J;
   try {
     payload = JSON.parse(h.rawBody) as J;
@@ -878,12 +920,7 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
   const [inst] = await db
     .select()
     .from(schema.githubInstallation)
-    .where(
-      and(
-        eq(schema.githubInstallation.installationId, installationId),
-        isNull(schema.githubInstallation.deletedAt),
-      ),
-    )
+    .where(and(eq(schema.githubInstallation.installationId, installationId), isNull(schema.githubInstallation.deletedAt)))
     // Una instalación pertenece a un workspace; si se conectó en más de uno, manda la última conexión.
     .orderBy(desc(schema.githubInstallation.updatedAt))
     .limit(1);
@@ -906,7 +943,15 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
   }
 
   const kind =
-    h.event === "push" ? "push" : h.event === "pull_request" ? "pr" : h.event === "release" ? "release" : h.event.startsWith("installation") ? "installation" : h.event;
+    h.event === "push"
+      ? "push"
+      : h.event === "pull_request"
+        ? "pr"
+        : h.event === "release"
+          ? "release"
+          : h.event.startsWith("installation")
+            ? "installation"
+            : h.event;
   const excerpt: J = { event: h.event, action };
   if (h.event === "push") {
     const commits = (payload.commits as J[] | undefined) ?? [];
@@ -944,7 +989,7 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
               ),
             )
             .limit(1);
-          return prod ? { productId: prod.id, tag: String(excerpt.tag ?? ""), body: String(((payload.release as J) ?? {}).body ?? "").slice(0, 20000) } : null;
+          return prod ? { productId: prod.id, tag: String(excerpt.tag ?? ""), body: String((payload.release as J)?.body ?? "").slice(0, 20000) } : null;
         })()
       : null;
 
@@ -971,7 +1016,13 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
       await recordEvent(t, ctx, { type: "repo.push", entityType: "repository", entityId: repo.id, summary, payload: { branch, commits: excerpt.commits } });
       await projectActivity(t, ctx, repo.projectId, "repo.push", summary);
     } else if (h.event === "pull_request" && repo) {
-      const type = ["opened", "reopened"].includes(action) ? "repo.pr_abierto" : action === "closed" ? (excerpt.merged ? "repo.pr_mergeado" : "repo.pr_cerrado") : null;
+      const type = ["opened", "reopened"].includes(action)
+        ? "repo.pr_abierto"
+        : action === "closed"
+          ? excerpt.merged
+            ? "repo.pr_mergeado"
+            : "repo.pr_cerrado"
+          : null;
       if (type) {
         const verb = type === "repo.pr_abierto" ? "Se abrió" : type === "repo.pr_mergeado" ? "Se mergeó" : "Se cerró";
         const summary = `${verb} el PR #${excerpt.number} «${excerpt.title}» en ${name}${excerpt.claude ? " (Claude)" : ""}`;
@@ -989,7 +1040,11 @@ export async function handleWebhook(h: { event: string | null; deliveryId: strin
   if (!processed) return { status: 200, body: "Entrega duplicada (ya procesada)" };
 
   // Recalcular checks después de cambios que los afectan (mejor esfuerzo; no falla el webhook).
-  if (repo && getGitHubClient() && (h.event === "repository" ? action !== "deleted" : h.event === "push" && String(excerpt.ref) === `refs/heads/${repo.defaultBranch}`)) {
+  if (
+    repo &&
+    getGitHubClient() &&
+    (h.event === "repository" ? action !== "deleted" : h.event === "push" && String(excerpt.ref) === `refs/heads/${repo.defaultBranch}`)
+  ) {
     await syncRepoByName(ctx, installationId, String(ghRepo?.full_name ?? repo.fullName)).catch((e) => console.error("[github] resync", e));
   }
   if (h.event === "installation_repositories") {
