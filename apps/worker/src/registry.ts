@@ -1,3 +1,4 @@
+import { processAgentRuns } from "@agencyos/modules/ai/jobs";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
@@ -15,4 +16,5 @@ export const JOBS: Job[] = [
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   // — módulos de la segunda vuelta: agregar debajo —
   { name: "library-orphans", cron: "45 4 * * *", run: () => cleanupOrphanFiles() },
+  { name: "ai-agent-runs", cron: "* * * * *", run: () => processAgentRuns({ maxMs: 50_000, pollMs: 3_000 }), quiet: true },
 ];
