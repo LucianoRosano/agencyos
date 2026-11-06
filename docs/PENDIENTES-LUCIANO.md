@@ -20,7 +20,11 @@
 - **Claude por MCP:** en Configuración → Integraciones creá un token y pegá en tu PC el comando `claude mcp add …` que te muestra. Desde claude.ai hace falta el dominio con HTTPS.
 - **GitHub Student Developer Pack** (education.github.com, con tu constancia de la UNGS): da GitHub Pro gratis → protección de ramas en repos privados (y posible dominio gratis por un año).
 - **Renombrar este repo** a `prod-agencyos` (Settings → General → Repository name; GitHub deja redirección). Lo pediste como recordatorio; también se puede hacer en otra sesión con Claude.
-- Más adelante: API key gratuita de Google PageSpeed/CrUX (SEO, F4), Application Passwords de WordPress de cada sitio (monitoreo, F4), cuenta de API de Anthropic + tope mensual (agentes internos, F5).
+- **API key gratuita de Google** (PageSpeed/CrUX) → cargala en SEO → Google (`/seo/google`) para ver Lighthouse y Core Web Vitals.
+- **Application Passwords de WordPress** de cada sitio (Usuarios → Perfil → Contraseñas de aplicación en cada WordPress) → cargalas en Activos → Monitoreo para ver versiones y plugins.
+- **GitHub App**: con el dominio funcionando, entrá a Repositorios y seguí el asistente "Crear la GitHub App" (guardá en Bitwarden lo que muestra una sola vez). Detalle: `docs/runbooks/github-app.md`.
+- **Cuenta de API de Anthropic + tope mensual** (agentes internos, F5).
+- **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 
 ### Datos para cargar en AGENCYOS
 - Revisar la **carga inicial** (`pnpm admin import-inicial` muestra el plan; con `--aplicar` lo ejecuta): clientes y proyectos de tu contexto (A4), proyectos personales y los dos vencimientos (Claude Design 14/12/2026, certificado ARCA 27/10/2028). Ajustá lo que no esté bien desde la app.
@@ -33,7 +37,7 @@
 Ordenado por valor. Ninguno bloquea el uso diario.
 
 ### Fase 1 (MVP) — quedó afuera o parcial
-- **Repositorios + GitHub App** (M11): inventario, estándar con puntaje de salud, planes de organización con aprobación, webhooks. Necesita crear la GitHub App (con el dominio) y que definas qué repos ordenar.
+- Repositorios: ✅ hecho (falta crear la GitHub App con el dominio). Los planes tienen su propia pantalla; no aparecen en `/aprobaciones`.
 - **Organización inicial de tus repos** (doc 15 §4): hacerla desde Claude Code en tu PC (ahí está el código suelto y el acceso a Hostinger).
 - **Notificaciones push**: ✅ hechas; solo falta el dominio con HTTPS para activarlas en el celular (Configuración → Notificaciones).
 - Etiquetas, comentarios internos, vistas guardadas y "Conectado con": ✅ hechos. Falta: filtro por etiqueta también en Movimientos y Notas, y etiquetas visibles como chips en las tarjetas de las listas.
@@ -43,7 +47,7 @@ Ordenado por valor. Ninguno bloquea el uso diario.
 ### F2 · Producción de sitios
 - Website Factory: ✅ hecho. Falta: captura de pantalla adjunta en los ítems de revisión y pestaña "Sitios" en la ficha de cliente (hoy: `/sitios?cliente=<id>`).
 - Biblioteca (✅ hecha): falta la **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña), adjuntos en **interacciones** del CRM, **mover carpetas** de lugar y la **cuota editable desde Configuración** (hoy se cambia con `workspace.settings.storageQuotaMb`, por defecto 5000 MB).
-- **Activos técnicos:** dominios, hosting y certificados con vencimientos (hoy se cargan como "vencimientos" sueltos), productos propios e instalaciones.
+- Activos técnicos: ✅ hecho. Convertí tus vencimientos sueltos (certificado ARCA, etc.) desde `/activos`.
 - Presupuestos con enlace público y aceptación online: ✅ hecho (el envío por email necesita Brevo).
 
 ### F3 · Conocimiento y tiempo
@@ -52,10 +56,10 @@ Ordenado por valor. Ninguno bloquea el uso diario.
 - Importador de Obsidian: no hace falta (arrancás de cero), queda la exportación compatible como salida de emergencia.
 
 ### F4 · Operación y automatización
-- **SEO Auditor** (crawler con anti-SSRF, PageSpeed, CrUX, comparación, PDF).
-- **Centro de automatizaciones** configurable (reglas, plantillas, webhooks, modo prueba).
-- **Monitoreo de sitios** (uptime, SSL, dominio, versiones por WordPress REST).
-- Passkeys, importar chats de WhatsApp al CRM, etapas del pipeline editables.
+- SEO Auditor: ✅ hecho. Falta: Search Console y el agente de SEO (F5).
+- Automatizaciones: ✅ hechas (los emails reales necesitan Brevo).
+- Monitoreo de sitios: ✅ hecho.
+- Passkeys: ✅ hechas. Importar chats de WhatsApp y etapas editables del pipeline: en curso.
 
 ### F5 · IA y F6 · Equipo
 - Agentes internos con API (Business, PM, Web Architect, Content, SEO, QA, Code Reviewer, Research, Repo) con presupuestos, trazas y evals.
