@@ -85,8 +85,8 @@ export function PlanStatusBadge({ status }: { status: string }) {
 /** Diff legible: líneas con +/− en mono. */
 export function DiffView({ lines }: { lines: string[] }) {
   return (
-    // Región con scroll: enfocable con teclado (axe scrollable-region-focusable).
-    <section aria-label="Cambios propuestos" className="mt-2 max-h-64 overflow-auto rounded-[8px] border border-border bg-bg-elevated focus-visible:outline-2">
+    // Sin scroll interno: la vista previa ya viene recortada (14 líneas) y las líneas largas se cortan.
+    <section aria-label="Cambios propuestos" className="mt-2 rounded-[8px] border border-border bg-bg-elevated">
       <pre className="p-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap break-words">
         {lines.map((l, i) => (
           <span
