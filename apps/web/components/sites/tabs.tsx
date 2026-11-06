@@ -42,8 +42,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ActivityList } from "@/components/activity-list";
+import { EntitySide } from "@/components/collab/entity-side";
+import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
+import type { AppCtx } from "@/lib/session";
 import { BlueprintEditor, RestoreVersionButton, TemplatePicker, type Tree } from "./blueprint-editor";
 import { BriefForm, QuestionsPanel } from "./brief-ui";
 import { SlotEditSheet, SlotStatusSelect } from "./content-ui";
@@ -405,50 +408,50 @@ const bytes = (n: number) => (n < 1024 ? `${n} B` : n < 1024 ** 2 ? `${(n / 1024
 export async function ResourcesTab({ ctx, site }: P) {
   const files = await siteFiles(ctx, site.s.id);
   const libHref = `/biblioteca?sitio=${site.s.id}`;
-  if (!files.length)
-    return (
-      <Card>
-        <EmptyState
-          icon={<FolderOpen />}
-          title="Sin recursos vinculados"
-          description="Logos, fotos y textos del cliente se suben a la Biblioteca y se vinculan a este sitio."
-          action={
-            <Button asChild variant="primary">
-              <Link href={libHref}>Abrir la Biblioteca</Link>
-            </Button>
-          }
-        />
-      </Card>
-    );
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-end">
-        <Button asChild variant="secondary">
-          <Link href={libHref}>
-            <FolderOpen className="size-4" /> Ver en la Biblioteca
-          </Link>
-        </Button>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="flex min-w-0 flex-col gap-5">
+        <AttachmentsBlock
+          ctx={ctx}
+          entityType="site"
+          entityId={site.s.id}
+          title="Archivos del sitio"
+          emptyText="Subí logos, fotos y textos del cliente: quedan en la Biblioteca y adjuntos a este sitio."
+        />
+        {files.length ? (
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <SectionLabel>Vinculados en la Biblioteca</SectionLabel>
+              <Link href={libHref} className="inline-flex min-h-10 items-center gap-1.5 text-[13px] text-text-muted hover:text-text">
+                <FolderOpen className="size-4" /> Ver todos
+              </Link>
+            </div>
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {files.map((f) => (
+                <li key={f.id}>
+                  <Link
+                    href={`/biblioteca/archivo/${f.id}`}
+                    className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-bg-elevated p-3 hover:border-border-strong"
+                  >
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 font-mono text-[10px] uppercase text-text-muted">
+                      {(f.name.split(".").pop() ?? f.kind).slice(0, 4)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[14px] text-text">{f.name}</span>
+                      <span className="font-mono text-[11px] text-text-faint">
+                        {bytes(f.size)} · {formatDate(f.createdAt)}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
       </div>
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {files.map((f) => (
-          <li key={f.id}>
-            <Link
-              href={`/biblioteca/archivo/${f.id}`}
-              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-bg-elevated p-3 hover:border-border-strong"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 font-mono text-[10px] uppercase text-text-muted">
-                {(f.name.split(".").pop() ?? f.kind).slice(0, 4)}
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-[14px] text-text">{f.name}</span>
-                <span className="font-mono text-[11px] text-text-faint">
-                  {bytes(f.size)} · {formatDate(f.createdAt)}
-                </span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="flex min-w-0 flex-col gap-5">
+        <EntitySide ctx={ctx as AppCtx} type="site" id={site.s.id} />
+      </div>
     </div>
   );
 }
