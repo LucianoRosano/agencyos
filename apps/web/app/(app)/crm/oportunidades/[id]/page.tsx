@@ -1,13 +1,15 @@
 import { formatDate, formatDateTime, formatMoney, L, label, percentOf } from "@agencyos/core";
+import { opportunityServices, serviceCatalog } from "@agencyos/modules/crm/opportunity-services";
 import { getOpportunity } from "@agencyos/modules/crm/queries";
 import { pipelineFor } from "@agencyos/modules/crm/stages";
 import { Badge, BlockCard, Card, cn, PageHeader, SectionLabel } from "@agencyos/ui";
-import { Activity, CornerDownRight, FileSignature, Info, Route } from "lucide-react";
+import { Activity, CornerDownRight, FileSignature, Info, Route, Shapes } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
 import { EditOpportunitySheet, OpportunityMenu } from "@/components/crm/opportunity-form";
+import { OpportunityServices } from "@/components/crm/opportunity-services";
 import { LinkedQuotes, OpportunityStage } from "@/components/crm/opportunity-stage";
 import { CRM_ACCENT, dueTone } from "@/components/crm/shared";
 import { clientOpts } from "@/lib/options";
@@ -25,7 +27,13 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
   const data = await getOpportunity(ctx, id);
   if (!data) notFound();
   const { o, clientName } = data;
-  const [clients, { stages, stageOf }] = await Promise.all([clientOpts(ctx), pipelineFor(ctx, [o])]);
+  const quotesOn = ctx.workspace.enabledModules.includes("quotes");
+  const [clients, { stages, stageOf }, interest, catalog] = await Promise.all([
+    clientOpts(ctx),
+    pipelineFor(ctx, [o]),
+    opportunityServices(ctx, o.id),
+    serviceCatalog(ctx),
+  ]);
   const stageKey = stageOf.get(o.id) ?? o.stage;
   const stageLabel = stages.find((s) => s.key === stageKey)?.name ?? label(L.stage, o.stage);
   if (!clients.some((c) => c.value === o.clientId)) clients.unshift({ value: o.clientId, label: clientName });
@@ -106,6 +114,15 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
               )}
             </BlockCard>
           ) : null}
+          <BlockCard icon={<Shapes />} title="Servicios de interés">
+            <OpportunityServices
+              opportunityId={o.id}
+              clientId={o.clientId}
+              selected={interest.map((s) => ({ id: s.id, name: s.name }))}
+              catalog={catalog}
+              canQuote={quotesOn && !closed}
+            />
+          </BlockCard>
           <BlockCard icon={<FileSignature />} title="Presupuesto">
             <LinkedQuotes opportunityId={o.id} clientId={o.clientId} quotes={data.linkedQuotes.map((q) => ({ ...q, clientId: o.clientId }))} />
           </BlockCard>

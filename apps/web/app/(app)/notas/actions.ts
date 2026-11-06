@@ -3,6 +3,7 @@
 import { notFound, type Result } from "@agencyos/core";
 import { getNote, listVersions } from "@agencyos/modules/notes/queries";
 import * as svc from "@agencyos/modules/notes/service";
+import * as tpl from "@agencyos/modules/notes/templates";
 import { moveToTrash, restoreFromTrash } from "@agencyos/modules/trash/service";
 import { run } from "@/lib/action";
 import { requireCtx } from "@/lib/session";
@@ -81,3 +82,19 @@ export async function noteVersionsAction(noteId: string) {
   const rows = await listVersions(ctx, noteId);
   return rows.map((v) => ({ id: v.id, title: v.title, bodyMd: v.bodyMd, createdAt: v.createdAt.getTime() }));
 }
+
+// Plantillas de notas
+/** Crear nota: con plantilla (reemplaza {{fecha}}, {{titulo}}, {{cliente}}) o en blanco. */
+export const createNoteFromFormAction = async (_: S, fd: FormData) =>
+  run((ctx) => {
+    const o = withEntity(fd);
+    if (!o.templateId) {
+      delete o.templateId;
+      return svc.createNote(ctx, o);
+    }
+    return tpl.createNoteFromTemplate(ctx, o);
+  });
+export const createNoteTemplateAction = async (_: S, fd: FormData) => run((ctx) => tpl.createNoteTemplate(ctx, obj(fd)));
+export const updateNoteTemplateAction = async (id: string, _: S, fd: FormData) => run((ctx) => tpl.updateNoteTemplate(ctx, id, obj(fd)));
+export const deleteNoteTemplateAction = async (id: string) => run((ctx) => moveToTrash(ctx, "note_template", id));
+export const restoreNoteTemplateAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "note_template", id));

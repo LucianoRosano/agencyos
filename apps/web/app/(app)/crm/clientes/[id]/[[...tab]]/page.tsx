@@ -35,6 +35,7 @@ import { InteractionForm, InteractionSheet, NextStepDone } from "@/components/cr
 import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
 import { type PipelineOpp, PipelineView } from "@/components/crm/pipeline";
 import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, stageColor, stageName } from "@/components/crm/shared";
+import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
 import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectCard } from "@/components/project-card";
@@ -431,6 +432,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               Registro rápido
             </SectionLabel>
             <InteractionForm clientId={id} contacts={contactOpts} now={nowAR} compact />
+            <div className="mt-4 border-t border-border pt-4">
+              <WhatsappImportSheet clientId={id} contacts={contactOpts} />
+            </div>
           </Card>
         </div>
       ) : null}
