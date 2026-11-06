@@ -1,5 +1,6 @@
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
+import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -19,4 +20,7 @@ export const JOBS: Job[] = [
   { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },
   { name: "monitoring-daily", cron: "15 6 * * *", run: () => runDailyMonitoring() },
   { name: "monitoring-purge", cron: "45 4 * * *", run: () => purgeUptimeChecks(90) },
+  // SEO (M07): la cola es la tabla seo_audit (status queued); cada minuto se procesan de a una. Programadas: diario 3:20.
+  { name: "seo-audit", cron: "* * * * *", run: () => processQueuedAudits(), quiet: true },
+  { name: "seo-schedules", cron: "20 3 * * *", run: () => dailySeoSchedules() },
 ];

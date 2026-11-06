@@ -38,6 +38,7 @@ export const ENTITIES = {
   folder: { table: schema.folder, title: "name", href: (id: string) => `/biblioteca?carpeta=${id}` },
   reusable_template: { table: schema.reusableTemplate, title: "name", href: (_id: string) => `/biblioteca/plantillas` },
   seo_audit: { table: schema.seoAudit, title: "rootUrl", href: (id: string) => `/seo/${id}` },
+  seo_schedule: { table: schema.seoSchedule, title: "rootUrl", href: (_id: string) => `/seo/programadas` },
   automation_rule: { table: schema.automationRule, title: "name", href: (id: string) => `/automatizaciones/${id}` },
   repository: { table: schema.repository, title: "fullName", href: (id: string) => `/repositorios/${id}` },
   comment: { table: schema.comment, title: "bodyMd", href: (_id: string) => `/hoy` },
