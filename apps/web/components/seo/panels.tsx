@@ -80,7 +80,7 @@ export async function SummaryPanel({ data, comparable }: { data: AuditData; comp
             <p className="mt-1 text-[12px] leading-relaxed text-text-muted">{s.formula?.text}</p>
           </details>
         </Card>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-3 [&>*]:min-w-0">
           {SEO_CATEGORIES.map((c) => {
             const x = (s.categories?.[c] ?? {}) as Record<string, number>;
             return (
