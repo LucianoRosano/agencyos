@@ -39,6 +39,7 @@ export const ENTITIES = {
   seo_audit: { table: schema.seoAudit, title: "rootUrl", href: (id: string) => `/seo/${id}` },
   seo_schedule: { table: schema.seoSchedule, title: "rootUrl", href: (_id: string) => `/seo/programadas` },
   automation_rule: { table: schema.automationRule, title: "name", href: (id: string) => `/automatizaciones/${id}` },
+  webhook_endpoint: { table: schema.webhookEndpoint, title: "name", href: (_id: string) => `/automatizaciones/webhooks` },
   repository: { table: schema.repository, title: "fullName", href: (id: string) => `/repositorios/${id}` },
   comment: { table: schema.comment, title: "bodyMd", href: (_id: string) => `/hoy` },
   saved_view: { table: schema.savedView, title: "name", href: (_id: string) => `/hoy` },

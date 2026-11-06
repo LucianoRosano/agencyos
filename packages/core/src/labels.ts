@@ -108,6 +108,8 @@ export const L = {
     comment: "Comentario",
     saved_view: "Vista guardada",
     seo_schedule: "Auditoría programada",
+    automation_rule: "Automatización",
+    webhook_endpoint: "Webhook",
   },
   fileKind: { image: "Imagen", logo: "Logo", document: "Documento", pdf: "PDF", video: "Video", archive: "ZIP", font: "Tipografía", other: "Otro" },
   templateKind: { document: "Documento", snippet: "Snippet", prompt: "Prompt", checklist: "Checklist" },
