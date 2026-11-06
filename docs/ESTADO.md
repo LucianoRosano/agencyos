@@ -1,6 +1,6 @@
 # Estado de AGENCYOS
 
-**Actualizado:** 04/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
+**Actualizado:** 06/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
 
 Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o compra externa · ⬜ no hecho (fase posterior)
 
@@ -26,6 +26,11 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Carga inicial de tus datos reales (`pnpm admin import-inicial`, primero muestra el plan).
 
 ### Segunda vuelta (F2)
+- ✅ **Colaboración transversal**: **etiquetas** con selector, búsqueda y creación al vuelo, filtro por etiqueta en Proyectos, Tareas y Clientes; **comentarios internos** (nunca visibles para clientes); panel **"Conectado con"** con relaciones implícitas (proyecto → cliente, tarea → proyecto) y enlaces manuales a cualquier elemento vía buscador; **vistas guardadas** por usuario (cualquier combinación de filtros de la URL). En las fichas de cliente, contacto, oportunidad, proyecto, tarea, presupuesto y sitio.
+- ✅ **Presupuestos con enlace público** (`/p/<token>`, ADR 0010): generar, copiar, mandar por WhatsApp o email (Brevo), revocar; el cliente ve el presupuesto con la marca Luciano Rosano, descarga el PDF y lo **acepta o rechaza online** (queda "Visto"; aceptar crea proyecto + cobros + oportunidad ganada).
+- ✅ **Revisión semanal guiada** (`/revision-semanal`): asistente por pasos que termina en una nota "Revisión S## · AAAA".
+- ✅ **Notificaciones push** (Web Push con claves VAPID generadas y guardadas cifradas) por dispositivo + **preferencias por evento** (app / push / email) en Configuración → Notificaciones. ⏳ En el celular requiere el dominio con HTTPS.
+- ✅ **Website Factory** (`/sitios`): alta desde proyecto, briefing por bloques con lista única de preguntas (copiar para WhatsApp, PDF), requerimientos MoSCoW, estructura (6 plantillas, editor, versiones), contenidos por slot, recursos (archivos de la Biblioteca), rondas de revisión, dominio y hosting, checklist de lanzamiento de 17 áreas, documentación viva, monitoreo.
 - ✅ **Biblioteca** (`/biblioteca`): subida por arrastrar o elegir (varios, con progreso) con validación por magic bytes, SVG sanitizado, nombres normalizados, máximo 100 MB y cuota por workspace; miniaturas WebP (sharp); cliente → proyecto → carpetas, vistas Logos/Imágenes/Documentos/Últimos, búsqueda y filtros, grilla y lista; ficha con metadatos, etiquetas, **versiones** (descargar y restaurar) y "adjuntado en"; descarga con **URL firmada de 5 min** + sesión; **kit de marca** por cliente (`/biblioteca/marca/<cliente>`); **plantillas** con `{{variables}}` (`/biblioteca/plantillas`); **adjuntos** en tareas, notas, clientes (pestaña Archivos) y comprobantes de movimientos; al purgar de la papelera se borra del almacenamiento (más job diario de huérfanos).
 
 ### Infraestructura (lista, falta el VPS)

@@ -1,6 +1,6 @@
 # Pendientes de Luciano
 
-**Actualizado:** 04/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+**Actualizado:** 06/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
 
 ## A. Lo que tenés que hacer vos
 
@@ -35,19 +35,19 @@ Ordenado por valor. Ninguno bloquea el uso diario.
 ### Fase 1 (MVP) — quedó afuera o parcial
 - **Repositorios + GitHub App** (M11): inventario, estándar con puntaje de salud, planes de organización con aprobación, webhooks. Necesita crear la GitHub App (con el dominio) y que definas qué repos ordenar.
 - **Organización inicial de tus repos** (doc 15 §4): hacerla desde Claude Code en tu PC (ahí está el código suelto y el acceso a Hostinger).
-- **Notificaciones push** (Web Push): requiere dominio con HTTPS y claves VAPID.
-- **Etiquetas** con UI propia en todas las listas (hoy solo hay etiquetas en Notas, vía frontmatter), **comentarios internos** (N10), **vistas guardadas** (N11) y el panel **"Conectado con"** en todas las fichas (hoy está en Notas y Cerebro).
+- **Notificaciones push**: ✅ hechas; solo falta el dominio con HTTPS para activarlas en el celular (Configuración → Notificaciones).
+- Etiquetas, comentarios internos, vistas guardadas y "Conectado con": ✅ hechos. Falta: filtro por etiqueta también en Movimientos y Notas, y etiquetas visibles como chips en las tarjetas de las listas.
 - Medición real de **LCP de Hoy en un celular** (Lighthouse CI sobre staging) y **tests visuales** con snapshots aprobados.
 - Oportunidades: "servicios de interés" (falta la tabla `opportunity_service`).
 
 ### F2 · Producción de sitios
-- **Website Factory** completo (briefing, requerimientos, blueprint, contenidos, revisiones, checklist de 17 áreas, documentación).
+- Website Factory: ✅ hecho. Falta: captura de pantalla adjunta en los ítems de revisión y pestaña "Sitios" en la ficha de cliente (hoy: `/sitios?cliente=<id>`).
 - Biblioteca (✅ hecha): falta la **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña), adjuntos en **interacciones** del CRM, **mover carpetas** de lugar y la **cuota editable desde Configuración** (hoy se cambia con `workspace.settings.storageQuotaMb`, por defecto 5000 MB).
 - **Activos técnicos:** dominios, hosting y certificados con vencimientos (hoy se cargan como "vencimientos" sueltos), productos propios e instalaciones.
-- Presupuestos: **envío por email + enlace público** con aceptación online ("Visto").
+- Presupuestos con enlace público y aceptación online: ✅ hecho (el envío por email necesita Brevo).
 
 ### F3 · Conocimiento y tiempo
-- Revisión semanal guiada, plantillas de notas, adjuntos en notas, modo 3D del Cerebro, filtros por etiqueta/fecha en el Cerebro.
+- Revisión semanal: ✅ hecha. Plantillas de notas, adjuntos en notas, modo 3D del Cerebro, filtros por etiqueta/fecha en el Cerebro.
 - Finanzas completas: exportación XLSX/PDF, rentabilidad con horas y tarifa, comprobantes adjuntos.
 - Importador de Obsidian: no hace falta (arrancás de cero), queda la exportación compatible como salida de emergencia.
 
