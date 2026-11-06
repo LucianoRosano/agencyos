@@ -19,15 +19,13 @@ async function vapidFor(workspaceId: string): Promise<Vapid> {
     .where(and(eq(schema.integration.workspaceId, workspaceId), eq(schema.integration.provider, "webpush")));
   if (row?.secretEnc) return { publicKey: String(row.config.publicKey), privateKey: decryptSecret(row.secretEnc) };
   const keys = webpush.generateVAPIDKeys();
-  await db
-    .insert(schema.integration)
-    .values({
-      workspaceId,
-      provider: "webpush",
-      name: "Notificaciones push",
-      config: { publicKey: keys.publicKey },
-      secretEnc: encryptSecret(keys.privateKey),
-    });
+  await db.insert(schema.integration).values({
+    workspaceId,
+    provider: "webpush",
+    name: "Notificaciones push",
+    config: { publicKey: keys.publicKey },
+    secretEnc: encryptSecret(keys.privateKey),
+  });
   return keys;
 }
 
