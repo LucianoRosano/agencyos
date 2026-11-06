@@ -66,7 +66,13 @@ export const TEMPLATES: AutomationTemplate[] = [
       actions: [
         {
           type: "create_task",
-          params: { title: "Subir el zip de {{repositorio.nombre}} al cliente", description: "Release publicado en GitHub.", priority: 2, dueInDays: 1, project: "none" },
+          params: {
+            title: "Subir el zip de {{repositorio.nombre}} al cliente",
+            description: "Release publicado en GitHub.",
+            priority: 2,
+            dueInDays: 1,
+            project: "none",
+          },
         },
       ],
     },
@@ -83,7 +89,13 @@ export const TEMPLATES: AutomationTemplate[] = [
       actions: [
         {
           type: "create_task",
-          params: { title: "Revisar la regresión SEO de {{auditoria.url}}", description: "Puntaje actual: {{auditoria.puntaje}}.", priority: 2, dueInDays: 3, project: "event" },
+          params: {
+            title: "Revisar la regresión SEO de {{auditoria.url}}",
+            description: "Puntaje actual: {{auditoria.puntaje}}.",
+            priority: 2,
+            dueInDays: 3,
+            project: "event",
+          },
         },
       ],
     },
@@ -114,7 +126,13 @@ export const TEMPLATES: AutomationTemplate[] = [
       actions: [
         {
           type: "create_task",
-          params: { title: "Seguimiento: {{oportunidad.titulo}} ({{cliente.nombre}})", description: "Definí la próxima acción de la oportunidad.", priority: 2, dueInDays: 0, project: "none" },
+          params: {
+            title: "Seguimiento: {{oportunidad.titulo}} ({{cliente.nombre}})",
+            description: "Definí la próxima acción de la oportunidad.",
+            priority: 2,
+            dueInDays: 0,
+            project: "none",
+          },
         },
       ],
     },
@@ -131,7 +149,13 @@ export const TEMPLATES: AutomationTemplate[] = [
       actions: [
         {
           type: "create_task",
-          params: { title: "Preparar carpeta y accesos de {{proyecto.nombre}}", description: "Carpeta, accesos (referencias a Bitwarden) y repositorio.", priority: 3, dueInDays: 1, project: "event" },
+          params: {
+            title: "Preparar carpeta y accesos de {{proyecto.nombre}}",
+            description: "Carpeta, accesos (referencias a Bitwarden) y repositorio.",
+            priority: 3,
+            dueInDays: 1,
+            project: "event",
+          },
         },
       ],
     },

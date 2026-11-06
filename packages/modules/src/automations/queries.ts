@@ -98,7 +98,12 @@ export async function listEndpoints(ctx: Ctx) {
     )
     .groupBy(schema.webhookDelivery.endpointId);
   const by = new Map(last.map((l) => [l.endpointId, l]));
-  return rows.map((r) => ({ ...r, deliveries: by.get(r.id)?.n ?? 0, lastAt: by.get(r.id)?.at ? new Date(by.get(r.id)?.at as Date) : null, lastCode: by.get(r.id)?.lastCode ?? null }));
+  return rows.map((r) => ({
+    ...r,
+    deliveries: by.get(r.id)?.n ?? 0,
+    lastAt: by.get(r.id)?.at ? new Date(by.get(r.id)?.at as Date) : null,
+    lastCode: by.get(r.id)?.lastCode ?? null,
+  }));
 }
 
 /** Todo lo que necesita el constructor (serializable; la UI no importa módulos). */
@@ -123,5 +128,12 @@ export async function builderMeta(ctx: Ctx) {
 }
 export type BuilderMeta = Awaited<ReturnType<typeof builderMeta>>;
 
-export const templates = () => TEMPLATES.map((t) => ({ key: t.key, name: t.name, description: t.description, trigger: t.rule.triggerKind, actions: t.rule.actions.map((a) => ACTION_TYPES[a.type]?.label ?? a.type) }));
+export const templates = () =>
+  TEMPLATES.map((t) => ({
+    key: t.key,
+    name: t.name,
+    description: t.description,
+    trigger: t.rule.triggerKind,
+    actions: t.rule.actions.map((a) => ACTION_TYPES[a.type]?.label ?? a.type),
+  }));
 export const runStatus = RUN_STATUS;

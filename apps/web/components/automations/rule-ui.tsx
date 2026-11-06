@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { useAction } from "@/components/use-action";
 import {
   deleteRuleAction,
   duplicateRuleAction,
@@ -16,6 +15,7 @@ import {
   setRuleActiveAction,
   setRuleTestModeAction,
 } from "@/app/(app)/automatizaciones/actions";
+import { useAction } from "@/components/use-action";
 
 export function RuleToggle({ id, name, active }: { id: string; name: string; active: boolean }) {
   const { exec, pending } = useAction();
@@ -101,7 +101,10 @@ type Preview =
       empty: false;
       items: {
         label: string;
-        result: { status: string; output: { results: Result[]; reason?: string; conditions?: { field: string; op: string; value?: string; passed: boolean }[] } };
+        result: {
+          status: string;
+          output: { results: Result[]; reason?: string; conditions?: { field: string; op: string; value?: string; passed: boolean }[] };
+        };
       }[];
     };
 
@@ -125,7 +128,9 @@ export function ResultList({ results }: { results: Result[] }) {
               <span className="font-mono text-[11px] text-text-faint">{r.index + 1}. </span>
               {r.summary}
             </span>
-            {r.detail ? <span className="mt-1 block whitespace-pre-wrap break-words rounded-md bg-surface-2 p-2 text-[12px] text-text-muted">{r.detail}</span> : null}
+            {r.detail ? (
+              <span className="mt-1 block whitespace-pre-wrap break-words rounded-md bg-surface-2 p-2 text-[12px] text-text-muted">{r.detail}</span>
+            ) : null}
           </span>
         </li>
       ))}

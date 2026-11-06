@@ -28,11 +28,16 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
   const data = await getRule(ctx, id);
   if (!data) notFound();
   const { rule } = data;
-  const [meta, runs, activity] = await Promise.all([builderMeta(ctx), listRuns(ctx, id, 50), listActivity(ctx, { entityType: "automation_rule", entityId: id, limit: 20 })]);
+  const [meta, runs, activity] = await Promise.all([
+    builderMeta(ctx),
+    listRuns(ctx, id, 50),
+    listActivity(ctx, { entityType: "automation_rule", entityId: id, limit: 20 }),
+  ]);
 
   // etiquetas legibles de campos, valores y eventos
   const fieldLabel = new Map<string, { label: string; options?: { value: string; label: string }[] }>();
-  for (const def of Object.values(meta.entityFields)) for (const f of def.fields) fieldLabel.set(f.path, { label: `${def.label} · ${f.label}`, options: f.options });
+  for (const def of Object.values(meta.entityFields))
+    for (const f of def.fields) fieldLabel.set(f.path, { label: `${def.label} · ${f.label}`, options: f.options });
   for (const e of meta.events) for (const f of e.payload ?? []) fieldLabel.set(f.path, { label: f.label, options: f.options });
   for (const f of meta.commonFields) fieldLabel.set(f.path, { label: f.label });
   const eventLabel = (t?: string | null) => meta.events.find((e) => e.type === t)?.label ?? (t === "automatizacion.programada" ? "Programación" : (t ?? "—"));
@@ -47,7 +52,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
     const p = a.params;
     switch (a.type) {
       case "create_task":
-        return `«${p.title}»${p.project === "event" ? " en el proyecto del evento" : ""}${p.dueInDays !== undefined ? ` · vence en ${p.dueInDays} días` : ""}`;
+        return `«${p.title}»${p.project === "event" ? " en el proyecto del evento" : ""}${p.dueInDays === undefined ? "" : Number(p.dueInDays) === 0 ? " · vence hoy" : ` · vence en ${p.dueInDays} ${Number(p.dueInDays) === 1 ? "día" : "días"}`}`;
       case "notify":
         return `«${p.title}»`;
       case "send_email":
@@ -127,12 +132,9 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
               {actions.map((a, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad
                 <li key={i} className="flex items-start gap-3">
-                  <span className={`grid size-6 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[11px] ${AUTO_TEXT}`}>
-                    {i + 1}
-                  </span>
+                  <span className={`grid size-6 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[11px] ${AUTO_TEXT}`}>{i + 1}</span>
                   <span className="min-w-0 text-[14px]">
-                    <span className="font-medium text-text">{actionLabel(a.type)}</span>{" "}
-                    <span className="break-words text-text-muted">{actionDetail(a)}</span>
+                    <span className="font-medium text-text">{actionLabel(a.type)}</span> <span className="break-words text-text-muted">{actionDetail(a)}</span>
                   </span>
                 </li>
               ))}
@@ -158,9 +160,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
                           </span>
                         </summary>
                         <div className="mt-2 flex flex-col gap-2 pl-1">
-                          {r.status === "waiting" && r.resumeAt ? (
-                            <p className="text-[13px] text-text-muted">Sigue el {formatDateTime(r.resumeAt)}.</p>
-                          ) : null}
+                          {r.status === "waiting" && r.resumeAt ? <p className="text-[13px] text-text-muted">Sigue el {formatDateTime(r.resumeAt)}.</p> : null}
                           {out.reason ? <p className="text-[13px] text-text-muted">{out.reason}</p> : null}
                           {r.error && !out.results?.some((x) => !x.ok) ? <p className="text-[13px] text-danger">{r.error}</p> : null}
                           <ResultList results={out.results ?? []} />

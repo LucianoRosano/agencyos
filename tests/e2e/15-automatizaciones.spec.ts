@@ -2,7 +2,8 @@ import { createHmac } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { expectAccessible, expectNoHorizontalScroll, login, shot } from "./helpers";
 
-const sign = (secret: string, body: string, t = Math.floor(Date.now() / 1000)) => `t=${t},v1=${createHmac("sha256", secret).update(`${t}.${body}`).digest("hex")}`;
+const sign = (secret: string, body: string, t = Math.floor(Date.now() / 1000)) =>
+  `t=${t},v1=${createHmac("sha256", secret).update(`${t}.${body}`).digest("hex")}`;
 
 test("regla desde plantilla → evento desde la UI → prueba y ejecución registrada @visual", async ({ page }, info) => {
   const p = info.project.name;

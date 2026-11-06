@@ -3,9 +3,9 @@ import type { AddressInfo } from "node:net";
 import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { decideApproval } from "@agencyos/modules/approvals/service";
+import { signWebhook, verifyWebhookSignature } from "@agencyos/modules/automations/engine";
 import { resumeWaitingRuns, retryFailedRuns, runScheduledRules } from "@agencyos/modules/automations/jobs";
 import { getRule, listRules, listRuns } from "@agencyos/modules/automations/queries";
-import { signWebhook, verifyWebhookSignature } from "@agencyos/modules/automations/engine";
 import {
   createEndpoint,
   createRule,
@@ -32,7 +32,9 @@ async function lastEvent(workspaceId: string, type: string, entityId?: string) {
   const rows = await db()
     .select()
     .from(schema.domainEvent)
-    .where(and(eq(schema.domainEvent.workspaceId, workspaceId), eq(schema.domainEvent.type, type), ...(entityId ? [eq(schema.domainEvent.entityId, entityId)] : [])))
+    .where(
+      and(eq(schema.domainEvent.workspaceId, workspaceId), eq(schema.domainEvent.type, type), ...(entityId ? [eq(schema.domainEvent.entityId, entityId)] : [])),
+    )
     .orderBy(desc(schema.domainEvent.occurredAt), desc(schema.domainEvent.id))
     .limit(1);
   const ev = rows[0];
@@ -63,8 +65,8 @@ describe("automatizaciones: reglas por evento", () => {
     expect(t?.dueDate).toBe(addDays(todayAR(), 1));
     const [run] = await listRuns(ctx, rule.id);
     expect(run?.status).toBe("succeeded");
-    expect((run?.output as { results: { summary: string }[] }).results[0]?.summary).toContain("Preparar Sitio Pampa");
-    expect((run?.input as { datos: { proyecto: { nombre: string } } }).datos.proyecto.nombre).toBe("Sitio Pampa");
+    expect((run?.output as { results: { summary: string }[] } | undefined)?.results[0]?.summary).toContain("Preparar Sitio Pampa");
+    expect((run?.input as { datos: { proyecto: { nombre: string } } } | undefined)?.datos.proyecto.nombre).toBe("Sitio Pampa");
     // la actividad muestra al actor "Automatización"
     const [act] = await db()
       .select()
@@ -99,7 +101,13 @@ describe("automatizaciones: reglas por evento", () => {
 
   it("esperar N días → la ejecución queda en espera y el job la retoma", async () => {
     const ctx = await makeWorkspace();
-    const rule = await createRule(ctx, projectRule([{ type: "wait", params: { days: 3 } }, { type: "notify", params: { title: "Pasaron 3 días de {{proyecto.nombre}}" } }]));
+    const rule = await createRule(
+      ctx,
+      projectRule([
+        { type: "wait", params: { days: 3 } },
+        { type: "notify", params: { title: "Pasaron 3 días de {{proyecto.nombre}}" } },
+      ]),
+    );
     const p = await createProject(ctx, { name: "Lento" });
     await handleEvent(await lastEvent(ctx.workspaceId, "proyecto.creado", p.id));
     let [run] = await runsOf(rule.id);
@@ -116,7 +124,7 @@ describe("automatizaciones: reglas por evento", () => {
     expect(await resumeWaitingRuns()).toBeGreaterThanOrEqual(1);
     [run] = await runsOf(rule.id);
     expect(run?.status).toBe("succeeded");
-    expect((run?.output as { results: unknown[] }).results).toHaveLength(2);
+    expect((run?.output as { results: unknown[] } | undefined)?.results).toHaveLength(2);
     const notes = await db().select().from(schema.notification).where(eq(schema.notification.workspaceId, ctx.workspaceId));
     expect(notes.some((n) => n.title === "Pasaron 3 días de Lento")).toBe(true);
   });
@@ -137,7 +145,7 @@ describe("automatizaciones: reglas por evento", () => {
     const [ap] = await db().select().from(schema.approval).where(eq(schema.approval.workspaceId, ctx.workspaceId));
     expect(ap?.kind).toBe("automation_email");
     expect(ap?.status).toBe("pending");
-    expect((ap?.proposal as { email: { to: string; subject: string; text: string } }).email).toEqual({
+    expect((ap?.proposal as { email: { to: string; subject: string; text: string } } | undefined)?.email).toEqual({
       to: "ana@sol.com.ar",
       subject: "Hola Panadería Sol",
       text: "Bienvenido, Ana.",
@@ -233,7 +241,7 @@ describe("automatizaciones: reglas por evento", () => {
     const [run] = await runsOf(rule.id);
     expect(run?.status).toBe("failed");
     expect(run?.error).toMatch(/permiso/);
-    expect((run?.output as { retryable: boolean }).retryable).toBe(false);
+    expect((run?.output as { retryable: boolean } | undefined)?.retryable).toBe(false);
   });
 
   it("límite de 20 acciones por regla", async () => {
@@ -340,7 +348,7 @@ describe("webhooks", () => {
       await handleEvent(await lastEvent(ctx.workspaceId, "proyecto.creado", p.id));
       let [run] = await runsOf(rule.id);
       expect(run?.status).toBe("failed");
-      expect((run?.output as { retryable: boolean }).retryable).toBe(true);
+      expect((run?.output as { retryable: boolean } | undefined)?.retryable).toBe(true);
       // todavía no pasó la espera (2 min)
       expect(await retryFailedRuns()).toBe(0);
       expect(await retryFailedRuns(new Date(Date.now() + 3 * 60_000))).toBe(1);

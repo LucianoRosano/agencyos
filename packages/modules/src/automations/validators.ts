@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { MAX_ACTIONS, MAX_CONDITIONS, SCHEDULE_SOURCES } from "./catalog";
 
-const text = (max: number, what: string) => z.string({ error: `${what} es obligatorio` }).trim().min(1, `${what} es obligatorio`).max(max, `Máximo ${max} caracteres`);
+const text = (max: number, what: string) =>
+  z
+    .string({ error: `${what} es obligatorio` })
+    .trim()
+    .min(1, `${what} es obligatorio`)
+    .max(max, `Máximo ${max} caracteres`);
 const optText = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres`).optional();
 
 export const conditionZ = z.object({
@@ -93,7 +98,10 @@ export const ruleInput = z
       .optional(),
     schedule: scheduleZ.optional(),
     source: sourceZ.optional(),
-    conditions: z.object({ match: z.enum(["all", "any"]).default("all"), items: z.array(conditionZ).max(MAX_CONDITIONS, `Máximo ${MAX_CONDITIONS} condiciones`) }),
+    conditions: z.object({
+      match: z.enum(["all", "any"]).default("all"),
+      items: z.array(conditionZ).max(MAX_CONDITIONS, `Máximo ${MAX_CONDITIONS} condiciones`),
+    }),
     actions: z.array(actionZ).min(1, "Agregá al menos una acción").max(MAX_ACTIONS, `Máximo ${MAX_ACTIONS} acciones por regla`),
     testMode: z.boolean().optional(),
     templateKey: z.string().max(80).optional(),

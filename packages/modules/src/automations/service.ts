@@ -5,13 +5,23 @@ import { schema } from "@agencyos/db";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { decryptSecret, encryptSecret } from "../shared/crypto";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { type assertOwned, getDb, scoped } from "../shared/db";
 import { assertPublicUrl } from "../shared/safe-fetch";
 import { setTaskStatus } from "../tasks/service";
 import { eventLabel, SCHEDULE_SOURCES } from "./catalog";
 import type { TriggerEvent } from "./data";
 import { cronFrequencyOk, cronToPreset, describeCron, deterministicUuid, presetToCron, verifyWebhookSignature } from "./engine";
-import { AUTOMATION_ACTOR, automationCtx, creatorRole, type ExecuteResult, executeRule, ruleSource, type RuleRow, type RunOutput, type StoredConditions } from "./runner";
+import {
+  AUTOMATION_ACTOR,
+  automationCtx,
+  creatorRole,
+  type ExecuteResult,
+  executeRule,
+  type RuleRow,
+  type RunOutput,
+  ruleSource,
+  type StoredConditions,
+} from "./runner";
 import { findTemplate } from "./templates";
 import { type RuleInput, type RuleParsed, ruleInput } from "./validators";
 
@@ -76,7 +86,12 @@ export async function createRule(ctx: Ctx, raw: unknown) {
       .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, ...values, templateKey: input.templateKey ?? null })
       .returning();
     if (!row) throw new Error("No se pudo crear la regla");
-    await recordEvent(t, ctx, { type: "automatizacion.creada", entityType: "automation_rule", entityId: row.id, summary: `Creó la automatización «${row.name}»` });
+    await recordEvent(t, ctx, {
+      type: "automatizacion.creada",
+      entityType: "automation_rule",
+      entityId: row.id,
+      summary: `Creó la automatización «${row.name}»`,
+    });
     await audit(t, ctx, { action: "automation.create", targetType: "automation_rule", targetId: row.id, after: values });
     return row;
   });
@@ -99,8 +114,19 @@ export async function updateRule(ctx: Ctx, id: string, raw: unknown) {
     const values = await toStored(t, ctx, input);
     const [row] = await t.update(schema.automationRule).set(values).where(eq(schema.automationRule.id, id)).returning();
     if (!row) throw notFound("La automatización");
-    await recordEvent(t, ctx, { type: "automatizacion.actualizada", entityType: "automation_rule", entityId: id, summary: `Editó la automatización «${row.name}»` });
-    await audit(t, ctx, { action: "automation.update", targetType: "automation_rule", targetId: id, before: { actions: before.actions, conditions: before.conditions }, after: values });
+    await recordEvent(t, ctx, {
+      type: "automatizacion.actualizada",
+      entityType: "automation_rule",
+      entityId: id,
+      summary: `Editó la automatización «${row.name}»`,
+    });
+    await audit(t, ctx, {
+      action: "automation.update",
+      targetType: "automation_rule",
+      targetId: id,
+      before: { actions: before.actions, conditions: before.conditions },
+      after: values,
+    });
     return row;
   });
 }
@@ -109,7 +135,11 @@ export async function setRuleActive(ctx: Ctx, id: string, active: boolean) {
   assertCan(ctx, "update", R);
   return getDb().transaction(async (t) => {
     const r = await getOwnRule(t, ctx, id);
-    const [row] = await t.update(schema.automationRule).set({ active: Boolean(active) }).where(eq(schema.automationRule.id, id)).returning();
+    const [row] = await t
+      .update(schema.automationRule)
+      .set({ active: Boolean(active) })
+      .where(eq(schema.automationRule.id, id))
+      .returning();
     await recordEvent(t, ctx, {
       type: active ? "automatizacion.activada" : "automatizacion.pausada",
       entityType: "automation_rule",
@@ -124,7 +154,11 @@ export async function setRuleTestMode(ctx: Ctx, id: string, on: boolean) {
   assertCan(ctx, "update", R);
   return getDb().transaction(async (t) => {
     const r = await getOwnRule(t, ctx, id);
-    const [row] = await t.update(schema.automationRule).set({ testMode: Boolean(on) }).where(eq(schema.automationRule.id, id)).returning();
+    const [row] = await t
+      .update(schema.automationRule)
+      .set({ testMode: Boolean(on) })
+      .where(eq(schema.automationRule.id, id))
+      .returning();
     await recordEvent(t, ctx, {
       type: "automatizacion.actualizada",
       entityType: "automation_rule",
@@ -156,7 +190,12 @@ export async function duplicateRule(ctx: Ctx, id: string) {
       })
       .returning();
     if (!row) throw new Error("No se pudo duplicar");
-    await recordEvent(t, ctx, { type: "automatizacion.creada", entityType: "automation_rule", entityId: row.id, summary: `Duplicó la automatización «${r.name}» (queda pausada)` });
+    await recordEvent(t, ctx, {
+      type: "automatizacion.creada",
+      entityType: "automation_rule",
+      entityId: row.id,
+      summary: `Duplicó la automatización «${r.name}» (queda pausada)`,
+    });
     return row;
   });
 }
@@ -229,7 +268,12 @@ async function lastEventTrigger(rule: RuleRow): Promise<Trigger | null> {
 }
 
 /** Elementos de una fuente "para cada" (con clave de versión para la idempotencia). */
-export async function sourceItems(workspaceId: string, src: { kind: string; days?: number }, today: string, limit = 200): Promise<{ entityType: string; id: string; version: string; label: string }[]> {
+export async function sourceItems(
+  workspaceId: string,
+  src: { kind: string; days?: number },
+  today: string,
+  limit = 200,
+): Promise<{ entityType: string; id: string; version: string; label: string }[]> {
   const db = getDb();
   const ws = { workspaceId };
   const days = src.days ?? 0;
@@ -356,7 +400,8 @@ export async function runRuleNow(ctx: Ctx, id: string) {
   const rule = await getOwnRule(getDb(), ctx, id);
   if (!rule.active) throw validation("Activá la regla para ejecutarla");
   const triggers = await manualTriggers(rule, 50);
-  if (!triggers.length) throw validation(rule.triggerKind === "event" ? `Todavía no pasó ningún «${eventLabel(rule.eventType)}».` : "No hay elementos para procesar.");
+  if (!triggers.length)
+    throw validation(rule.triggerKind === "event" ? `Todavía no pasó ningún «${eventLabel(rule.eventType)}».` : "No hay elementos para procesar.");
   const results: ExecuteResult[] = [];
   for (const t of triggers) results.push(await executeRule(rule, t, { dryRun: rule.testMode }));
   const fresh = results.filter((r) => !r.duplicate);
@@ -424,7 +469,12 @@ export async function rotateEndpointSecret(ctx: Ctx, id: string) {
       .where(and(eq(schema.webhookEndpoint.id, id), scoped(schema.webhookEndpoint, ctx)))
       .returning({ id: schema.webhookEndpoint.id, name: schema.webhookEndpoint.name });
     if (!row) throw notFound("El webhook");
-    await recordEvent(t, ctx, { type: "webhook.secreto_rotado", entityType: "webhook_endpoint", entityId: id, summary: `Rotó el secreto del webhook «${row.name}»` });
+    await recordEvent(t, ctx, {
+      type: "webhook.secreto_rotado",
+      entityType: "webhook_endpoint",
+      entityId: id,
+      summary: `Rotó el secreto del webhook «${row.name}»`,
+    });
     await audit(t, ctx, { action: "webhook.rotate_secret", targetType: "webhook_endpoint", targetId: id });
     return { id, secret };
   });
@@ -457,7 +507,12 @@ const MAX_BODY = 256 * 1024;
  * ventana anti-replay de 5 minutos, comparación en tiempo constante y rechazo de firmas repetidas.
  * Genera el evento `webhook.recibido`, que puede disparar reglas.
  */
-export async function receiveWebhook(endpointId: string, rawBody: string, signature: string | null, nowS = Math.floor(Date.now() / 1000)): Promise<WebhookReceipt> {
+export async function receiveWebhook(
+  endpointId: string,
+  rawBody: string,
+  signature: string | null,
+  nowS = Math.floor(Date.now() / 1000),
+): Promise<WebhookReceipt> {
   if (!/^[0-9a-f-]{36}$/i.test(endpointId)) return { status: 404, message: "No encontrado" };
   if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY) return { status: 413, message: "Cuerpo demasiado grande" };
   const db = getDb();
@@ -484,7 +539,12 @@ export async function receiveWebhook(endpointId: string, rawBody: string, signat
       .where(and(eq(schema.webhookDelivery.endpointId, ep.id), eq(schema.webhookDelivery.responseExcerpt, marker)))
       .limit(1);
     if (dup) return { status: 409 as const, message: "Entrega repetida" };
-    const ctx: Ctx = { workspaceId: ep.workspaceId, userId: null, role: "owner", actor: { type: "system", id: `webhook:${ep.id}`, name: `Webhook «${ep.name}»` } };
+    const ctx: Ctx = {
+      workspaceId: ep.workspaceId,
+      userId: null,
+      role: "owner",
+      actor: { type: "system", id: `webhook:${ep.id}`, name: `Webhook «${ep.name}»` },
+    };
     await recordEvent(t, ctx, {
       type: "webhook.recibido",
       entityType: "webhook_endpoint",
@@ -498,7 +558,9 @@ export async function receiveWebhook(endpointId: string, rawBody: string, signat
       .where(and(eq(schema.domainEvent.workspaceId, ep.workspaceId), eq(schema.domainEvent.entityId, ep.id), eq(schema.domainEvent.type, "webhook.recibido")))
       .orderBy(desc(schema.domainEvent.occurredAt), desc(schema.domainEvent.id))
       .limit(1);
-    await t.insert(schema.webhookDelivery).values({ workspaceId: ep.workspaceId, endpointId: ep.id, eventId: ev?.id ?? null, statusCode: 202, responseExcerpt: marker });
+    await t
+      .insert(schema.webhookDelivery)
+      .values({ workspaceId: ep.workspaceId, endpointId: ep.id, eventId: ev?.id ?? null, statusCode: 202, responseExcerpt: marker });
     return { status: 202 as const, message: "Recibido", eventId: ev?.id };
   });
 }
@@ -533,7 +595,11 @@ export async function handleEvent(ev: DomainEventRow): Promise<number> {
     for (const rule of rules) {
       if (ev.actorId === AUTOMATION_ACTOR(rule.id)) continue;
       try {
-        const r = await executeRule(rule, { eventId: ev.id, event: { ...ev, payload: (ev.payload ?? {}) as Record<string, unknown> } }, { dryRun: rule.testMode });
+        const r = await executeRule(
+          rule,
+          { eventId: ev.id, event: { ...ev, payload: (ev.payload ?? {}) as Record<string, unknown> } },
+          { dryRun: rule.testMode },
+        );
         if (!r.duplicate) n++;
       } catch (e) {
         console.error("[automatizaciones] regla", rule.id, e instanceof Error ? e.message : e);
@@ -576,7 +642,10 @@ async function handleApprovalDecision(ev: DomainEventRow) {
     }
   }
   if (!prop.runId) return;
-  const [run] = await db.select().from(schema.automationRun).where(and(eq(schema.automationRun.id, prop.runId), eq(schema.automationRun.workspaceId, ev.workspaceId)));
+  const [run] = await db
+    .select()
+    .from(schema.automationRun)
+    .where(and(eq(schema.automationRun.id, prop.runId), eq(schema.automationRun.workspaceId, ev.workspaceId)));
   if (!run) return;
   const out = (run.output ?? { step: 0, results: [] }) as RunOutput;
   const results = (out.results ?? []).map((r) => (r.index === prop.index ? { ...r, summary: note, ok: approved ? ok : true, pendingApproval: false } : r));

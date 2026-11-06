@@ -30,7 +30,12 @@ async function one<T>(rows: Promise<T[]>): Promise<T | undefined> {
 }
 
 async function loadTask(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.task).where(and(scoped(schema.task, ws, { withArchived: true }), eq(schema.task.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.task)
+      .where(and(scoped(schema.task, ws, { withArchived: true }), eq(schema.task.id, id))),
+  );
   if (!r) return null;
   const today = todayAR();
   return {
@@ -49,7 +54,12 @@ async function loadTask(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadProject(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.project).where(and(scoped(schema.project, ws, { withArchived: true }), eq(schema.project.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.project)
+      .where(and(scoped(schema.project, ws, { withArchived: true }), eq(schema.project.id, id))),
+  );
   if (!r) return null;
   return {
     obj: {
@@ -69,7 +79,12 @@ async function loadProject(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadClient(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.client).where(and(scoped(schema.client, ws, { withArchived: true }), eq(schema.client.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.client)
+      .where(and(scoped(schema.client, ws, { withArchived: true }), eq(schema.client.id, id))),
+  );
   if (!r) return null;
   const [c] = await db
     .select({ name: schema.contact.name, email: schema.contact.email })
@@ -93,7 +108,12 @@ async function loadClient(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadOpportunity(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.opportunity).where(and(scoped(schema.opportunity, ws, { withArchived: true }), eq(schema.opportunity.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.opportunity)
+      .where(and(scoped(schema.opportunity, ws, { withArchived: true }), eq(schema.opportunity.id, id))),
+  );
   if (!r) return null;
   return {
     obj: {
@@ -111,13 +131,27 @@ async function loadOpportunity(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadQuote(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.quote).where(and(scoped(schema.quote, ws, { withArchived: true }), eq(schema.quote.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.quote)
+      .where(and(scoped(schema.quote, ws, { withArchived: true }), eq(schema.quote.id, id))),
+  );
   if (!r) return null;
-  return { obj: { id: r.id, numero: r.number, titulo: r.title, nombre: `${r.number} · ${r.title}`, estado: r.status }, clientId: r.clientId, projectId: r.projectId };
+  return {
+    obj: { id: r.id, numero: r.number, titulo: r.title, nombre: `${r.number} · ${r.title}`, estado: r.status },
+    clientId: r.clientId,
+    projectId: r.projectId,
+  };
 }
 
 async function loadReceivable(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.receivable).where(and(scoped(schema.receivable, ws, { withArchived: true }), eq(schema.receivable.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.receivable)
+      .where(and(scoped(schema.receivable, ws, { withArchived: true }), eq(schema.receivable.id, id))),
+  );
   if (!r) return null;
   return {
     obj: { id: r.id, concepto: r.concept, nombre: r.concept, monto: r.amount, moneda: r.currency, vence: r.dueDate, estado: r.status },
@@ -127,7 +161,12 @@ async function loadReceivable(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadDomain(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.domain).where(and(scoped(schema.domain, ws, { withArchived: true }), eq(schema.domain.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.domain)
+      .where(and(scoped(schema.domain, ws, { withArchived: true }), eq(schema.domain.id, id))),
+  );
   if (!r) return null;
   return {
     obj: {
@@ -144,19 +183,34 @@ async function loadDomain(db: DbOrTx, ws: Ws, id: string) {
 }
 
 async function loadSite(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.site).where(and(scoped(schema.site, ws, { withArchived: true }), eq(schema.site.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.site)
+      .where(and(scoped(schema.site, ws, { withArchived: true }), eq(schema.site.id, id))),
+  );
   if (!r) return null;
   return { obj: { id: r.id, nombre: r.name, url: r.prodUrl ?? r.stagingUrl, estado: r.publicationStatus }, clientId: r.clientId, projectId: r.projectId };
 }
 
 async function loadAudit(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.seoAudit).where(and(scoped(schema.seoAudit, ws, { withArchived: true }), eq(schema.seoAudit.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.seoAudit)
+      .where(and(scoped(schema.seoAudit, ws, { withArchived: true }), eq(schema.seoAudit.id, id))),
+  );
   if (!r) return null;
   return { obj: { id: r.id, url: r.rootUrl, nombre: r.rootUrl, puntaje: r.score, estado: r.status }, siteId: r.siteId };
 }
 
 async function loadRepository(db: DbOrTx, ws: Ws, id: string) {
-  const r = await one(db.select().from(schema.repository).where(and(scoped(schema.repository, ws, { withArchived: true }), eq(schema.repository.id, id))));
+  const r = await one(
+    db
+      .select()
+      .from(schema.repository)
+      .where(and(scoped(schema.repository, ws, { withArchived: true }), eq(schema.repository.id, id))),
+  );
   if (!r) return null;
   return { obj: { id: r.id, nombre: r.fullName, lenguaje: r.language } };
 }

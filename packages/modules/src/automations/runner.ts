@@ -9,8 +9,8 @@ import { sendEmail } from "../shared/email";
 import { safeFetch } from "../shared/safe-fetch";
 import { createTask, setTaskStatus } from "../tasks/service";
 import { ACTION_TYPES, MAX_RUNS_PER_MINUTE } from "./catalog";
-import { type RunData, buildRunData, type TriggerEvent } from "./data";
-import { evaluateConditions, interpolate, MAX_ATTEMPTS, signWebhook, SIGNATURE_HEADER } from "./engine";
+import { buildRunData, type RunData, type TriggerEvent } from "./data";
+import { evaluateConditions, interpolate, MAX_ATTEMPTS, SIGNATURE_HEADER, signWebhook } from "./engine";
 import { actionZ } from "./validators";
 
 export type RuleRow = typeof schema.automationRule.$inferSelect;
@@ -220,7 +220,11 @@ async function performAction(env: ExecEnv, index: number, raw: unknown): Promise
       let status = 0;
       let excerpt = "";
       try {
-        const r = await postWebhook(ep.url, body, { "content-type": "application/json", [SIGNATURE_HEADER]: signature, "x-agencyos-event": String((data.evento as { tipo?: string }).tipo ?? "") });
+        const r = await postWebhook(ep.url, body, {
+          "content-type": "application/json",
+          [SIGNATURE_HEADER]: signature,
+          "x-agencyos-event": String((data.evento as { tipo?: string }).tipo ?? ""),
+        });
         status = r.status;
         excerpt = r.text;
       } catch (e) {
@@ -233,7 +237,8 @@ async function performAction(env: ExecEnv, index: number, raw: unknown): Promise
         statusCode: status || null,
         responseExcerpt: excerpt || null,
       });
-      if (status < 200 || status >= 300) throw new DomainError("EXTERNAL", status ? `El webhook «${ep.name}» respondió ${status}` : `No se pudo conectar con «${ep.name}»: ${excerpt}`);
+      if (status < 200 || status >= 300)
+        throw new DomainError("EXTERNAL", status ? `El webhook «${ep.name}» respondió ${status}` : `No se pudo conectar con «${ep.name}»: ${excerpt}`);
       return { ...base, summary: `Webhook «${ep.name}» respondió ${status}` };
     }
     case "wait": {
@@ -262,7 +267,12 @@ async function emitRunEvent(ctx: Ctx, rule: RuleRow, runId: string, ok: boolean,
 }
 
 /** Corre las acciones desde `from`. Persiste estado, pausa (esperar) y errores. */
-export async function continueRun(env: ExecEnv & { runId: string }, from: number, prev: ActionResult[], extra: Partial<RunOutput> = {}): Promise<RunOutput & { status: string }> {
+export async function continueRun(
+  env: ExecEnv & { runId: string },
+  from: number,
+  prev: ActionResult[],
+  extra: Partial<RunOutput> = {},
+): Promise<RunOutput & { status: string }> {
   const results = [...prev];
   const actions = env.rule.actions as unknown[];
   for (let i = from; i < actions.length; i++) {
@@ -311,7 +321,10 @@ export async function executeRule(
   const persist = opts.persist !== false;
   const role = await creatorRole(db, rule.workspaceId, rule.createdBy);
   const data = await buildRunData(db, rule.workspaceId, trigger.event);
-  const input = { evento: { id: trigger.eventId, tipo: trigger.event.type, entidad: trigger.event.entityType, entidadId: trigger.event.entityId }, datos: data };
+  const input = {
+    evento: { id: trigger.eventId, tipo: trigger.event.type, entidad: trigger.event.entityType, entidadId: trigger.event.entityId },
+    datos: data,
+  };
 
   let runId: string | null = null;
   if (persist) {
@@ -327,7 +340,12 @@ export async function executeRule(
             .from(schema.automationRun)
             .where(and(eq(schema.automationRun.ruleId, rule.id), eq(schema.automationRun.eventId, trigger.eventId)))
         : [];
-      return { status: existing?.status ?? "skipped", runId: existing?.id ?? null, duplicate: true, output: (existing?.output as RunOutput) ?? { step: 0, results: [] } };
+      return {
+        status: existing?.status ?? "skipped",
+        runId: existing?.id ?? null,
+        duplicate: true,
+        output: (existing?.output as RunOutput) ?? { step: 0, results: [] },
+      };
     }
     runId = run.id;
     await db.update(schema.automationRule).set({ lastRunAt: new Date() }).where(eq(schema.automationRule.id, rule.id));
@@ -388,7 +406,12 @@ export async function resumeRun(run: RunRow): Promise<string> {
     .where(and(eq(schema.automationRule.id, run.ruleId), eq(schema.automationRule.workspaceId, run.workspaceId), isNull(schema.automationRule.deletedAt)));
   const out = (run.output ?? { step: 0, results: [] }) as RunOutput;
   if (!rule || !rule.active) {
-    await finish(run.id, { status: "skipped", output: { ...out, reason: "La regla se pausó o se eliminó antes de continuar" }, finishedAt: new Date(), resumeAt: null });
+    await finish(run.id, {
+      status: "skipped",
+      output: { ...out, reason: "La regla se pausó o se eliminó antes de continuar" },
+      finishedAt: new Date(),
+      resumeAt: null,
+    });
     return "skipped";
   }
   const role = await creatorRole(db, rule.workspaceId, rule.createdBy);

@@ -70,7 +70,10 @@ function toPayload(s: State) {
     eventType: s.triggerKind === "event" ? s.eventType || undefined : undefined,
     schedule,
     source: s.triggerKind === "schedule" ? { kind: s.source.kind, days: s.source.days } : undefined,
-    conditions: { match: s.conditions.match, items: s.conditions.items.map((c) => ({ field: c.field, op: c.op, value: c.op === "exists" ? undefined : c.value })) },
+    conditions: {
+      match: s.conditions.match,
+      items: s.conditions.items.map((c) => ({ field: c.field, op: c.op, value: c.op === "exists" ? undefined : c.value })),
+    },
     actions: s.actions.map((a) => {
       const p = { ...a.params };
       if (a.type === "create_task" && (p.dueInDays === "" || p.dueInDays === undefined || p.dueInDays === null)) delete p.dueInDays;
@@ -122,7 +125,10 @@ function useFields(meta: BuilderMeta, s: State): { group: string; fields: FieldD
       }
     }
     if (payload.length) out.push({ group: "Datos del evento", fields: payload });
-    out.push({ group: s.triggerKind === "event" ? "Evento" : "Programación", fields: s.triggerKind === "event" ? meta.commonFields : meta.commonFields.slice(2) });
+    out.push({
+      group: s.triggerKind === "event" ? "Evento" : "Programación",
+      fields: s.triggerKind === "event" ? meta.commonFields : meta.commonFields.slice(2),
+    });
     return out;
   }, [meta, s.triggerKind, s.eventType, s.source.kind]);
 }
@@ -162,7 +168,17 @@ function Step({ n, title, icon, children, aside }: { n: string; title: string; i
   );
 }
 
-function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string }) {
+function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  label,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+  label: string;
+}) {
   return (
     <div role="radiogroup" aria-label={label} className="inline-flex w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated p-1 sm:w-auto">
       {options.map((o) => (
@@ -224,7 +240,13 @@ export function RuleBuilder({
       <input type="hidden" name="payload" value={JSON.stringify(toPayload(s))} />
       <Card className="p-4 md:p-5">
         <Labeled label="Nombre de la regla" htmlFor="rule-name">
-          <Input id="rule-name" value={s.name} onChange={(e) => patch({ name: e.target.value })} maxLength={120} placeholder="Ej.: Presupuesto aceptado → kickoff" />
+          <Input
+            id="rule-name"
+            value={s.name}
+            onChange={(e) => patch({ name: e.target.value })}
+            maxLength={120}
+            placeholder="Ej.: Presupuesto aceptado → kickoff"
+          />
         </Labeled>
         <Err path="name" />
       </Card>
@@ -269,7 +291,11 @@ export function RuleBuilder({
               </Labeled>
               {s.schedule.preset === "weekly" ? (
                 <Labeled label="Día" htmlFor="rule-weekday">
-                  <Select id="rule-weekday" value={s.schedule.weekday} onChange={(e) => patch({ schedule: { ...s.schedule, weekday: Number(e.target.value) } })}>
+                  <Select
+                    id="rule-weekday"
+                    value={s.schedule.weekday}
+                    onChange={(e) => patch({ schedule: { ...s.schedule, weekday: Number(e.target.value) } })}
+                  >
                     {meta.weekdays.map((d, i) => (
                       <option key={d} value={i}>
                         {d[0]?.toUpperCase()}
@@ -281,7 +307,11 @@ export function RuleBuilder({
               ) : null}
               {s.schedule.preset === "monthly" ? (
                 <Labeled label="Día del mes" htmlFor="rule-monthday">
-                  <Select id="rule-monthday" value={s.schedule.monthDay} onChange={(e) => patch({ schedule: { ...s.schedule, monthDay: Number(e.target.value) } })}>
+                  <Select
+                    id="rule-monthday"
+                    value={s.schedule.monthDay}
+                    onChange={(e) => patch({ schedule: { ...s.schedule, monthDay: Number(e.target.value) } })}
+                  >
                     {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={d}>
                         {d}
@@ -291,7 +321,12 @@ export function RuleBuilder({
                 </Labeled>
               ) : null}
               <Labeled label={s.schedule.preset === "hourly" ? "Minuto (hh:mm, se usa el minuto)" : "Hora (Argentina)"} htmlFor="rule-time">
-                <Input id="rule-time" type="time" value={s.schedule.time} onChange={(e) => patch({ schedule: { ...s.schedule, time: e.target.value || "09:00" } })} />
+                <Input
+                  id="rule-time"
+                  type="time"
+                  value={s.schedule.time}
+                  onChange={(e) => patch({ schedule: { ...s.schedule, time: e.target.value || "09:00" } })}
+                />
               </Labeled>
             </div>
             <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] text-teal-700 dark:text-[#2DD4BF]">
@@ -352,7 +387,9 @@ export function RuleBuilder({
               return (
                 // biome-ignore lint/suspicious/noArrayIndexKey: filas editables sin id propio
                 <li key={i} className="rounded-[var(--radius-control)] border border-border bg-bg-elevated/60 p-3">
-                  {i > 0 ? <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">{s.conditions.match === "all" ? "y" : "o"}</p> : null}
+                  {i > 0 ? (
+                    <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">{s.conditions.match === "all" ? "y" : "o"}</p>
+                  ) : null}
                   <div className="grid gap-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] md:items-end">
                     <Labeled label="Campo" htmlFor={`${id}-field`}>
                       <Select id={`${id}-field`} value={c.field} onChange={(e) => setCond(i, { field: e.target.value, value: "" })}>
@@ -444,9 +481,19 @@ export function RuleBuilder({
               // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad de la acción
               <li key={i} className="rounded-[var(--radius-control)] border border-border bg-bg-elevated/60 p-3 md:p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[12px] text-teal-700 dark:text-[#2DD4BF]">{i + 1}</span>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[12px] text-teal-700 dark:text-[#2DD4BF]">
+                    {i + 1}
+                  </span>
                   <p className="flex-1 truncate text-[14px] font-medium text-text">{meta.actions.find((x) => x.key === a.type)?.label ?? a.type}</p>
-                  <Button type="button" variant="ghost" size="icon" className="size-11 md:size-9" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-11 md:size-9"
+                    aria-label="Subir"
+                    disabled={i === 0}
+                    onClick={() => move(i, -1)}
+                  >
                     <ArrowUp className="size-4" />
                   </Button>
                   <Button
@@ -549,7 +596,13 @@ function ActionParams({ i, a, meta, set }: { i: number; a: Action; meta: Builder
       return (
         <div className="flex flex-col gap-3">
           <Labeled label="Título de la tarea" htmlFor={`${id}-title`}>
-            <Input id={`${id}-title`} value={str("title")} onChange={(e) => set({ title: e.target.value })} maxLength={300} placeholder="Ej.: Kickoff con {{cliente.nombre}}" />
+            <Input
+              id={`${id}-title`}
+              value={str("title")}
+              onChange={(e) => set({ title: e.target.value })}
+              maxLength={300}
+              placeholder="Ej.: Kickoff con {{cliente.nombre}}"
+            />
             {err("title")}
           </Labeled>
           <Labeled label="Descripción (opcional)" htmlFor={`${id}-desc`}>
@@ -640,7 +693,11 @@ function ActionParams({ i, a, meta, set }: { i: number; a: Action; meta: Builder
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <Labeled label="Qué" htmlFor={`${id}-target`}>
-            <Select id={`${id}-target`} value={str("target") || "task"} onChange={(e) => set({ target: e.target.value, status: e.target.value === "task" ? "done" : "in_progress" })}>
+            <Select
+              id={`${id}-target`}
+              value={str("target") || "task"}
+              onChange={(e) => set({ target: e.target.value, status: e.target.value === "task" ? "done" : "in_progress" })}
+            >
               <option value="task">La tarea del evento</option>
               <option value="project">El proyecto del evento</option>
             </Select>

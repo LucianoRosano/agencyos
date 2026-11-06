@@ -28,12 +28,7 @@ export default async function EditRulePage({ params }: { params: Promise<{ id: s
         description="Los cambios valen para los próximos eventos; lo ya ejecutado queda en el registro."
         accent={AUTO_ACCENT}
       />
-      <RuleBuilder
-        meta={meta}
-        initial={ruleToInput(data.rule)}
-        action={updateRuleAction.bind(null, id)}
-        submitLabel="Guardar cambios"
-      />
+      <RuleBuilder meta={meta} initial={ruleToInput(data.rule)} action={updateRuleAction.bind(null, id)} submitLabel="Guardar cambios" />
     </div>
   );
 }

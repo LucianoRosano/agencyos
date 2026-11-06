@@ -22,7 +22,10 @@ function CopyRow({ label, value, testId }: { label: string; value: string; testI
     <div className="flex flex-col gap-1.5">
       <p className="text-[13px] font-medium text-text-muted">{label}</p>
       <div className="flex items-stretch gap-2">
-        <code data-testid={testId} className="min-w-0 flex-1 break-all rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 py-2 font-mono text-[12px] text-text">
+        <code
+          data-testid={testId}
+          className="min-w-0 flex-1 break-all rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 py-2 font-mono text-[12px] text-text"
+        >
           {value}
         </code>
         <Button
@@ -58,8 +61,8 @@ function SecretReveal({ secret, url, direction, onClose }: { secret: string; url
       {direction === "in" && url ? <CopyRow label="URL para enviar (POST)" value={url} testId="webhook-url" /> : null}
       <CopyRow label="Secreto de firma" value={secret} testId="webhook-secret" />
       <p className="text-[12px] leading-relaxed text-text-faint">
-        Firma: encabezado <code className="font-mono">X-Agencyos-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>, donde v1 = HMAC-SHA256(secreto, «t.cuerpo»). Se
-        rechazan firmas de más de 5 minutos y entregas repetidas.
+        Firma: encabezado <code className="font-mono">X-Agencyos-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>, donde v1 = HMAC-SHA256(secreto, «t.cuerpo»).
+        Se rechazan firmas de más de 5 minutos y entregas repetidas.
       </p>
       <div className="flex justify-end">
         <Button variant="primary" onClick={onClose}>
@@ -93,12 +96,7 @@ export function NewEndpointSheet({ baseUrl }: { baseUrl: string }) {
       }
     >
       {created ? (
-        <SecretReveal
-          secret={created.secret}
-          direction={created.direction}
-          url={`${baseUrl}/api/webhooks/in/${created.id}`}
-          onClose={close}
-        />
+        <SecretReveal secret={created.secret} direction={created.direction} url={`${baseUrl}/api/webhooks/in/${created.id}`} onClose={close} />
       ) : (
         <ActionForm
           action={createEndpointAction}
@@ -117,7 +115,15 @@ export function NewEndpointSheet({ baseUrl }: { baseUrl: string }) {
           />
           <TextField label="Nombre" name="name" required maxLength={80} placeholder={direction === "in" ? "Ej.: Formulario del sitio" : "Ej.: n8n"} />
           {direction === "out" ? (
-            <TextField label="URL de destino" name="url" type="url" required inputMode="url" placeholder="https://…" hint="Solo URLs públicas (http/https, puertos 80 y 443)." />
+            <TextField
+              label="URL de destino"
+              name="url"
+              type="url"
+              required
+              inputMode="url"
+              placeholder="https://…"
+              hint="Solo URLs públicas (http/https, puertos 80 y 443)."
+            />
           ) : null}
           <div className="flex justify-end">
             <SubmitButton>Crear</SubmitButton>

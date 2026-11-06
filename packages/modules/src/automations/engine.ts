@@ -74,7 +74,10 @@ export function evaluateCondition(c: Condition, data: unknown): boolean {
   }
 }
 
-export function evaluateConditions(group: ConditionGroup | null | undefined, data: unknown): { passed: boolean; details: { condition: Condition; passed: boolean }[] } {
+export function evaluateConditions(
+  group: ConditionGroup | null | undefined,
+  data: unknown,
+): { passed: boolean; details: { condition: Condition; passed: boolean }[] } {
   const items = group?.items ?? [];
   const details = items.map((condition) => ({ condition, passed: evaluateCondition(condition, data) }));
   if (!details.length) return { passed: true, details };
@@ -170,7 +173,14 @@ const WD: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri
 /** Partes de reloj en Argentina para un instante. */
 export function arParts(d: Date) {
   const p = Object.fromEntries(arFmt.formatToParts(d).map((x) => [x.type, x.value]));
-  return { year: Number(p.year), month: Number(p.month), day: Number(p.day), hour: Number(p.hour) % 24, minute: Number(p.minute), dow: WD[p.weekday ?? "Sun"] ?? 0 };
+  return {
+    year: Number(p.year),
+    month: Number(p.month),
+    day: Number(p.day),
+    hour: Number(p.hour) % 24,
+    minute: Number(p.minute),
+    dow: WD[p.weekday ?? "Sun"] ?? 0,
+  };
 }
 
 export function cronMatches(expr: string | CronFields, at: Date): boolean {
@@ -331,7 +341,12 @@ export function parseSignature(header: string | null | undefined): { t: number; 
 export type SignatureCheck = { ok: true; t: number; v1: string } | { ok: false; reason: "missing" | "stale" | "invalid" };
 
 /** Verifica firma (tiempo constante) y ventana anti-replay de 5 minutos. */
-export function verifyWebhookSignature(secret: string, body: string, header: string | null | undefined, nowS: number = Math.floor(Date.now() / 1000)): SignatureCheck {
+export function verifyWebhookSignature(
+  secret: string,
+  body: string,
+  header: string | null | undefined,
+  nowS: number = Math.floor(Date.now() / 1000),
+): SignatureCheck {
   const sig = parseSignature(header);
   if (!sig) return { ok: false, reason: "missing" };
   if (Math.abs(nowS - sig.t) > REPLAY_WINDOW_S) return { ok: false, reason: "stale" };
