@@ -1,4 +1,5 @@
 import { getDb, schema } from "@agencyos/db";
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -22,6 +23,7 @@ function createAuth() {
         verification: schema.verification,
         twoFactor: schema.twoFactor,
         rateLimit: schema.rateLimit,
+        passkey: schema.passkey,
       },
     }),
     emailAndPassword: {
@@ -53,6 +55,7 @@ function createAuth() {
         "/two-factor/verify-totp": { window: 15 * 60, max: 10 },
         "/two-factor/verify-backup-code": { window: 15 * 60, max: 5 },
         "/request-password-reset": { window: 15 * 60, max: 3 },
+        "/passkey/verify-authentication": { window: 15 * 60, max: 10 },
       },
     },
     advanced: {
@@ -63,6 +66,8 @@ function createAuth() {
     trustedOrigins: [baseURL],
     plugins: [
       twoFactor({ issuer: "AGENCYOS", backupCodeOptions: { amount: 10 } }),
+      // Passkeys: solo se registran desde una sesión ya autenticada con 2FA; valen como segundo factor (WebAuthn con verificación de usuario).
+      passkey({ rpName: "AGENCYOS", rpID: new URL(baseURL).hostname, origin: new URL(baseURL).origin }),
       ...(process.env.AUTH_HIBP === "off"
         ? []
         : [haveIBeenPwned({ customPasswordCompromisedMessage: "Esa contraseña apareció en filtraciones públicas. Elegí otra." })]),

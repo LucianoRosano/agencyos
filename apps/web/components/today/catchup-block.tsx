@@ -10,9 +10,11 @@ import {
   CirclePause,
   CreditCard,
   FileSignature,
+  Globe,
   Hourglass,
   Inbox,
   MessagesSquare,
+  ServerCrash,
   ShieldCheck,
   Target,
   Wallet,
@@ -48,6 +50,8 @@ const ICON: Record<string, { icon: React.ReactNode; tone: string }> = {
   interaction: { icon: <MessagesSquare />, tone: "text-accent-2 bg-accent-2/10 border-accent-2/30" },
   inbox: { icon: <Inbox />, tone: "text-accent-2 bg-accent-2/10 border-accent-2/30" },
   approval: { icon: <ShieldCheck />, tone: "text-accent bg-accent-soft border-accent/30" },
+  asset: { icon: <Globe />, tone: "text-warning bg-warning-soft border-warning/30" },
+  site_down: { icon: <ServerCrash />, tone: "text-danger bg-danger-soft border-danger/30" },
 };
 
 function Action({ item, onGone }: { item: CatchUpItem; onGone: () => void }) {
@@ -144,6 +148,10 @@ function Action({ item, onGone }: { item: CatchUpItem; onGone: () => void }) {
       return link("Revisar");
     case "quote":
       return link("Seguir");
+    case "asset":
+      return link("Ver vencimiento");
+    case "site_down":
+      return link("Ver monitoreo");
     default:
       return link("Abrir");
   }

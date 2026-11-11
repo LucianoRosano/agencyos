@@ -6,6 +6,7 @@ import { LogOut, MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { PasskeysSection } from "./passkeys";
 
 type Session = { id: string; token: string; createdAt: Date; updatedAt: Date; userAgent?: string | null; ipAddress?: string | null };
 
@@ -133,6 +134,8 @@ export function SecurityPanel() {
           </Button>
         </form>
       </section>
+
+      <PasskeysSection />
 
       <section className="md:max-w-md">
         <h3 className="mb-1 text-[15px] font-medium">Códigos de respaldo del 2FA</h3>

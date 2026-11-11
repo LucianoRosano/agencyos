@@ -15,6 +15,7 @@
     "@agencyos/modules": "workspace:*",
     "@agencyos/pdf": "workspace:*",
     "@agencyos/ui": "workspace:*",
+    "@better-auth/passkey": "1.7.17",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-markdown": "6.5.2",
     "@codemirror/language": "6.13.1",
