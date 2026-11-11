@@ -1,12 +1,23 @@
 "use client";
 
-import { Badge, Button, cn, Dot } from "@agencyos/ui";
+import { Badge, Button, cn, Dot, Field, Input } from "@agencyos/ui";
 import { ArrowDown, ArrowUp, Check, Lock, Trash2 } from "lucide-react";
 import { addStageAction, deleteStageAction, moveStageAction, restoreStageAction, updateStageAction } from "@/app/(app)/crm/actions";
-import { ActionForm, SubmitButton } from "@/components/action-form";
+import { ActionForm, SubmitButton, useFieldError } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
 import { type StageDef, stageColor } from "./shared";
+
+/** Campo con id único por fila (varios formularios en la misma página). */
+function RowField({ label, name, uid, required, ...props }: { label: string; name: string; uid: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const error = useFieldError(name);
+  const id = `${name}-${uid}`;
+  return (
+    <Field label={label} name={id} error={error} required={required}>
+      <Input id={id} name={name} aria-invalid={error ? true : undefined} {...props} />
+    </Field>
+  );
+}
 
 export type EditableStage = StageDef & { probability: number; system: boolean };
 
@@ -39,14 +50,23 @@ export function StagesEditor({ stages }: { stages: EditableStage[] }) {
                   )}
                 </div>
                 <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-3 md:grid-cols-[minmax(0,1fr)_120px_auto] md:items-end">
-                  <TextField label="Nombre" name="name" required maxLength={40} defaultValue={s.name} />
+                  <RowField label="Nombre" name="name" uid={s.key} required maxLength={40} defaultValue={s.name} />
                   {closed ? (
                     <>
                       <input type="hidden" name="probability" value={s.probability} />
                       <p className="self-end pb-2.5 font-mono text-[13px] text-text-muted">{s.probability}%</p>
                     </>
                   ) : (
-                    <TextField label="Prob. %" name="probability" type="number" inputMode="numeric" min={0} max={100} defaultValue={String(s.probability)} />
+                    <RowField
+                      label="Prob. %"
+                      name="probability"
+                      uid={s.key}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={100}
+                      defaultValue={String(s.probability)}
+                    />
                   )}
                   <div className="col-span-2 flex items-center gap-1 md:col-span-1">
                     {closed ? null : (
