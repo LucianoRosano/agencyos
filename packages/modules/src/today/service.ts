@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, scoped } from "../shared/db";
+import { getDb, projectScope, scoped } from "../shared/db";
 
 /** Elige una tarea como foco de hoy (máximo 3). */
 export async function pickFocus(ctx: Ctx, taskId: string) {
@@ -15,7 +15,7 @@ export async function pickFocus(ctx: Ctx, taskId: string) {
     const [task] = await t
       .select({ id: schema.task.id })
       .from(schema.task)
-      .where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx)));
+      .where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
     if (!task) throw notFound("La tarea");
     const picks = await t
       .select()
@@ -140,7 +140,7 @@ export async function logFocusSession(ctx: Ctx, raw: unknown) {
       const [own] = await t
         .select({ id: schema.task.id })
         .from(schema.task)
-        .where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx)));
+        .where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
       if (!own) throw notFound("La tarea");
     }
     const [row] = await t
@@ -160,7 +160,7 @@ export async function logFocusSession(ctx: Ctx, raw: unknown) {
         const [task] = await t
           .select()
           .from(schema.task)
-          .where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx)));
+          .where(and(eq(schema.task.id, input.taskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
         if (task)
           await t
             .update(schema.task)

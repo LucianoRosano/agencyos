@@ -4,7 +4,7 @@ import { schema, type Tx } from "@agencyos/db";
 import type { TemplateDefinition } from "@agencyos/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertFullAccess, assertOwned, assertProjectAccess, getDb, projectScope, scoped } from "../shared/db";
 import { recalcProjectProgress } from "../tasks/service";
 
 export const PROJECT_STATUSES = ["idea", "planning", "in_progress", "paused", "blocked", "done", "archived"] as const;
@@ -183,12 +183,14 @@ export async function createFromTemplate(ctx: Ctx, raw: unknown, outer?: Tx) {
 
 export async function updateProject(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "project");
+  // Datos del proyecto (cliente, espacio, fechas): solo dueño/admin. El colaborador trabaja dentro del proyecto.
+  assertFullAccess(ctx);
   const input = projectInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [before] = await t
       .select()
       .from(schema.project)
-      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx), projectScope(ctx)));
     if (!before) throw notFound("El proyecto");
     await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
     await assertOwned(t, ctx, schema.client, input.clientId, "El cliente");
@@ -232,7 +234,7 @@ export async function setNextAction(ctx: Ctx, id: string, nextAction: string, al
     const [row] = await t
       .update(schema.project)
       .set({ nextAction: text, lastActivityAt: new Date() })
-      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)))
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx), projectScope(ctx)))
       .returning();
     if (!row) throw notFound("El proyecto");
     if (alsoTask) {
@@ -264,7 +266,7 @@ export async function setProjectStatus(ctx: Ctx, id: string, rawStatus: (typeof 
     const [p] = await t
       .select()
       .from(schema.project)
-      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx), projectScope(ctx)));
     if (!p) throw notFound("El proyecto");
     if (status === "in_progress" && !p.nextAction?.trim())
       throw validation("Definí la siguiente acción antes de pasarlo a «En curso»", { nextAction: "Obligatoria" });
@@ -291,6 +293,7 @@ export async function addPhase(ctx: Ctx, projectId: string, raw: unknown) {
   const input = z.object({ name: zRequired(120, "El nombre"), dueDate: zOptDate }).parse(raw);
   return getDb().transaction(async (t) => {
     await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
+    await assertProjectAccess(t, ctx, projectId);
     const [{ n } = { n: 0 }] = await t
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.projectPhase)
@@ -310,7 +313,7 @@ export async function setPhaseStatus(ctx: Ctx, phaseId: string, rawStatus: "pend
     const [row] = await t
       .update(schema.projectPhase)
       .set({ status })
-      .where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx)))
+      .where(and(eq(schema.projectPhase.id, phaseId), scoped(schema.projectPhase, ctx), projectScope(ctx, schema.projectPhase.projectId)))
       .returning();
     if (!row) throw notFound("La etapa");
     await addChangelog(t, ctx, row.projectId, `Etapa «${row.name}»: ${label(L.phaseStatus, status).toLowerCase()}`);
@@ -332,7 +335,7 @@ export async function addBlocker(ctx: Ctx, projectId: string, raw: unknown) {
     const [p] = await t
       .select()
       .from(schema.project)
-      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
+      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx), projectScope(ctx)));
     if (!p) throw notFound("El proyecto");
     const [row] = await t
       .insert(schema.blocker)
@@ -354,7 +357,7 @@ export async function resolveBlocker(ctx: Ctx, blockerId: string) {
   const [row] = await getDb()
     .update(schema.blocker)
     .set({ resolvedAt: new Date() })
-    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx)))
+    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx), projectScope(ctx, schema.blocker.projectId)))
     .returning();
   if (!row) throw notFound("El bloqueo");
   return row;
@@ -366,7 +369,7 @@ export async function postponeBlocker(ctx: Ctx, blockerId: string, rawDays = 3) 
   const [row] = await getDb()
     .update(schema.blocker)
     .set({ revisitOn: addDays(todayAR(), days) })
-    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx)))
+    .where(and(eq(schema.blocker.id, blockerId), scoped(schema.blocker, ctx), projectScope(ctx, schema.blocker.projectId)))
     .returning();
   if (!row) throw notFound("El bloqueo");
   return row;
@@ -387,7 +390,7 @@ export async function addDecision(ctx: Ctx, projectId: string, raw: unknown) {
     const [p] = await t
       .select()
       .from(schema.project)
-      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx)));
+      .where(and(eq(schema.project.id, projectId), scoped(schema.project, ctx), projectScope(ctx)));
     if (!p) throw notFound("El proyecto");
     const [row] = await t
       .insert(schema.decision)
@@ -418,6 +421,7 @@ export async function addDeliverable(ctx: Ctx, projectId: string, raw: unknown) 
   const input = z.object({ title: zRequired(200, "El título"), dueDate: zOptDate, contentMd: zOptText(5000) }).parse(raw);
   return getDb().transaction(async (t) => {
     await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
+    await assertProjectAccess(t, ctx, projectId);
     const [row] = await t
       .insert(schema.deliverable)
       .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, projectId, ...input })
@@ -434,7 +438,7 @@ export async function setDeliverableStatus(ctx: Ctx, id: string, rawStatus: "pen
     const [row] = await t
       .update(schema.deliverable)
       .set({ status, approvedAt: status === "approved" ? new Date() : null })
-      .where(and(eq(schema.deliverable.id, id), scoped(schema.deliverable, ctx)))
+      .where(and(eq(schema.deliverable.id, id), scoped(schema.deliverable, ctx), projectScope(ctx, schema.deliverable.projectId)))
       .returning();
     if (!row) throw notFound("La entrega");
     await addChangelog(
@@ -459,6 +463,7 @@ export async function addChangelogEntry(ctx: Ctx, projectId: string, raw: unknow
   const input = z.object({ title: zRequired(200, "El título"), bodyMd: zOptText(10000), version: zOptText(30) }).parse(raw);
   return getDb().transaction(async (t) => {
     await assertOwned(t, ctx, schema.project, projectId, "El proyecto");
+    await assertProjectAccess(t, ctx, projectId);
     await addChangelog(t, ctx, projectId, input.title, input.version ? "release" : "manual", input.bodyMd, input.version);
     await recordEvent(t, ctx, { type: "proyecto.changelog", entityType: "project", entityId: projectId, summary: `Agregó al changelog: ${input.title}` });
   });

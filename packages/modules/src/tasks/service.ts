@@ -19,9 +19,9 @@ import {
 } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { type DbOrTx, schema } from "@agencyos/db";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertOwned, assertProjectAccess, getDb, projectScope, scoped } from "../shared/db";
 
 export const TASK_STATUSES = ["todo", "doing", "waiting", "done", "cancelled"] as const;
 
@@ -75,7 +75,7 @@ async function resolveSpace(t: DbOrTx, ctx: Ctx, input: { spaceId?: string; proj
     const [p] = await t
       .select({ spaceId: schema.project.spaceId })
       .from(schema.project)
-      .where(and(eq(schema.project.id, input.projectId), scoped(schema.project, ctx)));
+      .where(and(eq(schema.project.id, input.projectId), scoped(schema.project, ctx), projectScope(ctx)));
     if (!p) throw notFound("El proyecto");
     return p.spaceId;
   }
@@ -83,7 +83,7 @@ async function resolveSpace(t: DbOrTx, ctx: Ctx, input: { spaceId?: string; proj
     const [p] = await t
       .select({ spaceId: schema.task.spaceId })
       .from(schema.task)
-      .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
+      .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
     if (!p) throw notFound("La tarea padre");
     return p.spaceId;
   }
@@ -115,11 +115,12 @@ export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
       const [parent] = await t
         .select()
         .from(schema.task)
-        .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx)));
+        .where(and(eq(schema.task.id, input.parentTaskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
       if (!parent) throw notFound("La tarea padre");
       if (parent.parentTaskId) throw validation("Las subtareas tienen un solo nivel");
       input.projectId = input.projectId ?? parent.projectId ?? undefined;
     }
+    await assertProjectAccess(t, ctx, input.projectId);
     const spaceId = await resolveSpace(t, ctx, input);
     await assertPhase(t, ctx, input.phaseId, input.projectId);
     const [row] = await t
@@ -166,7 +167,7 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
     const [before] = await t
       .select()
       .from(schema.task)
-      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
     if (!before) throw notFound("La tarea");
     const values: Partial<typeof schema.task.$inferInsert> = {};
     for (const k of Object.keys(patch) as (keyof typeof patch)[]) {
@@ -182,16 +183,17 @@ export async function updateTask(ctx: Ctx, id: string, raw: unknown) {
       const [parent] = await t
         .select()
         .from(schema.task)
-        .where(and(eq(schema.task.id, values.parentTaskId), scoped(schema.task, ctx)));
+        .where(and(eq(schema.task.id, values.parentTaskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
       if (!parent) throw notFound("La tarea padre");
       if (parent.parentTaskId) throw validation("Las subtareas tienen un solo nivel");
       const [child] = await t
         .select({ id: schema.task.id })
         .from(schema.task)
-        .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx)))
+        .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)))
         .limit(1);
       if (child) throw validation("Una tarea con subtareas no puede ser subtarea");
     }
+    if (values.projectId !== undefined) await assertProjectAccess(t, ctx, values.projectId);
     if (values.spaceId) await assertOwned(t, ctx, schema.space, values.spaceId, "El espacio");
     if (values.projectId) values.spaceId = await resolveSpace(t, ctx, { projectId: values.projectId });
     const nextProject = values.projectId === undefined ? before.projectId : values.projectId;
@@ -215,7 +217,7 @@ export async function setTaskStatus(ctx: Ctx, id: string, rawStatus: (typeof TAS
     const [task] = await t
       .select()
       .from(schema.task)
-      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)))
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)))
       .for("update");
     if (!task) throw notFound("La tarea");
     const [row] = await t
@@ -253,7 +255,7 @@ export async function snoozeTask(ctx: Ctx, id: string, rawDays = 1) {
     const [task] = await t
       .select()
       .from(schema.task)
-      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
     if (!task) throw notFound("La tarea");
     const base = !task.dueDate || task.dueDate < todayAR() ? todayAR() : task.dueDate;
     const due = addDays(base, days);
@@ -275,7 +277,7 @@ export async function setTaskDue(ctx: Ctx, id: string, rawDue: string | null) {
   const [row] = await getDb()
     .update(schema.task)
     .set({ dueDate: due })
-    .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)))
+    .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)))
     .returning();
   if (!row) throw notFound("La tarea");
   return row;
@@ -287,7 +289,7 @@ export async function convertTaskToProject(ctx: Ctx, id: string) {
     const [task] = await t
       .select()
       .from(schema.task)
-      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+      .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
     if (!task) throw notFound("La tarea");
     const [p] = await t
       .insert(schema.project)
@@ -310,6 +312,19 @@ export async function convertTaskToProject(ctx: Ctx, id: string) {
 }
 
 // --- checklist ---
+/** Colaboradores: solo ítems de tareas de sus proyectos. */
+function checklistScope(ctx: Ctx) {
+  const scope = projectScope(ctx, schema.task.projectId);
+  if (!scope) return undefined;
+  return inArray(
+    schema.taskChecklistItem.taskId,
+    getDb()
+      .select({ id: schema.task.id })
+      .from(schema.task)
+      .where(and(eq(schema.task.workspaceId, ctx.workspaceId), scope)),
+  );
+}
+
 export async function addChecklistItem(ctx: Ctx, taskId: string, text: string) {
   assertCan(ctx, "update", "task");
   const parsed = zRequired(300, "El ítem").parse(text);
@@ -317,7 +332,7 @@ export async function addChecklistItem(ctx: Ctx, taskId: string, text: string) {
   const [task] = await db
     .select({ id: schema.task.id })
     .from(schema.task)
-    .where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx)));
+    .where(and(eq(schema.task.id, taskId), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
   if (!task) throw notFound("La tarea");
   const [{ n } = { n: 0 }] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -332,7 +347,7 @@ export async function toggleChecklistItem(ctx: Ctx, itemId: string) {
   const [row] = await getDb()
     .update(schema.taskChecklistItem)
     .set({ done: sql`not ${schema.taskChecklistItem.done}` })
-    .where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId)))
+    .where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId), checklistScope(ctx)))
     .returning();
   if (!row) throw notFound("El ítem");
   return row;
@@ -342,7 +357,7 @@ export async function removeChecklistItem(ctx: Ctx, itemId: string) {
   assertCan(ctx, "update", "task");
   await getDb()
     .delete(schema.taskChecklistItem)
-    .where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId)));
+    .where(and(eq(schema.taskChecklistItem.id, itemId), eq(schema.taskChecklistItem.workspaceId, ctx.workspaceId), checklistScope(ctx)));
 }
 
 export const zTaskId = zUuid;

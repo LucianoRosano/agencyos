@@ -56,6 +56,18 @@ const SCOPE_GRANTS: Record<string, [Resource, Action[]][]> = {
   "propose:*": [["approval", ["create"]]],
 };
 
+/**
+ * Colaborador (`member`): proyectos (leer y trabajar; no crear, borrar ni administrar), tareas, comentarios y etiquetas.
+ * Sin CRM, presupuestos, finanzas, notas, facultad, bandeja, configuración, auditoría, exportación, IA ni MCP.
+ */
+const MEMBER_GRANTS: Partial<Record<Resource, Action[]>> = {
+  space: ["read"],
+  project: ["read", "update"],
+  task: ["read", "create", "update", "delete"],
+  comment: ["read", "create", "delete"],
+  tag: ["read", "create"],
+};
+
 export const MCP_SCOPES = Object.keys(SCOPE_GRANTS);
 export const DEFAULT_MCP_SCOPES = ["read:all", "write:inbox", "write:tasks", "write:notes", "write:decisions", "propose:*"];
 
@@ -73,10 +85,11 @@ export function can(ctx: Ctx, action: Action, resource: Resource): boolean {
     case "admin":
       return !(resource === "workspace" && action === "delete");
     case "member":
-      if (resource === "finance" || resource === "fiscal" || resource === "settings" || resource === "audit" || resource === "export") return false;
-      if (resource === "mcp_token") return false;
-      return action !== "manage";
+      // Colaborador (docs/08 §2, M15): solo sus proyectos asignados y lo que cuelga de ellos.
+      // El alcance por proyecto lo aplican projectScope/assertProjectAccess (modules/shared/db).
+      return MEMBER_GRANTS[resource]?.includes(action) ?? false;
     case "client":
+      // El cliente nunca usa la app interna: el portal tiene sus propios casos de uso (modules/portal).
       return false;
     default:
       return false;

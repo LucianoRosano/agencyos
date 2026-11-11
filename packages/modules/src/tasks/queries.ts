@@ -1,7 +1,7 @@
 import { addDays, type Ctx, todayAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
-import { getDb, scoped } from "../shared/db";
+import { getDb, projectScope, scoped } from "../shared/db";
 
 export type TaskView = "hoy" | "proximas" | "sin-fecha" | "completadas" | "todas";
 
@@ -16,7 +16,7 @@ const taskCols = {
 export async function listTasks(ctx: Ctx, opts: { view?: TaskView; projectId?: string; spaceId?: string; q?: string; limit?: number } = {}) {
   const db = getDb();
   const today = todayAR();
-  const where = [scoped(schema.task, ctx), isNull(schema.task.parentTaskId)];
+  const where = [scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId), isNull(schema.task.parentTaskId)];
   const open = inArray(schema.task.status, ["todo", "doing", "waiting"]);
   switch (opts.view ?? "todas") {
     case "hoy":
@@ -60,20 +60,20 @@ export async function getTask(ctx: Ctx, id: string) {
     .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
     .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
     .leftJoin(schema.space, and(eq(schema.space.id, schema.task.spaceId), eq(schema.space.workspaceId, schema.task.workspaceId)))
-    .where(and(eq(schema.task.id, id), scoped(schema.task, ctx)));
+    .where(and(eq(schema.task.id, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)));
   if (!row) return null;
   const [subtasks, checklist, phases] = await Promise.all([
     db
       .select()
       .from(schema.task)
-      .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx)))
+      .where(and(eq(schema.task.parentTaskId, id), scoped(schema.task, ctx), projectScope(ctx, schema.task.projectId)))
       .orderBy(asc(schema.task.sort), asc(schema.task.createdAt)),
     db.select().from(schema.taskChecklistItem).where(eq(schema.taskChecklistItem.taskId, id)).orderBy(asc(schema.taskChecklistItem.sort)),
     row.t.projectId
       ? db
           .select()
           .from(schema.projectPhase)
-          .where(and(eq(schema.projectPhase.projectId, row.t.projectId), scoped(schema.projectPhase, ctx)))
+          .where(and(eq(schema.projectPhase.projectId, row.t.projectId), scoped(schema.projectPhase, ctx), projectScope(ctx, schema.projectPhase.projectId)))
           .orderBy(asc(schema.projectPhase.sort))
       : Promise.resolve([]),
   ]);
@@ -83,6 +83,8 @@ export async function getTask(ctx: Ctx, id: string) {
 export async function taskCounts(ctx: Ctx, spaceId?: string) {
   const today = todayAR();
   const sp = spaceId ? sql`and ${schema.task.spaceId} = ${spaceId}` : sql``;
+  const scope = projectScope(ctx, schema.task.projectId);
+  const ps = scope ? sql`and ${scope}` : sql``;
   const [r] = await getDb()
     .execute<{ today: number; overdue: number; open: number }>(sql`
     select
@@ -91,7 +93,7 @@ export async function taskCounts(ctx: Ctx, spaceId?: string) {
       count(*)::int as open
     from ${schema.task}
     where ${schema.task.workspaceId} = ${ctx.workspaceId} and ${schema.task.deletedAt} is null
-      and ${schema.task.status} in ('todo','doing','waiting') ${sp}
+      and ${schema.task.status} in ('todo','doing','waiting') ${sp} ${ps}
   `)
     .then((r) => r.rows);
   return r ?? { today: 0, overdue: 0, open: 0 };

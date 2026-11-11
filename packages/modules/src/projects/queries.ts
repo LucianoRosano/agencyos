@@ -1,13 +1,15 @@
 import type { Ctx } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
-import { getDb, scoped } from "../shared/db";
+import { getDb, projectScope, scoped } from "../shared/db";
 
 export type ProjectFilters = { status?: string; spaceId?: string; clientId?: string; q?: string; includeDone?: boolean };
 
 export async function listProjects(ctx: Ctx, f: ProjectFilters = {}) {
   const db = getDb();
   const where = [scoped(schema.project, ctx)];
+  const scope = projectScope(ctx);
+  if (scope) where.push(scope);
   if (f.status) where.push(eq(schema.project.status, f.status));
   else if (!f.includeDone) where.push(notInArray(schema.project.status, ["done", "archived"]));
   if (f.spaceId) where.push(eq(schema.project.spaceId, f.spaceId));
@@ -35,7 +37,7 @@ export async function getProject(ctx: Ctx, id: string) {
     .from(schema.project)
     .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
     .leftJoin(schema.space, and(eq(schema.space.id, schema.project.spaceId), eq(schema.space.workspaceId, schema.project.workspaceId)))
-    .where(and(eq(schema.project.id, id), scoped(schema.project, ctx, { withArchived: true })));
+    .where(and(eq(schema.project.id, id), scoped(schema.project, ctx, { withArchived: true }), projectScope(ctx)));
   if (!row) return null;
   const [phases, tasks, blockers, decisions, deliverables, changelog] = await Promise.all([
     db
@@ -85,7 +87,7 @@ export async function projectOptions(ctx: Ctx) {
   return getDb()
     .select({ id: schema.project.id, name: schema.project.name, spaceId: schema.project.spaceId, clientId: schema.project.clientId })
     .from(schema.project)
-    .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived"])))
+    .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived"]), projectScope(ctx)))
     .orderBy(asc(schema.project.name));
 }
 
@@ -94,7 +96,7 @@ export async function projectsByIds(ctx: Ctx, ids: string[]) {
   return getDb()
     .select()
     .from(schema.project)
-    .where(and(scoped(schema.project, ctx), inArray(schema.project.id, ids)));
+    .where(and(scoped(schema.project, ctx), inArray(schema.project.id, ids), projectScope(ctx)));
 }
 
 export { isNull };
