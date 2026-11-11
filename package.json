@@ -24,12 +24,12 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
-    "@biomejs/biome": "2.6.5",
+    "@biomejs/biome": "2.6.6",
     "@modelcontextprotocol/sdk": "1.32.2",
-    "@playwright/test": "1.64.1",
+    "@playwright/test": "1.65.0",
     "@types/node": "^22",
     "drizzle-orm": "0.45.4",
-    "playwright-core": "1.64.1",
+    "playwright-core": "1.65.0",
     "typescript": "5.9.3",
     "vitest": "5.1.0",
     "web-push": "3.6.7"
