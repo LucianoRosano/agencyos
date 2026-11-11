@@ -7,6 +7,9 @@ import { DEFAULT_MODEL, microToUsd, usdToMicro } from "./pricing";
 import { loadProvider } from "./provider";
 import { monthStartAR } from "./service";
 
+/** "0.2000" → "0.20" (sin ceros de más, mínimo 2 decimales). */
+const trimUsd = (v: string) => v.replace(/^(\d+\.\d{2}\d*?)0+$/, "$1");
+
 /** Estado del proveedor SIN la clave: solo si está cargada y sus últimos 4 caracteres. */
 export async function providerState(ctx: Ctx) {
   const p = await loadProvider(getDb(), ctx.workspaceId);
@@ -79,8 +82,8 @@ export async function listAgents(ctx: Ctx): Promise<AgentView[]> {
       enabled: r?.enabled ?? false,
       tools: r?.tools ?? def.defaultTools,
       modelId: r?.modelId ?? null,
-      monthlyBudget: r?.monthlyBudgetUsd ?? def.monthlyBudgetUsd,
-      perRunBudget: r?.budgetPerRunUsd ?? def.budgetPerRunUsd,
+      monthlyBudget: trimUsd(r?.monthlyBudgetUsd ?? def.monthlyBudgetUsd),
+      perRunBudget: trimUsd(r?.budgetPerRunUsd ?? def.budgetPerRunUsd),
       maxStepsCfg: r?.maxSteps ?? def.maxSteps,
       promptVersion: r?.systemPromptVersion ?? "1",
       customPrompt: p?.config.agentPrompts?.[def.key] ?? null,

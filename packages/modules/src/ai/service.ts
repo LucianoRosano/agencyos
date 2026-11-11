@@ -21,7 +21,7 @@ const zUsd = (max: number, labelTxt: string) =>
     (v) => (typeof v === "string" ? v.trim().replace(",", ".") : v),
     z
       .string({ error: `${labelTxt}: ingresá un monto` })
-      .regex(/^\d+(\.\d{1,2})?$/, `${labelTxt}: usá un monto en dólares, p. ej. 5 o 2.50`)
+      .regex(/^\d+(\.\d{1,4})?$/, `${labelTxt}: usá un monto en dólares, p. ej. 5 o 2.50`)
       .refine((s) => Number(s) > 0, `${labelTxt}: tiene que ser mayor a cero`)
       .refine((s) => Number(s) <= max, `${labelTxt}: máximo US$ ${max}`),
   );

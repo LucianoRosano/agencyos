@@ -1,5 +1,7 @@
 import { formatDate, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
+import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
+import { availableAgents } from "@agencyos/modules/ai/queries";
 import { getProject } from "@agencyos/modules/projects/queries";
 import { siteForProject } from "@agencyos/modules/sites/queries";
 import { Badge, Button, Card, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
@@ -7,6 +9,7 @@ import { CornerDownRight, LayoutTemplate, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { AgentEntryButton } from "@/components/ai/ai-ui";
 import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
 import { TaskBoard } from "@/components/tasks/task-board";
@@ -62,11 +65,12 @@ export default async function ProjectPage({
   const doneTasks = data.tasks.filter((t) => !t.parentTaskId && t.status === "done");
   const activeBlockers = data.blockers.filter((b) => !b.resolvedAt);
   const sitesOn = ctx.workspace.enabledModules.includes("sites") && (p.kind === "website" || p.kind === "store");
-  const [projects, spaces, clients, site] = await Promise.all([
+  const [projects, spaces, clients, site, ai] = await Promise.all([
     projectOpts(ctx),
     spaceOpts(ctx),
     clientOpts(ctx),
     sitesOn ? siteForProject(ctx, p.id) : Promise.resolve(null),
+    availableAgents(ctx),
   ]);
   const phaseName = new Map(data.phases.map((ph) => [ph.id, ph.name]));
   const today = todayAR();
@@ -94,6 +98,7 @@ export default async function ProjectPage({
         accent="#7C5CFF"
         actions={
           <>
+            {ai.has(ENTRY_POINTS.project.agentKey) ? <AgentEntryButton entityType="project" entityId={p.id} label={ENTRY_POINTS.project.label} /> : null}
             {sitesOn ? (
               <Button asChild variant={site ? "ghost" : "primary"}>
                 <Link href={site ? `/sitios/${site.id}` : `/sitios/nuevo?proyecto=${p.id}`}>

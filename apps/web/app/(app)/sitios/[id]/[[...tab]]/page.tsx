@@ -1,9 +1,12 @@
 import { L, label } from "@agencyos/core";
+import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
+import { availableAgents } from "@agencyos/modules/ai/queries";
 import { getSite, siteFormOptions } from "@agencyos/modules/sites/queries";
 import { Badge, Card, PageHeader, Progress, Tabs } from "@agencyos/ui";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AgentEntryButton } from "@/components/ai/ai-ui";
 import { pct, SITES_ACCENT } from "@/components/sites/shared";
 import { EditSiteSheet } from "@/components/sites/site-form";
 import { PublicationStatusSelect, SiteMenu } from "@/components/sites/site-header";
@@ -62,7 +65,7 @@ export default async function SitePage({
   const data = await getSite(ctx, id);
   if (!data) notFound();
   const { s } = data;
-  const { clients, projects } = await siteFormOptions(ctx);
+  const [{ clients, projects }, ai] = await Promise.all([siteFormOptions(ctx), availableAgents(ctx)]);
   const base = `/sitios/${id}`;
 
   return (
@@ -86,6 +89,7 @@ export default async function SitePage({
         accent={SITES_ACCENT}
         actions={
           <>
+            {ai.has(ENTRY_POINTS.site.agentKey) ? <AgentEntryButton entityType="site" entityId={s.id} label={ENTRY_POINTS.site.label} /> : null}
             <PublicationStatusSelect id={s.id} status={s.publicationStatus} />
             <EditSiteSheet
               id={s.id}
