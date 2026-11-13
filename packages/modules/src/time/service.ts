@@ -16,7 +16,7 @@ export const MAX_ENTRY_MINUTES = 24 * 60;
 const zDuration = z.preprocess(
   (v) => (v === undefined || v === null || v === "" ? undefined : (parseDuration(v) ?? Number.NaN)),
   z
-    .number({ error: "Indicá la duración (p. ej. 90, 1h30 o 1:30)" })
+    .number({ error: "No entendí la duración. Probá con 90, 1h30 o 1:30" })
     .refine((n) => !Number.isNaN(n), "No entendí la duración. Probá con 90, 1h30 o 1:30")
     .refine((n) => n >= 1, "La duración mínima es 1 minuto")
     .refine((n) => n <= MAX_ENTRY_MINUTES, "Máximo 24 h por registro"),
