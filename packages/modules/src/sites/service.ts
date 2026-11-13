@@ -4,7 +4,7 @@ import { schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, max, ne } from "drizzle-orm";
 import { z } from "zod";
 import { createNoteInTx } from "../notes/service";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertFullAccess, assertOwned, getDb, projectScope, scoped, siteScope } from "../shared/db";
 import { blueprintError, blueprintTemplate, blueprintTree, planSlotSync, SITE_KINDS } from "./blueprint";
 import { generateQuestions, normalizeAnswers } from "./brief";
 import { isCriticalCheck, LAUNCH_AREAS, launchSeed } from "./checklist";
@@ -35,7 +35,7 @@ async function loadSite(t: Tx, ctx: Ctx, id: string, forUpdate = false): Promise
   const q = t
     .select()
     .from(schema.site)
-    .where(and(eq(schema.site.id, id), scoped(schema.site, ctx, { withArchived: true })));
+    .where(and(eq(schema.site.id, id), scoped(schema.site, ctx, { withArchived: true }), projectScope(ctx, schema.site.projectId)));
   const [row] = forUpdate ? await q.for("update") : await q;
   if (!row) throw notFound("El sitio");
   return row;
@@ -163,6 +163,7 @@ export async function createSite(ctx: Ctx, raw: unknown) {
 
 export async function updateSite(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "project");
+  assertFullAccess(ctx);
   const input = siteInput.parse(raw);
   return getDb().transaction(async (t) => {
     const before = await loadSite(t, ctx, id, true);
@@ -199,6 +200,7 @@ export async function updateSite(ctx: Ctx, id: string, raw: unknown) {
 /** Cambia el estado de publicación. No permite «Publicado» con ítems críticos pendientes salvo `force`. */
 export async function setPublicationStatus(ctx: Ctx, id: string, rawStatus: string, rawForce: unknown = false) {
   assertCan(ctx, "update", "project");
+  assertFullAccess(ctx);
   const status = z.enum(PUBLICATION_STATUSES, { error: "Estado inválido" }).parse(rawStatus);
   const force = zBool.parse(rawForce);
   return getDb().transaction(async (t) => {
@@ -349,7 +351,7 @@ export async function updateRequirement(ctx: Ctx, id: string, raw: unknown) {
   const [row] = await getDb()
     .update(schema.siteRequirement)
     .set({ ...input, acceptanceMd: input.acceptanceMd ?? null })
-    .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx)))
+    .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx), siteScope(ctx, schema.siteRequirement.siteId)))
     .returning();
   if (!row) throw notFound("El requerimiento");
   return row;
@@ -361,7 +363,7 @@ export async function setRequirementStatus(ctx: Ctx, id: string, rawStatus: stri
   const [row] = await getDb()
     .update(schema.siteRequirement)
     .set({ status })
-    .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx)))
+    .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx), siteScope(ctx, schema.siteRequirement.siteId)))
     .returning();
   if (!row) throw notFound("El requerimiento");
   return row;
@@ -375,7 +377,7 @@ export async function moveRequirement(ctx: Ctx, id: string, rawDir: string) {
     const [r] = await t
       .select()
       .from(schema.siteRequirement)
-      .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx)));
+      .where(and(eq(schema.siteRequirement.id, id), scoped(schema.siteRequirement, ctx), siteScope(ctx, schema.siteRequirement.siteId)));
     if (!r) throw notFound("El requerimiento");
     const list = await t
       .select({ id: schema.siteRequirement.id })
@@ -518,7 +520,7 @@ export async function updateSlot(ctx: Ctx, slotId: string, raw: unknown) {
     const [before] = await t
       .select()
       .from(schema.contentSlot)
-      .where(and(eq(schema.contentSlot.id, slotId), scoped(schema.contentSlot, ctx)));
+      .where(and(eq(schema.contentSlot.id, slotId), scoped(schema.contentSlot, ctx), siteScope(ctx, schema.contentSlot.siteId)));
     if (!before) throw notFound("El slot");
     const [row] = await t
       .update(schema.contentSlot)
@@ -544,7 +546,7 @@ export async function setSlotStatus(ctx: Ctx, slotId: string, rawStatus: string)
   const [s] = await getDb()
     .select({ assigneeType: schema.contentSlot.assigneeType })
     .from(schema.contentSlot)
-    .where(and(eq(schema.contentSlot.id, slotId), scoped(schema.contentSlot, ctx)));
+    .where(and(eq(schema.contentSlot.id, slotId), scoped(schema.contentSlot, ctx), siteScope(ctx, schema.contentSlot.siteId)));
   if (!s) throw notFound("El slot");
   return updateSlot(ctx, slotId, { status, assigneeType: s.assigneeType });
 }
@@ -588,7 +590,7 @@ async function loadRound(t: Tx, ctx: Ctx, roundId: string) {
   const [r] = await t
     .select()
     .from(schema.revisionRound)
-    .where(and(eq(schema.revisionRound.id, roundId), scoped(schema.revisionRound, ctx)));
+    .where(and(eq(schema.revisionRound.id, roundId), scoped(schema.revisionRound, ctx), siteScope(ctx, schema.revisionRound.siteId)));
   if (!r) throw notFound("La ronda");
   return r;
 }
@@ -651,7 +653,7 @@ export async function closeRevisionRound(ctx: Ctx, roundId: string) {
     const [r] = await t
       .select()
       .from(schema.revisionRound)
-      .where(and(eq(schema.revisionRound.id, roundId), scoped(schema.revisionRound, ctx)))
+      .where(and(eq(schema.revisionRound.id, roundId), scoped(schema.revisionRound, ctx), siteScope(ctx, schema.revisionRound.siteId)))
       .for("update");
     if (!r) throw notFound("La ronda");
     if (r.status !== "open") throw conflict(`La ronda R${r.number} ya está cerrada.`);
@@ -703,6 +705,7 @@ async function syncSiteUrls(t: Tx, ctx: Ctx, siteId: string) {
 /** Alta o edición de un entorno (producción o staging). Las URLs del sitio se mantienen en sincronía. */
 export async function saveEnvironment(ctx: Ctx, siteId: string, envId: string | null, raw: unknown) {
   assertCan(ctx, "update", "project");
+  assertFullAccess(ctx);
   const input = environmentInput.parse(raw);
   return getDb().transaction(async (t) => {
     const s = await loadSite(t, ctx, siteId, true);
@@ -746,7 +749,7 @@ export async function resyncSiteUrls(ctx: Ctx, envId: string) {
     const [e] = await t
       .select({ siteId: schema.siteEnvironment.siteId })
       .from(schema.siteEnvironment)
-      .where(and(eq(schema.siteEnvironment.id, envId), eq(schema.siteEnvironment.workspaceId, ctx.workspaceId)));
+      .where(and(eq(schema.siteEnvironment.id, envId), eq(schema.siteEnvironment.workspaceId, ctx.workspaceId), siteScope(ctx, schema.siteEnvironment.siteId)));
     if (!e) throw notFound("El entorno");
     await syncSiteUrls(t, ctx, e.siteId);
   });
@@ -767,7 +770,7 @@ export async function updateLaunchCheck(ctx: Ctx, id: string, raw: unknown) {
     const [row] = await t
       .update(schema.launchCheck)
       .set({ status: input.status, ownerType: input.ownerType, evidenceMd: input.evidenceMd ?? null })
-      .where(and(eq(schema.launchCheck.id, id), scoped(schema.launchCheck, ctx)))
+      .where(and(eq(schema.launchCheck.id, id), scoped(schema.launchCheck, ctx), siteScope(ctx, schema.launchCheck.siteId)))
       .returning();
     if (!row) throw notFound("El ítem del checklist");
     await touch(t, row.siteId);
@@ -781,7 +784,7 @@ export async function setLaunchCheckStatus(ctx: Ctx, id: string, rawStatus: stri
   const [row] = await getDb()
     .update(schema.launchCheck)
     .set({ status })
-    .where(and(eq(schema.launchCheck.id, id), scoped(schema.launchCheck, ctx)))
+    .where(and(eq(schema.launchCheck.id, id), scoped(schema.launchCheck, ctx), siteScope(ctx, schema.launchCheck.siteId)))
     .returning();
   if (!row) throw notFound("El ítem del checklist");
   return row;
@@ -816,6 +819,7 @@ export async function addLaunchCheck(ctx: Ctx, siteId: string, raw: unknown) {
 /** Crea la nota de documentación si falta (o si se mandó a la papelera). */
 export async function ensureDocsNote(ctx: Ctx, siteId: string) {
   assertCan(ctx, "update", "project");
+  assertFullAccess(ctx);
   return getDb().transaction(async (t) => {
     const s = await loadSite(t, ctx, siteId, true);
     if (s.docsNoteId) {

@@ -3,7 +3,7 @@ import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
 import { assetDueDates, assetKindLabel } from "../assets/queries";
 import { downEnvironments } from "../monitoring/queries";
-import { getDb, scoped } from "../shared/db";
+import { assertFullAccess, getDb, projectScope, scoped } from "../shared/db";
 
 /**
  * Read-model de "Hoy" (docs/02 M01). Compone lecturas de varios módulos (ADR 0007):
@@ -45,6 +45,8 @@ export type AgendaItem = { key: string; date: string; time?: string | null; titl
 const SEV: Record<CatchUpItem["severity"], number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: string; now?: Date }) {
+  // El read-model completo incluye dinero, CRM y notas: los colaboradores usan getMemberToday.
+  assertFullAccess(ctx);
   const db = getDb();
   const today = todayAR(opts.now);
   const in7 = addDays(today, 7);
@@ -787,5 +789,68 @@ export async function moneySummary(ctx: Ctx, today = todayAR()) {
     activeSubscriptions: subsCount,
     series: months,
     hasData: month.length > 0 || series.length > 0 || rec.length > 0 || pay.length > 0,
+  };
+}
+
+/**
+ * "Hoy" de un colaborador (M15): solo tareas, entregas y proyectos de sus proyectos asignados.
+ * Sin dinero, CRM, notas, facultad ni bandeja.
+ */
+export async function getMemberToday(ctx: Ctx, opts: { now?: Date } = {}) {
+  const db = getDb();
+  const today = todayAR(opts.now);
+  const in7 = addDays(today, 7);
+  const open = inArray(schema.task.status, ["todo", "doing", "waiting"]);
+  const [tasks, projects, deliverables] = await Promise.all([
+    db
+      .select({ t: schema.task, projectName: schema.project.name })
+      .from(schema.task)
+      .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+      .where(
+        and(
+          scoped(schema.task, ctx),
+          projectScope(ctx, schema.task.projectId),
+          open,
+          isNull(schema.task.parentTaskId),
+          or(isNull(schema.task.dueDate), lte(schema.task.dueDate, in7)),
+        ),
+      )
+      .orderBy(sql`${schema.task.dueDate} asc nulls last`, asc(schema.task.priority))
+      .limit(200),
+    db
+      .select({
+        id: schema.project.id,
+        name: schema.project.name,
+        status: schema.project.status,
+        progress: schema.project.progress,
+        nextAction: schema.project.nextAction,
+        targetDate: schema.project.targetDate,
+      })
+      .from(schema.project)
+      .where(and(scoped(schema.project, ctx), projectScope(ctx), notInArray(schema.project.status, ["done", "archived"])))
+      .orderBy(asc(schema.project.priority), desc(schema.project.lastActivityAt)),
+    db
+      .select({ d: schema.deliverable, projectName: schema.project.name })
+      .from(schema.deliverable)
+      .innerJoin(schema.project, and(eq(schema.project.id, schema.deliverable.projectId), eq(schema.project.workspaceId, schema.deliverable.workspaceId)))
+      .where(
+        and(
+          scoped(schema.deliverable, ctx),
+          projectScope(ctx, schema.deliverable.projectId),
+          isNull(schema.project.deletedAt),
+          inArray(schema.deliverable.status, ["pending", "changes_requested"]),
+        ),
+      )
+      .orderBy(sql`${schema.deliverable.dueDate} asc nulls last`)
+      .limit(50),
+  ]);
+  return {
+    today,
+    overdue: tasks.filter((r) => r.t.dueDate && r.t.dueDate < today),
+    forToday: tasks.filter((r) => r.t.dueDate === today),
+    upcoming: tasks.filter((r) => r.t.dueDate && r.t.dueDate > today),
+    undated: tasks.filter((r) => !r.t.dueDate),
+    projects,
+    deliverables,
   };
 }

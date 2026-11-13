@@ -2,7 +2,7 @@ import { assertCan, type Ctx } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { brandFromSettings } from "../quotes/queries";
-import { getDb, scoped } from "../shared/db";
+import { assertFullAccess, getDb, projectScope, scoped, siteScope } from "../shared/db";
 import type { BlueprintTree } from "./blueprint";
 
 export type SiteFilters = { status?: string; clientId?: string; q?: string };
@@ -34,7 +34,7 @@ function joined() {
 
 export async function listSites(ctx: Ctx, f: SiteFilters = {}) {
   assertCan(ctx, "read", "project");
-  const where = [scoped(schema.site, ctx)];
+  const where = [scoped(schema.site, ctx), projectScope(ctx, schema.site.projectId)];
   if (f.status) where.push(eq(schema.site.publicationStatus, f.status));
   if (f.clientId) where.push(eq(schema.site.clientId, f.clientId));
   if (f.q) where.push(sql`f_search_norm(${schema.site.name}) like '%' || f_search_norm(${f.q}) || '%'`);
@@ -46,7 +46,7 @@ export async function listSites(ctx: Ctx, f: SiteFilters = {}) {
 
 export async function getSite(ctx: Ctx, id: string) {
   assertCan(ctx, "read", "project");
-  const [row] = await joined().where(and(eq(schema.site.id, id), scoped(schema.site, ctx, { withArchived: true })));
+  const [row] = await joined().where(and(eq(schema.site.id, id), scoped(schema.site, ctx, { withArchived: true }), projectScope(ctx, schema.site.projectId)));
   return row ?? null;
 }
 
@@ -57,13 +57,14 @@ export async function siteForProject(ctx: Ctx, projectId: string) {
   const [row] = await getDb()
     .select({ id: schema.site.id, name: schema.site.name })
     .from(schema.site)
-    .where(and(eq(schema.site.projectId, projectId), scoped(schema.site, ctx, { withArchived: true })))
+    .where(and(eq(schema.site.projectId, projectId), scoped(schema.site, ctx, { withArchived: true }), projectScope(ctx, schema.site.projectId)))
     .limit(1);
   return row ?? null;
 }
 
 /** Clientes y proyectos activos para los formularios del sitio. */
 export async function siteFormOptions(ctx: Ctx) {
+  assertFullAccess(ctx);
   const db = getDb();
   const [clients, projects] = await Promise.all([
     db
@@ -94,7 +95,7 @@ export async function getBrief(ctx: Ctx, siteId: string) {
   const [b] = await getDb()
     .select()
     .from(schema.siteBrief)
-    .where(and(eq(schema.siteBrief.siteId, siteId), scoped(schema.siteBrief, ctx)))
+    .where(and(eq(schema.siteBrief.siteId, siteId), scoped(schema.siteBrief, ctx), siteScope(ctx, schema.siteBrief.siteId)))
     .orderBy(desc(schema.siteBrief.version))
     .limit(1);
   return b ?? null;
@@ -104,7 +105,7 @@ export async function listRequirements(ctx: Ctx, siteId: string) {
   return getDb()
     .select()
     .from(schema.siteRequirement)
-    .where(and(eq(schema.siteRequirement.siteId, siteId), scoped(schema.siteRequirement, ctx)))
+    .where(and(eq(schema.siteRequirement.siteId, siteId), scoped(schema.siteRequirement, ctx), siteScope(ctx, schema.siteRequirement.siteId)))
     .orderBy(asc(schema.siteRequirement.sort), asc(schema.siteRequirement.createdAt));
 }
 
@@ -126,7 +127,7 @@ export async function getBlueprint(ctx: Ctx, siteId: string) {
         pages: sql<number>`jsonb_array_length(${schema.siteBlueprint.tree}->'pages')`,
       })
       .from(schema.siteBlueprint)
-      .where(and(eq(schema.siteBlueprint.siteId, siteId), scoped(schema.siteBlueprint, ctx)))
+      .where(and(eq(schema.siteBlueprint.siteId, siteId), scoped(schema.siteBlueprint, ctx), siteScope(ctx, schema.siteBlueprint.siteId)))
       .orderBy(desc(schema.siteBlueprint.version))
       .limit(50),
   ]);
@@ -138,7 +139,7 @@ export async function listSlots(ctx: Ctx, siteId: string) {
   return getDb()
     .select()
     .from(schema.contentSlot)
-    .where(and(eq(schema.contentSlot.siteId, siteId), scoped(schema.contentSlot, ctx)));
+    .where(and(eq(schema.contentSlot.siteId, siteId), scoped(schema.contentSlot, ctx), siteScope(ctx, schema.contentSlot.siteId)));
 }
 
 export async function listRounds(ctx: Ctx, siteId: string) {
@@ -146,7 +147,7 @@ export async function listRounds(ctx: Ctx, siteId: string) {
   const rounds = await db
     .select()
     .from(schema.revisionRound)
-    .where(and(eq(schema.revisionRound.siteId, siteId), scoped(schema.revisionRound, ctx)))
+    .where(and(eq(schema.revisionRound.siteId, siteId), scoped(schema.revisionRound, ctx), siteScope(ctx, schema.revisionRound.siteId)))
     .orderBy(desc(schema.revisionRound.number));
   const items = rounds.length
     ? await db
@@ -170,7 +171,7 @@ export async function listLaunchChecks(ctx: Ctx, siteId: string) {
   return getDb()
     .select()
     .from(schema.launchCheck)
-    .where(and(eq(schema.launchCheck.siteId, siteId), scoped(schema.launchCheck, ctx)))
+    .where(and(eq(schema.launchCheck.siteId, siteId), scoped(schema.launchCheck, ctx), siteScope(ctx, schema.launchCheck.siteId)))
     .orderBy(asc(schema.launchCheck.sort), asc(schema.launchCheck.createdAt));
 }
 
@@ -179,12 +180,13 @@ export async function listEnvironments(ctx: Ctx, siteId: string) {
     .select({ e: schema.siteEnvironment, hostingProvider: schema.hosting.provider, hostingPlan: schema.hosting.plan })
     .from(schema.siteEnvironment)
     .leftJoin(schema.hosting, and(eq(schema.hosting.id, schema.siteEnvironment.hostingId), eq(schema.hosting.workspaceId, schema.siteEnvironment.workspaceId)))
-    .where(and(eq(schema.siteEnvironment.siteId, siteId), scoped(schema.siteEnvironment, ctx)))
+    .where(and(eq(schema.siteEnvironment.siteId, siteId), scoped(schema.siteEnvironment, ctx), siteScope(ctx, schema.siteEnvironment.siteId)))
     .orderBy(asc(schema.siteEnvironment.kind), asc(schema.siteEnvironment.createdAt));
 }
 
 /** Dominio, hosting y certificados vinculados al sitio o a su cliente (solo lectura; se administran en Activos técnicos). */
 export async function siteAssets(ctx: Ctx, site: { id: string; clientId: string | null }) {
+  assertFullAccess(ctx);
   const db = getDb();
   const byClient = <T extends { clientId: unknown; siteId?: unknown }>(t: T) =>
     site.clientId
@@ -231,6 +233,7 @@ export async function siteAssets(ctx: Ctx, site: { id: string; clientId: string 
 
 /** Hostings del workspace para vincular un entorno. */
 export async function hostingOptions(ctx: Ctx) {
+  assertFullAccess(ctx);
   return getDb()
     .select({ id: schema.hosting.id, provider: schema.hosting.provider, plan: schema.hosting.plan })
     .from(schema.hosting)
@@ -266,13 +269,14 @@ export async function siteFiles(ctx: Ctx, siteId: string) {
       url: schema.file.url,
     })
     .from(schema.file)
-    .where(and(eq(schema.file.siteId, siteId), scoped(schema.file, ctx)))
+    .where(and(eq(schema.file.siteId, siteId), scoped(schema.file, ctx), siteScope(ctx, schema.file.siteId)))
     .orderBy(desc(schema.file.createdAt))
     .limit(200);
 }
 
 /** Nota de documentación + productos propios instalados en el sitio. */
 export async function siteDocs(ctx: Ctx, site: { id: string; docsNoteId: string | null }) {
+  assertFullAccess(ctx);
   const db = getDb();
   const [note] = site.docsNoteId
     ? await db
