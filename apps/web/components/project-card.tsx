@@ -14,6 +14,7 @@ export type ProjectCardData = {
   spaceName?: string | null;
   spaceColor?: string | null;
   stalled?: boolean;
+  tags?: { id: string; name: string; color: string }[];
 };
 
 /** Tarjeta de proyecto como en la vista de referencia de Hoy (frenados atenuados). */
@@ -41,6 +42,15 @@ export function ProjectCard({ p }: { p: ProjectCardData }) {
         <Dot color={p.clientName ? "#22D3EE" : (p.spaceColor ?? "#7C5CFF")} />
         {p.clientName ?? p.spaceName ?? "—"}
       </p>
+      {p.tags?.length ? (
+        <p className="mt-2 flex flex-wrap gap-x-2.5 gap-y-1 text-[12px] text-text-muted">
+          {p.tags.map((t) => (
+            <span key={t.id} className="inline-flex items-center gap-1">
+              <span aria-hidden className="size-1.5 rounded-full" style={{ background: t.color }} />#{t.name}
+            </span>
+          ))}
+        </p>
+      ) : null}
       <Progress value={p.progress} className="mt-4" label={`Avance de ${p.name}`} />
       <p className="mt-3 flex flex-1 items-start gap-2 text-[14px] text-text">
         <CornerDownRight className="mt-0.5 size-4 shrink-0 text-accent" />

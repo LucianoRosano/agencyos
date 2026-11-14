@@ -20,6 +20,7 @@ export type TaskRowData = {
   projectName?: string | null;
   clientName?: string | null;
   spaceColor?: string | null;
+  tags?: { id: string; name: string; color: string }[];
 };
 
 export function dueLabel(due: string | null, today = todayAR()) {
@@ -105,6 +106,11 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
             {showProject && (task.projectName || task.clientName) ? (
               <EntityChip color={task.clientName ? "#22D3EE" : (task.spaceColor ?? "#7C5CFF")}>{task.projectName ?? task.clientName}</EntityChip>
             ) : null}
+            {task.tags?.map((t) => (
+              <span key={t.id} className="inline-flex items-center gap-1 text-text-muted">
+                <span aria-hidden className="size-1.5 rounded-full" style={{ background: t.color }} />#{t.name}
+              </span>
+            ))}
             {due ? (
               <span className={cn("inline-flex items-center gap-1 font-mono", due.tone)}>
                 <Clock className="size-3" />

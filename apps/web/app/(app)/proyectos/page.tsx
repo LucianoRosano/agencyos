@@ -1,4 +1,5 @@
 import { diffDays, L, todayAR, toISODateAR } from "@agencyos/core";
+import { tagsFor } from "@agencyos/modules/collab/service";
 import { listProjects } from "@agencyos/modules/projects/queries";
 import { Button, EmptyState, PageHeader, Tabs } from "@agencyos/ui";
 import { FolderKanban, LayoutTemplate, Plus } from "lucide-react";
@@ -30,6 +31,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     sp.etiqueta,
     await listProjects(ctx, { status: f, spaceId: await getSelectedSpace(), q: sp.q }),
     (r) => r.p.id,
+  );
+  const tagMap = await tagsFor(
+    ctx,
+    "project",
+    rows.map((r) => r.p.id),
   );
   const stalledDays = ctx.workspace.settings.stalledDays ?? 14;
   const today = todayAR();
@@ -77,6 +83,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 clientName,
                 spaceName,
                 spaceColor,
+                tags: tagMap.get(p.id),
                 stalled: p.status === "in_progress" && diffDays(today, toISODateAR(p.lastActivityAt)) > stalledDays,
               }}
             />

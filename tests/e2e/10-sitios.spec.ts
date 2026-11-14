@@ -34,7 +34,7 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
   const p = info.project.name;
   page.on("dialog", (d) => void d.accept());
   await login(page);
-  const { projectId } = await seedStoreProject(p);
+  const { projectId, clientId } = await seedStoreProject(p);
 
   // Proyecto Tienda → «Crear sitio» (precarga cliente y proyecto)
   await page.goto(`/proyectos/${projectId}`);
@@ -125,4 +125,9 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
   await expect(page.getByRole("heading", { name: `Tienda online ${p}` })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "sitios-lista", p);
+
+  // Pestaña «Sitios» en la ficha del cliente
+  await page.goto(`/crm/clientes/${clientId}/sitios`);
+  await expect(page.getByRole("heading", { name: `Tienda online ${p}` })).toBeVisible();
+  await expectNoHorizontalScroll(page);
 });

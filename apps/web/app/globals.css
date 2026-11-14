@@ -18,6 +18,8 @@
   --color-text-faint: var(--text-faint);
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
+  --color-accent-text: var(--accent-text);
+  --color-info-text: var(--info-text);
   --color-accent-soft: var(--accent-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);

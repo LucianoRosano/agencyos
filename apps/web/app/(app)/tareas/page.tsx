@@ -1,4 +1,5 @@
 import { todayAR } from "@agencyos/core";
+import { tagsFor } from "@agencyos/modules/collab/service";
 import { listTasks, type TaskView } from "@agencyos/modules/tasks/queries";
 import { Button, EmptyState, PageHeader, Tabs } from "@agencyos/ui";
 import { CircleCheck, Columns3, List, Plus } from "lucide-react";
@@ -29,7 +30,18 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
   const spaceId = await getSelectedSpace();
   const [rows, projects, spaces] = await Promise.all([listTasks(ctx, { view: board ? "todas" : view, spaceId, q: sp.q }), projectOpts(ctx), spaceOpts(ctx)]);
   const tagged = await filterByTag(ctx, "task", sp.etiqueta, rows, (r) => r.t.id);
-  const tasks: TaskRowData[] = tagged.map((r) => ({ ...r.t, projectName: r.projectName, clientName: r.clientName, spaceColor: r.spaceColor }));
+  const tagMap = await tagsFor(
+    ctx,
+    "task",
+    tagged.map((r) => r.t.id),
+  );
+  const tasks: TaskRowData[] = tagged.map((r) => ({
+    ...r.t,
+    tags: tagMap.get(r.t.id),
+    projectName: r.projectName,
+    clientName: r.clientName,
+    spaceColor: r.spaceColor,
+  }));
   const qs = (o: Record<string, string>) =>
     `/tareas?${new URLSearchParams({ ...(sp.ver ? { ver: sp.ver } : {}), ...(sp.vista ? { vista: sp.vista } : {}), ...o })}`;
   return (
