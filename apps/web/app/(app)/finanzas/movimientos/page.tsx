@@ -156,6 +156,11 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
                 <Download className="size-4" /> CSV
               </a>
             </Button>
+            <Button asChild variant="ghost" size="sm">
+              <a href={csvHref.replace("/reportes/csv", "/reportes/xlsx")}>
+                <Download className="size-4" /> Excel
+              </a>
+            </Button>
           </div>
           <TransactionList items={page.items} options={options} showLedger={!f.ledgerId} />
           <nav className="mt-4 flex items-center justify-between gap-3" aria-label="Paginación">
