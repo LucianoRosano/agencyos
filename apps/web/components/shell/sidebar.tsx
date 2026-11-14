@@ -1,3 +1,4 @@
+import { L, label } from "@agencyos/core";
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
@@ -9,6 +10,8 @@ import { ThemeToggle } from "./theme-toggle";
 export type ShellData = {
   user: { name: string; email: string };
   role: string;
+  /** Colaborador: sin Bandeja, Capturar, espacios ni modo foco. */
+  limited?: boolean;
   enabledModules: string[];
   counts: Record<string, number>;
   spaces: { id: string; name: string; color: string; projects: number }[];
@@ -26,7 +29,7 @@ export function initials(name: string) {
 }
 
 export function Sidebar({ data }: { data: ShellData }) {
-  const items = navFor(data.enabledModules);
+  const items = navFor(data.enabledModules, data.role);
   return (
     <aside className="sticky top-0 hidden h-dvh w-[272px] shrink-0 flex-col border-r border-border bg-bg md:flex">
       <div className="px-5 pt-6 pb-5">
@@ -77,7 +80,7 @@ export function Sidebar({ data }: { data: ShellData }) {
           </span>
           <span className="min-w-0">
             <span className="block truncate text-[15px] text-text">{data.user.name.split(" ")[0]}</span>
-            <span className="block text-[13px] text-text-muted">{data.role === "owner" ? "Dueño" : data.role}</span>
+            <span className="block text-[13px] text-text-muted">{label(L.role, data.role)}</span>
           </span>
         </Link>
         <Link

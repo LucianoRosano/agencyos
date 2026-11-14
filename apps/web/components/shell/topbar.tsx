@@ -22,55 +22,59 @@ export function Topbar({ data }: { data: ShellData }) {
         </Link>
       </nav>
       <BellLink count={data.counts.notifications ?? 0} />
-      <Menu
-        trigger={
-          <button
-            type="button"
-            className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong"
+      {data.limited ? null : (
+        <>
+          <Menu
+            trigger={
+              <button
+                type="button"
+                className="flex h-10 items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3.5 text-[14px] text-text hover:border-border-strong"
+              >
+                <span
+                  aria-hidden
+                  className="size-2.5 rounded-full"
+                  style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+                />
+                {selected ? selected.name : "Todos los espacios"}
+                <ChevronDown className="size-4 text-text-muted" />
+              </button>
+            }
           >
-            <span
-              aria-hidden
-              className="size-2.5 rounded-full"
-              style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
-            />
-            {selected ? selected.name : "Todos los espacios"}
-            <ChevronDown className="size-4 text-text-muted" />
-          </button>
-        }
-      >
-        <MenuLabel>Filtrar por espacio</MenuLabel>
-        <MenuItem
-          onSelect={async () => {
-            await setSpaceAction("all");
-            router.refresh();
-          }}
-        >
-          Todos los espacios
-        </MenuItem>
-        {data.spaces.map((s) => (
-          <MenuItem
-            key={s.id}
-            icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />}
-            onSelect={async () => {
-              await setSpaceAction(s.id);
-              router.refresh();
-            }}
-          >
-            {s.name}
-          </MenuItem>
-        ))}
-        <MenuSeparator />
-        <MenuItem onSelect={() => router.push("/espacios")}>Administrar espacios</MenuItem>
-      </Menu>
-      <Button asChild variant="secondary" className="h-10">
-        <Link href="/foco">
-          <Crosshair className="size-4" /> Modo foco
-        </Link>
-      </Button>
-      <Button variant="primary" className="h-10" onClick={openCapture}>
-        <Plus className="size-4" /> Capturar
-        <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
-      </Button>
+            <MenuLabel>Filtrar por espacio</MenuLabel>
+            <MenuItem
+              onSelect={async () => {
+                await setSpaceAction("all");
+                router.refresh();
+              }}
+            >
+              Todos los espacios
+            </MenuItem>
+            {data.spaces.map((s) => (
+              <MenuItem
+                key={s.id}
+                icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />}
+                onSelect={async () => {
+                  await setSpaceAction(s.id);
+                  router.refresh();
+                }}
+              >
+                {s.name}
+              </MenuItem>
+            ))}
+            <MenuSeparator />
+            <MenuItem onSelect={() => router.push("/espacios")}>Administrar espacios</MenuItem>
+          </Menu>
+          <Button asChild variant="secondary" className="h-10">
+            <Link href="/foco">
+              <Crosshair className="size-4" /> Modo foco
+            </Link>
+          </Button>
+          <Button variant="primary" className="h-10" onClick={openCapture}>
+            <Plus className="size-4" /> Capturar
+            <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
+          </Button>
+        </>
+      )}
     </header>
   );
 }

@@ -3,7 +3,7 @@ import { audit, recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { assertFullAccess, assertOwned, getDb, scoped } from "../shared/db";
+import { assertOwned, assertProjectAccess, getDb, isProjectScoped, scoped } from "../shared/db";
 import { formatMinutes, parseDuration } from "./duration";
 
 /** "25.000" (miles con punto, sin coma decimal) → "25000"; el resto lo resuelve zOptMoney. */
@@ -64,12 +64,12 @@ async function entityLabel(t: Tx, ctx: Ctx, projectId: string | null, taskTitle:
 
 export async function createTimeEntry(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "update", "project");
-  // Horas con tarifa: información económica, solo dueño/admin (M15).
-  assertFullAccess(ctx);
   const input = timeEntryInput.parse(raw);
   if (!ctx.userId) throw validation("Sin usuario");
   return getDb().transaction(async (t) => {
     const target = await resolveTarget(t, ctx, input.projectId, input.taskId);
+    // Colaborador: solo en sus proyectos asignados y sin tarifa (dato económico, M15).
+    await assertProjectAccess(t, ctx, target.projectId);
     const [row] = await t
       .insert(schema.timeEntry)
       .values({
@@ -81,7 +81,7 @@ export async function createTimeEntry(ctx: Ctx, raw: unknown) {
         minutes: input.duration,
         date: input.date,
         billable: input.billable,
-        rate: input.rate ?? null,
+        rate: isProjectScoped(ctx) ? null : (input.rate ?? null),
         currency: input.currency,
         note: input.note ?? null,
       })
@@ -101,16 +101,15 @@ export async function createTimeEntry(ctx: Ctx, raw: unknown) {
 
 export async function updateTimeEntry(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "project");
-  // Horas con tarifa: información económica, solo dueño/admin (M15).
-  assertFullAccess(ctx);
   const input = timeEntryInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [before] = await t
       .select()
       .from(schema.timeEntry)
-      .where(and(eq(schema.timeEntry.id, id), scoped(schema.timeEntry, ctx)));
+      .where(and(eq(schema.timeEntry.id, id), scoped(schema.timeEntry, ctx), isProjectScoped(ctx) ? eq(schema.timeEntry.userId, ctx.userId ?? "") : undefined));
     if (!before) throw notFound("El registro de tiempo");
     const target = await resolveTarget(t, ctx, input.projectId, input.taskId);
+    await assertProjectAccess(t, ctx, target.projectId);
     const [row] = await t
       .update(schema.timeEntry)
       .set({
@@ -119,7 +118,7 @@ export async function updateTimeEntry(ctx: Ctx, id: string, raw: unknown) {
         minutes: input.duration,
         date: input.date,
         billable: input.billable,
-        rate: input.rate ?? null,
+        rate: isProjectScoped(ctx) ? null : (input.rate ?? null),
         currency: input.currency,
         note: input.note ?? null,
       })

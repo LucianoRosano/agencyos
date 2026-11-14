@@ -40,18 +40,20 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         title="Proyectos"
         accent="#7C5CFF"
         actions={
-          <>
-            <Button asChild variant="ghost">
-              <Link href="/proyectos/plantillas">
-                <LayoutTemplate className="size-4" /> Plantillas
-              </Link>
-            </Button>
-            <Button asChild variant="primary">
-              <Link href="/proyectos/nuevo">
-                <Plus className="size-4" /> Nuevo proyecto
-              </Link>
-            </Button>
-          </>
+          ctx.role === "member" ? undefined : (
+            <>
+              <Button asChild variant="ghost">
+                <Link href="/proyectos/plantillas">
+                  <LayoutTemplate className="size-4" /> Plantillas
+                </Link>
+              </Button>
+              <Button asChild variant="primary">
+                <Link href="/proyectos/nuevo">
+                  <Plus className="size-4" /> Nuevo proyecto
+                </Link>
+              </Button>
+            </>
+          )
         }
       />
       <Tabs active={sp.estado ?? "activos"} items={FILTERS.map((x) => ({ key: x.key, label: x.label, href: `/proyectos?estado=${x.key}` }))} />
@@ -86,13 +88,19 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         <EmptyState
           icon={<FolderKanban />}
           title={f ? `No hay proyectos «${L.projectStatus[f as keyof typeof L.projectStatus] ?? f}»` : "Todavía no hay proyectos"}
-          description="Arrancá uno con el asistente: elegís plantilla, cliente, qué significa terminado y la primera acción. Menos de 2 minutos."
+          description={
+            ctx.role === "member"
+              ? "Luciano todavía no te asignó proyectos, o no hay ninguno con este filtro."
+              : "Arrancá uno con el asistente: elegís plantilla, cliente, qué significa terminado y la primera acción. Menos de 2 minutos."
+          }
           action={
-            <Button asChild variant="primary">
-              <Link href="/proyectos/nuevo">
-                <Plus className="size-4" /> Nuevo proyecto
-              </Link>
-            </Button>
+            ctx.role === "member" ? undefined : (
+              <Button asChild variant="primary">
+                <Link href="/proyectos/nuevo">
+                  <Plus className="size-4" /> Nuevo proyecto
+                </Link>
+              </Button>
+            )
           }
         />
       )}

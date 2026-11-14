@@ -45,6 +45,8 @@ const TABS = [
   { key: "actividad", label: "Actividad" },
 ];
 
+const MEMBER_HIDDEN_TABS = ["repositorios", "horas"];
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireCtx();
   const p = await getProject(ctx, (await params).id);
@@ -60,8 +62,12 @@ export default async function ProjectPage({
 }) {
   const { id, tab: tabParts } = await params;
   const sp = await searchParams;
-  const tab = TABS.find((t) => t.key === tabParts?.[0])?.key ?? "resumen";
   const ctx = await requireCtx();
+  // Colaborador (M15): sin datos del cliente, horas/tarifas, repositorios, IA ni administración del proyecto.
+  const full = ctx.role !== "member";
+  const tabs = full ? TABS : TABS.filter((t) => !MEMBER_HIDDEN_TABS.includes(t.key));
+  if (tabParts?.[0] && !tabs.some((t) => t.key === tabParts[0])) notFound();
+  const tab = tabs.find((t) => t.key === tabParts?.[0])?.key ?? "resumen";
   const data = await getProject(ctx, id);
   if (!data) notFound();
   const { p } = data;
@@ -71,11 +77,11 @@ export default async function ProjectPage({
   const sitesOn = ctx.workspace.enabledModules.includes("sites") && (p.kind === "website" || p.kind === "store");
   const [projects, spaces, clients, site, hours, ai] = await Promise.all([
     projectOpts(ctx),
-    spaceOpts(ctx),
-    clientOpts(ctx),
+    full ? spaceOpts(ctx) : Promise.resolve([]),
+    full ? clientOpts(ctx) : Promise.resolve([]),
     sitesOn ? siteForProject(ctx, p.id) : Promise.resolve(null),
-    tab === "resumen" ? projectHoursLine(ctx, p.id) : Promise.resolve(null),
-    availableAgents(ctx),
+    full && tab === "resumen" ? projectHoursLine(ctx, p.id) : Promise.resolve(null),
+    full ? availableAgents(ctx) : Promise.resolve(new Set<string>()),
   ]);
   const phaseName = new Map(data.phases.map((ph) => [ph.id, ph.name]));
   const today = todayAR();
@@ -86,7 +92,9 @@ export default async function ProjectPage({
         eyebrow={
           <span className="flex flex-wrap items-center gap-2">
             Proyecto · {label(L.projectStatus, p.status)}
-            {data.clientName ? (
+            {data.clientName && !full ? (
+              <>· {data.clientName}</>
+            ) : data.clientName ? (
               <>
                 ·{" "}
                 <Link href={`/crm/clientes/${p.clientId}`} className="hover:text-text">
@@ -104,40 +112,42 @@ export default async function ProjectPage({
         actions={
           <>
             {ai.has(ENTRY_POINTS.project.agentKey) ? <AgentEntryButton entityType="project" entityId={p.id} label={ENTRY_POINTS.project.label} /> : null}
-            {sitesOn ? (
+            {sitesOn && (full || site) ? (
               <Button asChild variant={site ? "ghost" : "primary"}>
                 <Link href={site ? `/sitios/${site.id}` : `/sitios/nuevo?proyecto=${p.id}`}>
                   <LayoutTemplate className="size-4" /> {site ? "Ver sitio" : "Crear sitio"}
                 </Link>
               </Button>
             ) : null}
-            <EditProjectSheet
-              id={p.id}
-              spaces={spaces}
-              clients={clients}
-              defaults={{
-                name: p.name,
-                spaceId: p.spaceId,
-                clientId: p.clientId,
-                kind: p.kind,
-                goal: p.goal,
-                definitionOfDone: p.definitionOfDone,
-                status: p.status,
-                priority: p.priority,
-                startDate: p.startDate,
-                targetDate: p.targetDate,
-                deliveredDate: p.deliveredDate,
-                nextAction: p.nextAction,
-                notesMd: p.notesMd,
-              }}
-            />
-            <ProjectMenu id={p.id} name={p.name} status={p.status} archived={Boolean(p.archivedAt)} />
+            {full ? (
+              <EditProjectSheet
+                id={p.id}
+                spaces={spaces}
+                clients={clients}
+                defaults={{
+                  name: p.name,
+                  spaceId: p.spaceId,
+                  clientId: p.clientId,
+                  kind: p.kind,
+                  goal: p.goal,
+                  definitionOfDone: p.definitionOfDone,
+                  status: p.status,
+                  priority: p.priority,
+                  startDate: p.startDate,
+                  targetDate: p.targetDate,
+                  deliveredDate: p.deliveredDate,
+                  nextAction: p.nextAction,
+                  notesMd: p.notesMd,
+                }}
+              />
+            ) : null}
+            {full ? <ProjectMenu id={p.id} name={p.name} status={p.status} archived={Boolean(p.archivedAt)} /> : null}
           </>
         }
       />
       <Tabs
         active={tab}
-        items={TABS.map((t) => ({
+        items={tabs.map((t) => ({
           ...t,
           href: `/proyectos/${id}${t.key === "resumen" ? "" : `/${t.key}`}`,
           count: t.key === "tareas" ? openTasks.length : t.key === "decisiones" ? data.decisions.length || undefined : undefined,
@@ -203,12 +213,16 @@ export default async function ProjectPage({
                 <dd className="font-mono">
                   {doneTasks.length} / {doneTasks.length + openTasks.length}
                 </dd>
-                <dt className="text-text-muted">Horas</dt>
-                <dd className="font-mono">
-                  <Link href={`/proyectos/${p.id}/horas`} className="hover:underline">
-                    {hours ?? "0 h"}
-                  </Link>
-                </dd>
+                {full ? (
+                  <>
+                    <dt className="text-text-muted">Horas</dt>
+                    <dd className="font-mono">
+                      <Link href={`/proyectos/${p.id}/horas`} className="hover:underline">
+                        {hours ?? "0 h"}
+                      </Link>
+                    </dd>
+                  </>
+                ) : null}
                 <dt className="text-text-muted">Actividad</dt>
                 <dd>{relativeFromDate(p.lastActivityAt)}</dd>
               </dl>
@@ -217,7 +231,7 @@ export default async function ProjectPage({
               <SectionLabel className="mb-3">Agregar bloqueo</SectionLabel>
               <BlockerList projectId={p.id} blockers={[]} formOnly />
             </Card>
-            <EntitySide ctx={ctx} type="project" id={p.id} />
+            <EntitySide ctx={ctx} type="project" id={p.id} connections={full} />
           </div>
         </div>
       ) : null}

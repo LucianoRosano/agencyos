@@ -13,7 +13,11 @@ export default async function SitesPage({ searchParams }: { searchParams: Promis
   const ctx = await requireCtx();
   const status = sp.estado && (PUB_ORDER as readonly string[]).includes(sp.estado) ? sp.estado : undefined;
   const clientId = sp.cliente && /^[0-9a-f-]{36}$/i.test(sp.cliente) ? sp.cliente : undefined;
-  const [rows, { clients }] = await Promise.all([listSites(ctx, { status, clientId, q: sp.q }), siteFormOptions(ctx)]);
+  const full = ctx.role !== "member";
+  const [rows, { clients }] = await Promise.all([
+    listSites(ctx, { status, clientId, q: sp.q }),
+    full ? siteFormOptions(ctx) : Promise.resolve({ clients: [] as { id: string; name: string }[] }),
+  ]);
   const qs = (extra: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ cliente: clientId, q: sp.q, ...extra })) if (v) p.set(k, v);
@@ -29,11 +33,13 @@ export default async function SitesPage({ searchParams }: { searchParams: Promis
         description="Del briefing a la publicación: estructura, contenidos, revisiones y checklist de lanzamiento."
         accent={SITES_ACCENT}
         actions={
-          <Button asChild variant="primary">
-            <Link href="/sitios/nuevo">
-              <Plus className="size-4" /> Nuevo sitio
-            </Link>
-          </Button>
+          full ? (
+            <Button asChild variant="primary">
+              <Link href="/sitios/nuevo">
+                <Plus className="size-4" /> Nuevo sitio
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
       <Tabs
@@ -142,7 +148,7 @@ export default async function SitesPage({ searchParams }: { searchParams: Promis
               <Button asChild variant="secondary">
                 <Link href="/sitios">Ver todos</Link>
               </Button>
-            ) : (
+            ) : !full ? undefined : (
               <Button asChild variant="primary">
                 <Link href="/sitios/nuevo">
                   <Plus className="size-4" /> Crear el primer sitio

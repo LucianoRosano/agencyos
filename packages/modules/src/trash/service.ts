@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { and, desc, eq, isNotNull, lt, sql } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
-import { getDb } from "../shared/db";
+import { assertEntityAccess, assertFullAccess, getDb } from "../shared/db";
 import { ENTITIES, type EntityType, isEntityType } from "../shared/entities";
 
 const RESOURCE: Partial<Record<EntityType, Resource>> = {
@@ -51,6 +51,8 @@ function resolve(type: string) {
 async function setColumn(ctx: Ctx, type: string, id: string, column: "deletedAt" | "archivedAt", value: Date | null, verb: string, summary: string) {
   const { table, resource } = resolve(type);
   assertCan(ctx, "delete", resource);
+  // Colaboradores: solo elementos de sus proyectos asignados.
+  await assertEntityAccess(getDb(), ctx, type, id);
   return getDb().transaction(async (t) => {
     const [row] = await t
       .update(table)
@@ -83,6 +85,7 @@ export const archive = (ctx: Ctx, type: string, id: string) => setColumn(ctx, ty
 export const unarchive = (ctx: Ctx, type: string, id: string) => setColumn(ctx, type, id, "archivedAt", null, "desarchivado", "Desarchivó");
 
 export async function listTrash(ctx: Ctx) {
+  assertFullAccess(ctx);
   const db = getDb();
   const out: { type: EntityType; id: string; title: string; deletedAt: Date }[] = [];
   for (const [type, def] of Object.entries(ENTITIES) as [EntityType, (typeof ENTITIES)[EntityType]][]) {
@@ -117,6 +120,7 @@ export async function purgeTrash(olderThanDays = 30): Promise<number> {
 
 export async function purgeOne(ctx: Ctx, type: string, id: string) {
   if (type === "transaction") throw validation("Los movimientos se eliminan definitivamente solos a los 30 días (con su par de transferencia).");
+  assertFullAccess(ctx);
   const { table, resource } = resolve(type);
   assertCan(ctx, "delete", resource);
   return getDb()

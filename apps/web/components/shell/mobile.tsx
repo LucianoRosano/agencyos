@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
-import { Brain, BriefcaseBusiness, FileText, FolderKanban, Plus, Sun, Wallet } from "lucide-react";
+import { Bell, Brain, BriefcaseBusiness, CircleCheck, FileText, FolderKanban, Plus, Sun, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setSpaceAction } from "@/app/actions/shell";
@@ -14,7 +14,7 @@ import { BellLink } from "./topbar";
 
 export function MobileHeader({ data }: { data: ShellData }) {
   const router = useRouter();
-  const items = navFor(data.enabledModules);
+  const items = navFor(data.enabledModules, data.role);
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-bg/85 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-3 backdrop-blur-md md:hidden">
       <Link href="/hoy" aria-label="AGENCYOS · Hoy">
@@ -82,22 +82,32 @@ export function BottomNav({ data }: { data: ShellData }) {
     >
       <BottomLink href="/hoy" icon={<Sun />} label="Hoy" />
       <BottomLink href="/proyectos" icon={<FolderKanban />} label="Proyectos" />
-      <div className="flex flex-1 justify-center">
-        <button
-          type="button"
-          onClick={openCapture}
-          aria-label="Capturar"
-          className="-mt-7 mb-2 grid size-16 place-items-center rounded-[20px] bg-[image:var(--gradient)] text-white shadow-[0_8px_30px_-6px_var(--accent)] ring-4 ring-bg active:scale-95"
-        >
-          <Plus className="size-7" strokeWidth={2} />
-        </button>
-      </div>
-      {hasNotes ? (
+      {data.limited ? null : (
+        <div className="flex flex-1 justify-center">
+          <button
+            type="button"
+            onClick={openCapture}
+            aria-label="Capturar"
+            className="-mt-7 mb-2 grid size-16 place-items-center rounded-[20px] bg-[image:var(--gradient)] text-white shadow-[0_8px_30px_-6px_var(--accent)] ring-4 ring-bg active:scale-95"
+          >
+            <Plus className="size-7" strokeWidth={2} />
+          </button>
+        </div>
+      )}
+      {data.limited ? (
+        <BottomLink href="/tareas" icon={<CircleCheck />} label="Tareas" />
+      ) : hasNotes ? (
         <BottomLink href="/notas" icon={<FileText />} label="Notas" />
       ) : (
         <BottomLink href="/crm/clientes" match="/crm" icon={<BriefcaseBusiness />} label="CRM" />
       )}
-      {hasBrain ? <BottomLink href="/cerebro" icon={<Brain />} label="Cerebro" /> : <BottomLink href="/finanzas" icon={<Wallet />} label="Finanzas" />}
+      {data.limited ? (
+        <BottomLink href="/notificaciones" icon={<Bell />} label="Avisos" />
+      ) : hasBrain ? (
+        <BottomLink href="/cerebro" icon={<Brain />} label="Cerebro" />
+      ) : (
+        <BottomLink href="/finanzas" icon={<Wallet />} label="Finanzas" />
+      )}
     </nav>
   );
 }

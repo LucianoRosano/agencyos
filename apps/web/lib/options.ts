@@ -2,7 +2,7 @@ import "server-only";
 import type { Ctx } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { projectOptions } from "@agencyos/modules/projects/queries";
-import { scoped } from "@agencyos/modules/shared/db";
+import { isProjectScoped, scoped } from "@agencyos/modules/shared/db";
 import { listSpaces } from "@agencyos/modules/spaces/service";
 import { and, asc, ne } from "drizzle-orm";
 
@@ -13,6 +13,8 @@ export async function projectOpts(ctx: Ctx) {
   return (await projectOptions(ctx)).map((p) => ({ value: p.id, label: p.name }));
 }
 export async function clientOpts(ctx: Ctx) {
+  // El CRM no es visible para colaboradores.
+  if (isProjectScoped(ctx)) return [];
   const rows = await getDb()
     .select({ id: schema.client.id, name: schema.client.name })
     .from(schema.client)

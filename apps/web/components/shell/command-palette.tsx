@@ -13,7 +13,8 @@ import { openCapture } from "./palette-trigger";
 
 type Hit = Awaited<ReturnType<typeof searchAction>>[number];
 
-export function CommandPalette({ enabledModules }: { enabledModules: string[] }) {
+export function CommandPalette({ enabledModules, role }: { enabledModules: string[]; role?: string }) {
+  const limited = role === "member";
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
@@ -94,7 +95,7 @@ export function CommandPalette({ enabledModules }: { enabledModules: string[] })
           </button>
         </div>
         <Command.List className="flex-1 overflow-y-auto p-2 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-text-faint">
-          {q.trim() ? (
+          {q.trim() && !limited ? (
             <Command.Group heading="Acciones">
               <Item
                 icon={<Inbox />}
@@ -142,30 +143,32 @@ export function CommandPalette({ enabledModules }: { enabledModules: string[] })
           ) : null}
           {!q.trim() ? (
             <>
-              <Command.Group heading="Crear">
-                {creates.map((c) => (
-                  <Item key={c.href} icon={c.icon} onSelect={() => go(c.href)}>
-                    {c.label}
+              {limited ? null : (
+                <Command.Group heading="Crear">
+                  {creates.map((c) => (
+                    <Item key={c.href} icon={c.icon} onSelect={() => go(c.href)}>
+                      {c.label}
+                    </Item>
+                  ))}
+                  <Item
+                    icon={<Inbox />}
+                    onSelect={() => {
+                      setOpen(false);
+                      openCapture();
+                    }}
+                  >
+                    Capturar en la Bandeja <Kbd>C</Kbd>
                   </Item>
-                ))}
-                <Item
-                  icon={<Inbox />}
-                  onSelect={() => {
-                    setOpen(false);
-                    openCapture();
-                  }}
-                >
-                  Capturar en la Bandeja <Kbd>C</Kbd>
-                </Item>
-              </Command.Group>
+                </Command.Group>
+              )}
               <Command.Group heading="Ir a">
-                {navFor(enabledModules).map((n) => (
+                {navFor(enabledModules, role).map((n) => (
                   <Item key={n.key} icon={n.icon} onSelect={() => go(n.href)}>
                     {n.label}
                   </Item>
                 ))}
                 <Item onSelect={() => go("/configuracion")}>Configuración</Item>
-                <Item onSelect={() => go("/papelera")}>Papelera</Item>
+                {limited ? null : <Item onSelect={() => go("/papelera")}>Papelera</Item>}
               </Command.Group>
             </>
           ) : null}

@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertFullAccess, assertOwned, getDb, projectScope, scoped } from "../shared/db";
 import { ENTITIES, type EntityType } from "../shared/entities";
 import { getStorage, newStorageKey, sha256 } from "../shared/storage";
 import { DEFAULT_QUOTA_MB, detectType, extOf, FILE_KINDS, MAX_FILE_BYTES, normalizeFileName, sanitizeSvg, THUMBABLE } from "./magic";
@@ -155,6 +155,7 @@ export const uploadMeta = z.object({
  */
 export async function uploadFile(ctx: Ctx, rawName: string, raw: Buffer, rawMeta: unknown = {}) {
   assertCan(ctx, "create", R);
+  assertFullAccess(ctx);
   const meta = uploadMeta.parse(rawMeta);
   const p = await prepare(rawName, raw);
   let key: string | null = null;
@@ -226,6 +227,7 @@ export async function uploadFile(ctx: Ctx, rawName: string, raw: Buffer, rawMeta
 /** Nueva versión: conserva el historial. Tiene que ser del mismo tipo que la actual. */
 export async function uploadVersion(ctx: Ctx, fileId: string, rawName: string, raw: Buffer) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   zUuid.parse(fileId);
   const p = await prepare(rawName, raw);
   let key: string | null = null;
@@ -282,6 +284,7 @@ export async function uploadVersion(ctx: Ctx, fileId: string, rawName: string, r
 /** Restaura una versión anterior: crea una versión nueva con ese contenido (el historial no se pierde). */
 export async function restoreVersion(ctx: Ctx, fileId: string, rawVersion: unknown) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   const versionNo = z.coerce.number().int().min(1).parse(rawVersion);
   return getDb().transaction(async (t) => {
     const [f] = await t
@@ -355,6 +358,7 @@ export const fileMetaInput = z.object({
 
 export async function updateFile(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   const input = fileMetaInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [f] = await t
@@ -430,6 +434,7 @@ export const folderInput = z.object({
 
 export async function createFolder(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", R);
+  assertFullAccess(ctx);
   const input = folderInput.parse(raw);
   return getDb().transaction(async (t) => {
     let parent: typeof schema.folder.$inferSelect | undefined;
@@ -461,6 +466,7 @@ export async function createFolder(ctx: Ctx, raw: unknown) {
 
 export async function renameFolder(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   const { name } = z.object({ name: zRequired(80, "El nombre") }).parse(raw);
   return getDb().transaction(async (t) => {
     const [row] = await t
@@ -479,6 +485,7 @@ export async function renameFolder(ctx: Ctx, id: string, raw: unknown) {
 export const attachInput = z.object({ fileId: zUuid, entityType: zRequired(40, "El tipo"), entityId: zUuid });
 
 export async function attachFile(ctx: Ctx, raw: unknown) {
+  assertFullAccess(ctx);
   const input = attachInput.parse(raw);
   return getDb().transaction(async (t) => {
     await assertAttachable(t, ctx, input.entityType, input.entityId);
@@ -492,6 +499,7 @@ export async function attachFile(ctx: Ctx, raw: unknown) {
 }
 
 export async function detachFile(ctx: Ctx, attachmentId: string) {
+  assertFullAccess(ctx);
   zUuid.parse(attachmentId);
   return getDb().transaction(async (t) => {
     const [a] = await t
@@ -543,6 +551,7 @@ export const brandKitInput = z.object({
 
 export async function saveBrandKit(ctx: Ctx, clientId: string, raw: unknown) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   const input = brandKitInput.parse(raw);
   return getDb().transaction(async (t) => {
     await assertOwned(t, ctx, schema.client, clientId, "El cliente");
@@ -599,6 +608,7 @@ export const templateInput = z.object({
 
 export async function createTemplate(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", R);
+  assertFullAccess(ctx);
   const input = templateInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [row] = await t
@@ -613,6 +623,7 @@ export async function createTemplate(ctx: Ctx, raw: unknown) {
 
 export async function updateTemplate(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
   const input = templateInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [row] = await t
@@ -636,7 +647,7 @@ export async function resolveDownload(ctx: Ctx, id: string, opts: { version?: nu
   const [f] = await db
     .select()
     .from(schema.file)
-    .where(and(eq(schema.file.id, id), scoped(schema.file, ctx)));
+    .where(and(eq(schema.file.id, id), scoped(schema.file, ctx), projectScope(ctx, schema.file.projectId)));
   if (!f) return null;
   if (opts.thumb) return f.thumbKey ? { file: f, key: f.thumbKey, mime: "image/webp", size: null as number | null, version: f.currentVersion } : null;
   if (opts.version && opts.version !== f.currentVersion) {

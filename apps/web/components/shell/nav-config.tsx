@@ -58,8 +58,11 @@ export const NAV: NavItem[] = [
   { key: "ia", href: "/ia", label: "IA", icon: <Sparkles />, module: "ai", group: "sistema" },
 ];
 
-export function navFor(enabled: string[]) {
-  return NAV.filter((n) => !n.module || enabled.includes(n.module));
+/** Lo que ve un colaborador (M15): solo trabajo de proyectos. */
+const MEMBER_NAV = ["hoy", "proyectos", "tareas", "sitios"];
+
+export function navFor(enabled: string[], role?: string) {
+  return NAV.filter((n) => (!n.module || enabled.includes(n.module)) && (role !== "member" || MEMBER_NAV.includes(n.key)));
 }
 
 /** Títulos de migas por prefijo de ruta. */

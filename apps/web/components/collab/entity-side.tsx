@@ -8,7 +8,20 @@ import { CommentThread, ConnectionsEditor, TagEditor } from "./collab-ui";
  * Panel lateral común de las fichas: etiquetas (N6), "Conectado con" (N5) y comentarios internos (N10).
  * Server Component: carga todo en paralelo y delega la interacción a componentes cliente.
  */
-export async function EntitySide({ ctx, type, id, comments = true }: { ctx: AppCtx; type: string; id: string; comments?: boolean }) {
+export async function EntitySide({
+  ctx,
+  type,
+  id,
+  comments = true,
+  connections: showConnections = ctx.role !== "member",
+}: {
+  ctx: AppCtx;
+  type: string;
+  id: string;
+  comments?: boolean;
+  /** "Conectado con" muestra títulos de cualquier módulo: oculto para colaboradores. */
+  connections?: boolean;
+}) {
   const [allTags, tagMap, connections, thread] = await Promise.all([
     collab.listTags(ctx),
     collab.tagsFor(ctx, type, [id]),
@@ -28,18 +41,20 @@ export async function EntitySide({ ctx, type, id, comments = true }: { ctx: AppC
           colors={collab.TAG_COLORS}
         />
       </Card>
-      <Card className="p-5" data-testid="entity-connections">
-        <SectionLabel className="mb-3">Conectado con</SectionLabel>
-        <ConnectionsEditor
-          type={type}
-          id={id}
-          items={connections.map((c) => ({
-            ...c,
-            typeLabel: label(L.entityType, c.type),
-            color: ENTITY_COLORS[c.type] ?? "#8A93A6",
-          }))}
-        />
-      </Card>
+      {showConnections ? (
+        <Card className="p-5" data-testid="entity-connections">
+          <SectionLabel className="mb-3">Conectado con</SectionLabel>
+          <ConnectionsEditor
+            type={type}
+            id={id}
+            items={connections.map((c) => ({
+              ...c,
+              typeLabel: label(L.entityType, c.type),
+              color: ENTITY_COLORS[c.type] ?? "#8A93A6",
+            }))}
+          />
+        </Card>
+      ) : null}
       {comments ? (
         <Card className="p-5" data-testid="entity-comments">
           <SectionLabel className="mb-3">Comentarios internos</SectionLabel>

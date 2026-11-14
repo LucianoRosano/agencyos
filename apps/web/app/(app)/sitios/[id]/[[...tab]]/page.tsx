@@ -37,6 +37,8 @@ const TABS = [
   { key: "monitoreo", label: "Monitoreo" },
 ] as const;
 
+const MEMBER_HIDDEN_TABS: string[] = ["recursos", "dominio-y-hosting", "documentacion", "monitoreo"];
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -59,13 +61,18 @@ export default async function SitePage({
   const { id, tab: tabParts } = await params;
   if (!UUID.test(id)) notFound();
   const sp = await searchParams;
-  const tab = TABS.find((t) => t.key === tabParts?.[0])?.key ?? "briefing";
-  if (tabParts?.length && (tabParts.length > 1 || !TABS.some((t) => t.key === tabParts[0]))) notFound();
   const ctx = await requireCtx();
+  // Colaborador (M15): sin hosting, recursos de la Biblioteca, documentación técnica, monitoreo ni administración del sitio.
+  const full = ctx.role !== "member";
+  const tabs = full ? TABS : TABS.filter((t) => !MEMBER_HIDDEN_TABS.includes(t.key));
+  const tab = tabs.find((t) => t.key === tabParts?.[0])?.key ?? "briefing";
+  if (tabParts?.length && (tabParts.length > 1 || !tabs.some((t) => t.key === tabParts[0]))) notFound();
   const data = await getSite(ctx, id);
   if (!data) notFound();
   const { s } = data;
-  const [{ clients, projects }, ai] = await Promise.all([siteFormOptions(ctx), availableAgents(ctx)]);
+  const [{ clients, projects }, ai] = full
+    ? await Promise.all([siteFormOptions(ctx), availableAgents(ctx)])
+    : [{ clients: [], projects: [] }, new Set<string>()];
   const base = `/sitios/${id}`;
 
   return (
@@ -74,7 +81,9 @@ export default async function SitePage({
         eyebrow={
           <span className="flex flex-wrap items-center gap-x-2">
             Sitio · {label(L.siteKind, s.kind)}
-            {data.clientName ? (
+            {data.clientName && !full ? (
+              <>· {data.clientName}</>
+            ) : data.clientName ? (
               <>
                 ·{" "}
                 <Link href={`/crm/clientes/${s.clientId}`} className="hover:text-text">
@@ -90,23 +99,27 @@ export default async function SitePage({
         actions={
           <>
             {ai.has(ENTRY_POINTS.site.agentKey) ? <AgentEntryButton entityType="site" entityId={s.id} label={ENTRY_POINTS.site.label} /> : null}
-            <PublicationStatusSelect id={s.id} status={s.publicationStatus} />
-            <EditSiteSheet
-              id={s.id}
-              clients={clients.map((c) => ({ value: c.id, label: c.name }))}
-              projects={projects.map((p) => ({ value: p.id, label: p.name, clientId: p.clientId, kind: p.kind }))}
-              defaults={{
-                name: s.name,
-                clientId: s.clientId,
-                projectId: s.projectId,
-                kind: s.kind,
-                stack: s.stack,
-                prodUrl: s.prodUrl,
-                stagingUrl: s.stagingUrl,
-                notesMd: s.notesMd,
-              }}
-            />
-            <SiteMenu id={s.id} name={s.name} archived={Boolean(s.archivedAt)} />
+            {full ? (
+              <>
+                <PublicationStatusSelect id={s.id} status={s.publicationStatus} />
+                <EditSiteSheet
+                  id={s.id}
+                  clients={clients.map((c) => ({ value: c.id, label: c.name }))}
+                  projects={projects.map((p) => ({ value: p.id, label: p.name, clientId: p.clientId, kind: p.kind }))}
+                  defaults={{
+                    name: s.name,
+                    clientId: s.clientId,
+                    projectId: s.projectId,
+                    kind: s.kind,
+                    stack: s.stack,
+                    prodUrl: s.prodUrl,
+                    stagingUrl: s.stagingUrl,
+                    notesMd: s.notesMd,
+                  }}
+                />
+                <SiteMenu id={s.id} name={s.name} archived={Boolean(s.archivedAt)} />
+              </>
+            ) : null}
           </>
         }
       />
@@ -172,7 +185,7 @@ export default async function SitePage({
 
       <Tabs
         active={tab}
-        items={TABS.map((t) => ({
+        items={tabs.map((t) => ({
           key: t.key,
           label: t.label,
           href: t.key === "briefing" ? base : `${base}/${t.key}`,

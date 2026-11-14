@@ -1,12 +1,13 @@
 import { dowName, formatTime, greeting, monthShort, todayAR } from "@agencyos/core";
 import { listTasks } from "@agencyos/modules/tasks/queries";
-import { getToday } from "@agencyos/modules/today/queries";
+import { getMemberToday, getToday } from "@agencyos/modules/today/queries";
 import { getTodayLayout, type TodayBlock } from "@agencyos/modules/today/service";
 import { Pill } from "@agencyos/ui";
 import { AgendaBlock, MoneyBlock, NotesBlock, ProjectsBlock, StudyBlock } from "@/components/today/blocks";
 import { CatchUpBlock } from "@/components/today/catchup-block";
 import { CustomizeToday } from "@/components/today/customize";
 import { FocusBlock } from "@/components/today/focus-block";
+import { MemberToday } from "@/components/today/member-today";
 import { getSelectedSpace } from "@/lib/prefs";
 import { firstName, requireCtx } from "@/lib/session";
 
@@ -14,8 +15,35 @@ export const metadata = { title: "Hoy" };
 
 export default async function HoyPage() {
   const ctx = await requireCtx();
-  const spaceId = await getSelectedSpace();
   const now = new Date();
+  if (ctx.role === "member") {
+    const data = await getMemberToday(ctx, { now });
+    const t = todayAR(now);
+    return (
+      <div className="mx-auto max-w-[1200px]">
+        <header className="mb-6 md:mb-8">
+          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">
+            {dowName(t)} · {Number(t.slice(8, 10))} {monthShort(Number(t.slice(5, 7)))} {t.slice(0, 4)}
+          </p>
+          <h1 className="mt-2 text-[30px] font-semibold tracking-tight md:text-[40px]">
+            {greeting(now)}, {firstName(ctx.user.name)}
+          </h1>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Pill color="#7C5CFF" href="/tareas?ver=hoy">
+              {data.forToday.length} para hoy
+            </Pill>
+            {data.overdue.length ? (
+              <Pill color="#F43F5E" href="/tareas?ver=hoy">
+                {data.overdue.length} {data.overdue.length === 1 ? "vencida" : "vencidas"}
+              </Pill>
+            ) : null}
+          </div>
+        </header>
+        <MemberToday data={data} />
+      </div>
+    );
+  }
+  const spaceId = await getSelectedSpace();
   const [data, layout, candidates] = await Promise.all([
     getToday(ctx, { spaceId, userId: ctx.user.id, now }),
     getTodayLayout(ctx.user.id),

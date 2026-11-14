@@ -17,7 +17,7 @@ const GOTO: Record<string, string> = {
 };
 
 /** Atajos globales (docs/06 §6). Se ignoran mientras se escribe en un campo. */
-export function Shortcuts() {
+export function Shortcuts({ limited }: { limited?: boolean }) {
   const router = useRouter();
   const [help, setHelp] = useState(false);
   useEffect(() => {
@@ -42,7 +42,7 @@ export function Shortcuts() {
         g = true;
         clearTimeout(timer);
         timer = setTimeout(() => (g = false), 1200);
-      } else if (k === "c") {
+      } else if (k === "c" && !limited) {
         e.preventDefault();
         openCapture();
       } else if (e.key === "?") {

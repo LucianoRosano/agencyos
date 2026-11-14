@@ -2,7 +2,7 @@ import { assertCan, type Ctx } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { signPath, verifySignedPath } from "../shared/crypto";
-import { getDb, scoped } from "../shared/db";
+import { assertFullAccess, getDb, projectScope, scoped } from "../shared/db";
 import { ENTITIES, type EntityType, entityHref, isEntityType } from "../shared/entities";
 import { ATTACHABLE, quotaBytes, storageUsed } from "./service";
 
@@ -44,6 +44,7 @@ export function verifyFileUrl(id: string, params: URLSearchParams) {
 
 export async function listFiles(ctx: Ctx, f: FileFilters = {}) {
   assertCan(ctx, "read", "project");
+  assertFullAccess(ctx);
   const db = getDb();
   const where = [scoped(schema.file, ctx)];
   if (f.view === "logos") where.push(eq(schema.file.kind, "logo"));
@@ -247,6 +248,7 @@ export async function attachmentsOf(ctx: Ctx, entityType: string, entityId: stri
         eq(schema.fileAttachment.entityType, entityType),
         eq(schema.fileAttachment.entityId, entityId),
         scoped(schema.file, ctx),
+        projectScope(ctx, schema.file.projectId),
       ),
     )
     .orderBy(desc(schema.fileAttachment.createdAt));

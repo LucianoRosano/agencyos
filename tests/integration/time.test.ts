@@ -119,6 +119,12 @@ describe("registro de horas", () => {
     expect((await timeSummary(a, { projectId: pb.id })).minutes).toBe(0);
     // un colaborador registra horas; un token MCP de solo lectura no
     const pa = await createProject(a, { name: "De A" });
+    const pa2 = await createProject(a, { name: "De A sin asignar" });
+    await getDb()
+      .insert(schema.projectMember)
+      .values({ workspaceId: a.workspaceId, projectId: pa.id, userId: a.userId ?? "" });
+    await expect(createTimeEntry(member(a), { projectId: pa2.id, duration: "15" })).rejects.toThrow();
+    expect((await createTimeEntry(member(a), { projectId: pa.id, duration: "15", rate: "1000" })).rate).toBeNull();
     await expect(createTimeEntry(member(a), { projectId: pa.id, duration: "15" })).resolves.toBeDefined();
     await expect(createTimeEntry(agentCtx(a, ["read:all"]), { projectId: pa.id, duration: "15" })).rejects.toThrow();
   });

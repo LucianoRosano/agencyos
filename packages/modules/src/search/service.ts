@@ -1,6 +1,6 @@
 import type { Ctx } from "@agencyos/core";
 import { sql } from "drizzle-orm";
-import { getDb } from "../shared/db";
+import { getDb, isProjectScoped } from "../shared/db";
 import { entityHref } from "../shared/entities";
 
 export type SearchHit = { type: string; id: string; title: string; subtitle: string | null; href: string };
@@ -14,6 +14,12 @@ export async function globalSearch(ctx: Ctx, q: string, opts: { types?: string[]
   if (term.length < 1) return [];
   const ws = ctx.workspaceId;
   const lim = opts.limit ?? 30;
+  // Colaboradores: solo proyectos, tareas y sitios de sus proyectos asignados. Clientes: nada (usan el portal).
+  const scoped = isProjectScoped(ctx);
+  if (scoped && (ctx.role !== "member" || !ctx.userId)) return [];
+  const mine = sql`(select project_id from project_member where workspace_id = ${ws} and user_id = ${ctx.userId ?? ""})`;
+  const pScope = scoped ? sql` and id in ${mine}` : sql``;
+  const tScope = scoped ? sql` and project_id in ${mine}` : sql``;
   const like = sql`'%' || f_search_norm(${term}) || '%'`;
   const norm = sql`f_search_norm(${term})`;
   const parts = [
@@ -27,11 +33,11 @@ export async function globalSearch(ctx: Ctx, q: string, opts: { types?: string[]
     },
     {
       type: "project",
-      q: sql`select 'project', id, name, status, similarity(f_search_norm(name), ${norm}) from project where workspace_id = ${ws} and deleted_at is null and (f_search_norm(name) like ${like} or f_search_norm(name) % ${norm})`,
+      q: sql`select 'project', id, name, status, similarity(f_search_norm(name), ${norm}) from project where workspace_id = ${ws} and deleted_at is null${pScope} and (f_search_norm(name) like ${like} or f_search_norm(name) % ${norm})`,
     },
     {
       type: "task",
-      q: sql`select 'task', id, title, status, similarity(f_search_norm(title), ${norm}) from task where workspace_id = ${ws} and deleted_at is null and (f_search_norm(title) like ${like} or f_search_norm(title) % ${norm})`,
+      q: sql`select 'task', id, title, status, similarity(f_search_norm(title), ${norm}) from task where workspace_id = ${ws} and deleted_at is null${tScope} and (f_search_norm(title) like ${like} or f_search_norm(title) % ${norm})`,
     },
     {
       type: "opportunity",
@@ -51,9 +57,11 @@ export async function globalSearch(ctx: Ctx, q: string, opts: { types?: string[]
     },
     {
       type: "site",
-      q: sql`select 'site', id, name, coalesce(prod_url, staging_url, kind), similarity(f_search_norm(name || ' ' || coalesce(prod_url,'')), ${norm}) from site where workspace_id = ${ws} and deleted_at is null and (f_search_norm(name || ' ' || coalesce(prod_url,'')) like ${like} or f_search_norm(name) % ${norm})`,
+      q: sql`select 'site', id, name, coalesce(prod_url, staging_url, kind), similarity(f_search_norm(name || ' ' || coalesce(prod_url,'')), ${norm}) from site where workspace_id = ${ws} and deleted_at is null${tScope} and (f_search_norm(name || ' ' || coalesce(prod_url,'')) like ${like} or f_search_norm(name) % ${norm})`,
     },
-  ].filter((p) => !opts.types || opts.types.includes(p.type));
+  ]
+    .filter((p) => !opts.types || opts.types.includes(p.type))
+    .filter((p) => !scoped || ["project", "task", "site"].includes(p.type));
   if (!parts.length) return [];
   const union = sql.join(
     parts.map((p) => sql`(${p.q} limit 12)`),

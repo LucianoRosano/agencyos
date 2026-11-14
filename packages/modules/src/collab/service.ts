@@ -4,7 +4,7 @@ import { getDb, schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { scoped } from "../shared/db";
+import { assertEntityAccess, isProjectScoped, scoped } from "../shared/db";
 import { ENTITIES, type EntityType, entityHref, isEntityType } from "../shared/entities";
 
 /** Etiquetas (N6), comentarios (N10), enlaces universales "Conectado con" (N5) y vistas guardadas (N11). */
@@ -22,6 +22,8 @@ async function assertEntity(ctx: Ctx, type: string, id: string) {
     .from(t)
     .where(and(eq(t.id, id), eq(t.workspaceId, ctx.workspaceId)));
   if (!row) throw notFound("El elemento");
+  // Colaboradores: solo entidades de sus proyectos asignados.
+  await assertEntityAccess(getDb(), ctx, type, id);
 }
 
 // --- Etiquetas ---
@@ -92,6 +94,7 @@ export async function idsWithTag(ctx: Ctx, type: string, tagId: string) {
 
 // --- Comentarios internos ---
 export async function listComments(ctx: Ctx, type: string, id: string) {
+  if (isProjectScoped(ctx)) await assertEntity(ctx, type, id);
   return getDb()
     .select({ c: schema.comment, authorName: schema.user.name })
     .from(schema.comment)
@@ -157,6 +160,8 @@ async function titles(ctx: Ctx, refs: { type: string; id: string }[]) {
 }
 
 export async function listConnections(ctx: Ctx, type: string, id: string): Promise<Connection[]> {
+  // "Conectado con" muestra títulos de cualquier módulo (CRM, notas, finanzas): no para colaboradores.
+  if (isProjectScoped(ctx)) return [];
   const rows = await getDb()
     .select()
     .from(schema.link)
