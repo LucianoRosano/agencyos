@@ -16,6 +16,7 @@ export const ATTACHABLE: Partial<Record<EntityType, Resource>> = {
   project: "project",
   client: "crm",
   opportunity: "crm",
+  interaction: "crm",
   note: "note",
   quote: "quote",
   transaction: "finance",

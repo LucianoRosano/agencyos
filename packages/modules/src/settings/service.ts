@@ -34,6 +34,8 @@ export const workspaceInput = z.object({
   quoteFooter: zOptText(500),
   stalledDays: zInt(3, 90).default(14),
   maxActiveProjects: zInt(1, 50).default(8),
+  /** Cuota de la Biblioteca en MB (por defecto 5000). Bajarla no borra nada: solo frena subidas nuevas. */
+  storageQuotaMb: zInt(100, 1_000_000).default(5000),
 });
 
 export async function updateWorkspaceSettings(ctx: Ctx, raw: unknown) {

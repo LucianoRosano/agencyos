@@ -1,6 +1,7 @@
 import { formatDate, formatMoney, formatTime, L, label, relativeFromDate, subMoney, todayAR } from "@agencyos/core";
 import { clientActivity, clientMoney, contactOptions, getClient, mergeCandidates, nextStepsOf } from "@agencyos/modules/crm/queries";
 import { pipelineFor } from "@agencyos/modules/crm/stages";
+import { attachmentsForMany } from "@agencyos/modules/library/queries";
 import { listSites } from "@agencyos/modules/sites/queries";
 import { Badge, BlockCard, Button, Card, cn, Dot, EmptyState, PageHeader, SectionLabel, Tabs } from "@agencyos/ui";
 import {
@@ -79,12 +80,19 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const openOpps = data.opportunities.filter((o) => OPEN_STAGES.includes(o.stage));
   const activeProjects = data.projects.filter((p) => !p.archivedAt && !["done", "archived"].includes(p.status));
   const steps = nextStepsOf(data);
-  const [spaces, merge, allContacts, { stages, stageOf }, clientSites] = await Promise.all([
+  const [spaces, merge, allContacts, { stages, stageOf }, clientSites, interactionFiles] = await Promise.all([
     spaceOpts(ctx),
     mergeCandidates(ctx, id),
     tab === "contactos" ? contactOptions(ctx) : Promise.resolve([]),
     pipelineFor(ctx, data.opportunities),
     tab === "sitios" || tab === "resumen" ? listSites(ctx, { clientId: id }) : Promise.resolve([]),
+    tab === "interacciones"
+      ? attachmentsForMany(
+          ctx,
+          "interaction",
+          data.interactions.map((x) => x.i.id),
+        )
+      : Promise.resolve(undefined),
   ]);
   const linked = new Set(data.contacts.map((x) => x.ct.id));
   const pipelineOpps: PipelineOpp[] = data.opportunities.map((o) => ({
@@ -430,7 +438,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <div className="grid gap-5 lg:grid-cols-[1fr_400px]">
           <Card className="order-2 p-5 lg:order-1">
             <SectionLabel className="mb-4">Conversaciones</SectionLabel>
-            <ClientStory interactions={data.interactions} onlyInteractions />
+            <ClientStory interactions={data.interactions} onlyInteractions attachments={interactionFiles} />
           </Card>
           <Card className="order-1 h-fit p-5 lg:order-2">
             <SectionLabel icon={<MessageSquarePlus />} className="mb-4">
