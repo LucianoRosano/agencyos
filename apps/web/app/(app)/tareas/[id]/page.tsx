@@ -44,7 +44,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
         <Badge tone={t.priority <= 2 ? "warning" : "neutral"}>{L.priority[t.priority]}</Badge>
         {t.completedAt ? <Badge tone="success">Completada {formatDateTime(t.completedAt)}</Badge> : null}
       </div>
-      <div className="grid gap-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
         <Card className="p-5">
           <TaskEditForm
             id={t.id}
@@ -97,7 +97,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             )}
           </Card>
         ) : null}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-2">
           <EntitySide ctx={ctx} type="task" id={t.id} />
         </div>
       </div>
