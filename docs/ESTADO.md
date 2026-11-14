@@ -58,7 +58,7 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 
 ### Calidad (última corrida: 14/11/2026)
 - **Unit + integración (Vitest):** 377 tests en verde (41 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad.
-- **E2E (Playwright, build de producción):** 17 flujos en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones serias) y control de scroll horizontal.
+- **E2E (Playwright, build de producción):** 118 pruebas en verde (17 archivos de flujos) en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones serias) y control de scroll horizontal.
 - **Lint (Biome) y typecheck:** en verde en los 7 paquetes.
 - **Revisión de seguridad:** hallazgos altos y medios corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
 - Capturas: `docs/capturas/<proyecto>/*.png`.
