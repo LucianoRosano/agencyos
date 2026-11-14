@@ -1,6 +1,6 @@
 # Estado de AGENCYOS
 
-**Actualizado:** 06/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
+**Actualizado:** 14/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
 
 Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o compra externa · ⬜ no hecho (fase posterior)
 
@@ -39,6 +39,14 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Website Factory** (`/sitios`): alta desde proyecto, briefing por bloques con lista única de preguntas (copiar para WhatsApp, PDF), requerimientos MoSCoW, estructura (6 plantillas, editor, versiones), contenidos por slot, recursos (archivos de la Biblioteca), rondas de revisión, dominio y hosting, checklist de lanzamiento de 17 áreas, documentación viva, monitoreo.
 - ✅ **Biblioteca** (`/biblioteca`): subida por arrastrar o elegir (varios, con progreso) con validación por magic bytes, SVG sanitizado, nombres normalizados, máximo 100 MB y cuota por workspace; miniaturas WebP (sharp); cliente → proyecto → carpetas, vistas Logos/Imágenes/Documentos/Últimos, búsqueda y filtros, grilla y lista; ficha con metadatos, etiquetas, **versiones** (descargar y restaurar) y "adjuntado en"; descarga con **URL firmada de 5 min** + sesión; **kit de marca** por cliente (`/biblioteca/marca/<cliente>`); **plantillas** con `{{variables}}` (`/biblioteca/plantillas`); **adjuntos** en tareas, notas, clientes (pestaña Archivos) y comprobantes de movimientos; al purgar de la papelera se borra del almacenamiento (más job diario de huérfanos).
 
+- ✅ **Horas y rentabilidad**: registrar horas a mano o desde el Modo foco (proyecto/tarea, facturable, tarifa); pestaña Horas en proyectos, bloque Tiempo en tareas; **tarifa efectiva por hora** en proyectos y en Negocio, con objetivo editable en Configuración → Agencia.
+- ✅ **CRM extra**: **etapas del pipeline editables** (Configuración → CRM), **servicios de interés** en oportunidades (precargan el presupuesto), **importar chats de WhatsApp** (una interacción por día, sin duplicar), **adjuntos en las conversaciones**, pestaña **Sitios** en la ficha de cliente.
+- ✅ **Plantillas de notas** con `{{fecha}}`, `{{titulo}}`, `{{cliente}}` (4 de base).
+- ✅ **Agentes internos con IA** (`/ia`): 9 agentes (Business, PM, Web Architect, Content, SEO, QA, Code Reviewer, Research, Repo) sobre las herramientas del MCP, con alcances por agente, aprobaciones, **tope mensual** en USD, trazas paso a paso y costos. La API key se guarda cifrada. ⏳ Ocultos hasta cargar la API key de Anthropic.
+- ✅ **Finanzas a Excel** (movimientos, resumen mensual y rentabilidad en .xlsx), además de CSV.
+- ✅ **Cerebro**: filtro por etiqueta. **Sitios**: capturas adjuntas en los ítems de revisión. **Biblioteca**: cuota editable en Configuración → Agencia.
+- ✅ **Términos y privacidad** públicos (`/legal/terminos`, `/legal/privacidad`, Ley 25.326).
+
 ### F6 · Colaboradores y portal de clientes
 - ✅ **Usuarios e invitaciones** (Configuración → Usuarios, solo dueño/admin): invitar por email como admin, colaborador (con proyectos asignados) o cliente (con su cliente del CRM). Token de 256 bits guardado **hasheado**, vence a los 7 días, un solo uso; copiar el enlace (sin Brevo), generar uno nuevo, reenviar por email (con Brevo) o revocar. `/invitacion/<token>`: el invitado crea su cuenta (contraseña 12+) o acepta con la suya; admins y colaboradores **deben activar 2FA**. Lista con rol, último acceso, 2FA y proyectos; cambiar rol/alcance; **desactivar** (cierra sus sesiones, no borra datos) y reactivar. El dueño no se puede desactivar ni bajar de rol. Las cuentas solo se crean por invitación.
 - ✅ **Colaborador** (`member`): solo sus proyectos asignados y lo que cuelga de ellos (tareas, etapas, entregas, decisiones, bloqueos, sitios, comentarios, horas sin tarifa). Filtro centralizado `projectScope/siteScope/assertProjectAccess/assertEntityAccess` (`packages/modules/src/shared/db.ts`). Sin CRM, presupuestos, finanzas, notas, facultad, bandeja, biblioteca, configuración de la agencia, IA ni MCP; la navegación muestra solo Hoy, Proyectos, Tareas y Sitios, y cualquier otra ruta vuelve a Hoy. "Hoy" reducido (sus tareas, entregas y proyectos).
@@ -48,15 +56,15 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 
-### Calidad (última corrida: 04/11/2026)
-- **Unit + integración:** 136 tests en verde contra PostgreSQL 16 y 17 (servicios, aislamiento multi-inquilino, permisos, MCP, worker, seguridad).
-- **E2E (Playwright, build de producción):** flujos de docs/09 §3 en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones serias) y control de scroll horizontal.
-- **Lint (Biome) y typecheck:** en verde.
-- **Revisión de seguridad:** hecha por un agente revisor; los hallazgos altos y medios están corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
+### Calidad (última corrida: 14/11/2026)
+- **Unit + integración (Vitest):** 377 tests en verde (41 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad.
+- **E2E (Playwright, build de producción):** 17 flujos en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones serias) y control de scroll horizontal.
+- **Lint (Biome) y typecheck:** en verde en los 7 paquetes.
+- **Revisión de seguridad:** hallazgos altos y medios corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
 - Capturas: `docs/capturas/<proyecto>/*.png`.
 
 ## En curso
-- Nada a medio hacer en el código. ⏳ El push a GitHub de esta sesión fue rechazado por permisos (ver PENDIENTES-LUCIANO.md).
+- Nada a medio hacer. Todo está subido a GitHub en la rama `claude/peaceful-faraday-j13pjv`.
 
 ## Siguiente (fases posteriores)
 Ver `docs/PENDIENTES-LUCIANO.md` → "Lo que falta del programa".

@@ -1,11 +1,11 @@
 # Pendientes de Luciano
 
-**Actualizado:** 06/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+**Actualizado:** 14/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
 
 ## A. Lo que tenés que hacer vos
 
 ### Ahora mismo
-0. **Dar acceso de GitHub a Claude** para subir el código: el push de esta sesión a `LucianoRosano/agencyos` fue rechazado (403). Reconectá GitHub en claude.ai (Configuración → Conectores) e instalá la app de Claude en el repo (https://github.com/apps/claude/installations/select_target). Todo está commiteado en la rama `claude/peaceful-faraday-j13pjv`; con el acceso, se sube con un `git push`.
+0. **Revisar y fusionar la rama** `claude/peaceful-faraday-j13pjv` (ya está subida a GitHub). Si querés, en otra sesión te abro el PR hacia `main`.
 
 ### Para publicar (en este orden)
 1. **Comprar el VPS** Hostinger KVM 2 (São Paulo, Ubuntu 24.04) — o KVM 1 si preferís menos pago adelantado — y **un dominio**. Todo lo demás ya está preparado: seguí `docs/DEPLOYMENT.md` paso a paso.
@@ -35,33 +35,21 @@
 - ⚠️ **Exportar los diseños de LibreríaOS desde Claude Design antes del 14/12/2026** (también quedó como vencimiento en Hoy).
 
 ## B. Lo que falta del programa (próxima pasada)
-Ordenado por valor. Ninguno bloquea el uso diario.
+Todo lo de las fases F1–F6 está construido y probado. Lo que sigue son ajustes finos; ninguno bloquea el uso diario.
 
-### Fase 1 (MVP) — quedó afuera o parcial
-- Repositorios: ✅ hecho (falta crear la GitHub App con el dominio). Los planes tienen su propia pantalla; no aparecen en `/aprobaciones`.
+### Depende de algo externo (no se puede cerrar sin vos)
+- **Medir LCP de Hoy en un celular real** (Lighthouse CI sobre staging) y **tests visuales** con capturas aprobadas: necesita el VPS con dominio.
+- **Envío real de emails** (invitaciones, magic link del portal, resumen diario, emails de automatizaciones, presupuestos por email): todo está programado; falta `BREVO_API_KEY`. Nunca se probó contra Brevo real.
+- **Lighthouse y Core Web Vitals en SEO**: falta la API key de Google. **Search Console**: no está hecho (requiere OAuth de Google).
+- **Agentes de IA**: probados con un cliente simulado; falta la API key de Anthropic para verlos andar de verdad.
+- **Repositorios**: probados con GitHub simulado; falta crear la GitHub App con el dominio. Los planes tienen su propia pantalla (no aparecen en `/aprobaciones`).
 - **Organización inicial de tus repos** (doc 15 §4): hacerla desde Claude Code en tu PC (ahí está el código suelto y el acceso a Hostinger).
-- **Notificaciones push**: ✅ hechas; solo falta el dominio con HTTPS para activarlas en el celular (Configuración → Notificaciones).
-- Etiquetas, comentarios internos, vistas guardadas y "Conectado con": ✅ hechos. Falta: filtro por etiqueta también en Movimientos y Notas, y etiquetas visibles como chips en las tarjetas de las listas.
-- Medición real de **LCP de Hoy en un celular** (Lighthouse CI sobre staging) y **tests visuales** con snapshots aprobados.
-- Oportunidades: "servicios de interés" (falta la tabla `opportunity_service`).
 
-### F2 · Producción de sitios
-- Website Factory: ✅ hecho. Falta: captura de pantalla adjunta en los ítems de revisión y pestaña "Sitios" en la ficha de cliente (hoy: `/sitios?cliente=<id>`).
-- Biblioteca (✅ hecha): falta la **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña), adjuntos en **interacciones** del CRM, **mover carpetas** de lugar y la **cuota editable desde Configuración** (hoy se cambia con `workspace.settings.storageQuotaMb`, por defecto 5000 MB).
-- Activos técnicos: ✅ hecho. Convertí tus vencimientos sueltos (certificado ARCA, etc.) desde `/activos`.
-- Presupuestos con enlace público y aceptación online: ✅ hecho (el envío por email necesita Brevo).
-
-### F3 · Conocimiento y tiempo
-- Revisión semanal: ✅ hecha. Plantillas de notas, adjuntos en notas, modo 3D del Cerebro, filtros por etiqueta/fecha en el Cerebro.
-- Finanzas completas: exportación XLSX/PDF, rentabilidad con horas y tarifa, comprobantes adjuntos.
-- Importador de Obsidian: no hace falta (arrancás de cero), queda la exportación compatible como salida de emergencia.
-
-### F4 · Operación y automatización
-- SEO Auditor: ✅ hecho. Falta: Search Console y el agente de SEO (F5).
-- Automatizaciones: ✅ hechas (los emails reales necesitan Brevo).
-- Monitoreo de sitios: ✅ hecho.
-- Passkeys: ✅ hechas. Importar chats de WhatsApp y etapas editables del pipeline: en curso.
-
-### F5 · IA y F6 · Equipo
-- Agentes internos con API (Business, PM, Web Architect, Content, SEO, QA, Code Reviewer, Research, Repo) con presupuestos, trazas y evals.
-- ✅ Colaboradores y portal de clientes (ver ESTADO). Falta: multi-workspace visible; captura de pantalla adjunta al feedback del portal; que el colaborador pueda ver notas y archivos internos vinculados a su proyecto (hoy no los ve, por seguridad); permisos editables por módulo (p. ej. finanzas para un colaborador).
+### Mejoras chicas que quedaron afuera
+- Biblioteca: **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña) y **mover carpetas** de lugar.
+- Finanzas: filtro por etiqueta en Movimientos (la lista está paginada; conviene hacerlo en la consulta) y exportación a PDF de los reportes (CSV y Excel ya están).
+- Cerebro: modo 3D (hay 2D con filtros por tipo, espacio, etiqueta y fecha).
+- Portal: adjuntar una captura al feedback del cliente; mostrarle al colaborador las notas y archivos internos vinculados a su proyecto (hoy no los ve, por seguridad); permisos editables por módulo (p. ej. dar Finanzas a un colaborador); multi-workspace visible.
+- Seguridad fina del portal: la contraseña creada al aceptar una invitación no pasa por el control de contraseñas filtradas, y el magic link saltea el 2FA opcional del cliente.
+- Pipeline: al mover una oportunidad de etapa (con etapas configuradas) toma la probabilidad por defecto de la etapa y pisa la que habías puesto a mano.
+- Importador de Obsidian: no hace falta (arrancás de cero); queda la exportación compatible como salida de emergencia.

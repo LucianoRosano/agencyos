@@ -56,7 +56,7 @@ export async function ListToolbar({ ctx, module, basePath, sp }: { ctx: AppCtx; 
               <Link
                 key={t.id}
                 href={withTag(on ? null : t.id)}
-                aria-pressed={on}
+                aria-current={on ? "true" : undefined}
                 className={`${chip} shrink-0 ${on ? "border-transparent text-text" : "border-border text-text-muted hover:text-text"}`}
                 style={on ? { background: `color-mix(in srgb, ${t.color} 22%, transparent)` } : undefined}
               >
