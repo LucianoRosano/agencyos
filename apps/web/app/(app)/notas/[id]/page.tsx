@@ -1,9 +1,12 @@
 import { ENTITY_COLORS, L, label, relativeFromDate } from "@agencyos/core";
+import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
+import { availableAgents } from "@agencyos/modules/ai/queries";
 import { connectionsOf, folderPaths, getNote, linkableEntities, unlinkedMentions } from "@agencyos/modules/notes/queries";
 import { Card, EntityChip, SectionLabel } from "@agencyos/ui";
 import { CalendarDays, ChevronLeft, Folder, Pin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AgentEntryButton } from "@/components/ai/ai-ui";
 import { LocalGraph } from "@/components/brain/local-graph";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { Connections } from "@/components/notes/connections";
@@ -27,13 +30,14 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   const data = await getNote(ctx, id);
   if (!data) notFound();
   const { n } = data;
-  const [preview, connections, unlinked, spaces, entities, folders] = await Promise.all([
+  const [preview, connections, unlinked, spaces, entities, folders, ai] = await Promise.all([
     renderNote(ctx, n.bodyMd),
     connectionsOf(ctx, "note", id),
     unlinkedMentions(ctx, { id, title: n.title, aliases: n.aliases }),
     spaceOpts(ctx),
     linkableEntities(ctx),
     folderPaths(ctx),
+    availableAgents(ctx),
   ]);
   const tags = Array.isArray(n.frontmatter.tags) ? (n.frontmatter.tags as unknown[]).map(String) : [];
   const backCount = connections.reduce((s, g) => s + g.items.filter((i) => i.direction !== "out").length, 0);
@@ -64,6 +68,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
           </span>
         ) : null}
         <span className="ml-auto flex items-center gap-1 normal-case tracking-normal">
+          {ai.has(ENTRY_POINTS.note.agentKey) ? <AgentEntryButton entityType="note" entityId={id} label={ENTRY_POINTS.note.label} /> : null}
           <NotePropsSheet
             id={id}
             spaces={spaces}

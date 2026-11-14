@@ -112,9 +112,23 @@ export const L = {
     seo_schedule: "Auditoría programada",
     automation_rule: "Automatización",
     webhook_endpoint: "Webhook",
+    agent: "Agente",
+    agent_run: "Ejecución de agente",
   },
   fileKind: { image: "Imagen", logo: "Logo", document: "Documento", pdf: "PDF", video: "Video", archive: "ZIP", font: "Tipografía", other: "Otro" },
   templateKind: { document: "Documento", snippet: "Snippet", prompt: "Prompt", checklist: "Checklist" },
+  agentRunStatus: {
+    queued: "En cola",
+    running: "Ejecutando",
+    waiting_approval: "Esperando aprobación",
+    succeeded: "Terminada",
+    failed: "Falló",
+    cancelled: "Cancelada",
+    budget_exceeded: "Tope alcanzado",
+  },
+  agentPermission: { read: "Solo lectura", propose: "Propone (crea borradores y aprobaciones)", execute_with_approval: "Ejecuta con aprobación" },
+  agentStepKind: { model: "Modelo", tool: "Herramienta", approval: "Aprobación" },
+  agentTrigger: { manual: "Manual", automation: "Automatización", schedule: "Programada", mcp: "MCP" },
 } as const;
 
 export function label<T extends Record<string, string>>(map: T, key: string | null | undefined): string {
