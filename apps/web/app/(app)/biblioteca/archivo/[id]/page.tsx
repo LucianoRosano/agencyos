@@ -1,12 +1,13 @@
 import { ENTITY_COLORS, formatDateTime, L, label } from "@agencyos/core";
 import { folderOptions, getFile, siteOptions } from "@agencyos/modules/library/queries";
+import { isFileShared } from "@agencyos/modules/portal/service";
 import { getStorage } from "@agencyos/modules/shared/storage";
 import { Badge, Button, Card, EntityChip, PageHeader, SectionLabel } from "@agencyos/ui";
 import { ChevronLeft, Download, ExternalLink, History, Info, Link2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileThumb, formatBytes, LIBRARY_ACCENT } from "@/components/library/file-visual";
-import { EditFileSheet, FileMenu, NewVersionSheet, RestoreVersionButton } from "@/components/library/library-ui";
+import { EditFileSheet, FileMenu, NewVersionSheet, RestoreVersionButton, ShareWithClientSwitch } from "@/components/library/library-ui";
 import { clientOpts, projectOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
 
@@ -28,7 +29,13 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
   const d = await getFile(ctx, id);
   if (!d) notFound();
   const { f } = d;
-  const [clients, projects, sites, folders] = await Promise.all([clientOpts(ctx), projectOpts(ctx), siteOptions(ctx), folderOptions(ctx)]);
+  const [clients, projects, sites, folders, shared] = await Promise.all([
+    clientOpts(ctx),
+    projectOpts(ctx),
+    siteOptions(ctx),
+    folderOptions(ctx),
+    isFileShared(ctx, f.id),
+  ]);
   let text: string | null = null;
   if (f.mime.startsWith("text/")) {
     try {
@@ -224,6 +231,9 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="Detalles del archivo">
+          <Card className="p-5">
+            <ShareWithClientSwitch id={f.id} shared={shared} linked={Boolean(f.clientId || f.projectId)} />
+          </Card>
           <Card className="p-5">
             <SectionLabel icon={<Info />} className="mb-3">
               Propiedades

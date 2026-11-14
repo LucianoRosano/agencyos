@@ -40,3 +40,9 @@ export const createTemplateAction = async (_: S, fd: FormData) => run((ctx) => s
 export const updateTemplateAction = async (id: string, _: S, fd: FormData) => run((ctx) => svc.updateTemplate(ctx, id, obj(fd)));
 export const deleteTemplateAction = async (id: string) => run((ctx) => moveToTrash(ctx, "reusable_template", id));
 export const restoreTemplateAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "reusable_template", id));
+
+// Portal de clientes (M15): «Compartir con el cliente» (etiqueta reservada «compartido»).
+export const setFileSharedAction = async (id: string, shared: boolean) => {
+  const { setFileShared } = await import("@agencyos/modules/portal/service");
+  return run((ctx) => setFileShared(ctx, id, shared));
+};

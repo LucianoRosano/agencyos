@@ -13,6 +13,7 @@ import {
   restoreFileAction,
   restoreFolderAction,
   restoreVersionAction,
+  setFileSharedAction,
   updateFileAction,
 } from "@/app/(app)/biblioteca/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
@@ -226,5 +227,39 @@ export function FileMenu({ id, name }: { id: string; name: string }) {
         Eliminar
       </MenuItem>
     </Menu>
+  );
+}
+
+/** Interruptor «Compartir con el cliente»: el archivo aparece en los recursos del portal de su cliente/proyecto. */
+export function ShareWithClientSwitch({ id, shared, linked }: { id: string; shared: boolean; linked: boolean }) {
+  const { exec, pending } = useAction();
+  const router = useRouter();
+  const [on, setOn] = useState(shared);
+  return (
+    <label className="flex min-h-11 cursor-pointer items-start justify-between gap-4">
+      <span>
+        <span className="block text-[14px] font-medium text-text">Compartir con el cliente</span>
+        <span className="block text-[12px] text-text-muted">
+          {linked ? "Aparece en «Recursos compartidos» del portal del cliente." : "Vinculá el archivo a un cliente o proyecto para poder compartirlo."}
+        </span>
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        aria-checked={on}
+        checked={on}
+        disabled={pending || (!linked && !on)}
+        onChange={(e) => {
+          const next = e.target.checked;
+          setOn(next);
+          exec(() => setFileSharedAction(id, next), {
+            success: next ? "Compartido con el cliente" : "Ya no se comparte",
+            onDone: () => router.refresh(),
+            undo: () => setFileSharedAction(id, !next),
+          });
+        }}
+        className="mt-1 size-5 shrink-0 accent-[var(--accent)]"
+      />
+    </label>
   );
 }
