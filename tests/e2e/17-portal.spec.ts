@@ -151,9 +151,10 @@ test("colaborador: invitar con un proyecto → crear cuenta → 2FA obligatorio 
   await expectNoHorizontalScroll(m);
   await expectAccessible(m);
   await shot(m, "17-colaborador-proyectos", p);
-  // Ficha ajena por URL directa: 404
-  const res = await m.goto(`/proyectos/${s.b}`);
-  expect(res?.status()).toBe(404);
+  // Ficha ajena por URL directa: «no encontrado» (con streaming, Next responde 200 y muestra not-found)
+  await m.goto(`/proyectos/${s.b}`);
+  await expect(m.getByText("No encontramos lo que buscabas")).toBeVisible();
+  await expect(m.getByText(s.bName)).toHaveCount(0);
   // CRM y finanzas: fuera de su alcance
   await m.goto("/crm/clientes");
   await m.waitForURL("**/hoy");
