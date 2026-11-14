@@ -23,6 +23,8 @@ export type BrainNode = {
   dim: boolean;
   progress: number | null;
   nextAction: string | null;
+  /** Etiquetas (#nombre) del elemento. */
+  tags?: string[];
 };
 
 export type BrainEdge = { s: string; t: string; kind: string };
@@ -34,6 +36,7 @@ export type BrainGraph = {
   edges: BrainEdge[];
   clusters: BrainCluster[];
   spaces: { id: string; name: string; color: string }[];
+  tags?: { name: string; color: string }[];
   generatedAt: number;
 };
 

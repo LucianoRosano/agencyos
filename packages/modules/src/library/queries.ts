@@ -255,6 +255,29 @@ export async function attachmentsOf(ctx: Ctx, entityType: string, entityId: stri
   return rows.map(({ a, f }) => toAttachmentItem(a.id, f));
 }
 
+/** Adjuntos de varias entidades del mismo tipo en una sola consulta (p. ej. todas las interacciones de un cliente). */
+export async function attachmentsForMany(ctx: Ctx, entityType: string, ids: string[]) {
+  assertCan(ctx, "read", ATTACHABLE[entityType as EntityType] ?? "project");
+  const valid = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  const out = new Map<string, ReturnType<typeof toAttachmentItem>[]>();
+  if (!valid.length) return out;
+  const rows = await getDb()
+    .select({ a: schema.fileAttachment, f: schema.file })
+    .from(schema.fileAttachment)
+    .innerJoin(schema.file, and(eq(schema.file.id, schema.fileAttachment.fileId), eq(schema.file.workspaceId, schema.fileAttachment.workspaceId)))
+    .where(
+      and(
+        eq(schema.fileAttachment.workspaceId, ctx.workspaceId),
+        eq(schema.fileAttachment.entityType, entityType),
+        inArray(schema.fileAttachment.entityId, valid),
+        scoped(schema.file, ctx),
+      ),
+    )
+    .orderBy(desc(schema.fileAttachment.createdAt));
+  for (const { a, f } of rows) out.set(a.entityId, [...(out.get(a.entityId) ?? []), toAttachmentItem(a.id, f)]);
+  return out;
+}
+
 export function toAttachmentItem(attachmentId: string, f: typeof schema.file.$inferSelect) {
   return {
     attachmentId,

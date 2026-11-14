@@ -124,12 +124,24 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await cleanShot(page, "crm-oportunidad", tag);
 
   // Todas las pestañas de la ficha del cliente responden y no desbordan
-  for (const t of ["contactos", "interacciones", "oportunidades", "proyectos", "presupuestos", "dinero", "actividad"]) {
+  for (const t of ["contactos", "interacciones", "oportunidades", "proyectos", "presupuestos", "sitios", "dinero", "archivos", "actividad"]) {
     await page.goto(`${clientUrl}/${t}`);
     await expect(page.getByRole("heading", { name: client })).toBeVisible();
     await expectNoHorizontalScroll(page);
   }
   await expect(page.getByText("Ganó la oportunidad")).toBeVisible();
+
+  // Adjuntar un archivo a una conversación
+  await page.goto(`${clientUrl}/interacciones`);
+  await page.getByText("Adjuntar archivo").first().click();
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({ name: `minuta-${tag}.txt`, mimeType: "text/plain", buffer: Buffer.from(`Minuta de la reunión ${tag} ${Date.now()}`) });
+  await expect(page.getByRole("link", { name: `minuta-${tag}.txt`, exact: true })).toBeVisible({ timeout: 20_000 });
+  await page.reload();
+  await expect(page.getByText("Adjuntos (1)")).toBeVisible();
+  await expectNoHorizontalScroll(page);
 
   // Listas de clientes y contactos
   await page.goto("/crm/clientes");

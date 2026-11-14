@@ -150,3 +150,16 @@ test("finanzas: cobro parcial de un cliente → constancia imprimible @visual", 
   await expectNoHorizontalScroll(page);
   await shot(page, "finanzas-constancia", tag);
 });
+
+test("finanzas: exportar a Excel (XLSX) y CSV", async ({ page }) => {
+  await login(page);
+  await page.goto("/finanzas/reportes");
+  const xlsxHref = await page.getByRole("link", { name: "Movimientos Excel" }).getAttribute("href");
+  const xlsx = await page.request.get(xlsxHref as string);
+  expect(xlsx.status()).toBe(200);
+  expect(xlsx.headers()["content-type"]).toContain("spreadsheetml");
+  expect((await xlsx.body()).subarray(0, 2).toString()).toBe("PK");
+  const csv = await page.request.get((xlsxHref as string).replace("/xlsx", "/csv"));
+  expect(csv.status()).toBe(200);
+  expect(await csv.text()).toContain("Fecha;Tipo;Libro");
+});

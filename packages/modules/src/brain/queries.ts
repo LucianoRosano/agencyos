@@ -1,6 +1,6 @@
 import { type Ctx, diffDays, L, label, todayAR, toISODateAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
-import { and, eq, inArray, notInArray } from "drizzle-orm";
+import { and, eq, inArray, isNull, notInArray } from "drizzle-orm";
 import { getDb, scoped } from "../shared/db";
 import { entityHref } from "../shared/entities";
 import type { BrainCluster, BrainEdge, BrainGraph, BrainLayout, BrainNode, BrainNodeType } from "./types";
@@ -308,6 +308,20 @@ export async function getBrainGraph(
   }
   const finalEdges = edges.filter((e) => nodes.has(e.s) && nodes.has(e.t));
 
+  // Etiquetas por nodo (filtro del Cerebro)
+  const tagRows = await db
+    .select({ type: schema.tagging.entityType, id: schema.tagging.entityId, name: schema.tag.name, color: schema.tag.color })
+    .from(schema.tagging)
+    .innerJoin(schema.tag, eq(schema.tag.id, schema.tagging.tagId))
+    .where(and(eq(schema.tagging.workspaceId, ctx.workspaceId), isNull(schema.tag.deletedAt)));
+  const usedTags = new Map<string, string>();
+  for (const r of tagRows) {
+    const n = nodes.get(`${r.type}:${r.id}`);
+    if (!n) continue;
+    n.tags = [...(n.tags ?? []), r.name];
+    usedTags.set(r.name, r.color);
+  }
+
   const clusters: BrainCluster[] = [
     ...clients.map((c) => ({ key: `client:${c.id}`, label: c.name, color: CLIENT_COLOR, done: c.status === "finished" })),
     ...spaces.map((s) => ({ key: `space:${s.id}`, label: s.name, color: s.color, done: false })),
@@ -317,6 +331,7 @@ export async function getBrainGraph(
     edges: finalEdges,
     clusters,
     spaces: spaces.map((s) => ({ id: s.id, name: s.name, color: s.color })),
+    tags: [...usedTags].map(([name, color]) => ({ name, color })).sort((a, b) => a.name.localeCompare(b.name, "es")),
     generatedAt: Date.now(),
   };
 }

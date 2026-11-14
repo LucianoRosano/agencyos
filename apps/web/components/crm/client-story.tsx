@@ -1,8 +1,9 @@
 import { formatDateTime, formatMoney, L, label, relativeFromDate } from "@agencyos/core";
 import { cn, EmptyState } from "@agencyos/ui";
-import { CornerDownRight, FileSignature, FolderKanban, Handshake, MessagesSquare, Sparkles, Trophy, XCircle } from "lucide-react";
+import { CornerDownRight, FileSignature, FolderKanban, Handshake, MessagesSquare, Paperclip, Sparkles, Trophy, XCircle } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Attachments, type AttachmentView } from "@/components/library/attachments";
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
 import { KIND_ICON } from "./icons";
@@ -28,7 +29,7 @@ type Quote = { id: string; number: string; title: string; createdAt: Date; sentA
 
 type Item = { key: string; at: Date; icon: ReactNode; tone: string; title: ReactNode; body?: ReactNode; meta?: ReactNode; actions?: ReactNode };
 
-function interactionItem({ i, contactName }: Interaction): Item {
+function interactionItem({ i, contactName }: Interaction, files?: AttachmentView[]): Item {
   const due = dueTone(i.nextStepDue);
   return {
     key: `i-${i.id}`,
@@ -52,6 +53,16 @@ function interactionItem({ i, contactName }: Interaction): Item {
             <NextStepDone id={i.id} text={i.nextStep} due={i.nextStepDue} />
           </div>
         ) : null}
+        {files ? (
+          <details className="group mt-2" open={files.length > 0}>
+            <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-[12px] text-text-muted hover:text-text">
+              <Paperclip className="size-3.5" /> {files.length ? `Adjuntos (${files.length})` : "Adjuntar archivo"}
+            </summary>
+            <div className="mt-2">
+              <Attachments entityType="interaction" entityId={i.id} initial={files} emptyText="Sin archivos: capturas del chat, audios o documentos." />
+            </div>
+          </details>
+        ) : null}
       </>
     ),
     actions: <InteractionMenu id={i.id} />,
@@ -67,6 +78,7 @@ export function ClientStory({
   createdAt,
   limit,
   onlyInteractions,
+  attachments,
 }: {
   interactions: Interaction[];
   opportunities?: Opp[];
@@ -75,8 +87,10 @@ export function ClientStory({
   createdAt?: Date;
   limit?: number;
   onlyInteractions?: boolean;
+  /** Si se pasa, cada conversación muestra sus adjuntos y permite adjuntar (pestaña Interacciones). */
+  attachments?: Map<string, AttachmentView[]>;
 }) {
-  const items: Item[] = interactions.map(interactionItem);
+  const items: Item[] = interactions.map((x) => interactionItem(x, attachments ? (attachments.get(x.i.id) ?? []) : undefined));
   if (!onlyInteractions) {
     for (const o of opportunities) {
       items.push({

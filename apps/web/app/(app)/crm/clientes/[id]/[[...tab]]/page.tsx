@@ -1,6 +1,8 @@
 import { formatDate, formatMoney, formatTime, L, label, relativeFromDate, subMoney, todayAR } from "@agencyos/core";
 import { clientActivity, clientMoney, contactOptions, getClient, mergeCandidates, nextStepsOf } from "@agencyos/modules/crm/queries";
 import { pipelineFor } from "@agencyos/modules/crm/stages";
+import { attachmentsForMany } from "@agencyos/modules/library/queries";
+import { listSites } from "@agencyos/modules/sites/queries";
 import { Badge, BlockCard, Button, Card, cn, Dot, EmptyState, PageHeader, SectionLabel, Tabs } from "@agencyos/ui";
 import {
   BriefcaseBusiness,
@@ -39,6 +41,7 @@ import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
 import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectCard } from "@/components/project-card";
+import { SiteGrid } from "@/components/sites/site-grid";
 import { renderMarkdown } from "@/lib/markdown";
 import { spaceOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
@@ -50,6 +53,7 @@ const ALL_TABS = [
   { key: "oportunidades", label: "Oportunidades" },
   { key: "proyectos", label: "Proyectos" },
   { key: "presupuestos", label: "Presupuestos" },
+  { key: "sitios", label: "Sitios" },
   { key: "dinero", label: "Dinero" },
   { key: "archivos", label: "Archivos" },
   { key: "actividad", label: "Actividad" },
@@ -76,11 +80,19 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const openOpps = data.opportunities.filter((o) => OPEN_STAGES.includes(o.stage));
   const activeProjects = data.projects.filter((p) => !p.archivedAt && !["done", "archived"].includes(p.status));
   const steps = nextStepsOf(data);
-  const [spaces, merge, allContacts, { stages, stageOf }] = await Promise.all([
+  const [spaces, merge, allContacts, { stages, stageOf }, clientSites, interactionFiles] = await Promise.all([
     spaceOpts(ctx),
     mergeCandidates(ctx, id),
     tab === "contactos" ? contactOptions(ctx) : Promise.resolve([]),
     pipelineFor(ctx, data.opportunities),
+    tab === "sitios" || tab === "resumen" ? listSites(ctx, { clientId: id }) : Promise.resolve([]),
+    tab === "interacciones"
+      ? attachmentsForMany(
+          ctx,
+          "interaction",
+          data.interactions.map((x) => x.i.id),
+        )
+      : Promise.resolve(undefined),
   ]);
   const linked = new Set(data.contacts.map((x) => x.ct.id));
   const pipelineOpps: PipelineOpp[] = data.opportunities.map((o) => ({
@@ -116,6 +128,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
     oportunidades: openOpps.length || undefined,
     proyectos: data.projects.length || undefined,
     presupuestos: data.quotes.length || undefined,
+    sitios: clientSites.length || undefined,
   };
 
   return (
@@ -425,7 +438,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <div className="grid gap-5 lg:grid-cols-[1fr_400px]">
           <Card className="order-2 p-5 lg:order-1">
             <SectionLabel className="mb-4">Conversaciones</SectionLabel>
-            <ClientStory interactions={data.interactions} onlyInteractions />
+            <ClientStory interactions={data.interactions} onlyInteractions attachments={interactionFiles} />
           </Card>
           <Card className="order-1 h-fit p-5 lg:order-2">
             <SectionLabel icon={<MessageSquarePlus />} className="mb-4">
@@ -533,6 +546,36 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       {tab === "dinero" && data.canSeeMoney ? <MoneyTab clientId={id} ctx={ctx} /> : null}
 
       {tab === "archivos" ? <ClientFilesTab ctx={ctx} clientId={id} /> : null}
+
+      {tab === "sitios" ? (
+        clientSites.length ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-end">
+              <Button asChild variant="secondary">
+                <Link href={`/sitios/nuevo?cliente=${id}`}>
+                  <Plus className="size-4" /> Nuevo sitio
+                </Link>
+              </Button>
+            </div>
+            <SiteGrid rows={clientSites} />
+          </div>
+        ) : (
+          <Card>
+            <EmptyState
+              icon={<Globe />}
+              title="Sin sitios para este cliente"
+              description="Creá el sitio para llevar el briefing, la estructura, los contenidos, las revisiones y el lanzamiento."
+              action={
+                <Button asChild variant="primary">
+                  <Link href={`/sitios/nuevo?cliente=${id}`}>
+                    <Plus className="size-4" /> Nuevo sitio
+                  </Link>
+                </Button>
+              }
+            />
+          </Card>
+        )
+      ) : null}
 
       {tab === "actividad" ? (
         <Card className="p-5">

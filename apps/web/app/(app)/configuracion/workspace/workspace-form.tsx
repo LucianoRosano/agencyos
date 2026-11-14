@@ -4,7 +4,7 @@ import { ActionForm, SubmitButton } from "@/components/action-form";
 import { TextAreaField, TextField } from "@/components/fields";
 import { saveWorkspaceAction } from "../actions";
 
-export function WorkspaceForm({ s }: { s: Record<string, unknown> }) {
+export function WorkspaceForm({ s, usedMb }: { s: Record<string, unknown>; usedMb?: number }) {
   const v = (k: string) => (s[k] === undefined || s[k] === null ? "" : String(s[k]));
   return (
     <ActionForm action={saveWorkspaceAction} successMessage="Datos guardados">
@@ -25,6 +25,15 @@ export function WorkspaceForm({ s }: { s: Record<string, unknown> }) {
           min={1}
           max={50}
           defaultValue={v("maxActiveProjects") || "8"}
+        />
+        <TextField
+          label="Cuota de la Biblioteca (MB)"
+          name="storageQuotaMb"
+          type="number"
+          min={100}
+          max={1000000}
+          defaultValue={v("storageQuotaMb") || "5000"}
+          hint={usedMb !== undefined ? `En uso: ${usedMb.toLocaleString("es-AR")} MB. Bajarla no borra archivos; solo frena las subidas nuevas.` : undefined}
         />
       </div>
       <SubmitButton className="self-start">Guardar</SubmitButton>

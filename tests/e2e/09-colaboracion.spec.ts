@@ -53,6 +53,8 @@ test("etiquetas, comentarios, conexiones y vistas guardadas en proyectos @visual
     .getByRole("link", { name: new RegExp(tagName, "i") })
     .click();
   await expect(page.getByText(`Colab ${suffix}`).first()).toBeVisible();
+  // la etiqueta se ve en la tarjeta del proyecto
+  await expect(page.getByRole("link", { name: new RegExp(`Colab ${suffix}`) }).getByText(new RegExp(`#${tagName}`, "i"))).toBeVisible();
   page.once("dialog", (d) => d.accept(`Vista ${suffix}`));
   await page.getByRole("button", { name: "Guardar vista" }).click();
   await expect(page.getByRole("link", { name: `Vista ${suffix}` })).toBeVisible();

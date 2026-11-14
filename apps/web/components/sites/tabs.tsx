@@ -1,6 +1,7 @@
 import "server-only";
 import { type Ctx, diffDays, formatDate, formatDateTime, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
+import { attachmentsForMany } from "@agencyos/modules/library/queries";
 import { brandFromSettings } from "@agencyos/modules/quotes/queries";
 import { BLUEPRINT_TEMPLATES, TEMPLATE_KINDS } from "@agencyos/modules/sites/blueprint";
 import { briefBlocksFor, briefProgress, generateQuestions, questionsMessageParts } from "@agencyos/modules/sites/brief";
@@ -30,6 +31,7 @@ import {
   FolderOpen,
   Globe,
   HeartPulse,
+  Image as ImageIcon,
   KeyRound,
   LayoutTemplate,
   ListChecks,
@@ -43,6 +45,7 @@ import {
 import Link from "next/link";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
+import { Attachments } from "@/components/library/attachments";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
@@ -460,6 +463,11 @@ export async function ResourcesTab({ ctx, site }: P) {
 
 export async function RevisionsTab({ ctx, site }: P) {
   const [rounds, bp] = await Promise.all([listRounds(ctx, site.s.id), getBlueprint(ctx, site.s.id)]);
+  const shots = await attachmentsForMany(
+    ctx,
+    "revision_item",
+    rounds.flatMap((r) => r.items.map((i) => i.id)),
+  );
   const pages = bp.current?.tree.pages.map((p) => p.title) ?? [];
   const open = rounds.find((r) => r.status === "open");
   const next = (rounds[0]?.number ?? 0) + 1;
@@ -514,6 +522,23 @@ export async function RevisionsTab({ ctx, site }: P) {
                         <p className="font-mono text-[11px] text-text-faint">
                           {it.pageRef ?? "Sin página"} · {it.assignee ? label(L.siteAssignee, it.assignee) : "sin responsable"}
                         </p>
+                        {r.status === "open" || (shots.get(it.id) ?? []).length ? (
+                          <details className="mt-1" open={(shots.get(it.id) ?? []).length > 0}>
+                            <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-[12px] text-text-muted hover:text-text">
+                              <ImageIcon className="size-3.5" />{" "}
+                              {(shots.get(it.id) ?? []).length ? `Capturas (${(shots.get(it.id) ?? []).length})` : "Agregar captura"}
+                            </summary>
+                            <div className="mt-2">
+                              <Attachments
+                                entityType="revision_item"
+                                entityId={it.id}
+                                initial={shots.get(it.id) ?? []}
+                                emptyText="Sin capturas."
+                                uploadLabel="Subir captura"
+                              />
+                            </div>
+                          </details>
+                        ) : null}
                       </div>
                     </div>
                     {r.status === "open" ? (

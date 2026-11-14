@@ -37,7 +37,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
     mes: month ? String(month) : undefined,
     moneda: currency,
   };
-  const csv = (tipo: string) => `/finanzas/reportes/csv${qs(f.ledgerId, { tipo, desde: pFrom, hasta: pTo, moneda: currency })}`;
+  const csv = (tipo: string, fmt: "csv" | "xlsx" = "csv") => `/finanzas/reportes/${fmt}${qs(f.ledgerId, { tipo, desde: pFrom, hasta: pTo, moneda: currency })}`;
   const hasData = yearRep.months.length > 0 || yearRep.unconverted.length > 0;
   const allUnconverted = [...rep.unconverted];
   return (
@@ -83,13 +83,28 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             </a>
           </Button>
           <Button asChild variant="ghost" size="sm">
+            <a href={csv("mensual", "xlsx")}>
+              <Download className="size-4" /> Resumen Excel
+            </a>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
             <a href={csv("movimientos")}>
               <Download className="size-4" /> Movimientos CSV
             </a>
           </Button>
           <Button asChild variant="ghost" size="sm">
+            <a href={csv("movimientos", "xlsx")}>
+              <Download className="size-4" /> Movimientos Excel
+            </a>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
             <a href={csv("rentabilidad")}>
               <Download className="size-4" /> Rentabilidad CSV
+            </a>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <a href={csv("rentabilidad", "xlsx")}>
+              <Download className="size-4" /> Rentabilidad Excel
             </a>
           </Button>
         </div>

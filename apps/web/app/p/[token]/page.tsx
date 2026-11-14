@@ -59,6 +59,14 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
             <p className="mt-3 text-[14px] text-text-muted">Este presupuesto ya no admite respuestas en línea. Escribile a Luciano.</p>
           )}
         </section>
+        <footer className="flex gap-4 text-[12px] text-text-faint">
+          <a href="/legal/terminos" className="hover:text-text">
+            Términos
+          </a>
+          <a href="/legal/privacidad" className="hover:text-text">
+            Privacidad
+          </a>
+        </footer>
       </div>
     </main>
   );

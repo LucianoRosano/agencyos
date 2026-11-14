@@ -14,8 +14,20 @@ El centro de mando de Luciano Rosano: agencia, proyectos, dinero, conocimiento y
 | Proyectos (8 plantillas, asistente de 5 pasos, etapas, bloqueos, decisiones, entregas, changelog) y tareas (recurrencia, subtareas, checklist, kanban, deslizar en el celular, modo foco) | ✅ |
 | CRM: clientes, contactos, interacciones, oportunidades (kanban ponderado), ficha 360° | ✅ |
 | Presupuestos: servicios, versiones, descuentos, ARS/USD, plan de cobro, PDF, aceptación → proyecto + cobros | ✅ |
-| Finanzas: cuentas, movimientos, suscripciones, por cobrar/pagar, reportes | ver docs/ESTADO.md |
-| Notas Markdown con `[[enlaces]]` y Cerebro (grafo WebGL) | ver docs/ESTADO.md |
+| Finanzas: cuentas, movimientos, suscripciones, por cobrar/pagar, reportes, CSV y Excel | ✅ |
+| Notas Markdown con `[[enlaces]]`, plantillas, y Cerebro (grafo WebGL con filtros por tipo, espacio, etiqueta y fecha) | ✅ |
+| Etiquetas, comentarios internos, "Conectado con" y vistas guardadas en todas las fichas | ✅ |
+| Registro de horas y rentabilidad por hora; etapas del pipeline editables; importar chats de WhatsApp | ✅ |
+| Presupuestos con enlace público y aceptación online | ✅ |
+| Website Factory (sitios: briefing, estructura, contenidos, revisiones, lanzamiento) | ✅ |
+| Biblioteca de archivos (versiones, kit de marca, plantillas, adjuntos en todo) | ✅ |
+| Activos técnicos y monitoreo de sitios (uptime, SSL, dominios, WordPress) | ✅ |
+| SEO Auditor (rastreador, 55 reglas, comparación, PDF) | ✅ (Lighthouse con API key de Google) |
+| Automatizaciones (reglas, plantillas, webhooks firmados) | ✅ |
+| Repositorios con GitHub App (salud, planes con aprobación) | ✅ (falta crear la App con el dominio) |
+| Agentes internos con IA (Claude), con topes, trazas y aprobaciones | ✅ (ocultos hasta cargar la API key) |
+| Colaboradores y portal de clientes | ver docs/ESTADO.md |
+| Revisión semanal, notificaciones push, passkeys | ✅ |
 | Facultad y Calendario (con iCal) | ✅ |
 | Servidor MCP con tokens de alcance limitado | ✅ |
 | Paleta `Ctrl+K`, búsqueda sin tildes, papelera 30 días, actividad, auditoría, exportación total, PWA | ✅ |
