@@ -1,7 +1,7 @@
 import { relativeFromDate } from "@agencyos/core";
 import { type FolderNode, folderTree, listNotes, noteTags } from "@agencyos/modules/notes/queries";
 import { Button, Card, cn, EmptyState, PageHeader, SectionLabel } from "@agencyos/ui";
-import { CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Folder, FolderOpen, Hash, Pin, Plus, Search } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Folder, FolderOpen, Hash, LayoutTemplate, Pin, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { FilterSelect } from "@/components/notes/filter-select";
 import { spaceOpts } from "@/lib/options";
@@ -78,6 +78,11 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
           <Download className="size-4" /> <span className="hidden sm:inline">Exportar</span>
         </a>
       </Button>
+      <Button asChild variant="ghost" className="h-11 md:h-10">
+        <Link href="/notas/nueva?desde=plantilla" aria-label="Nueva desde plantilla">
+          <LayoutTemplate className="size-4" /> <span className="hidden sm:inline">Desde plantilla</span>
+        </Link>
+      </Button>
       <Button asChild variant="secondary" className="h-11 md:h-10">
         <a href="/notas/diaria">
           <CalendarDays className="size-4" /> Nota de hoy
@@ -105,6 +110,11 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                 <Button asChild variant="primary">
                   <Link href="/notas/nueva">
                     <Plus className="size-4" /> Nueva nota
+                  </Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/notas/nueva?desde=plantilla">
+                    <LayoutTemplate className="size-4" /> Desde plantilla
                   </Link>
                 </Button>
                 <Button asChild variant="secondary">

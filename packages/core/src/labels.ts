@@ -98,6 +98,8 @@ export const L = {
     site: "Sitio",
     site_requirement: "Requerimiento",
     site_environment: "Entorno",
+    time_entry: "Registro de horas",
+    note_template: "Plantilla de nota",
     seo_audit: "Auditoría SEO",
     domain: "Dominio",
     hosting: "Hosting",

@@ -9,6 +9,7 @@ const ITEMS = [
   { key: "notificaciones", label: "Notificaciones", href: "/configuracion/notificaciones" },
   { key: "workspace", label: "Agencia", href: "/configuracion/workspace" },
   { key: "modulos", label: "Módulos", href: "/configuracion/modulos" },
+  { key: "crm", label: "CRM", href: "/configuracion/crm" },
   { key: "integraciones", label: "Integraciones", href: "/configuracion/integraciones" },
   { key: "datos", label: "Datos", href: "/configuracion/datos" },
   { key: "actividad", label: "Actividad", href: "/configuracion/actividad" },

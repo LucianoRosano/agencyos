@@ -1,7 +1,10 @@
 "use server";
 
 import type { Result } from "@agencyos/core";
+import { setOpportunityServices } from "@agencyos/modules/crm/opportunity-services";
 import * as svc from "@agencyos/modules/crm/service";
+import * as stages from "@agencyos/modules/crm/stages";
+import { importWhatsapp, previewWhatsapp } from "@agencyos/modules/crm/whatsapp-import";
 import { moveToTrash, restoreFromTrash } from "@agencyos/modules/trash/service";
 import { run } from "@/lib/action";
 
@@ -52,3 +55,19 @@ export const moveOpportunityAction = async (id: string, input: { stage: string; 
 export const unlinkQuoteAction = async (opportunityId: string, quoteId: string) => run((ctx) => svc.unlinkQuote(ctx, opportunityId, quoteId));
 export const deleteOpportunityAction = async (id: string) => run((ctx) => moveToTrash(ctx, "opportunity", id));
 export const restoreOpportunityAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "opportunity", id));
+
+// Etapas del pipeline (Configuración → CRM)
+export const updateStageAction = async (key: string, _: S, fd: FormData) => run((ctx) => stages.updateStage(ctx, key, obj(fd)));
+export const addStageAction = async (_: S, fd: FormData) => run((ctx) => stages.addStage(ctx, obj(fd)));
+export const moveStageAction = async (key: string, dir: "up" | "down") => run((ctx) => stages.moveStage(ctx, key, dir));
+export const deleteStageAction = async (key: string) => run((ctx) => stages.deleteStage(ctx, key));
+export const restoreStageAction = async (key: string) => run((ctx) => stages.restoreStage(ctx, key));
+
+// Servicios de interés de una oportunidad
+export const setOpportunityServicesAction = async (opportunityId: string, serviceIds: string[]) =>
+  run((ctx) => setOpportunityServices(ctx, opportunityId, { serviceIds }));
+
+// Importar chat de WhatsApp (la vista previa no cambia nada: no revalida)
+export const previewWhatsappAction = async (text: string) => run((ctx) => previewWhatsapp(ctx, { text }), { revalidate: false });
+export const importWhatsappAction = async (input: { clientId: string; contactId?: string; text: string; me?: string }) =>
+  run((ctx) => importWhatsapp(ctx, input));

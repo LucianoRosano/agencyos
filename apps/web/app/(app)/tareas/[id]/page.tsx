@@ -7,6 +7,7 @@ import { EntitySide } from "@/components/collab/entity-side";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
+import { TaskTimeBlock } from "@/components/time/time-panels";
 import { projectOpts, spaceOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
 import { Checklist, TaskActions, TaskEditForm } from "./task-detail";
@@ -68,6 +69,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <SectionLabel className="mb-3">Checklist</SectionLabel>
           <Checklist taskId={t.id} items={data.checklist.map((c) => ({ id: c.id, text: c.text, done: c.done }))} />
         </Card>
+        <TaskTimeBlock ctx={ctx} taskId={t.id} projectId={t.projectId} />
         <AttachmentsBlock ctx={ctx} entityType="task" entityId={t.id} emptyText="Sin archivos. Adjuntá referencias, briefs o entregables." />
         {!t.parentTaskId ? (
           <Card className="p-5">

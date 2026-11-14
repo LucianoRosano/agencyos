@@ -1,5 +1,6 @@
 import { formatMoney } from "@agencyos/core";
 import { listOpportunities, quotesOfClients } from "@agencyos/modules/crm/queries";
+import { pipelineFor } from "@agencyos/modules/crm/stages";
 import { Button, EmptyState, PageHeader } from "@agencyos/ui";
 import { Columns3, Handshake, List, Plus } from "lucide-react";
 import Link from "next/link";
@@ -17,11 +18,17 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
   const ctx = await requireCtx();
   const view = sp.vista === "tabla" ? "tabla" : "kanban";
   const [rows, clients] = await Promise.all([listOpportunities(ctx, { q: sp.q }), clientOpts(ctx)]);
-  const quotes = await quotesOfClients(ctx, [...new Set(rows.map((r) => r.o.clientId))]);
+  const [quotes, { stages, stageOf }] = await Promise.all([
+    quotesOfClients(ctx, [...new Set(rows.map((r) => r.o.clientId))]),
+    pipelineFor(
+      ctx,
+      rows.map((r) => r.o),
+    ),
+  ]);
   const opps: PipelineOpp[] = rows.map(({ o, clientName }) => ({
     id: o.id,
     title: o.title,
-    stage: o.stage,
+    stage: stageOf.get(o.id) ?? o.stage,
     clientId: o.clientId,
     clientName,
     lostReason: o.lostReason,
@@ -33,7 +40,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
     nextActionDue: o.nextActionDue,
     expectedClose: o.expectedClose,
   }));
-  const open = opps.filter((o) => OPEN_STAGES.includes(o.stage));
+  const open = rows.filter(({ o }) => OPEN_STAGES.includes(o.stage)).map(({ o }) => o);
   const weighted = weightedByCurrency(open);
   const qs = (o: Record<string, string>) => `/crm/oportunidades?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), vista: view, ...o })}`;
   const newBtn = (
@@ -77,7 +84,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
       <CrmNav active="oportunidades" />
       <SearchBox action="/crm/oportunidades" q={sp.q} placeholder="Buscar por título o cliente…" hidden={{ vista: sp.vista }} />
       {opps.length ? (
-        <PipelineView view={view} opps={opps} quotes={quotes} />
+        <PipelineView view={view} opps={opps} quotes={quotes} stages={stages} />
       ) : (
         <EmptyState
           icon={<Handshake />}

@@ -1,5 +1,8 @@
-import { formatDate, formatMoney, L, label, subMoney } from "@agencyos/core";
+import { cmpMoney, formatDate, formatMoney, L, label, subMoney } from "@agencyos/core";
 import { businessKpis, type Range, resolveRange } from "@agencyos/modules/business/queries";
+import { listPipelineStages } from "@agencyos/modules/crm/stages";
+import { effectiveHourlyRate, hoursLabel } from "@agencyos/modules/time/duration";
+import { minutesByClient, targetRate } from "@agencyos/modules/time/queries";
 import { BarPairs, BlockCard, Card, EmptyState, HBars, PageHeader, Tabs } from "@agencyos/ui";
 import { Activity, CalendarClock, ChartNoAxesCombined, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -64,6 +67,8 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const range = (["mes", "trimestre", "anio", "personalizado"].includes(sp.rango ?? "") ? sp.rango : "mes") as Range;
   const r = resolveRange(range, undefined, sp.desde, sp.hasta);
   const k = await businessKpis(ctx, r);
+  const [hoursOf, pipelineStages] = await Promise.all([minutesByClient(ctx, [...new Set(k.profit.map((p) => p.id))], r.start, r.end), listPipelineStages(ctx)]);
+  const target = targetRate(ctx);
   const curs = currencies(k.income, k.expense);
   const rate = k.quotes.accepted + k.quotes.rejected ? Math.round((k.quotes.accepted / (k.quotes.accepted + k.quotes.rejected)) * 100) : null;
   const inProgress = k.projectsByStatus.find((p) => p.status === "in_progress")?.n ?? 0;
@@ -217,7 +222,11 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
                 <HBars
                   data={STAGES.map((s) => {
                     const row = k.pipeline.find((p) => p.stage === s && p.currency === c);
-                    return { label: `${label(L.stage, s)} (${row?.n ?? 0})`, value: Number(row?.weighted ?? 0), display: formatMoney(row?.weighted ?? "0", c) };
+                    return {
+                      label: `${pipelineStages.find((x) => x.key === s)?.name ?? label(L.stage, s)} (${row?.n ?? 0})`,
+                      value: Number(row?.weighted ?? 0),
+                      display: formatMoney(row?.weighted ?? "0", c),
+                    };
                   })}
                   color="var(--accent-2)"
                 />
@@ -252,14 +261,28 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         <BlockCard icon={<TrendingUp />} title="Rentabilidad top 5 por cliente">
           {k.profit.length ? (
             <ul className="flex flex-col gap-2 text-[14px]">
-              {k.profit.map((p) => (
-                <li key={p.id + p.currency} className="flex justify-between gap-3 border-b border-border pb-2 last:border-0">
-                  <Link href={`/crm/clientes/${p.id}`} className="hover:underline">
-                    {p.name}
-                  </Link>
-                  <span className="font-mono">{formatMoney(p.result, p.currency)}</span>
-                </li>
-              ))}
+              {k.profit.map((p) => {
+                const minutes = hoursOf.get(p.id) ?? 0;
+                // Tarifa efectiva = ingreso cobrado del período ÷ horas registradas (por moneda, sin convertir).
+                const eff = minutes ? effectiveHourlyRate(p.income, minutes) : null;
+                const below = eff && target && target.currency === p.currency ? cmpMoney(eff, target.amount) < 0 : false;
+                return (
+                  <li key={p.id + p.currency} className="flex justify-between gap-3 border-b border-border pb-2 last:border-0">
+                    <span className="min-w-0">
+                      <Link href={`/crm/clientes/${p.id}`} className="block truncate hover:underline">
+                        {p.name}
+                      </Link>
+                      {minutes ? (
+                        <span className="font-mono text-[12px] text-text-muted">
+                          {hoursLabel(minutes)} h ·{" "}
+                          <span className={below ? "text-warning" : undefined}>{eff ? `${formatMoney(eff, p.currency)}/h` : "—"}</span>
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 font-mono">{formatMoney(p.result, p.currency)}</span>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <EmptyState compact icon={<TrendingUp />} title="Sin datos" description="Asigná clientes a tus ingresos y gastos para ver la rentabilidad." />

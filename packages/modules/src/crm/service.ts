@@ -28,6 +28,7 @@ import { schema, type Tx } from "@agencyos/db";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, scoped } from "../shared/db";
+import { effectiveStage, setPlacement, stageByKey, stagePlacements } from "./stages";
 
 export const CLIENT_STATUSES = ["prospect", "active", "paused", "finished", "archived"] as const;
 export const RELATIONSHIPS = ["family", "referral", "external"] as const;
@@ -735,7 +736,8 @@ export async function updateOpportunity(ctx: Ctx, id: string, raw: unknown) {
 }
 
 export const moveInput = z.object({
-  stage: z.enum(STAGES, { error: "Etapa inválida" }),
+  // Clave de etapa: de sistema (STAGES) o propia del workspace (crm_stage).
+  stage: z.string({ error: "Etapa inválida" }).trim().min(1, "Etapa inválida").max(40, "Etapa inválida"),
   quoteId: zOptUuid,
   lostReason: z.preprocess((v) => (v === "" ? undefined : v), z.enum(LOST_REASONS, { error: "Elegí un motivo" }).optional()),
 });
@@ -752,7 +754,14 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
   return getDb().transaction(async (t) => {
     const o = await getOppRow(t, ctx, id);
     const c = await getClientRow(t, ctx, o.clientId);
-    const stage = input.stage;
+    const { stage: target, stages } = await stageByKey(t, ctx, input.stage);
+    if (!target) throw validation("Etapa inválida", { stage: "Elegí una etapa del pipeline" });
+    // En opportunity.stage se guarda la etapa de sistema (base); la propia queda en un link.
+    const stage = target.base;
+    const fromKey = effectiveStage(o, await stagePlacements(ctx, [o.id], t), stages);
+    const changed = fromKey !== target.key;
+    const stageName = (k: string) => stages.find((s) => s.key === k)?.name ?? label(L.stage, k);
+    const configured = stages.some((s) => s.id !== null);
 
     if (input.quoteId) {
       const [q] = await t
@@ -778,8 +787,15 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     if (stage === "won") Object.assign(patch, { wonAt: o.stage === "won" ? o.wonAt : now(), lostAt: null, lostReason: null, probability: 100 });
     else if (stage === "lost")
       Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0 });
-    else Object.assign(patch, { wonAt: null, lostAt: null, lostReason: null, ...(o.stage === "won" || o.stage === "lost" ? { probability: 50 } : {}) });
-    if (o.stage !== stage) {
+    else
+      Object.assign(patch, {
+        wonAt: null,
+        lostAt: null,
+        lostReason: null,
+        // Con etapas configuradas, cada etapa abierta trae su probabilidad por defecto.
+        ...(configured && changed ? { probability: target.probability } : o.stage === "won" || o.stage === "lost" ? { probability: 50 } : {}),
+      });
+    if (changed) {
       const [{ s } = { s: 0 }] = await t
         .select({ s: sql<number>`coalesce(max(${schema.opportunity.sort}), 0)::int` })
         .from(schema.opportunity)
@@ -788,12 +804,13 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     }
     const [row] = await t.update(schema.opportunity).set(patch).where(eq(schema.opportunity.id, id)).returning();
     if (!row) throw notFound("La oportunidad");
+    if (changed) await setPlacement(t, ctx, o.id, target.system ? null : target.id);
     await touchClient(t, c.id);
 
     let clientActivated = false;
-    if (o.stage !== stage) {
-      const from = label(L.stage, o.stage);
-      const to = label(L.stage, stage);
+    if (changed) {
+      const from = stageName(fromKey);
+      const to = target.name;
       if (stage === "won") {
         await recordEvent(t, ctx, {
           type: "oportunidad.ganada",
@@ -820,11 +837,11 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
           entityType: "opportunity",
           entityId: id,
           summary: `Movió «${o.title}» de ${from.toLowerCase()} a ${to.toLowerCase()}`,
-          payload: { clientId: c.id, from: o.stage, to: stage },
+          payload: { clientId: c.id, from: fromKey, to: target.key },
         });
       }
     }
-    return { ...row, clientActivated, clientName: c.name, previousStage: o.stage };
+    return { ...row, stage: target.key, clientActivated, clientName: c.name, previousStage: fromKey };
   });
 }
 
