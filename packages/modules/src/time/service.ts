@@ -3,7 +3,7 @@ import { audit, recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertFullAccess, assertOwned, getDb, scoped } from "../shared/db";
 import { formatMinutes, parseDuration } from "./duration";
 
 /** "25.000" (miles con punto, sin coma decimal) → "25000"; el resto lo resuelve zOptMoney. */
@@ -64,6 +64,8 @@ async function entityLabel(t: Tx, ctx: Ctx, projectId: string | null, taskTitle:
 
 export async function createTimeEntry(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "update", "project");
+  // Horas con tarifa: información económica, solo dueño/admin (M15).
+  assertFullAccess(ctx);
   const input = timeEntryInput.parse(raw);
   if (!ctx.userId) throw validation("Sin usuario");
   return getDb().transaction(async (t) => {
@@ -99,6 +101,8 @@ export async function createTimeEntry(ctx: Ctx, raw: unknown) {
 
 export async function updateTimeEntry(ctx: Ctx, id: string, raw: unknown) {
   assertCan(ctx, "update", "project");
+  // Horas con tarifa: información económica, solo dueño/admin (M15).
+  assertFullAccess(ctx);
   const input = timeEntryInput.parse(raw);
   return getDb().transaction(async (t) => {
     const [before] = await t

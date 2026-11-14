@@ -1,5 +1,7 @@
 /** Textos de UI centralizados para enums (es-AR). */
 export const L = {
+  role: { owner: "Dueño", admin: "Admin", member: "Colaborador", client: "Cliente" },
+  membershipStatus: { active: "Activo", disabled: "Desactivado" },
   projectStatus: {
     idea: "Idea",
     planning: "Planificación",

@@ -3,7 +3,7 @@ import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { haveIBeenPwned, twoFactor } from "better-auth/plugins";
+import { haveIBeenPwned, magicLink, twoFactor } from "better-auth/plugins";
 import { sendEmail } from "../shared/email";
 
 function createAuth() {
@@ -28,7 +28,7 @@ function createAuth() {
     }),
     emailAndPassword: {
       enabled: true,
-      disableSignUp: true, // el dueño se crea en /setup; usuarios nuevos llegan en la F6
+      disableSignUp: true, // el dueño se crea en /setup; el resto, solo aceptando una invitación (modules/users)
       minPasswordLength: 12,
       maxPasswordLength: 128,
       resetPasswordTokenExpiresIn: 15 * 60,
@@ -67,6 +67,22 @@ function createAuth() {
     plugins: [
       twoFactor({ issuer: "AGENCYOS", backupCodeOptions: { amount: 10 } }),
       // Passkeys: solo se registran desde una sesión ya autenticada con 2FA; valen como segundo factor (WebAuthn con verificación de usuario).
+      // Magic link (M15): solo clientes del portal. Para cualquier otro email no se envía nada (y la respuesta es la misma).
+      magicLink({
+        disableSignUp: true,
+        expiresIn: 15 * 60,
+        storeToken: "hashed",
+        rateLimit: { window: 15 * 60, max: 3 },
+        sendMagicLink: async ({ email, url }) => {
+          const { magicLinkAllowed } = await import("../users/service");
+          if (!(await magicLinkAllowed(email))) return;
+          await sendEmail({
+            to: email,
+            subject: "Luciano Rosano · Tu enlace para entrar al portal",
+            text: `Abrí este enlace para entrar al portal (vence en 15 minutos y sirve una sola vez):\n${url}\n\nSi no lo pediste, ignorá este mail.`,
+          });
+        },
+      }),
       passkey({ rpName: "AGENCYOS", rpID: new URL(baseURL).hostname, origin: new URL(baseURL).origin }),
       ...(process.env.AUTH_HIBP === "off"
         ? []
