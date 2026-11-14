@@ -137,8 +137,8 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await page
     .locator('input[type="file"]')
     .first()
-    .setInputFiles({ name: `minuta-${tag}.txt`, mimeType: "text/plain", buffer: Buffer.from("Minuta de la reunión") });
-  await expect(page.getByText(`minuta-${tag}.txt`).first()).toBeVisible({ timeout: 20_000 });
+    .setInputFiles({ name: `minuta-${tag}.txt`, mimeType: "text/plain", buffer: Buffer.from(`Minuta de la reunión ${tag} ${Date.now()}`) });
+  await expect(page.getByRole("link", { name: `minuta-${tag}.txt`, exact: true })).toBeVisible({ timeout: 20_000 });
   await page.reload();
   await expect(page.getByText("Adjuntos (1)")).toBeVisible();
   await expectNoHorizontalScroll(page);

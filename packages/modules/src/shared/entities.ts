@@ -24,6 +24,7 @@ export const ENTITIES = {
   deliverable: { table: schema.deliverable, title: "title", href: (_id: string) => `/proyectos` },
   account: { table: schema.moneyAccount, title: "name", href: (_id: string) => `/finanzas/cuentas` },
   project_template: { table: schema.projectTemplate, title: "name", href: (_id: string) => `/proyectos/plantillas` },
+  revision_item: { table: schema.revisionItem, title: "description", href: (_id: string) => `/sitios` },
   site: { table: schema.site, title: "name", href: (id: string) => `/sitios/${id}` },
   site_requirement: { table: schema.siteRequirement, title: "title", href: (_id: string) => `/sitios` },
   site_environment: { table: schema.siteEnvironment, title: "url", href: (_id: string) => `/sitios` },

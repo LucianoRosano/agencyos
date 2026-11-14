@@ -99,6 +99,16 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
   await page.fill("#pageRef", "Inicio");
   await page.getByRole("button", { name: "Agregar", exact: true }).click();
   await expect(page.getByText("Ítem agregado")).toBeVisible();
+  // captura del cambio pedido
+  const shotBox = page.locator("details", { hasText: "Agregar captura" }).first();
+  await shotBox.getByText("Agregar captura").click();
+  await shotBox
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({ name: `hero-${p}.txt`, mimeType: "text/plain", buffer: Buffer.from(`captura de referencia ${p} ${Date.now()}`) });
+  await expect(page.getByRole("link", { name: `hero-${p}.txt`, exact: true })).toBeVisible({ timeout: 20_000 });
+  await page.reload();
+  await expect(page.getByText("Capturas (1)")).toBeVisible();
   await page.getByRole("button", { name: "Cerrar R1" }).click();
   await expect(page.getByText(/queda 1 ítem abierto/)).toBeVisible();
   await page.getByRole("combobox", { name: "Estado del ítem" }).selectOption("resolved");

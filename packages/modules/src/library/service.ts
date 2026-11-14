@@ -23,6 +23,7 @@ export const ATTACHABLE: Partial<Record<EntityType, Resource>> = {
   receivable: "finance",
   payable: "finance",
   site: "project",
+  revision_item: "project",
 };
 
 export const thumbKeyFor = (storageKey: string) => `${storageKey}.thumb.webp`;
