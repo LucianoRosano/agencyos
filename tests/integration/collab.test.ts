@@ -1,3 +1,4 @@
+import { getBrainGraph } from "@agencyos/modules/brain/queries";
 import * as collab from "@agencyos/modules/collab/service";
 import { createClient } from "@agencyos/modules/crm/service";
 import { createProject } from "@agencyos/modules/projects/service";
@@ -58,5 +59,15 @@ describe("colaboración: etiquetas, comentarios, conexiones y vistas", () => {
     const [v] = await collab.listSavedViews(a, "tareas");
     await collab.deleteSavedView(a, v?.id ?? "");
     expect(await collab.listSavedViews(a, "tareas")).toHaveLength(0);
+  });
+
+  it("el Cerebro expone las etiquetas de cada nodo para filtrar", async () => {
+    const a = await makeWorkspace("A");
+    const p = await createProject(a, { name: "Con etiqueta" });
+    const t = await collab.createTag(a, { name: "prioridad" });
+    await collab.setEntityTags(a, "project", p.id, [t.id]);
+    const g = await getBrainGraph(a);
+    expect(g.nodes.find((n) => n.key === `project:${p.id}`)?.tags).toEqual(["prioridad"]);
+    expect(g.tags?.map((x) => x.name)).toEqual(["prioridad"]);
   });
 });

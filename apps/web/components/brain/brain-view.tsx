@@ -73,6 +73,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
   const [types, setTypes] = useState<Set<BrainNodeType>>(() => new Set(FILTER_TYPES.filter((t) => t !== "task" || includeTasks)));
   const [spaceId, setSpaceId] = useState(initialSpace && graph.spaces.some((x) => x.id === initialSpace) ? initialSpace : "");
   const [timeCut, setTimeCut] = useState(now);
+  const [tag, setTag] = useState("");
   const [view, setView] = useState<View>("graph");
   const [selected, setSelected] = useState<string | null>(initialNode && byKey.has(initialNode) ? initialNode : null);
   const [local, setLocal] = useState<number | null>(null);
@@ -101,11 +102,12 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       if (!types.has(n.type)) continue;
       if (spaceId && n.spaceId !== spaceId && n.cluster !== `space:${spaceId}`) continue;
       if (n.createdAt > timeCut) continue;
+      if (tag && !n.tags?.includes(tag)) continue;
       if (localSet && !localSet.has(n.key)) continue;
       out.add(n.key);
     }
     return out;
-  }, [real, types, spaceId, timeCut, localSet]);
+  }, [real, types, spaceId, timeCut, tag, localSet]);
 
   const select = useCallback((key: string | null, fly = false) => {
     setSelected(key);
@@ -403,6 +405,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
         <div className="absolute inset-x-5 bottom-5 z-10 hidden items-end gap-3 md:flex">
           <Timeline min={minTime} max={now} value={timeCut} onChange={setTimeCut} />
           <SpaceSelect spaces={graph.spaces} value={spaceId} onChange={setSpaceId} />
+          {graph.tags?.length ? <TagSelect tags={graph.tags} value={tag} onChange={setTag} /> : null}
           <Legend />
         </div>
       ) : null}
@@ -445,6 +448,23 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
               ))}
             </select>
           </label>
+          {graph.tags?.length ? (
+            <label className="flex flex-col gap-1.5 text-[13px] text-text-muted">
+              Etiqueta
+              <select
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                className="select-chevron h-11 appearance-none rounded-[var(--radius-control)] border border-border bg-bg-elevated bg-[length:16px] bg-[right_10px_center] bg-no-repeat px-3 text-base text-text"
+              >
+                <option value="">Todas las etiquetas</option>
+                {graph.tags.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    #{t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <Timeline min={minTime} max={now} value={timeCut} onChange={setTimeCut} plain />
           <Legend plain />
         </div>
@@ -785,6 +805,27 @@ function SpaceSelect({ spaces, value, onChange }: { spaces: { id: string; name: 
         {spaces.map((s) => (
           <option key={s.id} value={s.id}>
             {s.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function TagSelect({ tags, value, onChange }: { tags: { name: string; color: string }[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="brain-glass flex h-14 shrink-0 items-center gap-2 rounded-[12px] pr-1 pl-3.5">
+      <span className="sr-only">Etiqueta</span>
+      <span aria-hidden className="size-2.5 rounded-full" style={{ background: tags.find((t) => t.name === value)?.color ?? "#8A93A6" }} />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="select-chevron h-12 appearance-none bg-transparent bg-[length:16px] bg-[right_8px_center] bg-no-repeat pr-8 pl-1 text-[14px] text-text outline-none"
+      >
+        <option value="">Todas las etiquetas</option>
+        {tags.map((t) => (
+          <option key={t.name} value={t.name}>
+            #{t.name}
           </option>
         ))}
       </select>
