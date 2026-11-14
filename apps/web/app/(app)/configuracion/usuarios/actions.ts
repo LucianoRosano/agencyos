@@ -8,7 +8,7 @@ type S = Result<unknown> | null;
 const form = (fd: FormData) => ({
   email: fd.get("email"),
   role: fd.get("role"),
-  clientId: fd.get("clientId"),
+  clientId: fd.get("clientId") ?? undefined,
   projectIds: fd.getAll("projectIds").map(String),
 });
 

@@ -10,13 +10,7 @@ import { acceptExistingAction, acceptNewAction } from "./actions";
 
 export function NewAccountForm({ token, email }: { token: string; email: string }) {
   return (
-    <ActionForm<{ to: string }>
-      action={acceptNewAction.bind(null, token)}
-      successMessage="¡Listo! Tu cuenta quedó creada."
-      onSuccess={(d) => {
-        window.location.href = d.to;
-      }}
-    >
+    <ActionForm action={acceptNewAction.bind(null, token)}>
       <TextField label="Email" name="email_ro" value={email} readOnly autoComplete="username" />
       <TextField label="Tu nombre y apellido" name="name" autoComplete="name" required />
       <TextField label="Contraseña" name="password" type="password" autoComplete="new-password" required hint="Mínimo 12 caracteres." />
@@ -36,11 +30,7 @@ export function AcceptExisting({ token }: { token: string }) {
       onClick={() =>
         start(async () => {
           const r = await acceptExistingAction(token);
-          if (!r.ok) {
-            toast.error(r.error.message);
-            return;
-          }
-          window.location.href = r.data.to;
+          if (!r.ok) toast.error(r.error.message);
         })
       }
     >
