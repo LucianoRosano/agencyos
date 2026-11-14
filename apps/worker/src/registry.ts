@@ -1,3 +1,4 @@
+import { processAgentRuns } from "@agencyos/modules/ai/jobs";
 import { automationsTick } from "@agencyos/modules/automations/jobs";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
@@ -28,4 +29,5 @@ export const JOBS: Job[] = [
   { name: "automations-tick", cron: "* * * * *", run: () => automationsTick(), quiet: true },
   { name: "repos-execute-plans", cron: "* * * * *", run: () => reposExecutePlans(), quiet: true },
   { name: "repos-daily-sync", cron: "0 4 * * *", run: () => reposDailySync() },
+  { name: "ai-agent-runs", cron: "* * * * *", run: () => processAgentRuns({ maxMs: 50_000, pollMs: 3_000 }), quiet: true },
 ];

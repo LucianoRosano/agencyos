@@ -1,5 +1,7 @@
 import { formatDate, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
+import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
+import { availableAgents } from "@agencyos/modules/ai/queries";
 import { getProject } from "@agencyos/modules/projects/queries";
 import { siteForProject } from "@agencyos/modules/sites/queries";
 import { Badge, Button, Card, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
@@ -7,12 +9,14 @@ import { CornerDownRight, LayoutTemplate, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { AgentEntryButton } from "@/components/ai/ai-ui";
 import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectRepos } from "@/components/repos/project-repos";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
+import { ProjectHoursTab, projectHoursLine } from "@/components/time/time-panels";
 import { renderMarkdown } from "@/lib/markdown";
 import { clientOpts, projectOpts, spaceOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
@@ -37,6 +41,7 @@ const TABS = [
   { key: "decisiones", label: "Decisiones" },
   { key: "repositorios", label: "Repositorios" },
   { key: "changelog", label: "Changelog" },
+  { key: "horas", label: "Horas" },
   { key: "actividad", label: "Actividad" },
 ];
 
@@ -64,11 +69,13 @@ export default async function ProjectPage({
   const doneTasks = data.tasks.filter((t) => !t.parentTaskId && t.status === "done");
   const activeBlockers = data.blockers.filter((b) => !b.resolvedAt);
   const sitesOn = ctx.workspace.enabledModules.includes("sites") && (p.kind === "website" || p.kind === "store");
-  const [projects, spaces, clients, site] = await Promise.all([
+  const [projects, spaces, clients, site, hours, ai] = await Promise.all([
     projectOpts(ctx),
     spaceOpts(ctx),
     clientOpts(ctx),
     sitesOn ? siteForProject(ctx, p.id) : Promise.resolve(null),
+    tab === "resumen" ? projectHoursLine(ctx, p.id) : Promise.resolve(null),
+    availableAgents(ctx),
   ]);
   const phaseName = new Map(data.phases.map((ph) => [ph.id, ph.name]));
   const today = todayAR();
@@ -96,6 +103,7 @@ export default async function ProjectPage({
         accent="#7C5CFF"
         actions={
           <>
+            {ai.has(ENTRY_POINTS.project.agentKey) ? <AgentEntryButton entityType="project" entityId={p.id} label={ENTRY_POINTS.project.label} /> : null}
             {sitesOn ? (
               <Button asChild variant={site ? "ghost" : "primary"}>
                 <Link href={site ? `/sitios/${site.id}` : `/sitios/nuevo?proyecto=${p.id}`}>
@@ -194,6 +202,12 @@ export default async function ProjectPage({
                 <dt className="text-text-muted">Tareas</dt>
                 <dd className="font-mono">
                   {doneTasks.length} / {doneTasks.length + openTasks.length}
+                </dd>
+                <dt className="text-text-muted">Horas</dt>
+                <dd className="font-mono">
+                  <Link href={`/proyectos/${p.id}/horas`} className="hover:underline">
+                    {hours ?? "0 h"}
+                  </Link>
                 </dd>
                 <dt className="text-text-muted">Actividad</dt>
                 <dd>{relativeFromDate(p.lastActivityAt)}</dd>
@@ -374,6 +388,8 @@ export default async function ProjectPage({
           </Card>
         </div>
       ) : null}
+
+      {tab === "horas" ? <ProjectHoursTab ctx={ctx} projectId={p.id} /> : null}
 
       {tab === "actividad" ? (
         <Card className="p-5">

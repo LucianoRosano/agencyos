@@ -35,6 +35,8 @@ const RESOURCE: Partial<Record<EntityType, Resource>> = {
   site: "project",
   site_requirement: "project",
   site_environment: "project",
+  time_entry: "project",
+  note_template: "note",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: acceso genérico a columnas comunes

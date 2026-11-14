@@ -19,6 +19,7 @@ const SCOPE_LABEL: Record<string, string> = {
   "write:crm": "Registrar interacciones del CRM",
   "write:finance": "Registrar movimientos (desactivado por defecto)",
   "propose:*": "Proponer cambios (aprobaciones)",
+  "write:comments": "Comentarios internos en fichas",
 };
 
 export function NewTokenForm({ base }: { base: string }) {

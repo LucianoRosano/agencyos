@@ -14,7 +14,8 @@ describe("worker", () => {
     const bot = await ctxFromToken(token);
     if (!bot) throw new Error("token");
     await capture(bot, { text: "Idea desde Claude" }, "mcp");
-    await dispatchOutbox();
+    // la base de tests acumula eventos de otros archivos: despachar hasta vaciar la cola
+    while ((await dispatchOutbox()) > 0) {}
     const notes = await getDb().select().from(schema.notification).where(eq(schema.notification.workspaceId, owner.workspaceId));
     expect(notes.some((n) => n.title.includes("Idea desde Claude"))).toBe(true);
     const pending = await getDb()

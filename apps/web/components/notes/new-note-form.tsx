@@ -1,6 +1,7 @@
 "use client";
 
-import { createNoteAction } from "@/app/(app)/notas/actions";
+import Link from "next/link";
+import { createNoteFromFormAction } from "@/app/(app)/notas/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 
@@ -10,16 +11,33 @@ export function NewNoteForm({
   spaces,
   entities,
   folders,
+  templates = [],
   defaults,
 }: {
   spaces: Opt[];
   entities: Opt[];
   folders: string[];
-  defaults: { title: string; folderPath: string; spaceId: string; entity: string };
+  templates?: Opt[];
+  defaults: { title: string; folderPath: string; spaceId: string; entity: string; templateId?: string };
 }) {
   return (
-    <ActionForm action={createNoteAction} successMessage="Nota creada" redirectTo={(n: { id: string }) => `/notas/${n.id}`}>
+    <ActionForm action={createNoteFromFormAction} successMessage="Nota creada" redirectTo={(n: { id: string }) => `/notas/${n.id}`}>
       <TextField label="Título" name="title" required autoFocus defaultValue={defaults.title} maxLength={200} placeholder="Ej.: Ideas para la tienda" />
+      <SelectField
+        label="Plantilla"
+        name="templateId"
+        defaultValue={defaults.templateId ?? ""}
+        placeholder="En blanco"
+        options={templates}
+        hint={
+          <>
+            {"Reemplaza {{fecha}}, {{titulo}} y {{cliente}}. "}
+            <Link href="/notas/plantillas" className="text-accent hover:underline">
+              Gestionar plantillas
+            </Link>
+          </>
+        }
+      />
       <div className="grid gap-4 md:grid-cols-2">
         <SelectField label="Espacio" name="spaceId" defaultValue={defaults.spaceId} placeholder="Sin espacio" options={spaces} />
         <TextField

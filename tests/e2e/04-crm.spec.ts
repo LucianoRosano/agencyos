@@ -83,8 +83,9 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await expect(page.getByLabel(`Etapa de «${opp}»`)).toHaveValue("meeting");
 
   await moveTo(page, opp, "negotiation", "Negociación");
-  // Suma ponderada en la columna: 1.500.000 × 40 %
-  await expect(page.locator('section[data-stage="negotiation"]')).toContainText("$ 600.000");
+  // Suma ponderada en la columna: 1.500.000 × 40 % (o × 80 % si las etapas ya se configuraron:
+  // con etapas configuradas, mover de etapa aplica la probabilidad por defecto de la etapa).
+  await expect(page.locator('section[data-stage="negotiation"]')).toContainText(/\$ (600\.000|1\.200\.000)/);
   await expectNoHorizontalScroll(page);
   await cleanShot(page, "crm-pipeline-kanban", tag);
 

@@ -1,5 +1,6 @@
 import { formatDate, formatMoney, formatTime, L, label, relativeFromDate, subMoney, todayAR } from "@agencyos/core";
 import { clientActivity, clientMoney, contactOptions, getClient, mergeCandidates, nextStepsOf } from "@agencyos/modules/crm/queries";
+import { pipelineFor } from "@agencyos/modules/crm/stages";
 import { Badge, BlockCard, Button, Card, cn, Dot, EmptyState, PageHeader, SectionLabel, Tabs } from "@agencyos/ui";
 import {
   BriefcaseBusiness,
@@ -33,7 +34,8 @@ import { FiscalCard } from "@/components/crm/fiscal-card";
 import { InteractionForm, InteractionSheet, NextStepDone } from "@/components/crm/interaction-form";
 import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
 import { type PipelineOpp, PipelineView } from "@/components/crm/pipeline";
-import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, STAGE_COLOR } from "@/components/crm/shared";
+import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, stageColor, stageName } from "@/components/crm/shared";
+import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
 import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectCard } from "@/components/project-card";
@@ -74,16 +76,17 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const openOpps = data.opportunities.filter((o) => OPEN_STAGES.includes(o.stage));
   const activeProjects = data.projects.filter((p) => !p.archivedAt && !["done", "archived"].includes(p.status));
   const steps = nextStepsOf(data);
-  const [spaces, merge, allContacts] = await Promise.all([
+  const [spaces, merge, allContacts, { stages, stageOf }] = await Promise.all([
     spaceOpts(ctx),
     mergeCandidates(ctx, id),
     tab === "contactos" ? contactOptions(ctx) : Promise.resolve([]),
+    pipelineFor(ctx, data.opportunities),
   ]);
   const linked = new Set(data.contacts.map((x) => x.ct.id));
   const pipelineOpps: PipelineOpp[] = data.opportunities.map((o) => ({
     id: o.id,
     title: o.title,
-    stage: o.stage,
+    stage: stageOf.get(o.id) ?? o.stage,
     clientId: c.id,
     clientName: c.name,
     lostReason: o.lostReason,
@@ -219,11 +222,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                         href={`/crm/oportunidades/${o.id}`}
                         className="flex items-center gap-3 rounded-[10px] border border-border bg-bg-elevated px-3.5 py-2.5 hover:border-border-strong"
                       >
-                        <Dot color={STAGE_COLOR[o.stage] ?? CRM_ACCENT} />
+                        <Dot color={stageColor(stageOf.get(o.id) ?? o.stage, stages)} />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[14px] text-text">{o.title}</span>
                           <span className="font-mono text-[12px] text-text-muted">
-                            {label(L.stage, o.stage)} · {o.probability}%
+                            {stageName(stageOf.get(o.id) ?? o.stage, stages)} · {o.probability}%
                           </span>
                         </span>
                         <span className="shrink-0 font-mono text-[13px] text-text">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</span>
@@ -429,6 +432,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               Registro rápido
             </SectionLabel>
             <InteractionForm clientId={id} contacts={contactOpts} now={nowAR} compact />
+            <div className="mt-4 border-t border-border pt-4">
+              <WhatsappImportSheet clientId={id} contacts={contactOpts} />
+            </div>
           </Card>
         </div>
       ) : null}
@@ -437,7 +443,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <div className="flex flex-col gap-4">
           <div className="flex justify-end">{newOpp("Nueva oportunidad", "primary")}</div>
           {pipelineOpps.length ? (
-            <PipelineView view="tabla" opps={pipelineOpps} quotes={data.quotes.map((q) => ({ ...q, clientId: c.id }))} />
+            <PipelineView view="tabla" opps={pipelineOpps} quotes={data.quotes.map((q) => ({ ...q, clientId: c.id }))} stages={stages} />
           ) : (
             <EmptyState
               icon={<Handshake />}

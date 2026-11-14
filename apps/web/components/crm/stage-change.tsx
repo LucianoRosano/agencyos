@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { moveOpportunityAction } from "@/app/(app)/crm/actions";
-import { STAGE_ORDER, type StageKey } from "./shared";
+import { DEFAULT_STAGES, type StageDef, stageName } from "./shared";
 
 export type OppLite = {
   id: string;
@@ -30,7 +30,7 @@ export type QuoteLite = {
   currency: string | null;
 };
 
-type Pending = { opp: OppLite; stage: StageKey } | null;
+type Pending = { opp: OppLite; stage: string } | null;
 
 /**
  * Reglas del pipeline en la UI:
@@ -39,14 +39,22 @@ type Pending = { opp: OppLite; stage: StageKey } | null;
  * - «Ganada» ofrece crear el proyecto con el asistente.
  * `onOptimistic` aplica el cambio en la vista y devuelve cómo revertirlo si falla.
  */
-export function useStageChange({ quotes, onOptimistic }: { quotes: QuoteLite[]; onOptimistic?: (id: string, stage: StageKey) => () => void }) {
+export function useStageChange({
+  quotes,
+  onOptimistic,
+  stages = DEFAULT_STAGES,
+}: {
+  quotes: QuoteLite[];
+  onOptimistic?: (id: string, stage: string) => () => void;
+  stages?: StageDef[];
+}) {
   const [quoteFor, setQuoteFor] = useState<Pending>(null);
   const [lostFor, setLostFor] = useState<Pending>(null);
   const [wonInfo, setWonInfo] = useState<{ opp: OppLite; clientActivated: boolean } | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
 
-  function apply(opp: OppLite, stage: StageKey, extra: { quoteId?: string; lostReason?: string } = {}) {
+  function apply(opp: OppLite, stage: string, extra: { quoteId?: string; lostReason?: string } = {}) {
     const revert = onOptimistic?.(opp.id, stage);
     const prevStage = opp.stage;
     const prevReason = opp.lostReason;
@@ -60,12 +68,12 @@ export function useStageChange({ quotes, onOptimistic }: { quotes: QuoteLite[]; 
       setQuoteFor(null);
       setLostFor(null);
       if (stage === "won") setWonInfo({ opp, clientActivated: r.data.clientActivated });
-      toast.success(`«${opp.title}» → ${L.stage[stage]}`, {
+      toast.success(`«${opp.title}» → ${stageName(stage, stages)}`, {
         duration: 8000,
         action: {
           label: "Deshacer",
           onClick: () => {
-            onOptimistic?.(opp.id, prevStage as StageKey);
+            onOptimistic?.(opp.id, prevStage);
             void moveOpportunityAction(opp.id, { stage: prevStage, lostReason: prevReason ?? undefined }).then(() => router.refresh());
           },
         },
@@ -74,9 +82,10 @@ export function useStageChange({ quotes, onOptimistic }: { quotes: QuoteLite[]; 
     });
   }
 
-  function request(opp: OppLite, stage: StageKey) {
+  function request(opp: OppLite, stage: string) {
     if (opp.stage === stage) return;
-    if (stage === "proposal_sent" && !opp.hasQuote) setQuoteFor({ opp, stage });
+    const base = stages.find((s) => s.key === stage)?.base ?? stage;
+    if (base === "proposal_sent" && !opp.hasQuote) setQuoteFor({ opp, stage });
     else if (stage === "lost") setLostFor({ opp, stage });
     else apply(opp, stage);
   }
@@ -86,9 +95,10 @@ export function useStageChange({ quotes, onOptimistic }: { quotes: QuoteLite[]; 
       <QuoteDialog
         pending={pending}
         target={quoteFor}
+        stages={stages}
         quotes={quotes}
         onClose={() => setQuoteFor(null)}
-        onConfirm={(quoteId) => quoteFor && apply(quoteFor.opp, "proposal_sent", { quoteId })}
+        onConfirm={(quoteId) => quoteFor && apply(quoteFor.opp, quoteFor.stage, { quoteId })}
       />
       <LostDialog
         pending={pending}
@@ -108,8 +118,10 @@ function QuoteDialog({
   onClose,
   onConfirm,
   pending,
+  stages,
 }: {
   target: Pending;
+  stages: StageDef[];
   quotes: QuoteLite[];
   onClose: () => void;
   onConfirm: (quoteId: string) => void;
@@ -129,7 +141,11 @@ function QuoteDialog({
         }
       }}
       title="Vincular un presupuesto"
-      description={opp ? `Para pasar «${opp.title}» a «Propuesta enviada» vinculá el presupuesto que le mandaste a ${opp.clientName}.` : undefined}
+      description={
+        opp
+          ? `Para pasar «${opp.title}» a «${stageName(target?.stage ?? "proposal_sent", stages)}» vinculá el presupuesto que le mandaste a ${opp.clientName}.`
+          : undefined
+      }
     >
       {available.length ? (
         <fieldset className="mb-4 flex flex-col gap-2">
@@ -261,23 +277,19 @@ export function StageSelect({
   request,
   className,
   disabled,
+  stages = DEFAULT_STAGES,
 }: {
   opp: OppLite;
-  request: (o: OppLite, s: StageKey) => void;
+  request: (o: OppLite, s: string) => void;
   className?: string;
   disabled?: boolean;
+  stages?: StageDef[];
 }) {
   return (
-    <Select
-      aria-label={`Etapa de «${opp.title}»`}
-      value={opp.stage}
-      disabled={disabled}
-      onChange={(e) => request(opp, e.target.value as StageKey)}
-      className={className}
-    >
-      {STAGE_ORDER.map((s) => (
-        <option key={s} value={s}>
-          {L.stage[s]}
+    <Select aria-label={`Etapa de «${opp.title}»`} value={opp.stage} disabled={disabled} onChange={(e) => request(opp, e.target.value)} className={className}>
+      {stages.map((s) => (
+        <option key={s.key} value={s.key}>
+          {s.name}
         </option>
       ))}
     </Select>

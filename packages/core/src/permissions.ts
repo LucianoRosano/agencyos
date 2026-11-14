@@ -54,6 +54,7 @@ const SCOPE_GRANTS: Record<string, [Resource, Action[]][]> = {
   "write:crm": [["crm", ["create", "update"]]],
   "write:finance": [["finance", ["create"]]],
   "propose:*": [["approval", ["create"]]],
+  "write:comments": [["comment", ["create"]]],
 };
 
 /**

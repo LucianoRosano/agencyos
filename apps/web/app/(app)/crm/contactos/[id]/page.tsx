@@ -2,7 +2,7 @@ import { formatDate, formatDateTime, formatTime, L, label, todayAR } from "@agen
 import { listActivity } from "@agencyos/modules/activity/queries";
 import { getContact } from "@agencyos/modules/crm/queries";
 import { Badge, BlockCard, Button, Card, EmptyState, PageHeader, SectionLabel } from "@agencyos/ui";
-import { BriefcaseBusiness, Info, MessageSquarePlus, MessagesSquare, Star } from "lucide-react";
+import { BriefcaseBusiness, Info, MessageCircle, MessageSquarePlus, MessagesSquare, Star } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
@@ -12,6 +12,7 @@ import { ContactLinks } from "@/components/crm/contact-links";
 import { KIND_ICON } from "@/components/crm/icons";
 import { InteractionSheet } from "@/components/crm/interaction-form";
 import { CLIENT_STATUS_TONE, CRM_ACCENT } from "@/components/crm/shared";
+import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
 import { requireCtx } from "@/lib/session";
@@ -55,6 +56,18 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                 trigger={
                   <Button variant="primary">
                     <MessageSquarePlus className="size-4" /> Registrar interacción
+                  </Button>
+                }
+              />
+            ) : null}
+            {data.clients.length ? (
+              <WhatsappImportSheet
+                clients={data.clients.map((c) => ({ value: c.id, label: c.name }))}
+                contacts={[{ value: ct.id, label: ct.name }]}
+                defaultContactId={ct.id}
+                trigger={
+                  <Button variant="secondary">
+                    <MessageCircle className="size-4" /> Importar chat
                   </Button>
                 }
               />

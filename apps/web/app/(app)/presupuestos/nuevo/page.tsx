@@ -1,3 +1,4 @@
+import { opportunityServices } from "@agencyos/modules/crm/opportunity-services";
 import { editorOptions, newQuoteDefaults, previewDocument } from "@agencyos/modules/quotes/queries";
 import { Button, EmptyState, PageHeader } from "@agencyos/ui";
 import { BriefcaseBusiness } from "lucide-react";
@@ -18,6 +19,22 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
   const opp = sp.oportunidad ? opts.opportunities.find((o) => o.id === sp.oportunidad) : undefined;
   const clientId = opp?.clientId ?? (opts.clients.some((c) => c.id === sp.cliente) ? sp.cliente : undefined);
   const base = newQuoteDefaults(opts.template, { clientId, opportunityId: opp?.id, title: opp?.title, currency: ctx.workspace.defaultCurrency });
+  // Desde una oportunidad: sus servicios de interés entran como ítems (precio de catálogo en la moneda del presupuesto).
+  const interest = opp ? await opportunityServices(ctx, opp.id) : [];
+  if (interest.length) {
+    base.items = interest.map((s) => {
+      const price = base.currency === "USD" ? s.priceUsd : s.priceArs;
+      return {
+        serviceId: s.active ? s.id : "",
+        description: s.name,
+        quantity: "1",
+        unit: s.unit,
+        unitPrice: price ? price.replace(/\.00$/, "") : "",
+        discountType: "none",
+        discountValue: "",
+      };
+    });
+  }
   const initial: QuoteDraft = {
     ...base,
     currency: base.currency === "USD" ? "USD" : "ARS",

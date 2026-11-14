@@ -34,6 +34,22 @@ export const CLIENT_STATUS_TONE: Record<string, "neutral" | "accent" | "info" | 
   archived: "neutral",
 };
 
+/** Etapa del pipeline tal como la ve la UI (crm_stage del workspace o, sin configurar, las fijas de L.stage). */
+export type StageDef = { key: string; name: string; kind: "open" | "won" | "lost"; base: string; probability?: number };
+
+export const DEFAULT_STAGES: StageDef[] = STAGE_ORDER.map((k) => ({
+  key: k,
+  name: L.stage[k],
+  kind: k === "won" ? "won" : k === "lost" ? "lost" : "open",
+  base: k,
+}));
+
+/** Color de una etapa: el de su clave de sistema o, si es propia, el de su etapa base. */
+export const stageColor = (key: string, stages: StageDef[] = DEFAULT_STAGES) =>
+  STAGE_COLOR[key] ?? STAGE_COLOR[stages.find((s) => s.key === key)?.base ?? ""] ?? "#8A93A6";
+export const stageName = (key: string, stages: StageDef[] = DEFAULT_STAGES) => stages.find((s) => s.key === key)?.name ?? L.stage[key as StageKey] ?? key;
+export const isOpenKey = (key: string, stages: StageDef[] = DEFAULT_STAGES) => stages.find((s) => s.key === key)?.kind === "open";
+
 export const opts = (m: Record<string, string>) => Object.entries(m).map(([value, label]) => ({ value, label }));
 export const stageOpts = () => STAGE_ORDER.map((s) => ({ value: s, label: L.stage[s] }));
 

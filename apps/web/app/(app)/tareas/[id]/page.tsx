@@ -7,6 +7,7 @@ import { EntitySide } from "@/components/collab/entity-side";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow } from "@/components/tasks/task-row";
+import { TaskTimeBlock } from "@/components/time/time-panels";
 import { projectOpts, spaceOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
 import { Checklist, TaskActions, TaskEditForm } from "./task-detail";
@@ -43,7 +44,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
         <Badge tone={t.priority <= 2 ? "warning" : "neutral"}>{L.priority[t.priority]}</Badge>
         {t.completedAt ? <Badge tone="success">Completada {formatDateTime(t.completedAt)}</Badge> : null}
       </div>
-      <div className="grid gap-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
         <Card className="p-5">
           <TaskEditForm
             id={t.id}
@@ -68,6 +69,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <SectionLabel className="mb-3">Checklist</SectionLabel>
           <Checklist taskId={t.id} items={data.checklist.map((c) => ({ id: c.id, text: c.text, done: c.done }))} />
         </Card>
+        <TaskTimeBlock ctx={ctx} taskId={t.id} projectId={t.projectId} />
         <AttachmentsBlock ctx={ctx} entityType="task" entityId={t.id} emptyText="Sin archivos. Adjuntá referencias, briefs o entregables." />
         {!t.parentTaskId ? (
           <Card className="p-5">
@@ -95,7 +97,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             )}
           </Card>
         ) : null}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-2">
           <EntitySide ctx={ctx} type="task" id={t.id} />
         </div>
       </div>

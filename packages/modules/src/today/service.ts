@@ -4,6 +4,7 @@ import { schema } from "@agencyos/db";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, projectScope, scoped } from "../shared/db";
+import { recordFocusTimeInTx } from "../time/service";
 
 /** Elige una tarea como foco de hoy (máximo 3). */
 export async function pickFocus(ctx: Ctx, taskId: string) {
@@ -167,6 +168,8 @@ export async function logFocusSession(ctx: Ctx, raw: unknown) {
             .set({ descriptionMd: `${task.descriptionMd ? `${task.descriptionMd}\n\n` : ""}**Sesión de foco (${input.minutes} min):**\n${input.notesMd}` })
             .where(eq(schema.task.id, task.id));
       }
+      // Registro de horas (time_entry): la sesión de foco sobre una tarea suma a sus horas y a las del proyecto.
+      await recordFocusTimeInTx(t, ctx, { taskId: input.taskId, minutes: input.minutes, date: toISODateAR(input.startedAt) });
       await recordEvent(t, ctx, { type: "foco.sesion", entityType: "task", entityId: input.taskId, summary: `Sesión de foco de ${input.minutes} min` });
     }
     return row;
