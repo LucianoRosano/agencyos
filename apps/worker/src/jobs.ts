@@ -17,6 +17,11 @@ const NOTIFY: Record<string, (p: Record<string, unknown>, summary: string) => st
   "presupuesto.vencido": (_p, s) => s,
   "cobro.vencido": (_p, s) => s,
   "pago.vencido": (_p, s) => s,
+  // Portal de clientes y usuarios (M15): lo que hace un cliente le llega al dueño.
+  "entrega.aprobada_por_cliente": (_p, s) => s,
+  "entrega.cambios_pedidos": (_p, s) => s,
+  "revision.feedback_cliente": (_p, s) => s,
+  "usuario.unido": (_p, s) => s,
 };
 
 /** Outbox → actividad ya registrada; acá se despachan notificaciones y se marcan como enviados. Idempotente. */
@@ -44,7 +49,9 @@ export async function dispatchOutbox(limit = 500) {
       const owners = await db
         .select({ userId: schema.membership.userId })
         .from(schema.membership)
-        .where(and(eq(schema.membership.workspaceId, ev.workspaceId), inArray(schema.membership.role, ["owner", "admin"])));
+        .where(
+          and(eq(schema.membership.workspaceId, ev.workspaceId), inArray(schema.membership.role, ["owner", "admin"]), eq(schema.membership.status, "active")),
+        );
       const text = (title || act?.summary || ev.type).slice(0, 200);
       const prefKey = fromAgent ? "agente.actividad" : ev.type;
       const url = ev.entityType && ev.entityId ? entityHref(ev.entityType, ev.entityId) : "/hoy";

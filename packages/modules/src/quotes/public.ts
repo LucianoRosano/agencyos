@@ -64,11 +64,21 @@ async function resolveToken(token: string) {
   return q;
 }
 
+type QuoteRow = typeof schema.quote.$inferSelect;
+
 /** Abre el presupuesto público: devuelve el documento y marca "visto" la primera vez. */
 export async function openPublicQuote(token: string) {
   const q = await resolveToken(token);
   if (!q) return null;
-  const ctx = clientCtx(q.workspaceId, "enlace público");
+  return openQuoteForClient(q, "enlace público");
+}
+
+/**
+ * Vista del cliente (enlace público o portal, M15): marca "visto" la primera vez y devuelve documento y decisión.
+ * Quien llama ya verificó el acceso (token vigente o cliente del portal dueño del presupuesto).
+ */
+export async function openQuoteForClient(q: QuoteRow, via: string) {
+  const ctx = clientCtx(q.workspaceId, via);
   if (q.status === "sent") {
     await getDb().transaction(async (t) => {
       await t
@@ -100,10 +110,15 @@ export const decisionInput = z.object({
  * se crean el proyecto, los cobros según el plan y la oportunidad queda ganada (ADR 0010).
  */
 export async function decidePublicQuote(token: string, raw: unknown, meta: { ip?: string | null; userAgent?: string | null }) {
-  const input = decisionInput.parse(raw);
-  if (input.decision === "accepted" && !input.agree) throw validation("Confirmá que aceptás las condiciones", { agree: "Obligatorio" });
   const q = await resolveToken(token);
   if (!q) throw notFound("El enlace");
+  return decideQuoteForClient(q, raw, { ...meta, via: "public" });
+}
+
+/** Decisión del cliente (enlace público o portal): misma regla y mismos efectos en ambos canales (ADR 0010). */
+export async function decideQuoteForClient(q: QuoteRow, raw: unknown, meta: { ip?: string | null; userAgent?: string | null; via: "public" | "portal" }) {
+  const input = decisionInput.parse(raw);
+  if (input.decision === "accepted" && !input.agree) throw validation("Confirmá que aceptás las condiciones", { agree: "Obligatorio" });
   if (!["sent", "viewed"].includes(q.status)) throw conflict("Este presupuesto ya no admite cambios. Escribile a Luciano.");
   const [prev] = await getDb().select({ id: schema.quoteDecision.id }).from(schema.quoteDecision).where(eq(schema.quoteDecision.quoteId, q.id)).limit(1);
   if (prev) throw conflict("Este presupuesto ya tiene una respuesta registrada.");
@@ -123,9 +138,9 @@ export async function decidePublicQuote(token: string, raw: unknown, meta: { ip?
   if (input.decision === "accepted") {
     await acceptQuote(ctx, q.id, { createProject: true, createReceivables: true, markOpportunityWon: true });
   } else {
-    await rejectQuote(ctx, q.id, input.comment ?? `Rechazado por ${input.signerName} desde el enlace`);
+    await rejectQuote(ctx, q.id, input.comment ?? `Rechazado por ${input.signerName} desde ${meta.via === "portal" ? "el portal" : "el enlace"}`);
   }
-  await audit(getDb(), ctx, { action: `quote.public_${input.decision}`, targetType: "quote", targetId: q.id, after: { signerName: input.signerName } });
+  await audit(getDb(), ctx, { action: `quote.${meta.via}_${input.decision}`, targetType: "quote", targetId: q.id, after: { signerName: input.signerName } });
   return { decision: input.decision };
 }
 
