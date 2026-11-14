@@ -24,6 +24,7 @@
 - **Application Passwords de WordPress** de cada sitio (Usuarios → Perfil → Contraseñas de aplicación en cada WordPress) → cargalas en Activos → Monitoreo para ver versiones y plugins.
 - **GitHub App**: con el dominio funcionando, entrá a Repositorios y seguí el asistente "Crear la GitHub App" (guardá en Bitwarden lo que muestra una sola vez). Detalle: `docs/runbooks/github-app.md`.
 - **Cuenta de API de Anthropic + tope mensual** (agentes internos, F5).
+- **Portal de clientes**: con Brevo configurado, las invitaciones se mandan solas y los clientes pueden entrar con "Recibir enlace por email". Sin Brevo, copiá el enlace de invitación (Configuración → Usuarios) y mandalo por WhatsApp. Para compartir archivos con un cliente, en la ficha del archivo activá "Compartir con el cliente" (el archivo tiene que estar vinculado al cliente o a un proyecto suyo).
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 
 ### Datos para cargar en AGENCYOS
@@ -63,4 +64,4 @@ Ordenado por valor. Ninguno bloquea el uso diario.
 
 ### F5 · IA y F6 · Equipo
 - Agentes internos con API (Business, PM, Web Architect, Content, SEO, QA, Code Reviewer, Research, Repo) con presupuestos, trazas y evals.
-- Colaboradores, portal de clientes, multi-workspace visible, términos y privacidad.
+- ✅ Colaboradores y portal de clientes (ver ESTADO). Falta: multi-workspace visible; captura de pantalla adjunta al feedback del portal; que el colaborador pueda ver notas y archivos internos vinculados a su proyecto (hoy no los ve, por seguridad); permisos editables por módulo (p. ej. finanzas para un colaborador).
