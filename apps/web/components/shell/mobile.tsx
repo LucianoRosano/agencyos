@@ -40,31 +40,36 @@ export function MobileHeader({ data }: { data: ShellData }) {
               {it.label}
             </MenuItem>
           ))}
+          {data.limited ? null : (
+            <>
+              <MenuSeparator />
+              <MenuLabel>Espacio</MenuLabel>
+              <MenuItem
+                onSelect={async () => {
+                  await setSpaceAction("all");
+                  router.refresh();
+                }}
+              >
+                {!data.selectedSpace ? "● " : ""}Todos los espacios
+              </MenuItem>
+              {data.spaces.map((s) => (
+                <MenuItem
+                  key={s.id}
+                  icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />}
+                  onSelect={async () => {
+                    await setSpaceAction(s.id);
+                    router.refresh();
+                  }}
+                >
+                  {data.selectedSpace === s.id ? "● " : ""}
+                  {s.name}
+                </MenuItem>
+              ))}
+              <MenuSeparator />
+              <MenuItem onSelect={() => router.push("/foco")}>Modo foco</MenuItem>
+            </>
+          )}
           <MenuSeparator />
-          <MenuLabel>Espacio</MenuLabel>
-          <MenuItem
-            onSelect={async () => {
-              await setSpaceAction("all");
-              router.refresh();
-            }}
-          >
-            {!data.selectedSpace ? "● " : ""}Todos los espacios
-          </MenuItem>
-          {data.spaces.map((s) => (
-            <MenuItem
-              key={s.id}
-              icon={<span className="size-2.5 rounded-full" style={{ background: s.color }} />}
-              onSelect={async () => {
-                await setSpaceAction(s.id);
-                router.refresh();
-              }}
-            >
-              {data.selectedSpace === s.id ? "● " : ""}
-              {s.name}
-            </MenuItem>
-          ))}
-          <MenuSeparator />
-          <MenuItem onSelect={() => router.push("/foco")}>Modo foco</MenuItem>
           <MenuItem onSelect={() => router.push("/configuracion")}>Configuración</MenuItem>
         </Menu>
       </div>

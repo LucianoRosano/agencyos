@@ -51,7 +51,7 @@ export function Shortcuts({ limited }: { limited?: boolean }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, limited]);
   return (
     <Sheet open={help} onOpenChange={setHelp} title="Atajos de teclado">
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 text-[14px]">

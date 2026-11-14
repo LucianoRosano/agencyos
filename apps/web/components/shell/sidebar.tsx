@@ -57,7 +57,7 @@ export function Sidebar({ data }: { data: ShellData }) {
             </div>
           );
         })}
-        <p className="mt-7 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">Espacios</p>
+        {data.spaces.length ? <p className="mt-7 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">Espacios</p> : null}
         <ul className="flex flex-col gap-0.5">
           {data.spaces.map((s) => (
             <li key={s.id}>
