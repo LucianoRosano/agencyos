@@ -1,16 +1,17 @@
 "use client";
 
 import { Button, Field, Input } from "@agencyos/ui";
-import { Fingerprint } from "lucide-react";
+import { Fingerprint, Mail } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
-type Step = "password" | "totp" | "backup";
+type Step = "password" | "totp" | "backup" | "magic" | "magic-sent";
 
-export function LoginForm() {
+export function LoginForm({ next, initialError, magicLink }: { next?: string; initialError?: string; magicLink?: boolean }) {
   const [step, setStep] = useState<Step>("password");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
+  const home = next ?? "/hoy";
   const [pending, setPending] = useState(false);
   const [canPasskey, setCanPasskey] = useState(false);
   useEffect(() => setCanPasskey("PublicKeyCredential" in window), []);
@@ -24,7 +25,21 @@ export function LoginForm() {
       setError(res.error.status === 429 ? "Demasiados intentos. Esperá unos minutos." : "No se pudo entrar con la passkey.");
       return;
     }
-    window.location.href = "/hoy";
+    window.location.href = home;
+  }
+
+  async function onMagic(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    const email = String(new FormData(e.currentTarget).get("email") ?? "");
+    const res = await authClient.signIn.magicLink({ email, callbackURL: "/portal", errorCallbackURL: "/login?error=enlace" });
+    setPending(false);
+    if (res?.error) {
+      setError(res.error.status === 429 ? "Demasiados intentos. Esperá unos minutos." : "No se pudo enviar el enlace. Probá de nuevo.");
+      return;
+    }
+    setStep("magic-sent");
   }
 
   async function onPassword(e: React.FormEvent<HTMLFormElement>) {
@@ -42,7 +57,7 @@ export function LoginForm() {
       setStep("totp");
       return;
     }
-    window.location.href = "/seguridad/2fa";
+    window.location.href = home;
   }
 
   async function onCode(e: React.FormEvent<HTMLFormElement>) {
@@ -56,7 +71,41 @@ export function LoginForm() {
       setError(res.error.status === 429 ? "Demasiados intentos. Esperá unos minutos." : "Código incorrecto.");
       return;
     }
-    window.location.href = "/hoy";
+    window.location.href = home;
+  }
+
+  if (step === "magic-sent") {
+    return (
+      <div className="flex flex-col gap-4">
+        <h1 className="text-xl font-semibold">Revisá tu email</h1>
+        <p className="text-sm text-text-muted">
+          Si tu email tiene acceso al portal de clientes, te mandamos un enlace para entrar. Vence en 15 minutos y sirve una sola vez.
+        </p>
+        <Button type="button" variant="secondary" onClick={() => setStep("password")}>
+          Volver
+        </Button>
+      </div>
+    );
+  }
+
+  if (step === "magic") {
+    return (
+      <form onSubmit={onMagic} className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Entrar con un enlace</h1>
+          <p className="mt-1 text-sm text-text-muted">Para clientes del portal. Te mandamos un enlace por email, sin contraseña.</p>
+        </div>
+        <Field label="Email" name="email" error={error ?? undefined}>
+          <Input id="email" name="email" type="email" autoComplete="email" required autoFocus />
+        </Field>
+        <Button type="submit" variant="primary" loading={pending} className="w-full">
+          Recibir enlace por email
+        </Button>
+        <button type="button" className="text-[13px] text-text-muted underline-offset-2 hover:underline" onClick={() => setStep("password")}>
+          Entrar con contraseña
+        </button>
+      </form>
+    );
   }
 
   if (step !== "password") {
@@ -112,6 +161,11 @@ export function LoginForm() {
       {canPasskey ? (
         <Button type="button" variant="secondary" className="w-full" onClick={onPasskey} disabled={pending}>
           <Fingerprint className="size-4" /> Entrar con passkey
+        </Button>
+      ) : null}
+      {magicLink ? (
+        <Button type="button" variant="ghost" className="w-full" onClick={() => setStep("magic")} disabled={pending}>
+          <Mail className="size-4" /> Recibir enlace por email (clientes)
         </Button>
       ) : null}
       <Link href="/recuperar" className="text-center text-[13px] text-text-muted underline-offset-2 hover:underline">
