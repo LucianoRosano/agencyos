@@ -5,11 +5,11 @@ import { Check, ImagePlus, LogOut, MessageSquareWarning, X } from "lucide-react"
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useActionState, useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
-import { authClient } from "@/lib/auth-client";
+import { getAuthClient } from "@/lib/auth-client-lazy";
+import { toast } from "@/lib/toast";
 import { approveDeliverableAction, decideQuoteAction, feedbackAction, requestChangesAction } from "./actions";
 
 export function PortalNav() {
@@ -48,7 +48,7 @@ export function PortalSignOut() {
       loading={pending}
       onClick={() =>
         start(async () => {
-          await authClient.signOut();
+          await (await getAuthClient()).signOut();
           window.location.href = "/login";
         })
       }
