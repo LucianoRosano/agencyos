@@ -28,6 +28,8 @@
 }
 
 (common) {
+	# Id de pedido para correlacionar logs de Caddy y de la app (docs/OBSERVABILITY.md).
+	request_header X-Request-Id {http.request.uuid}
 	encode zstd gzip
 	import security_headers
 	request_body {
@@ -37,6 +39,7 @@
 		output stdout
 		format json
 	}
+	header X-Request-Id {http.request.uuid}
 }
 
 (staging_auth_off) {
