@@ -74,7 +74,7 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
       <details className="group mb-5 rounded-[var(--radius-card)] border border-border bg-surface md:open:bg-surface" open={filtered || undefined}>
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 text-[14px] text-text-muted marker:hidden">
           <SlidersHorizontal className="size-4" /> Filtros
-          {filtered ? <span className="font-mono text-[11px] text-accent-2">activos</span> : null}
+          {filtered ? <span className="rounded-full bg-accent/10 px-2 font-mono text-[11px] text-text">activos</span> : null}
         </summary>
         <form action="/finanzas/movimientos" className="grid grid-cols-1 gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-6">
           {f.ledgerId ? <input type="hidden" name="libro" value={f.ledgerId} /> : null}

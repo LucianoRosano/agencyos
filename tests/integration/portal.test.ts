@@ -73,7 +73,8 @@ describe("portal de clientes", () => {
     expect((await decideDeliverable(pc, d2?.id ?? "", { decision: "changes", comment: "Cambiar el logo" }))?.status).toBe("changes_requested");
     const evs = await getDb().select().from(schema.domainEvent).where(eq(schema.domainEvent.workspaceId, owner.workspaceId));
     expect(evs.map((e) => e.type)).toEqual(expect.arrayContaining(["entrega.aprobada_por_cliente", "entrega.cambios_pedidos"]));
-    await dispatchOutbox();
+    // el outbox es global y despacha de a 500: vaciarlo entero (la suite completa deja eventos pendientes de otros tests)
+    for (let i = 0; i < 50 && (await dispatchOutbox()) > 0; i++);
     const notes = await getDb()
       .select()
       .from(schema.notification)
