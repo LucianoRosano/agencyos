@@ -1,10 +1,11 @@
 "use client";
 
 import { Button, Checkbox, cn, Field, Input, Sheet, Textarea } from "@agencyos/ui";
-import { Check, LogOut, MessageSquareWarning } from "lucide-react";
+import { Check, ImagePlus, LogOut, MessageSquareWarning, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
@@ -102,13 +103,93 @@ const PRIORITIES = [
   { value: "4", label: "Baja" },
 ];
 
-/** Cargar un ítem de feedback en la ronda de revisión abierta. */
+const CAPTURE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const CAPTURE_MAX = 10 * 1024 * 1024;
+
+/** Sube la captura de un ítem (route handler: el cuerpo de una Server Action está limitado a 2 MB). */
+async function uploadCapture(itemId: string, file: File): Promise<string | null> {
+  try {
+    const res = await fetch(`/portal/capturas?item=${encodeURIComponent(itemId)}`, {
+      method: "POST",
+      headers: { "X-File-Name": encodeURIComponent(file.name), "Content-Type": "application/octet-stream" },
+      body: file,
+    });
+    const r = (await res.json().catch(() => null)) as { ok: boolean; error?: { message: string } } | null;
+    return r?.ok ? null : (r?.error?.message ?? "No se pudo subir la captura.");
+  } catch {
+    return "No se pudo subir la captura. Revisá tu conexión.";
+  }
+}
+
+/** Cargar un ítem de feedback en la ronda de revisión abierta, con una captura opcional (PNG, JPG o WebP; hasta 10 MB). */
 export function FeedbackForm({ projectId }: { projectId: string }) {
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const pick = (f: File | null) => {
+    setFileError(null);
+    if (!f) return setFile(null);
+    if (!CAPTURE_TYPES.includes(f.type)) {
+      setFileError("La captura tiene que ser PNG, JPG o WebP.");
+      if (input.current) input.current.value = "";
+      return setFile(null);
+    }
+    if (f.size > CAPTURE_MAX) {
+      setFileError("La captura supera los 10 MB.");
+      if (input.current) input.current.value = "";
+      return setFile(null);
+    }
+    setFile(f);
+  };
+  const clear = () => {
+    setFile(null);
+    setFileError(null);
+    if (input.current) input.current.value = "";
+  };
   return (
-    <ActionForm action={feedbackAction.bind(null, projectId)} successMessage="Feedback cargado" resetOnSuccess>
+    <ActionForm
+      action={feedbackAction.bind(null, projectId)}
+      successMessage={file ? undefined : "Feedback cargado"}
+      resetOnSuccess
+      onSuccess={async (data) => {
+        const capture = file;
+        clear();
+        if (!capture) return;
+        const itemId = (data as { id: string | null } | null)?.id;
+        const err = itemId ? await uploadCapture(itemId, capture) : "No se pudo adjuntar la captura.";
+        if (err) toast.error(`El feedback se cargó, pero la captura no: ${err}`);
+        else toast.success("Feedback y captura cargados");
+        router.refresh();
+      }}
+    >
       <TextField label="Página o sección" name="pageRef" placeholder="Ej.: Inicio, Contacto" autoComplete="off" />
       <TextAreaField label="¿Qué viste?" name="description" rows={3} required />
       <SelectField label="Prioridad" name="priority" defaultValue="3" options={PRIORITIES} />
+      <Field label="Captura (opcional)" name="capture" error={fileError ?? undefined} hint="PNG, JPG o WebP, hasta 10 MB.">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sin `name`: la imagen no viaja en la Server Action (límite 2 MB); se sube aparte. */}
+          <input
+            ref={input}
+            id="capture"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="sr-only"
+            onChange={(e) => pick(e.target.files?.[0] ?? null)}
+          />
+          <Button type="button" variant="secondary" onClick={() => input.current?.click()}>
+            <ImagePlus className="size-4" /> {file ? "Cambiar captura" : "Adjuntar captura"}
+          </Button>
+          {file ? (
+            <span className="flex min-w-0 items-center gap-1 text-[13px] text-text-muted" data-testid="capture-name">
+              <span className="max-w-[220px] truncate">{file.name}</span>
+              <Button type="button" variant="ghost" size="icon" aria-label="Quitar la captura" onClick={clear}>
+                <X className="size-4" />
+              </Button>
+            </span>
+          ) : null}
+        </div>
+      </Field>
       <SubmitButton className="self-start">Cargar feedback</SubmitButton>
     </ActionForm>
   );

@@ -2,6 +2,16 @@
 export const L = {
   role: { owner: "Dueño", admin: "Admin", member: "Colaborador", client: "Cliente" },
   membershipStatus: { active: "Activo", disabled: "Desactivado" },
+  memberGrant: {
+    project_finance: "Ver finanzas del proyecto",
+    project_crm: "Ver CRM del cliente de sus proyectos",
+    time_rate: "Registrar horas con tarifa",
+  },
+  memberGrantHint: {
+    project_finance: "Cobros y movimientos vinculados a sus proyectos. Solo lectura.",
+    project_crm: "Datos, contactos e interacciones del cliente de sus proyectos. Solo lectura.",
+    time_rate: "Puede cargar la tarifa por hora al registrar tiempo en sus proyectos.",
+  },
   projectStatus: {
     idea: "Idea",
     planning: "Planificación",

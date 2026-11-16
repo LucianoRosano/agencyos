@@ -25,5 +25,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   } else if (sp.error === "sin-acceso") {
     error = "Tu acceso está desactivado o no existe. Si creés que es un error, escribile a Luciano.";
   }
-  return <LoginForm next={next} initialError={error} magicLink={emailConfigured()} />;
+  // Magic link de una cuenta con 2FA: la sesión queda pendiente del código (modules/auth/server magicLinkTwoFactor).
+  const secondStep = !s && sp.paso === "2fa";
+  return <LoginForm next={next} initialError={error} magicLink={emailConfigured()} initialStep={secondStep ? "totp" : undefined} />;
 }

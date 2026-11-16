@@ -18,11 +18,15 @@
 - **2FA TOTP obligatorio** para `owner` y `admin`; **10 códigos de respaldo** (mostrados una sola vez).
 - Sesiones: cookies `HttpOnly`, `Secure`, `SameSite=Lax`; 30 días con rotación; revocación individual y global; **reautenticación con 2FA** para acciones críticas (exportar todo, cambiar email o contraseña, crear token MCP, ver datos fiscales ocultos, ejecutar planes de GitHub).
 - Rate limiting de login: 5 intentos por 15 minutos por IP y por cuenta, con bloqueo progresivo y aviso por email.
+- Rate limiting propio (`modules/shared/rate-limit`: ventana deslizante en la tabla `rate_limit_bucket`, identificadores hasheados; ADR 0012 y docs/SCALING.md) para lo que no pasa por Better Auth: portal (600 pedidos y 60 escrituras cada 10 min por usuario; 30 capturas; 20 PDF), invitaciones (30 aperturas y 10 aceptaciones cada 15 min por IP), `/p/[token]` (60 aperturas/min y 10 decisiones cada 15 min por IP), `/api/webhooks/*` (120/min por endpoint e IP), `/mcp` (300/min por token), descarga (600/min) y subida (120/min) de archivos por usuario. Se apaga con `AUTH_RATE_LIMIT=off` (e2e) o `RATE_LIMIT=off`.
+- Contraseñas filtradas (Have I Been Pwned, k-anonimato) también en las cuentas creadas por invitación, `/setup` y el CLI (`assertPasswordNotPwned`); si el servicio no responde, no se crea la cuenta.
+- Magic link del portal: si la cuenta del cliente tiene 2FA, el enlace no crea la sesión; deja el desafío pendiente y el login pide el código.
 - Recuperación de cuenta: solo hacia el email del owner, con un enlace de 15 minutos + TOTP.
 - Passkeys (F4) como segundo método.
 
 ## 3. Autorización
 - **Roles:** `owner` (todo), `admin` (todo salvo facturación del workspace, borrar el workspace y transferir la propiedad), `member` (solo los proyectos asignados y sus clientes; sin Finanzas ni Configuración salvo permiso), `client` (portal: solo sus proyectos, presupuestos y entregas).
+- **Permisos extra del colaborador** (ver ADR 0011): finanzas y CRM de sus proyectos (lectura) y horas con tarifa, en `ctx.grants`, aplicados en `can()`.
 - **Políticas centralizadas** en `packages/core/permissions` (`can(ctx, action, resource)`), invocadas **en cada `service`** (nunca solo en la UI).
 - **Scoping obligatorio** por `workspace_id` vía helper; test automático que intenta leer datos de otro workspace en cada endpoint y servicio.
 - **Agentes y MCP:** actúan con un **rol de máquina** más el alcance del token (`read:*`, `write:tasks`, `write:notes`, etc.). Por defecto, MCP solo puede **leer** y **crear en la Bandeja, tareas y notas**; todo lo demás genera una **aprobación**.

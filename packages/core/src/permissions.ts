@@ -22,7 +22,13 @@ export type Resource =
   | "link"
   | "comment"
   | "reminder"
-  | "export";
+  | "export"
+  /** Cobros y movimientos vinculados a un proyecto (lectura desde la ficha del proyecto). */
+  | "project_finance"
+  /** Ficha del cliente de un proyecto (lectura desde la ficha del proyecto). */
+  | "project_crm"
+  /** Cargar la tarifa al registrar horas. */
+  | "time_rate";
 export type Action = "read" | "create" | "update" | "delete" | "manage";
 
 /** Mapa de alcances MCP → permisos (docs/14 §3). */
@@ -43,6 +49,8 @@ const SCOPE_GRANTS: Record<string, [Resource, Action[]][]> = {
     ["comment", ["read"]],
     ["reminder", ["read"]],
     ["approval", ["read"]],
+    ["project_finance", ["read"]],
+    ["project_crm", ["read"]],
   ],
   "write:inbox": [["inbox", ["create"]]],
   "write:tasks": [["task", ["create", "update"]]],
@@ -69,6 +77,29 @@ const MEMBER_GRANTS: Partial<Record<Resource, Action[]>> = {
   tag: ["read", "create"],
 };
 
+/**
+ * Permisos extra de un colaborador (Configuración → Usuarios). Se guardan en user_preference
+ * (`grants:<workspaceId>`) y llegan en `ctx.grants`. Siguen acotados a sus proyectos asignados:
+ * los casos de uso que los habilitan verifican además assertProjectAccess.
+ */
+export const MEMBER_GRANT_KEYS = ["project_finance", "project_crm", "time_rate"] as const;
+export type MemberGrant = (typeof MEMBER_GRANT_KEYS)[number];
+const MEMBER_GRANT_PERMS: Record<MemberGrant, [Resource, Action[]]> = {
+  project_finance: ["project_finance", ["read"]],
+  project_crm: ["project_crm", ["read"]],
+  time_rate: ["time_rate", ["read", "create", "update"]],
+};
+export const isMemberGrant = (g: string): g is MemberGrant => (MEMBER_GRANT_KEYS as readonly string[]).includes(g);
+
+function memberCan(ctx: Ctx, action: Action, resource: Resource): boolean {
+  if (MEMBER_GRANTS[resource]?.includes(action)) return true;
+  return (ctx.grants ?? []).some((g) => {
+    if (!isMemberGrant(g)) return false;
+    const [r, acts] = MEMBER_GRANT_PERMS[g];
+    return r === resource && acts.includes(action);
+  });
+}
+
 export const MCP_SCOPES = Object.keys(SCOPE_GRANTS);
 export const DEFAULT_MCP_SCOPES = ["read:all", "write:inbox", "write:tasks", "write:notes", "write:decisions", "propose:*"];
 
@@ -88,7 +119,8 @@ export function can(ctx: Ctx, action: Action, resource: Resource): boolean {
     case "member":
       // Colaborador (docs/08 §2, M15): solo sus proyectos asignados y lo que cuelga de ellos.
       // El alcance por proyecto lo aplican projectScope/assertProjectAccess (modules/shared/db).
-      return MEMBER_GRANTS[resource]?.includes(action) ?? false;
+      // Permisos extra (ctx.grants) habilitan lecturas puntuales, siempre dentro de sus proyectos.
+      return memberCan(ctx, action, resource);
     case "client":
       // El cliente nunca usa la app interna: el portal tiene sus propios casos de uso (modules/portal).
       return false;

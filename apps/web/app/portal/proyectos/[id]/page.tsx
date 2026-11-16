@@ -140,6 +140,7 @@ export default async function PortalProjectPage({ params }: { params: Promise<{ 
                         <p className="text-[12px] text-text-muted">
                           {it.pageRef ? `${it.pageRef} · ` : ""}
                           {PRIORITY[it.priority] ?? "Normal"} · {label(L.revisionItemStatus, it.status)}
+                          {it.captures ? ` · ${it.captures === 1 ? "con captura" : `${it.captures} capturas`}` : ""}
                         </p>
                       </li>
                     ))}

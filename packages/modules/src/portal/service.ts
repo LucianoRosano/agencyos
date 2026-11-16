@@ -3,6 +3,8 @@ import { audit, recordEvent } from "@agencyos/core/events";
 import { getDb, schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
+import { detectType } from "../library/magic";
+import { uploadFile } from "../library/service";
 import { decideQuoteForClient, openQuoteForClient } from "../quotes/public";
 import { getQuoteDocument } from "../quotes/queries";
 import { signPath, verifySignedPath } from "../shared/crypto";
@@ -147,7 +149,7 @@ export async function portalProject(pc: PortalCtx, projectId: string) {
     id: string;
     number: number;
     status: string;
-    items: { id: string; pageRef: string | null; description: string; priority: number; status: string }[];
+    items: { id: string; pageRef: string | null; description: string; priority: number; status: string; captures: number }[];
   }[] = [];
   if (site) {
     const rs = await db
@@ -165,6 +167,8 @@ export async function portalProject(pc: PortalCtx, projectId: string) {
             description: schema.revisionItem.description,
             priority: schema.revisionItem.priority,
             status: schema.revisionItem.status,
+            captures: sql<number>`(select count(*)::int from file_attachment fa join file f on f.id = fa.file_id and f.deleted_at is null
+              where fa.workspace_id = revision_item.workspace_id and fa.entity_type = 'revision_item' and fa.entity_id = revision_item.id)`,
           })
           .from(schema.revisionItem)
           .where(
@@ -276,6 +280,71 @@ export async function addSiteFeedback(pc: PortalCtx, projectId: string, raw: unk
     });
   });
   return item;
+}
+
+/** Capturas del feedback del portal: solo imágenes rasterizadas, hasta 10 MB. */
+export const CAPTURE_MIMES = ["image/png", "image/jpeg", "image/webp"] as const;
+export const MAX_CAPTURE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Adjunta una captura a un ítem de revisión. El ítem tiene que ser de una ronda ABIERTA del sitio de un proyecto
+ * de SU cliente (si no, 404). Se guarda en la Biblioteca (vinculada al cliente, proyecto y sitio) y se adjunta
+ * al `revision_item`; la pestaña Revisiones interna la muestra.
+ */
+export async function attachFeedbackCapture(pc: PortalCtx, itemId: string, rawName: string, data: Buffer) {
+  const clientId = requireClient(pc);
+  if (!z.string().uuid().safeParse(itemId).success) throw notFound("El ítem");
+  if (data.length > MAX_CAPTURE_BYTES) throw validation("La captura supera los 10 MB.", { file: "Máximo 10 MB" });
+  const type = detectType(rawName, data);
+  if (!(CAPTURE_MIMES as readonly string[]).includes(type.mime)) throw validation("La captura tiene que ser PNG, JPG o WebP.", { file: "PNG, JPG o WebP" });
+  const [row] = await getDb()
+    .select({
+      itemId: schema.revisionItem.id,
+      screenshotFileId: schema.revisionItem.screenshotFileId,
+      roundNumber: schema.revisionRound.number,
+      siteId: schema.site.id,
+      siteName: schema.site.name,
+      projectId: schema.project.id,
+    })
+    .from(schema.revisionItem)
+    .innerJoin(
+      schema.revisionRound,
+      and(eq(schema.revisionRound.id, schema.revisionItem.roundId), eq(schema.revisionRound.workspaceId, schema.revisionItem.workspaceId)),
+    )
+    .innerJoin(schema.site, and(eq(schema.site.id, schema.revisionRound.siteId), eq(schema.site.workspaceId, schema.revisionRound.workspaceId)))
+    .innerJoin(schema.project, and(eq(schema.project.id, schema.site.projectId), eq(schema.project.workspaceId, schema.site.workspaceId)))
+    .where(
+      and(
+        eq(schema.revisionItem.id, itemId),
+        scoped(schema.revisionItem, pc),
+        eq(schema.revisionRound.status, "open"),
+        isNull(schema.site.deletedAt),
+        isNull(schema.project.deletedAt),
+        eq(schema.project.clientId, clientId),
+        notInArray(schema.project.status, ["archived"]),
+      ),
+    );
+  if (!row) throw notFound("El ítem");
+  // La Biblioteca exige permisos internos: contexto de sistema con el cliente como actor visible.
+  const sys: Ctx = { ...systemCtx(pc.workspaceId), actor: { type: "system", id: pc.userId, name: `${pc.actor.name} (cliente)` } };
+  const { file } = await uploadFile(sys, rawName, data, {
+    clientId,
+    projectId: row.projectId,
+    siteId: row.siteId,
+    attachType: "revision_item",
+    attachId: row.itemId,
+  });
+  await getDb().transaction(async (t) => {
+    if (!row.screenshotFileId) await t.update(schema.revisionItem).set({ screenshotFileId: file.id }).where(eq(schema.revisionItem.id, row.itemId));
+    await recordEvent(t, actorCtx(pc), {
+      type: "revision.captura_cliente",
+      entityType: "site",
+      entityId: row.siteId,
+      summary: `${pc.actor.name} adjuntó una captura en la ronda R${row.roundNumber} de «${row.siteName}»`,
+      payload: { itemId: row.itemId, fileId: file.id },
+    });
+  });
+  return { fileId: file.id, name: file.name };
 }
 
 // --- Recursos compartidos ---

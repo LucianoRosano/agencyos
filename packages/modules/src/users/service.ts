@@ -1,10 +1,24 @@
 import { createHash, randomBytes } from "node:crypto";
-import { assertCan, type Ctx, conflict, forbidden, L, label, notFound, type Role, validation, zOptUuid } from "@agencyos/core";
+import {
+  assertCan,
+  type Ctx,
+  conflict,
+  forbidden,
+  isMemberGrant,
+  L,
+  label,
+  MEMBER_GRANT_KEYS,
+  type MemberGrant,
+  notFound,
+  type Role,
+  validation,
+  zOptUuid,
+} from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { getDb, schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getAuth } from "../auth/server";
+import { assertPasswordNotPwned, getAuth, hashNewPassword } from "../auth/server";
 import { assertOwned, scoped } from "../shared/db";
 import { emailConfigured, sendEmail } from "../shared/email";
 
@@ -18,6 +32,23 @@ export type InviteRole = (typeof INVITE_ROLES)[number];
 export const INVITATION_DAYS = 7;
 /** Clave de user_preference donde se guarda el cliente del CRM de un usuario `client` (membership no tiene columna). */
 export const portalPrefKey = (workspaceId: string) => `portal_client:${workspaceId}`;
+/** Clave de user_preference con los permisos extra de un colaborador (core/permissions MEMBER_GRANT_KEYS). */
+export const grantsPrefKey = (workspaceId: string) => `grants:${workspaceId}`;
+
+const parseGrants = (value: unknown): MemberGrant[] => {
+  const v = (value as { grants?: unknown } | null)?.grants;
+  return Array.isArray(v) ? [...new Set(v.filter((g): g is MemberGrant => typeof g === "string" && isMemberGrant(g)))] : [];
+};
+
+/** Permisos extra vigentes para el contexto (solo aplican al rol `member`). */
+export async function loadGrants(workspaceId: string, userId: string | null, role: Role): Promise<MemberGrant[]> {
+  if (role !== "member" || !userId) return [];
+  const [pref] = await getDb()
+    .select({ value: schema.userPreference.value })
+    .from(schema.userPreference)
+    .where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, grantsPrefKey(workspaceId))));
+  return parseGrants(pref?.value);
+}
 
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 const appUrl = () => (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
@@ -248,6 +279,9 @@ async function joinWorkspace(token: string, user: { id: string; name: string }) 
 async function applyRoleScope(t: Tx, workspaceId: string, userId: string, role: Role, scope: { clientId?: string | null; projectIds?: string[] }) {
   await t.delete(schema.projectMember).where(and(eq(schema.projectMember.workspaceId, workspaceId), eq(schema.projectMember.userId, userId)));
   await t.delete(schema.userPreference).where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, portalPrefKey(workspaceId))));
+  // Los permisos extra son solo del colaborador: con otro rol se descartan.
+  if (role !== "member")
+    await t.delete(schema.userPreference).where(and(eq(schema.userPreference.userId, userId), eq(schema.userPreference.key, grantsPrefKey(workspaceId))));
   if (role === "member" && scope.projectIds?.length) {
     // Solo proyectos vigentes del workspace (pudieron borrarse entre la invitación y la aceptación).
     const valid = await t
@@ -282,7 +316,9 @@ export async function acceptInvitationNewUser(token: string, raw: unknown) {
   const auth = getAuth();
   const actx = await auth.$context;
   if (await actx.internalAdapter.findUserByEmail(email)) throw conflict("Ya tenés una cuenta con ese email: iniciá sesión para aceptar.");
-  const hashed = await actx.password.hash(input.password);
+  // Se crea con el internalAdapter (sin pasar por los endpoints de Better Auth): el control de filtradas va acá.
+  await assertPasswordNotPwned(input.password);
+  const hashed = await hashNewPassword(input.password);
   const created = await actx.internalAdapter.createUser({ email, name: input.name, emailVerified: true }, { method: "admin" });
   await actx.internalAdapter.linkAccount({ userId: created.id, providerId: "credential", accountId: created.id, password: hashed });
   try {
@@ -330,12 +366,19 @@ export async function listUsers(ctx: Ctx) {
           .innerJoin(schema.project, eq(schema.project.id, schema.projectMember.projectId))
           .where(and(eq(schema.projectMember.workspaceId, ctx.workspaceId), isNull(schema.project.deletedAt), inArray(schema.projectMember.userId, userIds))),
         db
-          .select({ userId: schema.userPreference.userId, value: schema.userPreference.value })
+          .select({ userId: schema.userPreference.userId, key: schema.userPreference.key, value: schema.userPreference.value })
           .from(schema.userPreference)
-          .where(and(eq(schema.userPreference.key, portalPrefKey(ctx.workspaceId)), inArray(schema.userPreference.userId, userIds))),
+          .where(
+            and(
+              inArray(schema.userPreference.key, [portalPrefKey(ctx.workspaceId), grantsPrefKey(ctx.workspaceId)]),
+              inArray(schema.userPreference.userId, userIds),
+            ),
+          ),
       ])
     : [[], []];
-  const clientIds = prefs.map((p) => (p.value as { clientId?: string }).clientId).filter((x): x is string => Boolean(x));
+  const grantsOf = (userId: string) => parseGrants(prefs.find((p) => p.userId === userId && p.key === grantsPrefKey(ctx.workspaceId))?.value);
+  const portalPrefs = prefs.filter((p) => p.key === portalPrefKey(ctx.workspaceId));
+  const clientIds = portalPrefs.map((p) => (p.value as { clientId?: string }).clientId).filter((x): x is string => Boolean(x));
   const clients = clientIds.length
     ? await db
         .select({ id: schema.client.id, name: schema.client.name })
@@ -343,7 +386,7 @@ export async function listUsers(ctx: Ctx) {
         .where(and(eq(schema.client.workspaceId, ctx.workspaceId), inArray(schema.client.id, clientIds)))
     : [];
   return rows.map((r) => {
-    const clientId = (prefs.find((p) => p.userId === r.m.userId)?.value as { clientId?: string } | undefined)?.clientId ?? null;
+    const clientId = (portalPrefs.find((p) => p.userId === r.m.userId)?.value as { clientId?: string } | undefined)?.clientId ?? null;
     return {
       membershipId: r.m.id,
       userId: r.m.userId,
@@ -356,6 +399,7 @@ export async function listUsers(ctx: Ctx) {
       projects: projects.filter((p) => p.userId === r.m.userId).map((p) => ({ id: p.id, name: p.name })),
       clientId,
       clientName: clients.find((c) => c.id === clientId)?.name ?? null,
+      grants: r.m.role === "member" ? grantsOf(r.m.userId) : [],
       isMe: r.m.userId === ctx.userId,
     };
   });
@@ -398,6 +442,52 @@ export async function changeRole(ctx: Ctx, membershipId: string, raw: unknown) {
     });
     await audit(t, ctx, { action: "usuario.rol_cambiado", targetType: "membership", targetId: membershipId, before: { role: target.m.role }, after: input });
     return row;
+  });
+}
+
+const zGrantList = z.preprocess(
+  (v) => (v === undefined || v === "" ? [] : Array.isArray(v) ? v : [v]),
+  z.array(z.enum(MEMBER_GRANT_KEYS, { error: "Permiso inválido" })).max(MEMBER_GRANT_KEYS.length),
+);
+export const grantsInput = z.object({ grants: zGrantList });
+
+/**
+ * Permisos extra de un colaborador (interruptores de Configuración → Usuarios). Solo para `member`;
+ * se aplican en core/permissions `can()` vía ctx.grants y siempre dentro de sus proyectos asignados.
+ */
+export async function setMemberGrants(ctx: Ctx, membershipId: string, raw: unknown) {
+  assertAdmin(ctx);
+  const input = grantsInput.parse(raw);
+  const grants = [...new Set(input.grants)];
+  return getDb().transaction(async (t) => {
+    const target = await loadTarget(t, ctx, membershipId);
+    if (target.m.role !== "member") throw validation("Los permisos extra son solo para colaboradores.");
+    const key = grantsPrefKey(ctx.workspaceId);
+    const [prev] = await t
+      .select({ value: schema.userPreference.value })
+      .from(schema.userPreference)
+      .where(and(eq(schema.userPreference.userId, target.m.userId), eq(schema.userPreference.key, key)));
+    await t
+      .insert(schema.userPreference)
+      .values({ userId: target.m.userId, key, value: { grants } })
+      .onConflictDoUpdate({ target: [schema.userPreference.userId, schema.userPreference.key], set: { value: { grants }, updatedAt: new Date() } });
+    await recordEvent(t, ctx, {
+      type: "usuario.permisos_cambiados",
+      entityType: "membership",
+      entityId: membershipId,
+      summary: grants.length
+        ? `Cambió los permisos extra de ${target.name}: ${grants.map((g) => label(L.memberGrant, g).toLowerCase()).join(", ")}`
+        : `Quitó los permisos extra de ${target.name}`,
+      payload: { grants },
+    });
+    await audit(t, ctx, {
+      action: "usuario.permisos_cambiados",
+      targetType: "membership",
+      targetId: membershipId,
+      before: { grants: parseGrants(prev?.value) },
+      after: { grants },
+    });
+    return { grants };
   });
 }
 

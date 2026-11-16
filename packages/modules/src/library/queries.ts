@@ -2,7 +2,7 @@ import { assertCan, type Ctx } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { signPath, verifySignedPath } from "../shared/crypto";
-import { assertFullAccess, getDb, projectScope, scoped } from "../shared/db";
+import { assertFullAccess, fileScope, getDb, scoped } from "../shared/db";
 import { ENTITIES, type EntityType, entityHref, isEntityType } from "../shared/entities";
 import { ATTACHABLE, quotaBytes, storageUsed } from "./service";
 
@@ -248,7 +248,7 @@ export async function attachmentsOf(ctx: Ctx, entityType: string, entityId: stri
         eq(schema.fileAttachment.entityType, entityType),
         eq(schema.fileAttachment.entityId, entityId),
         scoped(schema.file, ctx),
-        projectScope(ctx, schema.file.projectId),
+        fileScope(ctx),
       ),
     )
     .orderBy(desc(schema.fileAttachment.createdAt));
@@ -271,6 +271,7 @@ export async function attachmentsForMany(ctx: Ctx, entityType: string, ids: stri
         eq(schema.fileAttachment.entityType, entityType),
         inArray(schema.fileAttachment.entityId, valid),
         scoped(schema.file, ctx),
+        fileScope(ctx),
       ),
     )
     .orderBy(desc(schema.fileAttachment.createdAt));

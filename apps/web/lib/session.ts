@@ -2,9 +2,11 @@ import "server-only";
 import type { Ctx, Role } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getAuth } from "@agencyos/modules/auth/server";
-import { portalPrefKey } from "@agencyos/modules/users/service";
-import { and, asc, eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { assertRateLimit, RATE_RULES } from "@agencyos/modules/shared/rate-limit";
+import { loadGrants, portalPrefKey } from "@agencyos/modules/users/service";
+import { ACTIVE_WORKSPACE_COOKIE, resolveActiveMembership } from "@agencyos/modules/workspaces/service";
+import { and, eq } from "drizzle-orm";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -12,16 +14,13 @@ export const getSession = cache(async () => {
   return getAuth().api.getSession({ headers: await headers() });
 });
 
-/** Primer acceso activo del usuario (hoy hay un workspace por instalación). */
+/**
+ * Acceso activo de la sesión: el workspace elegido en el selector (cookie `ag-ws`) si el usuario tiene una
+ * membership activa en él; si no, el primero. La cookie nunca da acceso por sí sola (se valida acá).
+ */
 export const getMembership = cache(async (userId: string) => {
-  const [m] = await getDb()
-    .select({ m: schema.membership, w: schema.workspace })
-    .from(schema.membership)
-    .innerJoin(schema.workspace, eq(schema.workspace.id, schema.membership.workspaceId))
-    .where(and(eq(schema.membership.userId, userId), eq(schema.membership.status, "active")))
-    .orderBy(asc(schema.membership.createdAt))
-    .limit(1);
-  return m ?? null;
+  const preferred = (await cookies()).get(ACTIVE_WORKSPACE_COOKIE)?.value ?? null;
+  return resolveActiveMembership(userId, preferred);
 });
 
 /** A dónde va cada rol al entrar. `null` = sin acceso activo. */
@@ -64,6 +63,7 @@ export const requireCtx = cache(async (): Promise<AppCtx> => {
     userId: s.user.id,
     role: m.m.role as Role,
     actor: { type: "user", id: s.user.id, name: s.user.name },
+    grants: await loadGrants(m.w.id, s.user.id, m.m.role as Role),
     ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     userAgent: h.get("user-agent"),
     user: { id: s.user.id, name: s.user.name, email: s.user.email, image: s.user.image ?? null },
@@ -80,6 +80,8 @@ export const requirePortalCtx = cache(async (): Promise<PortalCtx> => {
   const m = await getMembership(s.user.id);
   if (!m) redirect("/login?error=sin-acceso");
   if (m.m.role !== "client") redirect("/hoy");
+  // Rate limit por usuario para todo el portal (pantallas, descargas, acciones).
+  await assertRateLimit(`portal:${s.user.id}`, RATE_RULES.portalRequest);
   const h = await headers();
   const [pref] = await getDb()
     .select({ value: schema.userPreference.value })
@@ -98,6 +100,12 @@ export const requirePortalCtx = cache(async (): Promise<PortalCtx> => {
     clientId: v?.workspaceId === m.w.id ? (v.clientId ?? null) : null,
   };
 });
+
+/** IP del pedido (detrás del proxy: primer valor de x-forwarded-for). */
+export async function requestIp(): Promise<string> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "sin-ip";
+}
 
 export function firstName(name: string) {
   return name.split(" ")[0] ?? name;

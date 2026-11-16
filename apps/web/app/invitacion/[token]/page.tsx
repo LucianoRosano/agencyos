@@ -1,9 +1,10 @@
 import { formatDate, L, label } from "@agencyos/core";
+import { hitRateLimit, RATE_RULES } from "@agencyos/modules/shared/rate-limit";
 import { openInvitation } from "@agencyos/modules/users/service";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { getSession } from "@/lib/session";
+import { getSession, requestIp } from "@/lib/session";
 import { AcceptExisting, NewAccountForm, SignOutButton } from "./invite-forms";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,15 @@ function Shell({ children, brand }: { children: React.ReactNode; brand: "agencyo
 
 export default async function InvitationPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  const rl = await hitRateLimit(`invitacion:ver:${await requestIp()}`, RATE_RULES.invitationView);
+  if (!rl.ok) {
+    return (
+      <Shell brand="agencyos">
+        <h1 className="text-xl font-semibold">Demasiados intentos</h1>
+        <p className="text-sm text-text-muted">Esperá unos minutos y volvé a abrir el enlace.</p>
+      </Shell>
+    );
+  }
   const inv = await openInvitation(token);
   if (!inv) {
     return (

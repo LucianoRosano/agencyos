@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { getPool } from "@agencyos/db";
-import { clientIp, purgeRateLimits, type RateRule, rateLimit, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
+import { assertRateLimit, clientIp, hitRateLimit, purgeRateLimits, type RateRule, rateLimit, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 import { describe, expect, it } from "vitest";
 
 const rule = (max: number, windowSec = 60): RateRule => ({ name: `test.${randomUUID()}`, max, windowSec });
@@ -57,5 +57,35 @@ describe("rate limit (ventana deslizante en Postgres)", () => {
   it("toma la IP del primer X-Forwarded-For (Caddy)", () => {
     expect(clientIp(new Headers({ "x-forwarded-for": "200.1.1.1, 10.0.0.2" }))).toBe("200.1.1.1");
     expect(clientIp(new Headers())).toBe("local");
+  });
+});
+
+describe("rate limit por clave (portal e invitaciones, mismo motor)", () => {
+  it("cuenta por clave dentro de la ventana y corta al pasar el máximo con RATE_LIMITED", async () => {
+    const key = `test:${Math.random().toString(36).slice(2)}`;
+    const r3 = rule(3);
+    for (let i = 1; i <= 3; i++) expect((await hitRateLimit(key, r3)).ok).toBe(true);
+    const r = await hitRateLimit(key, r3);
+    expect(r.ok).toBe(false);
+    expect(r.count).toBe(4);
+    expect(r.retryAfterSec).toBeGreaterThan(0);
+    await expect(assertRateLimit(key, r3)).rejects.toMatchObject({ code: "RATE_LIMITED", message: expect.stringMatching(/Demasiados intentos/) });
+    expect((await hitRateLimit(`${key}:otra`, r3)).ok).toBe(true);
+  });
+
+  it("concurrencia: el upsert es atómico (no se pierden conteos)", async () => {
+    const r5 = rule(5);
+    const rs = await Promise.all(Array.from({ length: 10 }, () => hitRateLimit("misma-clave", r5)));
+    expect(rs.filter((r) => r.ok)).toHaveLength(5);
+  });
+
+  it("AUTH_RATE_LIMIT=off (e2e) también lo desactiva", async () => {
+    const r1 = rule(1);
+    process.env.AUTH_RATE_LIMIT = "off";
+    try {
+      for (let i = 0; i < 3; i++) expect((await hitRateLimit("k", r1)).ok).toBe(true);
+    } finally {
+      delete process.env.AUTH_RATE_LIMIT;
+    }
   });
 });

@@ -5,6 +5,7 @@ import { schema } from "@agencyos/db";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, scoped } from "../shared/db";
+import { loadGrants } from "../users/service";
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
@@ -86,5 +87,6 @@ export async function ctxFromToken(bearer: string | null): Promise<Ctx | null> {
     role: row.role as Role,
     actor: { type: "agent", id: `mcp:${row.tok.id}`, name: "Claude (MCP)" },
     scopes: row.tok.scopes,
+    grants: await loadGrants(row.tok.workspaceId, row.tok.userId, row.role as Role),
   };
 }

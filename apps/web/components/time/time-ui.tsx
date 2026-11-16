@@ -37,11 +37,14 @@ function TimeFields({
   fixed,
   defaults,
   today,
+  withRate = true,
 }: {
   projects?: Opt[];
   fixed: { projectId?: string | null; taskId?: string | null };
   defaults?: Partial<TimeRow>;
   today: string;
+  /** Tarifa: dueño/admin, o colaborador con el permiso extra «Registrar horas con tarifa». */
+  withRate?: boolean;
 }) {
   return (
     <>
@@ -65,10 +68,12 @@ function TimeFields({
         <TextField label="Fecha" name="date" type="date" max={today} defaultValue={defaults?.date ?? today} />
       </div>
       <CheckField label="Facturable" name="billable" defaultChecked={defaults?.billable ?? true} hint="Cuenta para la tarifa efectiva del cliente." />
-      <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-4">
-        <TextField label="Tarifa por hora (opcional)" name="rate" inputMode="decimal" defaultValue={defaults?.rate ?? ""} placeholder="25.000" />
-        <SelectField label="Moneda" name="currency" defaultValue={defaults?.currency ?? "ARS"} options={CURRENCIES} />
-      </div>
+      {withRate ? (
+        <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-4">
+          <TextField label="Tarifa por hora (opcional)" name="rate" inputMode="decimal" defaultValue={defaults?.rate ?? ""} placeholder="25.000" />
+          <SelectField label="Moneda" name="currency" defaultValue={defaults?.currency ?? "ARS"} options={CURRENCIES} />
+        </div>
+      ) : null}
       <TextField label="Nota" name="note" maxLength={500} defaultValue={defaults?.note ?? ""} placeholder="Qué hiciste (opcional)" />
     </>
   );
@@ -81,12 +86,14 @@ export function TimeEntrySheet({
   fixed,
   entry,
   today,
+  withRate,
 }: {
   trigger: ReactNode;
   projects?: Opt[];
   fixed: { projectId?: string | null; taskId?: string | null };
   entry?: TimeRow;
   today: string;
+  withRate?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const action = entry ? updateTimeEntryAction.bind(null, entry.id) : createTimeEntryAction;
@@ -99,7 +106,13 @@ export function TimeEntrySheet({
       trigger={trigger}
     >
       <ActionForm action={action} successMessage={entry ? "Registro actualizado" : "Horas registradas"} onSuccess={() => setOpen(false)}>
-        <TimeFields projects={projects} fixed={entry ? { projectId: entry.projectId, taskId: entry.taskId } : fixed} defaults={entry} today={today} />
+        <TimeFields
+          projects={projects}
+          fixed={entry ? { projectId: entry.projectId, taskId: entry.taskId } : fixed}
+          defaults={entry}
+          today={today}
+          withRate={withRate}
+        />
         <div className="flex justify-end">
           <SubmitButton>{entry ? "Guardar" : "Registrar"}</SubmitButton>
         </div>
@@ -114,18 +127,21 @@ export function RegisterTimeButton({
   today,
   variant = "primary",
   label = "Registrar horas",
+  withRate,
 }: {
   projects?: Opt[];
   fixed: { projectId?: string | null; taskId?: string | null };
   today: string;
   variant?: "primary" | "secondary" | "ghost";
   label?: string;
+  withRate?: boolean;
 }) {
   return (
     <TimeEntrySheet
       projects={projects}
       fixed={fixed}
       today={today}
+      withRate={withRate}
       trigger={
         <Button variant={variant} size={variant === "ghost" ? "sm" : "md"}>
           {variant === "ghost" ? <Plus className="size-4" /> : <Timer className="size-4" />} {label}
@@ -136,7 +152,7 @@ export function RegisterTimeButton({
 }
 
 /** Lista de registros: fila en desktop, tarjeta compacta en el celular; editar y eliminar con Deshacer. */
-export function TimeEntryList({ rows, today, showTask = true }: { rows: TimeRow[]; today: string; showTask?: boolean }) {
+export function TimeEntryList({ rows, today, showTask = true, withRate }: { rows: TimeRow[]; today: string; showTask?: boolean; withRate?: boolean }) {
   const { exec } = useAction();
   return (
     <ul className="divide-y divide-border overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
@@ -155,6 +171,7 @@ export function TimeEntryList({ rows, today, showTask = true }: { rows: TimeRow[
               entry={r}
               fixed={{}}
               today={today}
+              withRate={withRate}
               trigger={
                 <Button variant="ghost" size="icon" className="max-md:size-11" aria-label={`Editar el registro del ${r.dateLabel}`}>
                   <Pencil className="size-4" />

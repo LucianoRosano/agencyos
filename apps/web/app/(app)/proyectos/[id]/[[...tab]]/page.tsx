@@ -1,4 +1,4 @@
-import { formatDate, L, label, relativeFromDate, todayAR } from "@agencyos/core";
+import { can, formatDate, L, label, relativeFromDate, todayAR } from "@agencyos/core";
 import { listActivity } from "@agencyos/modules/activity/queries";
 import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
 import { availableAgents } from "@agencyos/modules/ai/queries";
@@ -12,6 +12,7 @@ import { ActivityList } from "@/components/activity-list";
 import { AgentEntryButton } from "@/components/ai/ai-ui";
 import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
+import { ProjectClientTab, ProjectFilesTab, ProjectFinanceTab, ProjectNotesTab } from "@/components/projects/project-related";
 import { ProjectRepos } from "@/components/repos/project-repos";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
@@ -39,13 +40,30 @@ const TABS = [
   { key: "etapas", label: "Etapas" },
   { key: "entregas", label: "Entregas" },
   { key: "decisiones", label: "Decisiones" },
+  { key: "notas", label: "Notas" },
+  { key: "archivos", label: "Archivos" },
   { key: "repositorios", label: "Repositorios" },
   { key: "changelog", label: "Changelog" },
   { key: "horas", label: "Horas" },
+  { key: "finanzas", label: "Finanzas" },
+  { key: "cliente", label: "Cliente" },
   { key: "actividad", label: "Actividad" },
 ];
 
 const MEMBER_HIDDEN_TABS = ["repositorios", "horas"];
+
+/** Pestañas visibles según rol y permisos extra (finanzas y cliente: core/permissions). */
+function visibleTabs(ctx: Parameters<typeof can>[0]) {
+  const full = ctx.role !== "member";
+  return TABS.filter((t) => {
+    if (!full && MEMBER_HIDDEN_TABS.includes(t.key)) return false;
+    if (t.key === "notas" && full && !can(ctx, "read", "note")) return false;
+    if (t.key === "finanzas") return can(ctx, "read", "project_finance");
+    // Dueño y admin tienen el CRM completo (el cliente es un enlace en el encabezado).
+    if (t.key === "cliente") return !full && can(ctx, "read", "project_crm");
+    return true;
+  });
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireCtx();
@@ -65,7 +83,7 @@ export default async function ProjectPage({
   const ctx = await requireCtx();
   // Colaborador (M15): sin datos del cliente, horas/tarifas, repositorios, IA ni administración del proyecto.
   const full = ctx.role !== "member";
-  const tabs = full ? TABS : TABS.filter((t) => !MEMBER_HIDDEN_TABS.includes(t.key));
+  const tabs = visibleTabs(ctx);
   if (tabParts?.[0] && !tabs.some((t) => t.key === tabParts[0])) notFound();
   const tab = tabs.find((t) => t.key === tabParts?.[0])?.key ?? "resumen";
   const data = await getProject(ctx, id);
@@ -404,6 +422,11 @@ export default async function ProjectPage({
       ) : null}
 
       {tab === "horas" ? <ProjectHoursTab ctx={ctx} projectId={p.id} /> : null}
+
+      {tab === "notas" ? <ProjectNotesTab ctx={ctx} projectId={p.id} full={full} noteId={tabParts?.[1]} /> : null}
+      {tab === "archivos" ? <ProjectFilesTab ctx={ctx} projectId={p.id} full={full} /> : null}
+      {tab === "finanzas" ? <ProjectFinanceTab ctx={ctx} projectId={p.id} full={full} /> : null}
+      {tab === "cliente" ? <ProjectClientTab ctx={ctx} projectId={p.id} /> : null}
 
       {tab === "actividad" ? (
         <Card className="p-5">
