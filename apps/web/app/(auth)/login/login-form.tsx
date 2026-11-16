@@ -8,8 +8,8 @@ import { authClient } from "@/lib/auth-client";
 
 type Step = "password" | "totp" | "backup" | "magic" | "magic-sent";
 
-export function LoginForm({ next, initialError, magicLink }: { next?: string; initialError?: string; magicLink?: boolean }) {
-  const [step, setStep] = useState<Step>("password");
+export function LoginForm({ next, initialError, magicLink, initialStep }: { next?: string; initialError?: string; magicLink?: boolean; initialStep?: "totp" }) {
+  const [step, setStep] = useState<Step>(initialStep ?? "password");
   const [error, setError] = useState<string | null>(initialError ?? null);
   const home = next ?? "/hoy";
   const [pending, setPending] = useState(false);

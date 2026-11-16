@@ -3,7 +3,9 @@ import { getDb, schema } from "@agencyos/db";
 import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { hashPassword } from "better-auth/crypto";
+import { createAuthMiddleware } from "better-auth/api";
+import { deleteSessionCookie } from "better-auth/cookies";
+import { generateRandomString, hashPassword } from "better-auth/crypto";
 import { nextCookies } from "better-auth/next-js";
 import { haveIBeenPwned, isPasswordCompromised, magicLink, twoFactor } from "better-auth/plugins";
 import { sendEmail } from "../shared/email";
@@ -34,6 +36,32 @@ export async function assertPasswordNotPwned(password: string, check: (p: string
  * exige un contexto de endpoint y fallaría fuera de él (el control de filtradas se hace con assertPasswordNotPwned).
  */
 export const hashNewPassword = (password: string) => hashPassword(password);
+
+/** Ruta del login a la que vuelve un magic link cuando la cuenta tiene 2FA (pide el código y sigue al portal). */
+export const MAGIC_2FA_REDIRECT = "/login?paso=2fa&next=/portal";
+const TWO_FACTOR_COOKIE_MAX_AGE = 600;
+
+/**
+ * El magic link crea la sesión directo (no pasa por el hook de 2FA del plugin, que solo mira /sign-in/*).
+ * Si la cuenta tiene 2FA activado, se descarta esa sesión y se deja el desafío pendiente igual que el plugin
+ * twoFactor (cookie firmada `two_factor` + verificación con intentos): el login pide el código y
+ * /two-factor/verify-totp crea la sesión recién ahí.
+ */
+const magicLinkTwoFactor = createAuthMiddleware(async (ctx) => {
+  if (ctx.path !== "/magic-link/verify") return;
+  const data = ctx.context.newSession;
+  if (!data?.user || !(data.user as { twoFactorEnabled?: boolean | null }).twoFactorEnabled) return;
+  deleteSessionCookie(ctx, true);
+  await ctx.context.internalAdapter.deleteSession(data.session.token);
+  ctx.context.setNewSession(null);
+  const cookie = ctx.context.createAuthCookie("two_factor", { maxAge: TWO_FACTOR_COOKIE_MAX_AGE });
+  const identifier = `2fa-${generateRandomString(20)}`;
+  const expiresAt = new Date(Date.now() + TWO_FACTOR_COOKIE_MAX_AGE * 1000);
+  await ctx.context.internalAdapter.createVerificationValue({ value: data.user.id, identifier, expiresAt });
+  await ctx.context.internalAdapter.createVerificationValue({ value: "0", identifier: `2fa-attempts-${identifier}`, expiresAt });
+  await ctx.setSignedCookie(cookie.name, identifier, ctx.context.secret, cookie.attributes);
+  throw ctx.redirect(new URL(MAGIC_2FA_REDIRECT, ctx.context.baseURL).toString());
+});
 
 function createAuth() {
   const baseURL = process.env.APP_URL ?? "http://localhost:3000";
@@ -93,6 +121,7 @@ function createAuth() {
       ipAddress: { ipAddressHeaders: ["x-forwarded-for", "x-real-ip"] },
     },
     trustedOrigins: [baseURL],
+    hooks: { after: magicLinkTwoFactor },
     plugins: [
       twoFactor({ issuer: "AGENCYOS", backupCodeOptions: { amount: 10 } }),
       // Passkeys: solo se registran desde una sesión ya autenticada con 2FA; valen como segundo factor (WebAuthn con verificación de usuario).
