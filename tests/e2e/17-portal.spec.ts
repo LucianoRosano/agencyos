@@ -191,7 +191,12 @@ test("colaborador: invitar con un proyecto → crear cuenta → 2FA obligatorio 
   await page.goto("/configuracion/usuarios");
   await expect(page.getByTestId("users-list")).toContainText("Ana Colaboradora");
   await expect(page.getByTestId("users-list")).toContainText(s.aName);
-  await page.getByRole("switch", { name: "Ver finanzas del proyecto (Ana Colaboradora)" }).check();
+  await page
+    .getByTestId("users-list")
+    .getByRole("listitem")
+    .filter({ hasText: `ana-${p}@colab.test` })
+    .getByRole("switch", { name: "Ver finanzas del proyecto (Ana Colaboradora)" })
+    .check();
   await expect(page.getByText("Permiso activado para Ana Colaboradora")).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "17-usuarios-permisos", p);
