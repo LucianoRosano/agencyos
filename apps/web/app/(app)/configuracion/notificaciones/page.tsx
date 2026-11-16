@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { requireCtx } from "@/lib/session";
 import { PreferencesTable, PushToggle } from "./push-ui";
 
+export const metadata = { title: "Notificaciones · Configuración" };
+
 /** Tipos de evento que generan notificaciones (worker → dispatchOutbox / resumen diario). */
 const EVENTS = [
   { type: "resumen.diario", label: "Resumen diario (8:00)" },

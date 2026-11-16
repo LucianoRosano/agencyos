@@ -4,6 +4,8 @@ import { Badge, Card, SectionLabel } from "@agencyos/ui";
 import { requireCtx } from "@/lib/session";
 import { NewTokenForm, RevokeButton } from "./tokens-ui";
 
+export const metadata = { title: "Integraciones · Configuración" };
+
 export default async function IntegrationsPage() {
   const ctx = await requireCtx();
   const tokens = await listMcpTokens(ctx);

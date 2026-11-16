@@ -1,6 +1,8 @@
 import { Card, SectionLabel } from "@agencyos/ui";
 import { ExportButton } from "./export-button";
 
+export const metadata = { title: "Datos · Configuración" };
+
 export default function DataPage() {
   return (
     <Card className="p-5">

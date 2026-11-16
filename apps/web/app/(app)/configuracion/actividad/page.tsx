@@ -5,6 +5,8 @@ import { Card, SectionLabel, Tabs } from "@agencyos/ui";
 import { ActivityList } from "@/components/activity-list";
 import { requireCtx } from "@/lib/session";
 
+export const metadata = { title: "Actividad · Configuración" };
+
 const ACTION_LABEL: Record<string, string> = {
   "setup.owner_created": "Cuenta del dueño creada",
   "mcp_token.created": "Token MCP creado",

@@ -3,6 +3,8 @@ import { systemStatus } from "@agencyos/modules/settings/service";
 import { Badge, Card, SectionLabel } from "@agencyos/ui";
 import { requireCtx } from "@/lib/session";
 
+export const metadata = { title: "Estado del sistema · Configuración" };
+
 export default async function StatusPage() {
   const ctx = await requireCtx();
   const s = await systemStatus(ctx);

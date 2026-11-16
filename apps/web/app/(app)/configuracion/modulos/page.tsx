@@ -3,6 +3,8 @@ import { Card } from "@agencyos/ui";
 import { requireCtx } from "@/lib/session";
 import { ModulesForm } from "./modules-form";
 
+export const metadata = { title: "Módulos · Configuración" };
+
 export default async function ModulesPage() {
   const ctx = await requireCtx();
   return (
