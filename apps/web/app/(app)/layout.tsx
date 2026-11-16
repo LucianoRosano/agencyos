@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { CaptureDialog } from "@/components/shell/capture-dialog";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { BottomNav, MobileHeader } from "@/components/shell/mobile";
+import { RouteTransition } from "@/components/shell/route-transition";
 import { Shortcuts } from "@/components/shell/shortcuts";
 import { type ShellData, Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
@@ -53,7 +54,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <MobileHeader data={data} />
         <Topbar data={data} />
         <main id="contenido" className="bg-grid flex-1 px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">
-          {children}
+          <RouteTransition>{children}</RouteTransition>
         </main>
       </div>
       <BottomNav data={data} />

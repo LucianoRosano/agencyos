@@ -56,16 +56,32 @@ export async function expectNoHorizontalScroll(page: Page) {
   expect(overflow, `scroll horizontal (${culprits.join(" | ")})`).toBeLessThanOrEqual(1);
 }
 
+/** Espera a que terminen las animaciones finitas (transición entre pantallas, aparición de skeletons) antes de medir contraste. */
+export async function settleAnimations(page: Page) {
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+      new Promise((r) => setTimeout(r, 1500)),
+    ]),
+  );
+}
+
 export async function shot(page: Page, name: string, project: string) {
   const dir = `docs/capturas/${project}`;
   mkdirSync(dir, { recursive: true });
   // Captura desde arriba: si la página quedó desplazada, la barra lateral y el topbar (sticky) aparecen en el medio de la captura completa.
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
+  await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true, animations: "disabled" });
 }
 
 /** axe: sin violaciones serias o críticas (docs/09). */
 export async function expectAccessible(page: Page) {
+  await settleAnimations(page);
   const { default: AxeBuilder } = await import("@axe-core/playwright");
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   const bad = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
