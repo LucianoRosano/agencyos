@@ -1,4 +1,4 @@
-# ADR 0011 · Escalabilidad, operación y observabilidad
+# ADR 0012 · Escalabilidad, operación y observabilidad
 
 **Estado:** aceptada · 16/11/2026 · Detalle y números: [`docs/SCALING.md`](../SCALING.md), [`docs/OBSERVABILITY.md`](../OBSERVABILITY.md).
 

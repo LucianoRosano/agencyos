@@ -60,7 +60,7 @@ export type S3Config = {
  * Almacenamiento S3-compatible (AWS S3, Cloudflare R2, Backblaze B2, MinIO) — docs/DEPLOYMENT.md §Almacenamiento.
  * El SDK se carga de forma diferida (solo servidor, solo si STORAGE_DRIVER=s3). Las descargas siguen pasando por la
  * ruta autenticada de la app (sesión + URL firmada + headers de seguridad): el bucket es privado y no se exponen URLs
- * del proveedor (ADR 0011).
+ * del proveedor (ADR 0012).
  */
 export class S3Storage implements StorageAdapter {
   // biome-ignore lint/suspicious/noExplicitAny: el tipo del cliente se carga de forma diferida.

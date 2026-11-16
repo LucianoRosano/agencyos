@@ -262,7 +262,7 @@ Pasos:
 4. Deploy. Abrir un archivo y una miniatura en Biblioteca; Configuración → Estado debe mostrar el almacenamiento S3 (`/api/health` → `checks.storage.driver = "s3"`).
 5. Backups: el bucket ya no está en el volumen respaldado. Activar el versionado/retención del proveedor o sumar un `rclone sync` del bucket al Drive en `backup.sh`.
 
-**Descargas:** siguen pasando por la ruta autenticada de la app (`/api/files/[id]`: sesión + URL firmada de 5 min + `nosniff`/CSP sandbox + rate limit). No se usan URLs prefirmadas del proveedor: el bucket nunca se expone y los permisos siguen siendo los de AGENCYOS (ADR 0011). Costo: el archivo atraviesa la app (límite de subida 25 MB, suficiente).
+**Descargas:** siguen pasando por la ruta autenticada de la app (`/api/files/[id]`: sesión + URL firmada de 5 min + `nosniff`/CSP sandbox + rate limit). No se usan URLs prefirmadas del proveedor: el bucket nunca se expone y los permisos siguen siendo los de AGENCYOS (ADR 0012). Costo: el archivo atraviesa la app (límite de subida 25 MB, suficiente).
 
 ## 14. Varias instancias (escala horizontal)
 

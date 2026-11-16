@@ -1,6 +1,6 @@
 # Observabilidad
 
-Qué expone AGENCYOS para saber si está sano, qué tan rápido responde y qué falló. Todo es opcional salvo los logs y `/api/health`: sin configurar nada, no hay costo ni dependencias externas. Decisiones en [ADR 0011](adr/0011-escalabilidad.md).
+Qué expone AGENCYOS para saber si está sano, qué tan rápido responde y qué falló. Todo es opcional salvo los logs y `/api/health`: sin configurar nada, no hay costo ni dependencias externas. Decisiones en [ADR 0012](adr/0012-escalabilidad.md).
 
 ## 1. Logs estructurados (web y worker)
 
