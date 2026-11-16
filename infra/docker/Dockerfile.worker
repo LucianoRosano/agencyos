@@ -44,4 +44,6 @@ COPY --from=build /repo ./
 RUN mkdir -p /data/files && chown node:node /data/files
 
 USER node
-CMD ["pnpm", "--filter", "@agencyos/worker", "start"]
+# tsx directo (no `pnpm start`): SIGTERM llega al proceso y el worker hace el apagado ordenado (espera jobs en curso).
+WORKDIR /app/apps/worker
+CMD ["./node_modules/.bin/tsx", "src/index.ts"]

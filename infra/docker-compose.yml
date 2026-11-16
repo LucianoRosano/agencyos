@@ -50,6 +50,8 @@ x-worker: &worker
     context: ..
     dockerfile: infra/docker/Dockerfile.worker
   init: true
+  # Apagado ordenado: el worker espera hasta WORKER_SHUTDOWN_TIMEOUT_MS (25 s) los jobs en curso.
+  stop_grace_period: 40s
   cap_drop: [ALL]
   shm_size: "256m"
   healthcheck:

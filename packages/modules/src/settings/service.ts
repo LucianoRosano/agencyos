@@ -136,8 +136,12 @@ export async function systemStatus(ctx: Ctx) {
     .limit(1);
   let workerSeenAt: Date | null = null;
   try {
-    const [hb] = (await db.execute<{ at: Date | null }>(sql`select max(completed_on) as at from pgboss.job where name = 'heartbeat' and state = 'completed'`))
-      .rows;
+    // Latido por instancia (worker_heartbeat, cada 30 s); el job 'heartbeat' de pg-boss queda como respaldo.
+    const [hb] = (
+      await db.execute<{ at: Date | null }>(
+        sql`select greatest((select max(last_seen_at) from worker_heartbeat), (select max(completed_on) from pgboss.job where name = 'heartbeat' and state = 'completed')) as at`,
+      )
+    ).rows;
     workerSeenAt = hb?.at ? new Date(hb.at) : null;
   } catch {
     workerSeenAt = null;
