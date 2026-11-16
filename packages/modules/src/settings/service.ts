@@ -1,9 +1,10 @@
 import { assertCan, type Ctx, notFound, zEmail, zInt, zOptText, zPhone, zUrl } from "@agencyos/core";
 import { audit } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../shared/db";
+import { cursorColumn, orderByKeys, paginate, type SortKey } from "../shared/pagination";
 
 export const OPTIONAL_MODULES = [
   { key: "inbox", label: "Bandeja", description: "Captura rápida y procesamiento uno por uno." },
@@ -72,16 +73,33 @@ export async function updateProfileName(ctx: Ctx, name: string) {
   return row;
 }
 
-export async function listAudit(ctx: Ctx, opts: { action?: string; limit?: number } = {}) {
-  assertCan(ctx, "read", "audit");
-  const where = [eq(schema.auditLog.workspaceId, ctx.workspaceId)];
+const AUDIT_KEYS: SortKey[] = [
+  { col: schema.auditLog.at, dir: "desc" },
+  { col: schema.auditLog.id, dir: "desc" },
+];
+
+function auditQuery(ctx: Ctx, opts: { action?: string }, extra: SQL | undefined, limit: number) {
+  const where: SQL[] = [eq(schema.auditLog.workspaceId, ctx.workspaceId)];
   if (opts.action) where.push(sql`${schema.auditLog.action} like ${`${opts.action}%`}`);
+  if (extra) where.push(extra);
+  const { id, workspaceId, actorType, actorId, action, targetType, targetId, ip, userAgent, before, after, at } = schema.auditLog;
   return getDb()
-    .select()
+    .select({ id, workspaceId, actorType, actorId, action, targetType, targetId, ip, userAgent, before, after, at, _cursor: cursorColumn(AUDIT_KEYS) })
     .from(schema.auditLog)
     .where(and(...where))
-    .orderBy(desc(schema.auditLog.at))
-    .limit(opts.limit ?? 200);
+    .orderBy(...orderByKeys(AUDIT_KEYS))
+    .limit(limit);
+}
+
+export async function listAudit(ctx: Ctx, opts: { action?: string; limit?: number } = {}) {
+  assertCan(ctx, "read", "audit");
+  return auditQuery(ctx, opts, undefined, opts.limit ?? 200);
+}
+
+/** Auditoría paginada por cursor ("Cargar más" con `?hasta=`). */
+export async function listAuditPage(ctx: Ctx, opts: { action?: string; hasta?: string | null; pageSize?: number } = {}) {
+  assertCan(ctx, "read", "audit");
+  return paginate(AUDIT_KEYS, (extra, limit) => auditQuery(ctx, opts, extra, limit), { hasta: opts.hasta, pageSize: opts.pageSize });
 }
 
 /** Estado del sistema: versión, base, cola, outbox pendiente, último backup (marcado por el worker). */
