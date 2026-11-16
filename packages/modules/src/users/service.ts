@@ -18,7 +18,7 @@ import { audit, recordEvent } from "@agencyos/core/events";
 import { getDb, schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getAuth } from "../auth/server";
+import { assertPasswordNotPwned, getAuth, hashNewPassword } from "../auth/server";
 import { assertOwned, scoped } from "../shared/db";
 import { emailConfigured, sendEmail } from "../shared/email";
 
@@ -316,7 +316,9 @@ export async function acceptInvitationNewUser(token: string, raw: unknown) {
   const auth = getAuth();
   const actx = await auth.$context;
   if (await actx.internalAdapter.findUserByEmail(email)) throw conflict("Ya tenés una cuenta con ese email: iniciá sesión para aceptar.");
-  const hashed = await actx.password.hash(input.password);
+  // Se crea con el internalAdapter (sin pasar por los endpoints de Better Auth): el control de filtradas va acá.
+  await assertPasswordNotPwned(input.password);
+  const hashed = await hashNewPassword(input.password);
   const created = await actx.internalAdapter.createUser({ email, name: input.name, emailVerified: true }, { method: "admin" });
   await actx.internalAdapter.linkAccount({ userId: created.id, providerId: "credential", accountId: created.id, password: hashed });
   try {

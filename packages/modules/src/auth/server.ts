@@ -1,10 +1,39 @@
+import { validation } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { hashPassword } from "better-auth/crypto";
 import { nextCookies } from "better-auth/next-js";
-import { haveIBeenPwned, magicLink, twoFactor } from "better-auth/plugins";
+import { haveIBeenPwned, isPasswordCompromised, magicLink, twoFactor } from "better-auth/plugins";
 import { sendEmail } from "../shared/email";
+
+export const PWNED_MESSAGE = "Esa contraseña apareció en filtraciones públicas. Elegí otra.";
+
+/**
+ * Control de contraseñas filtradas (Have I Been Pwned, k-anonimato: solo viajan 5 caracteres del SHA-1)
+ * para las cuentas que se crean por fuera de los endpoints de Better Auth (invitación, /setup).
+ * Respeta AUTH_HIBP=off (tests). Si el servicio no responde, no se crea la cuenta (falla cerrado, como el plugin).
+ */
+export async function assertPasswordNotPwned(password: string, check: (p: string) => Promise<boolean> = isPasswordCompromised): Promise<void> {
+  if (process.env.AUTH_HIBP === "off") return;
+  let compromised: boolean;
+  try {
+    compromised = await check(password);
+  } catch {
+    throw validation("No pudimos verificar la contraseña contra filtraciones públicas. Probá de nuevo en unos minutos.", {
+      password: "No se pudo verificar",
+    });
+  }
+  if (compromised) throw validation(PWNED_MESSAGE, { password: PWNED_MESSAGE });
+}
+
+/**
+ * Hash de contraseña para las cuentas que se crean o cambian por fuera de los endpoints (invitación, /setup, CLI).
+ * Es el mismo scrypt que usa Better Auth por defecto. No se usa `ctx.password.hash`: con el plugin HIBP activo
+ * exige un contexto de endpoint y fallaría fuera de él (el control de filtradas se hace con assertPasswordNotPwned).
+ */
+export const hashNewPassword = (password: string) => hashPassword(password);
 
 function createAuth() {
   const baseURL = process.env.APP_URL ?? "http://localhost:3000";
@@ -84,9 +113,7 @@ function createAuth() {
         },
       }),
       passkey({ rpName: "AGENCYOS", rpID: new URL(baseURL).hostname, origin: new URL(baseURL).origin }),
-      ...(process.env.AUTH_HIBP === "off"
-        ? []
-        : [haveIBeenPwned({ customPasswordCompromisedMessage: "Esa contraseña apareció en filtraciones públicas. Elegí otra." })]),
+      ...(process.env.AUTH_HIBP === "off" ? [] : [haveIBeenPwned({ customPasswordCompromisedMessage: PWNED_MESSAGE })]),
       nextCookies(),
     ],
   });

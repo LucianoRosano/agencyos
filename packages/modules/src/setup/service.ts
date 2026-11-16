@@ -1,7 +1,7 @@
 import { audit } from "@agencyos/core/events";
 import { getDb, getPool, schema, type Tx } from "@agencyos/db";
 import { count, eq } from "drizzle-orm";
-import { getAuth } from "../auth/server";
+import { assertPasswordNotPwned, getAuth, hashNewPassword } from "../auth/server";
 import { DEFAULT_CATEGORIES, DEFAULT_QUOTE_TEMPLATE, PROJECT_TEMPLATES } from "./templates";
 
 export const DEFAULT_MODULES = [
@@ -74,9 +74,10 @@ export type SetupInput = { name: string; email: string; password: string };
 /** Crea el workspace, el usuario dueño y la estructura inicial. Solo funciona una vez. */
 export async function createOwner(input: SetupInput): Promise<{ userId: string; workspaceId: string }> {
   if (await isSetupDone()) throw new Error("AGENCYOS ya está configurado.");
+  await assertPasswordNotPwned(input.password);
   const auth = getAuth();
   const actx = await auth.$context;
-  const hashed = await actx.password.hash(input.password);
+  const hashed = await hashNewPassword(input.password);
   // Candado global en una conexión dedicada: dos /setup simultáneos no pueden crear dos dueños.
   const client = await getPool().connect();
   const lock = await client.query<{ ok: boolean }>("select pg_try_advisory_lock(424242) as ok");

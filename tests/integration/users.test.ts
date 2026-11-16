@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { Ctx } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { createClient } from "@agencyos/modules/crm/service";
@@ -16,7 +17,7 @@ import {
   revokeInvitation,
 } from "@agencyos/modules/users/service";
 import { and, eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeWorkspace } from "./helpers";
 
 const tokenOf = (url: string) => url.split("/invitacion/")[1] ?? "";
@@ -24,6 +25,47 @@ const PASS = { name: "Ana Colaboradora", password: "UnaClaveLarga2026!", passwor
 const uniq = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}@test.local`;
 
 describe("usuarios e invitaciones", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    process.env.AUTH_HIBP = "off";
+  });
+
+  it("contraseña filtrada (Have I Been Pwned): la invitación no crea la cuenta; si el servicio no responde, tampoco", async () => {
+    const ctx = await makeWorkspace();
+    const p = await createProject(ctx, { name: "Sitio HIBP" });
+    const email = uniq("hibp");
+    const { url } = await createInvitation(ctx, { email, role: "member", projectIds: [p.id] });
+    const token = tokenOf(url);
+    process.env.AUTH_HIBP = "on";
+    const sha = createHash("sha1").update(PASS.password).digest("hex").toUpperCase();
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (u: string | URL) => {
+        calls.push(String(u));
+        return new Response(`${sha.slice(5)}:42\r\nABCDEF0123456789ABCDEF0123456789ABC:1`, { status: 200, headers: { "Content-Type": "text/plain" } });
+      }),
+    );
+    await expect(acceptInvitationNewUser(token, PASS)).rejects.toThrow(/filtraciones/);
+    // k-anonimato: solo viaja el prefijo de 5 caracteres del SHA-1
+    expect(calls[0]).toMatch(new RegExp(`/range/${sha.slice(0, 5)}$`));
+    expect(calls.join(" ")).not.toContain(sha.slice(5));
+    // servicio caído: falla cerrado
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("error", { status: 503 })),
+    );
+    await expect(acceptInvitationNewUser(token, PASS)).rejects.toThrow(/No pudimos verificar/);
+    // no se creó la cuenta y la invitación sigue vigente
+    expect((await openInvitation(token))?.hasAccount).toBe(false);
+    // contraseña no filtrada: pasa
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("ABCDEF0123456789ABCDEF0123456789ABC:1", { status: 200 })),
+    );
+    expect((await acceptInvitationNewUser(token, PASS)).role).toBe("member");
+  });
+
   it("invita un colaborador: token hasheado, un solo uso, crea cuenta, membership y proyectos asignados", async () => {
     const ctx = await makeWorkspace();
     const p = await createProject(ctx, { name: "Sitio Ana" });
