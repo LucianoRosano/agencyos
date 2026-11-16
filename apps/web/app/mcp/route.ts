@@ -1,5 +1,6 @@
 import { buildMcpServer } from "@agencyos/modules/mcp/server";
 import { ctxFromToken } from "@agencyos/modules/mcp/tokens";
+import { clientIp, RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,9 @@ const unauthorized = () =>
 async function handle(req: Request) {
   const auth = req.headers.get("authorization");
   const bearer = auth?.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : null;
+  // Por token (hasheado) o, sin token, por IP: frena tanto a un cliente desbocado como a la fuerza bruta de tokens.
+  const limited = await rateLimitResponse(RATE_RULES.mcp, bearer ? `t:${bearer}` : `ip:${clientIp(req.headers)}`, { json: true });
+  if (limited) return limited;
   const ctx = await ctxFromToken(bearer);
   if (!ctx) return unauthorized();
   const server = buildMcpServer(ctx);

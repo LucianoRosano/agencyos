@@ -1,10 +1,13 @@
 import { publicQuoteDocument } from "@agencyos/modules/quotes/public";
+import { clientIp, RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 import { renderQuotePdf } from "@agencyos/pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
+  const limited = await rateLimitResponse(RATE_RULES.publicOpen, clientIp(req.headers));
+  if (limited) return limited;
   const { token } = await params;
   const doc = await publicQuoteDocument(token);
   if (!doc) return new Response("El enlace venció o no es válido", { status: 404 });

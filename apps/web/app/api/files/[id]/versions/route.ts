@@ -1,4 +1,5 @@
 import { uploadVersion } from "@agencyos/modules/library/service";
+import { RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 import type { NextRequest } from "next/server";
 import { requireCtx } from "@/lib/session";
 import { fileNameFrom, forbiddenOrigin, jsonResult, readBody, sameOrigin } from "../../upload-utils";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!sameOrigin(req)) return forbiddenOrigin();
   const ctx = await requireCtx();
+  const limited = await rateLimitResponse(RATE_RULES.fileUpload, ctx.userId ?? ctx.workspaceId, { json: true });
+  if (limited) return limited;
   const { id } = await params;
   return jsonResult(async () => {
     const data = await readBody(req);

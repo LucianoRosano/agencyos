@@ -1,6 +1,7 @@
 import { INLINE_MIMES } from "@agencyos/modules/library/magic";
 import { verifyFileUrl } from "@agencyos/modules/library/queries";
 import { resolveDownload } from "@agencyos/modules/library/service";
+import { RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 import { getStorage } from "@agencyos/modules/shared/storage";
 import type { NextRequest } from "next/server";
 import { requireCtx } from "@/lib/session";
@@ -22,6 +23,8 @@ function disposition(kind: "inline" | "attachment", name: string) {
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireCtx();
+  const limited = await rateLimitResponse(RATE_RULES.fileDownload, ctx.userId ?? ctx.workspaceId);
+  if (limited) return limited;
   const { id } = await params;
   const { ok, opts } = verifyFileUrl(id, req.nextUrl.searchParams);
   if (!ok)

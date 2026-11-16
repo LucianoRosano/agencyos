@@ -1,4 +1,5 @@
 import { handleWebhook } from "@agencyos/modules/repos/service";
+import { clientIp, RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -7,6 +8,8 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 /** Webhooks de la GitHub App: firma HMAC verificada en tiempo constante sobre el cuerpo crudo (docs/08). */
 export async function POST(req: Request) {
+  const limited = await rateLimitResponse(RATE_RULES.webhook, `github:${clientIp(req.headers)}`);
+  if (limited) return limited;
   const len = Number(req.headers.get("content-length") ?? 0);
   if (len > MAX_BYTES) return new Response("Demasiado grande", { status: 413 });
   const rawBody = await req.text();
