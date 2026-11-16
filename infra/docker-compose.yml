@@ -120,12 +120,24 @@ services:
       FILES_DIR: /data/files
       APP_VERSION: ${VERSION_PROD:-dev}
       NODE_OPTIONS: --max-old-space-size=768
+      # Escala (docs/SCALING.md): pool por instancia y timeouts. Con N réplicas: N × DB_POOL_MAX + workers < max_connections.
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      DB_STATEMENT_TIMEOUT_MS: ${DB_STATEMENT_TIMEOUT_MS:-15000}
+      # Almacenamiento S3-compatible (R2, B2, MinIO): ver docs/DEPLOYMENT.md §Almacenamiento. Las claves van en .env.prod.
+      # STORAGE_DRIVER: s3
+      # S3_ENDPOINT: https://<cuenta>.r2.cloudflarestorage.com
+      # S3_BUCKET: agencyos-prod
+      # S3_REGION: auto
     volumes:
       - files:/data/files
     networks: [edge, db-prod]
     depends_on:
       postgres: { condition: service_healthy }
     deploy:
+      # Varias instancias web detrás de Caddy: subir `replicas` (sin container_name ni puertos publicados) y usar el
+      # bloque `reverse_proxy` con `lb_policy` del Caddyfile. Requiere STORAGE_DRIVER=s3 o el volumen `files` compartido
+      # (mismo host). Ver docs/SCALING.md §Escalado horizontal.
+      # replicas: 2
       resources:
         limits: { memory: 1280m }
 
@@ -298,6 +310,22 @@ networks:
   db-stg:
     internal: true
 
+  # ─────────────── MinIO (opcional, S3 en el mismo VPS) ───────────────
+  # Para probar o usar almacenamiento S3 sin proveedor externo. Producción recomendada: Cloudflare R2 o Backblaze B2
+  # (fuera del VPS = los archivos sobreviven a la pérdida del servidor). Ver docs/DEPLOYMENT.md §Almacenamiento.
+  # minio:
+  #   <<: *hardening
+  #   image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+  #   command: ["server", "/data", "--console-address", ":9001"]
+  #   profiles: [prod]
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER:?}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?}
+  #   volumes:
+  #     - minio-data:/data
+  #   networks: [db-prod]        # solo la red interna: el bucket nunca se expone a Internet
+  #   # y en web/worker: STORAGE_DRIVER=s3, S3_ENDPOINT=http://minio:9000, S3_BUCKET=agencyos, S3_REGION=us-east-1
+
 volumes:
   # Nombres fijos: los usan backup.sh y restore-test.sh.
   pgdata: { name: agencyos_pgdata }
@@ -306,3 +334,4 @@ volumes:
   files-stg: { name: agencyos_files_stg }
   caddy-data: { name: agencyos_caddy_data }
   caddy-config: { name: agencyos_caddy_config }
+  # minio-data: { name: agencyos_minio_data }

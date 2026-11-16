@@ -53,6 +53,21 @@
 {$APP_DOMAIN:localhost} {
 	import common
 	reverse_proxy web:3000
+
+	# Varias instancias web (docs/SCALING.md §Escalado horizontal): reemplazar la línea de arriba por este bloque.
+	# Con `deploy.replicas` de Compose, el nombre `web` resuelve a todas las réplicas (dynamic a).
+	# La app no guarda estado en memoria (sesiones, rate limit y colas en PostgreSQL): no hace falta afinidad.
+	# reverse_proxy {
+	# 	dynamic a web 3000 {
+	# 		refresh 10s
+	# 	}
+	# 	# o upstreams fijos: to web-1:3000 web-2:3000
+	# 	lb_policy least_conn
+	# 	lb_try_duration 5s
+	# 	health_uri /api/health?live=1
+	# 	health_interval 10s
+	# 	fail_duration 30s
+	# }
 }
 
 # ───────────── Staging ─────────────
