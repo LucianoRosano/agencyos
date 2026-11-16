@@ -59,6 +59,8 @@ export async function expectNoHorizontalScroll(page: Page) {
 export async function shot(page: Page, name: string, project: string) {
   const dir = `docs/capturas/${project}`;
   mkdirSync(dir, { recursive: true });
+  // Captura desde arriba: si la página quedó desplazada, la barra lateral y el topbar (sticky) aparecen en el medio de la captura completa.
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
 }
 

@@ -3,7 +3,7 @@
 import { BlockCard, Button, cn, EmptyState, EntityChip, Sheet } from "@agencyos/ui";
 import { Crosshair, Target } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useOptimistic, useState } from "react";
 import { pickFocusAction, unpickFocusAction } from "@/app/(app)/hoy/actions";
 import { setTaskStatusAction } from "@/app/(app)/tareas/actions";
 import { TaskCheck } from "@/components/tasks/task-check";
@@ -23,18 +23,22 @@ type Item = { slot: number; suggested: boolean; task: FocusTask };
 export function FocusBlock({ items, candidates }: { items: Item[]; candidates: FocusTask[] }) {
   const { exec } = useAction();
   const [open, setOpen] = useState(false);
-  const [doneIds, setDoneIds] = useState<Set<string>>(new Set(items.filter((i) => i.task.status === "done").map((i) => i.task.id)));
+  // Optimista: se tacha al instante; si el servidor falla, vuelve al estado real.
+  const [doneIds, markDone] = useOptimistic(
+    new Set(items.filter((i) => i.task.status === "done").map((i) => i.task.id)),
+    (s: Set<string>, a: { id: string; done: boolean }) => {
+      const n = new Set(s);
+      if (a.done) n.add(a.id);
+      else n.delete(a.id);
+      return n;
+    },
+  );
   const picked = new Set(items.filter((i) => !i.suggested).map((i) => i.task.id));
 
   function toggle(t: FocusTask) {
     const done = !doneIds.has(t.id);
-    setDoneIds((s) => {
-      const n = new Set(s);
-      if (done) n.add(t.id);
-      else n.delete(t.id);
-      return n;
-    });
     exec(() => setTaskStatusAction(t.id, done ? "done" : "todo"), {
+      optimistic: () => markDone({ id: t.id, done }),
       success: done ? "¡Hecho!" : "Reabierta",
       undo: done ? () => setTaskStatusAction(t.id, "todo") : undefined,
     });
