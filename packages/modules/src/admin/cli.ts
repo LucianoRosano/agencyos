@@ -10,6 +10,8 @@ import { adminSetPassword } from "../auth/reauth";
 import { purgeTrash } from "../trash/service";
 
 const [cmd, ...args] = process.argv.slice(2);
+// Tareas largas de administración: sin statement_timeout (ver packages/db/src/client.ts).
+process.env.AGENCYOS_ROLE ??= "script";
 
 async function main() {
   switch (cmd) {
