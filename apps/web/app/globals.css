@@ -210,3 +210,8 @@ body {
 .text-accent {
   color: var(--accent-text);
 }
+
+/* Pantallas de carga: aparecen recién a los 150 ms para que las navegaciones rápidas no titilen (docs/07 §3). */
+.loading-shell {
+  animation: fadeIn 180ms ease-out 150ms both;
+}
