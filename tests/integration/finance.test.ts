@@ -669,3 +669,55 @@ describe("finanzas", () => {
     await expect(createTransfer(ws, { fromAccountId: a.id, toAccountId: "", amount: "1", toAmount: "", description: "", date: "" })).rejects.toThrow();
   });
 });
+
+describe("finanzas: filtro por etiqueta en movimientos", () => {
+  it("filtra la lista paginada y los totales por etiqueta, sin mezclar workspaces", async () => {
+    const { createTag, setEntityTags, tagsFor } = await import("@agencyos/modules/collab/service");
+    const { transactionTotals } = await import("@agencyos/modules/finance/queries");
+    const ws = await makeWorkspace();
+    const other = await makeWorkspace();
+    const a = await createAccount(ws, { name: "Banco", ledgerId: agencia(ws), currency: "ARS" });
+    const txs: { id: string }[] = [];
+    for (let i = 1; i <= 5; i++)
+      txs.push(
+        await createTransaction(ws, { kind: i % 2 ? "income" : "expense", amount: `${i}00`, accountId: a.id, date: `2026-05-0${i}`, description: `Etiq ${i}` }),
+      );
+    const id = (i: number) => txs[i]?.id as string;
+    const viaje = await createTag(ws, { name: "viaje", color: "#22D3EE" });
+    const fijo = await createTag(ws, { name: "fijo", color: "#FBBF24" });
+    // ingreso 1 (100), gasto 2 (200), ingreso 5 (500) → #viaje; gasto 4 (400) → #fijo y #viaje
+    for (const i of [0, 1, 4]) await setEntityTags(ws, "transaction", id(i), [viaje.id]);
+    await setEntityTags(ws, "transaction", id(3), [fijo.id, viaje.id]);
+
+    const all = await listTransactions(ws, { tagId: viaje.id });
+    expect(all.items.map((x) => x.description)).toEqual(["Etiq 5", "Etiq 4", "Etiq 2", "Etiq 1"]);
+    // la paginación con cursor respeta el filtro
+    const p1 = await listTransactions(ws, { tagId: viaje.id, limit: 2 });
+    const p2 = await listTransactions(ws, { tagId: viaje.id, limit: 2, cursor: p1.nextCursor ?? undefined });
+    expect([...p1.items, ...p2.items].map((x) => x.description)).toEqual(["Etiq 5", "Etiq 4", "Etiq 2", "Etiq 1"]);
+    expect(p2.nextCursor).toBeNull();
+    // combinado con otros filtros
+    expect((await listTransactions(ws, { tagId: viaje.id, kind: "expense" })).items.map((x) => x.description)).toEqual(["Etiq 4", "Etiq 2"]);
+    expect((await listTransactions(ws, { tagId: fijo.id })).items.map((x) => x.description)).toEqual(["Etiq 4"]);
+    // totales del filtro
+    const tot = await transactionTotals(ws, { tagId: viaje.id });
+    expect(tot.income).toEqual([{ currency: "ARS", total: "600.00" }]);
+    expect(tot.expense).toEqual([{ currency: "ARS", total: "600.00" }]);
+    // id inválido: ningún resultado (no se ignora el filtro)
+    expect((await listTransactions(ws, { tagId: "no-es-uuid" })).items).toEqual([]);
+    // etiquetas visibles por movimiento
+    const m = await tagsFor(ws, "transaction", [id(3)]);
+    expect(
+      m
+        .get(id(3))
+        ?.map((t) => t.name)
+        .sort(),
+    ).toEqual(["fijo", "viaje"]);
+    // aislamiento: la etiqueta de A no trae nada en B, y B no puede etiquetar un movimiento de A
+    expect((await listTransactions(other, { tagId: viaje.id })).items).toEqual([]);
+    await expect(setEntityTags(other, "transaction", id(0), [])).rejects.toThrow(/no existe/);
+    // quitar la etiqueta lo saca del filtro
+    await setEntityTags(ws, "transaction", id(0), []);
+    expect((await listTransactions(ws, { tagId: viaje.id })).items.map((x) => x.description)).not.toContain("Etiq 1");
+  });
+});

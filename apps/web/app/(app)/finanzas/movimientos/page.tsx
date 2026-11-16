@@ -1,8 +1,10 @@
 import { L } from "@agencyos/core";
+import { listTags, TAG_COLORS, tagsFor } from "@agencyos/modules/collab/service";
 import { listTransactions, type TxFilters, transactionTotals } from "@agencyos/modules/finance/queries";
 import { Button, EmptyState } from "@agencyos/ui";
 import { ArrowLeftRight, Download, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
+import { ListToolbar } from "@/components/collab/list-toolbar";
 import { FinanceHeader, NoFinanceAccess } from "@/components/finance/finance-header";
 import { financePage, formOptions, qs, type SP } from "@/components/finance/server";
 import { MoneyLines } from "@/components/finance/shared";
@@ -31,14 +33,22 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
     from: /^\d{4}-\d{2}-\d{2}$/.test(sp.desde ?? "") ? sp.desde : undefined,
     to: /^\d{4}-\d{2}-\d{2}$/.test(sp.hasta ?? "") ? sp.hasta : undefined,
     q: sp.q || undefined,
+    tagId: sp.etiqueta || undefined,
   };
-  const [page, totals, options] = await Promise.all([
+  const [page, totals, options, allTags] = await Promise.all([
     listTransactions(f.ctx, { ...filters, cursor: sp.cursor }),
     transactionTotals(f.ctx, filters),
     formOptions(f.ctx),
+    listTags(f.ctx),
   ]);
+  const tagMap = await tagsFor(
+    f.ctx,
+    "transaction",
+    page.items.map((t) => t.id),
+  );
+  const items = page.items.map((t) => ({ ...t, tags: tagMap.get(t.id) ?? [] }));
   const accounts = options.accounts.filter((a) => !f.ledgerId || a.ledgerId === f.ledgerId);
-  const filtered = Boolean(filters.accountId || filters.categoryId || filters.kind || filters.from || filters.to || filters.q);
+  const filtered = Boolean(filters.accountId || filters.categoryId || filters.kind || filters.from || filters.to || filters.q || filters.tagId);
   const keep = {
     cuenta: sp.cuenta,
     categoria: sp.categoria,
@@ -46,8 +56,9 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
     desde: sp.desde,
     hasta: sp.hasta,
     q: sp.q,
+    etiqueta: sp.etiqueta,
   };
-  const csvHref = `/finanzas/reportes/csv${qs(f.ledgerId, { tipo: "movimientos", desde: filters.from, hasta: filters.to, cuenta: filters.accountId, categoria: filters.categoryId, clase: filters.kind, q: filters.q })}`;
+  const csvHref = `/finanzas/reportes/csv${qs(f.ledgerId, { tipo: "movimientos", desde: filters.from, hasta: filters.to, cuenta: filters.accountId, categoria: filters.categoryId, clase: filters.kind, q: filters.q, etiqueta: filters.tagId })}`;
   return (
     <div className="mx-auto max-w-6xl">
       <FinanceHeader active="movimientos" title="Movimientos" ledgers={f.ledgers} ledgerId={f.ledgerId} extraQuery={keep} />
@@ -58,6 +69,8 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
         defaultAccountId={filters.accountId ?? accounts[0]?.id}
       />
 
+      <ListToolbar ctx={f.ctx} module="movimientos" basePath="/finanzas/movimientos" sp={{ ...sp, cursor: undefined, nuevo: undefined }} />
+
       <details className="group mb-5 rounded-[var(--radius-card)] border border-border bg-surface md:open:bg-surface" open={filtered || undefined}>
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 text-[14px] text-text-muted marker:hidden">
           <SlidersHorizontal className="size-4" /> Filtros
@@ -65,6 +78,7 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
         </summary>
         <form action="/finanzas/movimientos" className="grid grid-cols-1 gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-6">
           {f.ledgerId ? <input type="hidden" name="libro" value={f.ledgerId} /> : null}
+          {sp.etiqueta ? <input type="hidden" name="etiqueta" value={sp.etiqueta} /> : null}
           <input name="q" defaultValue={sp.q} placeholder="Buscar…" aria-label="Buscar movimientos" className={`${ctl} lg:col-span-2`} />
           <select
             name="tipo"
@@ -162,7 +176,12 @@ export default async function MovimientosPage({ searchParams }: { searchParams: 
               </a>
             </Button>
           </div>
-          <TransactionList items={page.items} options={options} showLedger={!f.ledgerId} />
+          <TransactionList
+            items={items}
+            options={options}
+            showLedger={!f.ledgerId}
+            tagging={{ all: allTags.map((t) => ({ id: t.id, name: t.name, color: t.color })), colors: TAG_COLORS }}
+          />
           <nav className="mt-4 flex items-center justify-between gap-3" aria-label="Paginación">
             {sp.cursor ? (
               <Button asChild variant="ghost">

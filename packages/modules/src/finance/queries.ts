@@ -109,7 +109,11 @@ export type TxFilters = {
   q?: string;
   clientId?: string;
   projectId?: string;
+  /** solo movimientos con esta etiqueta (N6) */
+  tagId?: string;
 };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const Pair = alias(T, "pair");
 const PairAccount = alias(schema.moneyAccount, "pair_account");
@@ -126,6 +130,14 @@ function txWhere(ctx: Ctx, f: TxFilters): SQL[] {
   if (f.to) where.push(lte(T.date, f.to));
   if (f.clientId) where.push(eq(T.clientId, f.clientId));
   if (f.projectId) where.push(eq(T.projectId, f.projectId));
+  if (f.tagId) {
+    // id inválido = ningún resultado (nunca se ignora el filtro en silencio)
+    if (!UUID_RE.test(f.tagId)) where.push(sql`false`);
+    else
+      where.push(
+        sql`exists (select 1 from tagging tg where tg.workspace_id = ${ctx.workspaceId} and tg.entity_type = 'transaction' and tg.entity_id = ${T.id} and tg.tag_id = ${f.tagId})`,
+      );
+  }
   if (f.q?.trim()) {
     where.push(
       sql`f_search_norm(coalesce(${T.description}, '') || ' ' || coalesce(${T.counterpart}, '') || ' ' || coalesce(${schema.client.name}, '') || ' ' || coalesce(${schema.category.name}, '')) like '%' || f_search_norm(${f.q.trim()}) || '%'`,

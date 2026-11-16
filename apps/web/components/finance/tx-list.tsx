@@ -2,9 +2,10 @@
 
 import { formatDate } from "@agencyos/core";
 import { Button, EntityChip, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
-import { ArrowLeftRight, FileText, MoreHorizontal, Paperclip, Pencil, Repeat, Trash2 } from "lucide-react";
+import { ArrowLeftRight, FileText, MoreHorizontal, Paperclip, Pencil, Repeat, Tag as TagIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { deleteTransactionAction, restoreTransactionAction } from "@/app/(app)/finanzas/actions";
+import { TagChip, TagEditor } from "@/components/collab/collab-ui";
 import { Attachments } from "@/components/library/attachments";
 import { useAction } from "@/components/use-action";
 import { Amount, type FormOptions } from "./shared";
@@ -34,7 +35,10 @@ export type TxItem = {
   subscriptionId: string | null;
   transferPairId: string | null;
   pairAccountName: string | null;
+  tags?: Tag[];
 };
+
+type Tag = { id: string; name: string; color: string };
 
 function title(t: TxItem) {
   if (t.kind === "transfer_out") return `Transferencia a ${t.pairAccountName ?? t.counterpart ?? "otra cuenta"}`;
@@ -44,9 +48,23 @@ function title(t: TxItem) {
 const catName = (t: TxItem) => (t.categoryName ? (t.parentCategoryName ? `${t.parentCategoryName} › ${t.categoryName}` : t.categoryName) : null);
 
 /** Lista de movimientos: tabla en desktop, tarjetas en el celular. */
-export function TransactionList({ items, options, showLedger }: { items: TxItem[]; options: FormOptions; showLedger?: boolean }) {
+export function TransactionList({
+  items,
+  options,
+  showLedger,
+  tagging,
+}: {
+  items: TxItem[];
+  options: FormOptions;
+  showLedger?: boolean;
+  /** etiquetas del workspace (N6): si viene, cada movimiento muestra y edita las suyas */
+  tagging?: { all: Tag[]; colors: string[] };
+}) {
   const [editing, setEditing] = useState<TxDefaults | null>(null);
   const [receipt, setReceipt] = useState<TxItem | null>(null);
+  const [tagsOf, setTagsOf] = useState<string | null>(null);
+  const tagTarget = tagsOf ? items.find((t) => t.id === tagsOf) : undefined;
+  const onTags = tagging ? (t: TxItem) => setTagsOf(t.id) : undefined;
   return (
     <>
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
@@ -70,13 +88,14 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                     <KindIcon t={t} />
                     <span className="truncate text-text">{title(t)}</span>
                   </div>
-                  {t.clientName || t.projectName || (t.counterpart && t.description) ? (
+                  {t.clientName || t.projectName || t.tags?.length || (t.counterpart && t.description) ? (
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-6">
                       {t.counterpart && t.description && !t.kind.startsWith("transfer") ? (
                         <span className="truncate text-[12px] text-text-faint">{t.counterpart}</span>
                       ) : null}
                       {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
                       {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
+                      <TxTags tags={t.tags} />
                     </div>
                   ) : null}
                 </td>
@@ -89,7 +108,7 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                   <Amount value={t.amount} currency={t.currency} kind={t.kind} />
                 </td>
                 <td className="px-2 py-2 text-right">
-                  <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} />
+                  <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} onTags={onTags} />
                 </td>
               </tr>
             ))}
@@ -117,14 +136,15 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
                     </>
                   ) : null}
                 </div>
-                {t.clientName || t.projectName ? (
+                {t.clientName || t.projectName || t.tags?.length ? (
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
                     {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
+                    <TxTags tags={t.tags} />
                   </div>
                 ) : null}
               </div>
-              <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} />
+              <RowMenu t={t} onEdit={() => setEditing(toDefaults(t))} onReceipt={() => setReceipt(t)} onTags={onTags} />
             </li>
           ))}
         </ul>
@@ -140,6 +160,27 @@ export function TransactionList({ items, options, showLedger }: { items: TxItem[
           />
         </Sheet>
       ) : null}
+      {tagging && tagTarget ? (
+        <Sheet
+          open
+          onOpenChange={(o) => !o && setTagsOf(null)}
+          title="Etiquetas"
+          description={`${title(tagTarget)} · ${formatDate(tagTarget.date)}. Filtrá los movimientos por etiqueta desde la barra de arriba.`}
+        >
+          <TagEditor type="transaction" id={tagTarget.id} all={tagging.all} selected={(tagTarget.tags ?? []).map((x) => x.id)} colors={tagging.colors} />
+        </Sheet>
+      ) : null}
+    </>
+  );
+}
+
+function TxTags({ tags }: { tags?: Tag[] }) {
+  if (!tags?.length) return null;
+  return (
+    <>
+      {tags.map((tg) => (
+        <TagChip key={tg.id} tag={tg} />
+      ))}
     </>
   );
 }
@@ -166,7 +207,7 @@ function KindIcon({ t }: { t: TxItem }) {
   return <span aria-hidden className={`mx-[5px] block size-1.5 shrink-0 rounded-full ${t.kind === "income" ? "bg-success" : "bg-text-faint"}`} />;
 }
 
-function RowMenu({ t, onEdit, onReceipt }: { t: TxItem; onEdit: () => void; onReceipt: () => void }) {
+function RowMenu({ t, onEdit, onReceipt, onTags }: { t: TxItem; onEdit: () => void; onReceipt: () => void; onTags?: (t: TxItem) => void }) {
   const { exec } = useAction();
   const transfer = t.kind.startsWith("transfer");
   return (
@@ -185,6 +226,11 @@ function RowMenu({ t, onEdit, onReceipt }: { t: TxItem; onEdit: () => void; onRe
       <MenuItem icon={<Paperclip />} onSelect={onReceipt}>
         Comprobantes
       </MenuItem>
+      {onTags ? (
+        <MenuItem icon={<TagIcon />} onSelect={() => onTags(t)}>
+          Etiquetas
+        </MenuItem>
+      ) : null}
       {t.receivableId && t.kind === "income" ? (
         <MenuItem icon={<FileText />} onSelect={() => window.open(`/finanzas/constancia/${t.id}`, "_blank", "noopener")}>
           Constancia

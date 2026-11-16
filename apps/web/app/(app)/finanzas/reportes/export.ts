@@ -66,6 +66,7 @@ export async function financeExport(ctx: AppCtx, p: URLSearchParams): Promise<{ 
       categoryId: p.get("categoria") || undefined,
       kind: kind === "income" || kind === "expense" || kind === "transfer" ? kind : undefined,
       q: p.get("q") || undefined,
+      tagId: p.get("etiqueta") || undefined,
     };
     const rows = await exportTransactions(ctx, f);
     sheets.push({
