@@ -1,8 +1,9 @@
 import { formatDateTime } from "@agencyos/core";
-import { listActivity } from "@agencyos/modules/activity/queries";
-import { listAudit } from "@agencyos/modules/settings/service";
+import { listActivityPage } from "@agencyos/modules/activity/queries";
+import { listAuditPage } from "@agencyos/modules/settings/service";
 import { Card, SectionLabel, Tabs } from "@agencyos/ui";
 import { ActivityList } from "@/components/activity-list";
+import { LoadMore } from "@/components/load-more";
 import { requireCtx } from "@/lib/session";
 
 const ACTION_LABEL: Record<string, string> = {
@@ -25,6 +26,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const ctx = await requireCtx();
   const tab = sp.ver === "auditoria" ? "auditoria" : "actividad";
+  // Paginadas por cursor ("Cargar más" con ?hasta=): solo se consulta la pestaña visible.
+  const activity = tab === "actividad" ? await listActivityPage(ctx, { hasta: sp.hasta, pageSize: 100 }) : null;
+  const audit = tab === "auditoria" ? await listAuditPage(ctx, { hasta: sp.hasta, pageSize: 100 }) : null;
   return (
     <Card className="p-5">
       <Tabs
@@ -35,7 +39,16 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         ]}
       />
       {tab === "actividad" ? (
-        <ActivityList rows={await listActivity(ctx, { limit: 150 })} />
+        <>
+          <ActivityList rows={activity?.items ?? []} />
+          <LoadMore
+            basePath="/configuracion/actividad"
+            params={{}}
+            nextCursor={activity?.nextCursor ?? null}
+            capped={activity?.capped}
+            shown={activity?.items.length ?? 0}
+          />
+        </>
       ) : (
         <>
           <SectionLabel className="mb-3">
@@ -45,7 +58,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             </a>
           </SectionLabel>
           <ul className="divide-y divide-border">
-            {(await listAudit(ctx)).map((a) => (
+            {(audit?.items ?? []).map((a) => (
               <li key={a.id} className="grid gap-1 py-2.5 text-[13px] md:grid-cols-[170px_1fr_auto]">
                 <span className="font-mono text-text-faint">{formatDateTime(a.at)}</span>
                 <span className="text-text">
@@ -59,6 +72,13 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               </li>
             ))}
           </ul>
+          <LoadMore
+            basePath="/configuracion/actividad"
+            params={{ ver: "auditoria" }}
+            nextCursor={audit?.nextCursor ?? null}
+            capped={audit?.capped}
+            shown={audit?.items.length ?? 0}
+          />
         </>
       )}
     </Card>
