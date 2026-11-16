@@ -13,9 +13,9 @@ import { openCapture } from "./palette-trigger";
 
 type Hit = Awaited<ReturnType<typeof searchAction>>[number];
 
-export function CommandPalette({ enabledModules, role }: { enabledModules: string[]; role?: string }) {
+export function CommandPalette({ enabledModules, role, initialOpen = false }: { enabledModules: string[]; role?: string; initialOpen?: boolean }) {
   const limited = role === "member";
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [, start] = useTransition();

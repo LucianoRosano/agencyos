@@ -1,55 +1,90 @@
 "use client";
 
-import { DropdownMenu as M } from "radix-ui";
-import type { ReactNode } from "react";
-import { cn } from "./lib/cn";
+import { cloneElement, createContext, isValidElement, type ReactElement, type ReactNode, useContext, useState } from "react";
 
+type Impl = typeof import("./menu-radix");
+type TriggerProps = {
+  onPointerDown?: (e: React.PointerEvent) => void;
+  onPointerEnter?: (e: React.PointerEvent) => void;
+  onFocus?: (e: React.FocusEvent) => void;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
+};
+
+let loaded: Impl | null = null;
+let loading: Promise<Impl> | null = null;
+function load() {
+  loading ??= import("./menu-radix").then((m) => {
+    loaded = m;
+    return m;
+  });
+  return loading;
+}
+
+const ImplCtx = createContext<Impl | null>(null);
+
+/**
+ * Menú desplegable. Radix (≈ 18 KB gzip con el posicionamiento) se descarga recién al pasar el mouse, enfocar o tocar
+ * el disparador, para que no pese en el JS inicial de cada pantalla (presupuesto < 170 KB por ruta). La primera
+ * apertura no se pierde: el estado `open` es nuestro y se le pasa a Radix cuando termina de cargar.
+ */
 export function Menu({ trigger, children, align = "end" }: { trigger: ReactNode; children: ReactNode; align?: "start" | "end" | "center" }) {
-  return (
-    <M.Root>
-      <M.Trigger asChild>{trigger}</M.Trigger>
-      <M.Portal>
-        <M.Content
-          align={align}
-          sideOffset={6}
-          className="z-50 min-w-48 rounded-[10px] border border-border bg-surface p-1 shadow-[var(--shadow-pop)] data-[state=open]:animate-[fadeIn_120ms_ease-out]"
-        >
+  const [impl, setImpl] = useState<Impl | null>(loaded);
+  const [open, setOpen] = useState(false);
+  if (impl) {
+    return (
+      <ImplCtx.Provider value={impl}>
+        <impl.RadixMenu trigger={trigger} align={align} open={open} onOpenChange={setOpen}>
           {children}
-        </M.Content>
-      </M.Portal>
-    </M.Root>
-  );
+        </impl.RadixMenu>
+      </ImplCtx.Provider>
+    );
+  }
+  if (!isValidElement(trigger)) return trigger;
+  const el = trigger as ReactElement<TriggerProps & Record<string, unknown>>;
+  const warm = () => void load().then((m) => setImpl(() => m));
+  const openNow = () => {
+    setOpen(true);
+    warm();
+  };
+  return cloneElement(el, {
+    "aria-haspopup": "menu",
+    "aria-expanded": false,
+    onPointerEnter: (e: React.PointerEvent) => {
+      el.props.onPointerEnter?.(e);
+      warm();
+    },
+    onFocus: (e: React.FocusEvent) => {
+      el.props.onFocus?.(e);
+      warm();
+    },
+    onPointerDown: (e: React.PointerEvent) => {
+      el.props.onPointerDown?.(e);
+      if (e.button === 0 && !e.ctrlKey) {
+        e.preventDefault();
+        openNow();
+      }
+    },
+    onKeyDown: (e: React.KeyboardEvent) => {
+      el.props.onKeyDown?.(e);
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        openNow();
+      }
+    },
+  });
 }
 
-export function MenuItem({
-  children,
-  onSelect,
-  danger,
-  icon,
-  disabled,
-}: {
-  children: ReactNode;
-  onSelect?: () => void;
-  danger?: boolean;
-  icon?: ReactNode;
-  disabled?: boolean;
-}) {
-  return (
-    <M.Item
-      disabled={disabled}
-      onSelect={onSelect}
-      className={cn(
-        "flex h-9 cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 text-[13px] outline-none data-[highlighted]:bg-surface-2 data-[disabled]:opacity-50 [&>svg]:size-4",
-        danger ? "text-danger" : "text-text",
-      )}
-    >
-      {icon}
-      {children}
-    </M.Item>
-  );
+export function MenuItem(props: { children: ReactNode; onSelect?: () => void; danger?: boolean; icon?: ReactNode; disabled?: boolean }) {
+  const impl = useContext(ImplCtx);
+  return impl ? <impl.RadixMenuItem {...props} /> : null;
 }
 
-export const MenuSeparator = () => <M.Separator className="my-1 h-px bg-border" />;
-export const MenuLabel = ({ children }: { children: ReactNode }) => (
-  <M.Label className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-text-faint">{children}</M.Label>
-);
+export function MenuSeparator() {
+  const impl = useContext(ImplCtx);
+  return impl ? <impl.RadixMenuSeparator /> : null;
+}
+
+export function MenuLabel({ children }: { children: ReactNode }) {
+  const impl = useContext(ImplCtx);
+  return impl ? <impl.RadixMenuLabel>{children}</impl.RadixMenuLabel> : null;
+}

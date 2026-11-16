@@ -5,8 +5,7 @@ import { projectScope, scoped } from "@agencyos/modules/shared/db";
 import { listSpacesWithCounts } from "@agencyos/modules/spaces/service";
 import { and, count, inArray, notInArray } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { CaptureDialog } from "@/components/shell/capture-dialog";
-import { CommandPalette } from "@/components/shell/command-palette";
+import { LazyOverlays } from "@/components/shell/lazy-overlays";
 import { BottomNav, MobileHeader } from "@/components/shell/mobile";
 import { RouteTransition } from "@/components/shell/route-transition";
 import { Shortcuts } from "@/components/shell/shortcuts";
@@ -58,8 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </main>
       </div>
       <BottomNav data={data} />
-      <CommandPalette enabledModules={data.enabledModules} role={ctx.role} />
-      {limited ? null : <CaptureDialog />}
+      <LazyOverlays enabledModules={data.enabledModules} role={ctx.role} capture={!limited} />
       <Shortcuts limited={limited} enabledModules={data.enabledModules} role={ctx.role} />
     </div>
   );

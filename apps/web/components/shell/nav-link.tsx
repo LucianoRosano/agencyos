@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Tooltip } from "@agencyos/ui";
+import { cn, ShortcutHint } from "@agencyos/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -22,10 +22,11 @@ export function NavLink({
 }) {
   const path = usePathname();
   const active = path === href || path.startsWith(`${match ?? href}/`) || (match ? path.startsWith(match) : false);
-  const link = (
+  return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      title={go ? `Atajo: G y después ${go}` : undefined}
       className={cn(
         "group relative flex h-10 items-center gap-3 rounded-[9px] px-3 text-[15px] transition-colors",
         active ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface hover:text-text",
@@ -34,15 +35,9 @@ export function NavLink({
       {active ? <span aria-hidden className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full bg-[image:var(--gradient)]" /> : null}
       <span className={cn("[&>svg]:size-[18px] [&>svg]:stroke-[1.75]", active ? "text-accent" : "")}>{icon}</span>
       <span className="flex-1 truncate">{label}</span>
-      {count ? <span className="font-mono text-[12px] text-text-faint">{count}</span> : null}
+      {count ? <span className={cn("font-mono text-[12px] text-text-faint", go && "group-hover:hidden group-focus-visible:hidden")}>{count}</span> : null}
+      {go ? <ShortcutHint keys={["G", go]} /> : null}
     </Link>
-  );
-  return go ? (
-    <Tooltip content={`Ir a ${label}`} keys={["G", go]}>
-      {link}
-    </Tooltip>
-  ) : (
-    link
   );
 }
 

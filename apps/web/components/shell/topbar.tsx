@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Menu, MenuItem, MenuLabel, MenuSeparator, Tooltip } from "@agencyos/ui";
+import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
 import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -69,12 +69,10 @@ export function Topbar({ data }: { data: ShellData }) {
               <Crosshair className="size-4" /> Modo foco
             </Link>
           </Button>
-          <Tooltip content="Capturar una idea, tarea o nota en la Bandeja" keys={["C"]} side="bottom">
-            <Button variant="primary" className="h-10" onClick={openCapture} aria-keyshortcuts="c">
-              <Plus className="size-4" /> Capturar
-              <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
-            </Button>
-          </Tooltip>
+          <Button variant="primary" className="h-10" onClick={openCapture} aria-keyshortcuts="c" title="Capturar una idea, tarea o nota en la Bandeja (C)">
+            <Plus className="size-4" /> Capturar
+            <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
+          </Button>
         </>
       )}
     </header>
