@@ -762,6 +762,10 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     const changed = fromKey !== target.key;
     const stageName = (k: string) => stages.find((s) => s.key === k)?.name ?? label(L.stage, k);
     const configured = stages.some((s) => s.id !== null);
+    // La probabilidad «automática» es la por defecto de la etapa de origen. Si no coincide, la editó
+    // alguien a mano y se respeta al mover (salvo al ganar/perder, o al reabrir una ganada/perdida).
+    const fromStage = stages.find((s) => s.key === fromKey);
+    const manualProbability = fromStage !== undefined && fromStage.kind === "open" && o.probability !== fromStage.probability;
 
     if (input.quoteId) {
       const [q] = await t
@@ -792,8 +796,12 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
         wonAt: null,
         lostAt: null,
         lostReason: null,
-        // Con etapas configuradas, cada etapa abierta trae su probabilidad por defecto.
-        ...(configured && changed ? { probability: target.probability } : o.stage === "won" || o.stage === "lost" ? { probability: 50 } : {}),
+        // Con etapas configuradas, cada etapa abierta trae su probabilidad por defecto (si no se editó a mano).
+        ...(o.stage === "won" || o.stage === "lost"
+          ? { probability: configured ? target.probability : 50 }
+          : configured && changed && !manualProbability
+            ? { probability: target.probability }
+            : {}),
       });
     if (changed) {
       const [{ s } = { s: 0 }] = await t
