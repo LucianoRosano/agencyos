@@ -1,4 +1,4 @@
-import { assertCan, type Ctx, notFound, todayAR, validation, zBool, zCurrency, zDate, zOptMoney, zOptText, zOptUuid } from "@agencyos/core";
+import { assertCan, type Ctx, can, notFound, todayAR, validation, zBool, zCurrency, zDate, zOptMoney, zOptText, zOptUuid } from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, eq } from "drizzle-orm";
@@ -68,7 +68,7 @@ export async function createTimeEntry(ctx: Ctx, raw: unknown) {
   if (!ctx.userId) throw validation("Sin usuario");
   return getDb().transaction(async (t) => {
     const target = await resolveTarget(t, ctx, input.projectId, input.taskId);
-    // Colaborador: solo en sus proyectos asignados y sin tarifa (dato económico, M15).
+    // Colaborador: solo en sus proyectos asignados y sin tarifa (dato económico, M15) salvo el permiso extra «time_rate».
     await assertProjectAccess(t, ctx, target.projectId);
     const [row] = await t
       .insert(schema.timeEntry)
@@ -81,7 +81,7 @@ export async function createTimeEntry(ctx: Ctx, raw: unknown) {
         minutes: input.duration,
         date: input.date,
         billable: input.billable,
-        rate: isProjectScoped(ctx) ? null : (input.rate ?? null),
+        rate: can(ctx, "update", "time_rate") ? (input.rate ?? null) : null,
         currency: input.currency,
         note: input.note ?? null,
       })
@@ -118,7 +118,7 @@ export async function updateTimeEntry(ctx: Ctx, id: string, raw: unknown) {
         minutes: input.duration,
         date: input.date,
         billable: input.billable,
-        rate: isProjectScoped(ctx) ? null : (input.rate ?? null),
+        rate: can(ctx, "update", "time_rate") ? (input.rate ?? null) : null,
         currency: input.currency,
         note: input.note ?? null,
       })

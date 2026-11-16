@@ -1,5 +1,5 @@
 import "server-only";
-import { type Ctx, cmpMoney, formatDate, formatMoney, todayAR } from "@agencyos/core";
+import { type Ctx, can, cmpMoney, formatDate, formatMoney, todayAR } from "@agencyos/core";
 import { formatMinutes, hoursLabel } from "@agencyos/modules/time/duration";
 import { listTimeEntries, projectProfitability, targetRate, timeSummary } from "@agencyos/modules/time/queries";
 import { BlockCard, Card, EmptyState, Progress, SectionLabel } from "@agencyos/ui";
@@ -124,14 +124,15 @@ export async function projectHoursLine(ctx: Ctx, projectId: string) {
 export async function TaskTimeBlock({ ctx, taskId, projectId }: { ctx: Ctx; taskId: string; projectId: string | null }) {
   const today = todayAR();
   const [summary, entries] = await Promise.all([timeSummary(ctx, { taskId }), listTimeEntries(ctx, { taskId, limit: 50 })]);
+  const withRate = can(ctx, "update", "time_rate");
   return (
     <BlockCard
       icon={<Timer />}
       title={summary.entries ? `Tiempo · ${formatMinutes(summary.minutes)}` : "Tiempo"}
-      action={<RegisterTimeButton fixed={{ taskId, projectId }} today={today} variant="ghost" label="Registrar" />}
+      action={<RegisterTimeButton fixed={{ taskId, projectId }} today={today} variant="ghost" label="Registrar" withRate={withRate} />}
     >
       {entries.length ? (
-        <TimeEntryList rows={toRows(entries)} today={today} showTask={false} />
+        <TimeEntryList rows={toRows(entries)} today={today} showTask={false} withRate={withRate} />
       ) : (
         <p className="text-[13px] text-text-faint">Sin tiempo registrado. Usá el Modo foco o registralo a mano.</p>
       )}

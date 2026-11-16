@@ -154,3 +154,36 @@ export async function assertEntityAccess(db: DbOrTx, ctx: Ctx, type: string, id:
   if (!projectId) throw notFound("El elemento");
   await assertProjectAccess(db, ctx, projectId);
 }
+
+/** Subconsulta SQL con los proyectos asignados (para filtros escritos en SQL). */
+function assignedProjectsSql(ctx: Pick<Ctx, "workspaceId" | "userId">): SQL {
+  return sql`(select pm.project_id from project_member pm where pm.workspace_id = ${ctx.workspaceId} and pm.user_id = ${ctx.userId ?? ""})`;
+}
+
+/**
+ * Archivos de la Biblioteca de un conjunto de proyectos: vinculados al proyecto (file.project_id), a su sitio
+ * (file.site_id) o adjuntos al proyecto, a sus tareas, a su sitio o a los ítems de revisión de su sitio.
+ * `projects` es una subconsulta SQL que devuelve ids de proyecto.
+ */
+export function filesOfProjectsSql(ws: string, projects: SQL, cols: { id: PgColumn; projectId: PgColumn; siteId: PgColumn } = schema.file): SQL {
+  const sites = sql`(select s.id from site s where s.workspace_id = ${ws} and s.deleted_at is null and s.project_id in ${projects})`;
+  return sql`(${cols.projectId} in ${projects} or ${cols.siteId} in ${sites} or ${cols.id} in (
+    select fa.file_id from file_attachment fa where fa.workspace_id = ${ws} and (
+      (fa.entity_type = 'project' and fa.entity_id in ${projects})
+      or (fa.entity_type = 'task' and fa.entity_id in (select t.id from task t where t.workspace_id = ${ws} and t.deleted_at is null and t.project_id in ${projects}))
+      or (fa.entity_type = 'site' and fa.entity_id in ${sites})
+      or (fa.entity_type = 'revision_item' and fa.entity_id in (
+        select ri.id from revision_item ri join revision_round rr on rr.id = ri.round_id and rr.workspace_id = ri.workspace_id
+        where ri.workspace_id = ${ws} and rr.site_id in ${sites}))
+    )))`;
+}
+
+/**
+ * Archivos que puede ver un colaborador: los de sus proyectos asignados (ver filesOfProjectsSql).
+ * `undefined` para roles completos; `false` para clientes (el portal tiene sus propias consultas).
+ */
+export function fileScope(ctx: ScopeCtx, cols: { id: PgColumn; projectId: PgColumn; siteId: PgColumn } = schema.file): SQL | undefined {
+  if (!isProjectScoped(ctx)) return undefined;
+  if (ctx.role === "client" || !ctx.userId) return sql`false`;
+  return filesOfProjectsSql(ctx.workspaceId, assignedProjectsSql(ctx), cols);
+}

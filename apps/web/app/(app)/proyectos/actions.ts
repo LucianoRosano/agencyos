@@ -1,6 +1,7 @@
 "use server";
 
 import type { Result } from "@agencyos/core";
+import { updateProjectNote } from "@agencyos/modules/notes/service";
 import * as svc from "@agencyos/modules/projects/service";
 import { archive, moveToTrash, restoreFromTrash, unarchive } from "@agencyos/modules/trash/service";
 import { run } from "@/lib/action";
@@ -29,3 +30,5 @@ export const restoreProjectAction = async (id: string) => run((ctx) => restoreFr
 export const archiveProjectAction = async (id: string) => run((ctx) => archive(ctx, "project", id));
 export const unarchiveProjectAction = async (id: string) => run((ctx) => unarchive(ctx, "project", id));
 export const deleteTemplateAction = async (id: string) => run((ctx) => moveToTrash(ctx, "project_template", id));
+export const updateProjectNoteAction = async (projectId: string, noteId: string, _: S, fd: FormData) =>
+  run((ctx) => updateProjectNote(ctx, projectId, noteId, { bodyMd: fd.get("bodyMd") ?? "" }).then(() => null));

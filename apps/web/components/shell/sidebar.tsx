@@ -6,6 +6,7 @@ import { NAV_GROUP_LABEL, type NavGroup, navFor } from "./nav-config";
 import { NavLink } from "./nav-link";
 import { OpenPaletteButton } from "./palette-trigger";
 import { ThemeToggle } from "./theme-toggle";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 export type ShellData = {
   user: { name: string; email: string };
@@ -17,7 +18,14 @@ export type ShellData = {
   spaces: { id: string; name: string; color: string; projects: number }[];
   selectedSpace?: string;
   theme: string;
+  /** Workspace activo y los demás a los que el usuario puede cambiar (selector). */
+  workspace: { id: string; name: string };
+  workspaces: { id: string; name: string }[];
+  canCreateWorkspace: boolean;
 };
+
+/** El selector aparece si hay más de un workspace o si el usuario puede crear uno (dueño). */
+export const showWorkspaceSwitcher = (d: ShellData) => d.workspaces.length > 1 || d.canCreateWorkspace;
 
 export function initials(name: string) {
   return name
@@ -37,6 +45,11 @@ export function Sidebar({ data }: { data: ShellData }) {
           <Logo />
         </Link>
       </div>
+      {showWorkspaceSwitcher(data) ? (
+        <div className="mb-3 px-4">
+          <WorkspaceSwitcher current={data.workspace} workspaces={data.workspaces} canCreate={data.canCreateWorkspace} />
+        </div>
+      ) : null}
       <div className="px-4">
         <OpenPaletteButton />
       </div>

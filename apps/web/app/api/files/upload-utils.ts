@@ -17,9 +17,9 @@ export function sameOrigin(req: NextRequest): boolean {
 }
 
 /** Lee el cuerpo en streaming cortando apenas se pasa del máximo (no se carga un archivo gigante en memoria). */
-export async function readBody(req: NextRequest, max = MAX_FILE_BYTES): Promise<Buffer> {
+export async function readBody(req: NextRequest, max = MAX_FILE_BYTES, tooBig = "El archivo supera los 100 MB."): Promise<Buffer> {
   const declared = Number(req.headers.get("content-length") ?? 0);
-  if (declared > max) throw validation("El archivo supera los 100 MB.", { file: "Máximo 100 MB" });
+  if (declared > max) throw validation(tooBig, { file: tooBig });
   if (!req.body) throw validation("El archivo está vacío.", { file: "Vacío" });
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -30,7 +30,7 @@ export async function readBody(req: NextRequest, max = MAX_FILE_BYTES): Promise<
     total += value.byteLength;
     if (total > max) {
       await reader.cancel().catch(() => {});
-      throw validation("El archivo supera los 100 MB.", { file: "Máximo 100 MB" });
+      throw validation(tooBig, { file: tooBig });
     }
     chunks.push(value);
   }
@@ -46,7 +46,7 @@ export function fileNameFrom(req: NextRequest) {
   }
 }
 
-const STATUS: Record<string, number> = { VALIDATION: 400, NOT_FOUND: 404, FORBIDDEN: 403, CONFLICT: 409, UNAUTHENTICATED: 401 };
+const STATUS: Record<string, number> = { VALIDATION: 400, NOT_FOUND: 404, FORBIDDEN: 403, CONFLICT: 409, UNAUTHENTICATED: 401, RATE_LIMITED: 429 };
 
 export async function jsonResult<T>(fn: () => Promise<T>): Promise<Response> {
   try {
@@ -58,7 +58,7 @@ export async function jsonResult<T>(fn: () => Promise<T>): Promise<Response> {
     const r = toResultError(e);
     if (r.ok) throw e;
     let status = STATUS[r.error.code] ?? 500;
-    if (e instanceof DomainError && /100 MB|espacio disponible/.test(e.message)) status = 413;
+    if (e instanceof DomainError && /100 MB|10 MB|espacio disponible/.test(e.message)) status = 413;
     return Response.json(r, { status });
   }
 }

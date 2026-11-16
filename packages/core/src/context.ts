@@ -8,6 +8,8 @@ export type Ctx = {
   actor: { type: ActorType; id: string | null; name: string };
   /** Alcances de un token de máquina (MCP). Ausente para sesiones humanas. */
   scopes?: string[];
+  /** Permisos extra de un colaborador (`member`), editables en Configuración → Usuarios. Ver permissions.ts. */
+  grants?: string[];
   ip?: string | null;
   userAgent?: string | null;
 };

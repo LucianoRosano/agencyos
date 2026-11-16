@@ -41,6 +41,13 @@ async function seed(tag: string) {
     a,
     `Maqueta de inicio ${tag}`,
   ]);
+  // Sitio del proyecto A con la ronda R1 abierta (feedback + captura desde el portal)
+  const [site] = await sql<{ id: string }>("insert into site (id, workspace_id, project_id, name) values (gen_random_uuid(), $1, $2, $3) returning id", [
+    ws?.id,
+    a,
+    `Sitio Sol ${tag}`,
+  ]);
+  await sql("insert into revision_round (id, workspace_id, site_id, number, status) values (gen_random_uuid(), $1, $2, 1, 'open')", [ws?.id, site?.id]);
   return { clientName: `Panadería Sol ${tag}`, a, b, aName: `Web Sol ${tag}`, bName: `Tienda Sol ${tag}` };
 }
 
@@ -106,6 +113,19 @@ test("portal: invitar cliente → aceptar → ver portal → aprobar entrega →
   await expect(client.getByText("¡Gracias! Entrega aprobada.")).toBeVisible();
   await expect(client.getByTestId("portal-deliverable")).toContainText("Aprobada");
 
+  // Feedback de revisión con captura (PNG 1×1)
+  await client.locator("#description").fill(`El botón de contacto no se ve ${p}`);
+  await client.locator("#capture").setInputFiles({
+    name: "captura.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"),
+  });
+  await expect(client.getByTestId("capture-name")).toContainText("captura.png");
+  await client.getByRole("button", { name: "Cargar feedback" }).click();
+  await expect(client.getByText("Feedback y captura cargados")).toBeVisible();
+  await expect(client.getByTestId("portal-feedback")).toContainText("con captura");
+  await expectNoHorizontalScroll(client);
+
   await client.goto("/portal/presupuestos");
   await expect(client.getByText("Todavía no hay presupuestos")).toBeVisible();
   await expectNoHorizontalScroll(client);
@@ -160,10 +180,30 @@ test("colaborador: invitar con un proyecto → crear cuenta → 2FA obligatorio 
   await m.waitForURL("**/hoy");
   await m.goto("/finanzas");
   await m.waitForURL("**/hoy");
-  await ctx.close();
+  // Notas y archivos de su proyecto (vacíos); sin la pestaña Finanzas hasta que el dueño dé el permiso
+  await m.goto(`/proyectos/${s.a}/notas`);
+  await expect(m.getByText("Sin notas vinculadas")).toBeVisible();
+  await m.goto(`/proyectos/${s.a}/archivos`);
+  await expect(m.getByText("Sin archivos")).toBeVisible();
+  await expect(m.getByRole("link", { name: "Finanzas" })).toHaveCount(0);
 
-  // El dueño lo ve en la lista con su proyecto
+  // El dueño lo ve en la lista con su proyecto y le activa «Ver finanzas del proyecto»
   await page.goto("/configuracion/usuarios");
   await expect(page.getByTestId("users-list")).toContainText("Ana Colaboradora");
   await expect(page.getByTestId("users-list")).toContainText(s.aName);
+  await page
+    .getByTestId("users-list")
+    .getByRole("listitem")
+    .filter({ hasText: `ana-${p}@colab.test` })
+    .getByRole("switch", { name: "Ver finanzas del proyecto (Ana Colaboradora)" })
+    .check();
+  await expect(page.getByText("Permiso activado para Ana Colaboradora")).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await shot(page, "17-usuarios-permisos", p);
+
+  await m.goto(`/proyectos/${s.a}/finanzas`);
+  await expect(m.getByText("Sin movimientos")).toBeVisible();
+  await expect(m.getByRole("link", { name: "Finanzas" })).toBeVisible();
+  await expectNoHorizontalScroll(m);
+  await ctx.close();
 });

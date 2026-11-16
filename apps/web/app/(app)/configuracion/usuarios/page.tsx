@@ -4,7 +4,7 @@ import { Badge, Card, EmptyState, SectionLabel } from "@agencyos/ui";
 import { MailPlus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { requireCtx } from "@/lib/session";
-import { InvitationMenu, InviteSheet, UserMenu } from "./users-ui";
+import { GrantSwitches, InvitationMenu, InviteSheet, UserMenu } from "./users-ui";
 
 export const metadata = { title: "Usuarios" };
 
@@ -41,6 +41,7 @@ export default async function UsersPage() {
                     {u.projects.length ? u.projects.map((p) => p.name).join(" · ") : "Sin proyectos asignados"}
                   </p>
                 ) : null}
+                {u.role === "member" && u.status === "active" ? <GrantSwitches membershipId={u.membershipId} name={u.name} grants={u.grants} /> : null}
                 {u.role === "client" ? <p className="mt-1 text-[13px] text-text-muted">Cliente: {u.clientName ?? "sin cliente asignado"}</p> : null}
               </div>
               {u.role !== "owner" && !u.isMe ? (
