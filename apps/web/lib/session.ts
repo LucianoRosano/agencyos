@@ -5,7 +5,7 @@ import { getAuth } from "@agencyos/modules/auth/server";
 import { assertRateLimit, RATE_RULES } from "@agencyos/modules/shared/rate-limit";
 import { loadGrants, portalPrefKey } from "@agencyos/modules/users/service";
 import { ACTIVE_WORKSPACE_COOKIE, resolveActiveMembership } from "@agencyos/modules/workspaces/service";
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
