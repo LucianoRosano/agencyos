@@ -2,6 +2,7 @@ import "server-only";
 import type { Ctx, Role } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getAuth } from "@agencyos/modules/auth/server";
+import { assertRateLimit, RATE_RULES } from "@agencyos/modules/shared/rate-limit";
 import { loadGrants, portalPrefKey } from "@agencyos/modules/users/service";
 import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -81,6 +82,8 @@ export const requirePortalCtx = cache(async (): Promise<PortalCtx> => {
   const m = await getMembership(s.user.id);
   if (!m) redirect("/login?error=sin-acceso");
   if (m.m.role !== "client") redirect("/hoy");
+  // Rate limit por usuario para todo el portal (pantallas, descargas, acciones).
+  await assertRateLimit(`portal:${s.user.id}`, RATE_RULES.portalRequest);
   const h = await headers();
   const [pref] = await getDb()
     .select({ value: schema.userPreference.value })
@@ -99,6 +102,12 @@ export const requirePortalCtx = cache(async (): Promise<PortalCtx> => {
     clientId: v?.workspaceId === m.w.id ? (v.clientId ?? null) : null,
   };
 });
+
+/** IP del pedido (detrás del proxy: primer valor de x-forwarded-for). */
+export async function requestIp(): Promise<string> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "sin-ip";
+}
 
 export function firstName(name: string) {
   return name.split(" ")[0] ?? name;

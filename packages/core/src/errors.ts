@@ -1,4 +1,4 @@
-export type DomainErrorCode = "NOT_FOUND" | "FORBIDDEN" | "VALIDATION" | "CONFLICT" | "EXTERNAL" | "UNAUTHENTICATED";
+export type DomainErrorCode = "NOT_FOUND" | "FORBIDDEN" | "VALIDATION" | "CONFLICT" | "EXTERNAL" | "UNAUTHENTICATED" | "RATE_LIMITED";
 
 export class DomainError extends Error {
   constructor(
@@ -15,6 +15,7 @@ export const notFound = (what = "El elemento") => new DomainError("NOT_FOUND", `
 export const forbidden = (msg = "No tenés permiso para esta acción.") => new DomainError("FORBIDDEN", msg);
 export const validation = (msg: string, fields?: Record<string, string>) => new DomainError("VALIDATION", msg, fields);
 export const conflict = (msg: string) => new DomainError("CONFLICT", msg);
+export const rateLimited = (msg = "Demasiados intentos. Esperá unos minutos y probá de nuevo.") => new DomainError("RATE_LIMITED", msg);
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: { code: DomainErrorCode; message: string; fields?: Record<string, string> } };
 
