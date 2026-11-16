@@ -60,7 +60,11 @@ function makePng(w: number, h: number, rgb: [number, number, number]) {
   ]);
 }
 
-const upload = (page: Page, files: { name: string; mimeType: string; buffer: Buffer }[]) => page.locator('input[type="file"]').first().setInputFiles(files);
+/** Espera la hidratación (el input de archivos necesita su onChange) y sube. */
+async function upload(page: Page, files: { name: string; mimeType: string; buffer: Buffer }[]) {
+  await page.waitForLoadState("networkidle");
+  await page.locator('input[type="file"]').first().setInputFiles(files);
+}
 
 test("biblioteca: vista previa de PDF con pdf.js (canvas, páginas, sin errores de CSP) @visual", async ({ page }, info) => {
   test.setTimeout(120_000);
@@ -119,7 +123,7 @@ test("biblioteca: mover carpetas (no dentro de sí misma) y archivos, con Deshac
     const dlg = page.getByRole("dialog", { name: "Nueva carpeta" });
     await dlg.locator("#name").fill(n);
     await dlg.getByRole("button", { name: "Crear carpeta" }).click();
-    await expect(page.getByText("Carpeta creada")).toBeVisible();
+    await expect(page.getByText("Carpeta creada").first()).toBeVisible();
     await expect(dlg).toHaveCount(0);
   };
   await page.goto("/biblioteca");
@@ -141,7 +145,7 @@ test("biblioteca: mover carpetas (no dentro de sí misma) y archivos, con Deshac
   const labels = await select.locator("option").allTextContents();
   expect(labels).toContain(dest);
   expect(labels.some((l) => l.includes(src))).toBe(false);
-  expect(labels).toContain("Raíz de la biblioteca");
+  expect(labels).not.toContain("Raíz de la biblioteca"); // es su ubicación actual
   await expectNoHorizontalScroll(page);
   await shot(page, "biblioteca-mover", info.project.name);
   await select.selectOption({ label: dest });
@@ -256,7 +260,7 @@ test("cerebro: el botón 3D aparece y monta un canvas WebGL; volver a 2D @visual
         await c.query("insert into client (id, workspace_id, name, space_id) values (gen_random_uuid(), $1, 'Estudio 3D', $2) returning id", [ws, space])
       ).rows[0]?.id as string;
       await c.query(
-        "insert into project (id, workspace_id, name, client_id, space_id, status) values (gen_random_uuid(), $1, 'Sitio Estudio 3D', $2, $3, 'in_progress')",
+        "insert into project (id, workspace_id, name, client_id, space_id, status, next_action) values (gen_random_uuid(), $1, 'Sitio Estudio 3D', $2, $3, 'in_progress', 'Revisar con el cliente')",
         [ws, cl, space],
       );
     }
