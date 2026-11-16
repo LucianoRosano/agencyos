@@ -1,7 +1,7 @@
 import { endOfMonth, formatMoney, L, label, monthName, todayAR } from "@agencyos/core";
 import { monthlyReport, profitability } from "@agencyos/modules/finance/queries";
 import { BlockCard, Button, Card, cn, EmptyState, HBars } from "@agencyos/ui";
-import { BriefcaseBusiness, CalendarRange, ChartColumn, Download, FolderKanban, TriangleAlert } from "lucide-react";
+import { BriefcaseBusiness, CalendarRange, ChartColumn, Download, FileText, FolderKanban, TriangleAlert } from "lucide-react";
 import { FinanceHeader, NoFinanceAccess } from "@/components/finance/finance-header";
 import { financePage, qs, type SP } from "@/components/finance/server";
 
@@ -77,6 +77,13 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
           Ver
         </Button>
         <div className="col-span-2 flex flex-wrap gap-2 md:ml-auto">
+          {hasData ? (
+            <Button asChild variant="secondary" size="sm">
+              <a href={`/finanzas/reportes/pdf${qs(f.ledgerId, keep)}`} data-testid="finance-report-pdf">
+                <FileText className="size-4" /> PDF
+              </a>
+            </Button>
+          ) : null}
           <Button asChild variant="ghost" size="sm">
             <a href={csv("mensual")}>
               <Download className="size-4" /> Resumen CSV

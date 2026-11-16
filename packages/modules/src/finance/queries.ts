@@ -1,7 +1,8 @@
-import { addDays, addMonths, assertCan, type Ctx, endOfMonth, fromCents, monthShort, startOfMonth, toCents, todayAR } from "@agencyos/core";
+import { addDays, addMonths, assertCan, type Ctx, endOfMonth, fromCents, monthName, monthShort, startOfMonth, toCents, todayAR } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or, type SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { brandFromSettings } from "../quotes/queries";
 import { getDb, scoped } from "../shared/db";
 
 /** Lecturas de Finanzas. Todas exigen permiso de lectura de finanzas (un `member` no accede). */
@@ -844,5 +845,59 @@ export async function profitability(ctx: Ctx, o: ReportOpts) {
       clients: collectUnconverted(byClient),
       projects: collectUnconverted(byProject),
     },
+  };
+}
+
+/**
+ * Datos del informe PDF de Finanzas (resumen mensual del año, categorías y rentabilidad del período)
+ * con la marca de la agencia. Mismos cálculos que la pantalla de Reportes.
+ */
+export async function financeReportDoc(ctx: Ctx, o: { year: number; month: number | null; currency: "ARS" | "USD"; ledgerId?: string }) {
+  can(ctx);
+  const ledgers = await listLedgers(ctx);
+  const ledger = ledgers.find((l) => l.id === o.ledgerId) ?? null;
+  const yFrom = `${o.year}-01-01`;
+  const yTo = `${o.year}-12-31`;
+  const pFrom = o.month ? `${o.year}-${String(o.month).padStart(2, "0")}-01` : yFrom;
+  const pTo = o.month ? endOfMonth(pFrom) : yTo;
+  const base = { ledgerId: ledger?.id, currency: o.currency } as const;
+  const [yearRep, periodRep, prof, ws] = await Promise.all([
+    monthlyReport(ctx, { ...base, from: yFrom, to: yTo }),
+    o.month ? monthlyReport(ctx, { ...base, from: pFrom, to: pTo }) : Promise.resolve(null),
+    profitability(ctx, { ...base, from: pFrom, to: pTo }),
+    getDb().select({ settings: schema.workspace.settings }).from(schema.workspace).where(eq(schema.workspace.id, ctx.workspaceId)),
+  ]);
+  const rep = periodRep ?? yearRep;
+  const brand = brandFromSettings(ws[0]?.settings as never);
+  const row = ({ name, income, expense, result, unconverted }: { name: string; income: string; expense: string; result: string; unconverted: number }) => ({
+    name,
+    income,
+    expense,
+    result,
+    unconverted,
+  });
+  return {
+    brand: { name: brand.name, initials: brand.initials, email: brand.email, phone: brand.phone, website: brand.website },
+    periodLabel: o.month ? `${monthName(o.month)} ${o.year}` : `Año ${o.year}`,
+    year: o.year,
+    currency: o.currency,
+    ledgerName: ledger?.name ?? null,
+    generatedOn: todayAR(),
+    totals: rep.totals,
+    months: yearRep.months.map((m) => ({
+      label: monthName(Number(m.month.slice(5, 7))),
+      income: m.income,
+      expense: m.expense,
+      result: m.result,
+      current: o.month === Number(m.month.slice(5, 7)),
+    })),
+    yearTotals: yearRep.totals,
+    categories: {
+      income: rep.categories.income.map((c) => ({ name: c.name, total: c.total })),
+      expense: rep.categories.expense.map((c) => ({ name: c.name, total: c.total })),
+    },
+    clients: prof.clients.map(row),
+    projects: prof.projects.map(row),
+    unconverted: rep.unconverted.map((u) => ({ kind: u.kind === "income" ? "Ingresos" : "Gastos", currency: u.currency, total: u.total, n: u.n })),
   };
 }
