@@ -1,14 +1,28 @@
 "use client";
 
-import { cn } from "@agencyos/ui";
+import { cn, Tooltip } from "@agencyos/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-export function NavLink({ href, icon, label, count, match }: { href: string; icon: ReactNode; label: string; count?: number; match?: string }) {
+export function NavLink({
+  href,
+  icon,
+  label,
+  count,
+  match,
+  go,
+}: {
+  href: string;
+  icon: ReactNode;
+  label: string;
+  count?: number;
+  match?: string;
+  go?: string;
+}) {
   const path = usePathname();
   const active = path === href || path.startsWith(`${match ?? href}/`) || (match ? path.startsWith(match) : false);
-  return (
+  const link = (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
@@ -22,6 +36,13 @@ export function NavLink({ href, icon, label, count, match }: { href: string; ico
       <span className="flex-1 truncate">{label}</span>
       {count ? <span className="font-mono text-[12px] text-text-faint">{count}</span> : null}
     </Link>
+  );
+  return go ? (
+    <Tooltip content={`Ir a ${label}`} keys={["G", go]}>
+      {link}
+    </Tooltip>
+  ) : (
+    link
   );
 }
 

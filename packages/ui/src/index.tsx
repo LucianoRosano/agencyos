@@ -10,3 +10,4 @@ export * from "./menu";
 export * from "./page-header";
 export * from "./progress";
 export * from "./skeleton";
+export * from "./tooltip";

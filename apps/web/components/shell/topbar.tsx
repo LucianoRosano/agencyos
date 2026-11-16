@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
+import { Button, Menu, MenuItem, MenuLabel, MenuSeparator, Tooltip } from "@agencyos/ui";
 import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,15 +64,17 @@ export function Topbar({ data }: { data: ShellData }) {
             <MenuSeparator />
             <MenuItem onSelect={() => router.push("/espacios")}>Administrar espacios</MenuItem>
           </Menu>
-          <Button asChild variant="secondary" className="h-10">
+          <Button asChild variant="secondary" className="h-10" title="Una tarea a la vez, sin distracciones">
             <Link href="/foco">
               <Crosshair className="size-4" /> Modo foco
             </Link>
           </Button>
-          <Button variant="primary" className="h-10" onClick={openCapture}>
-            <Plus className="size-4" /> Capturar
-            <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
-          </Button>
+          <Tooltip content="Capturar una idea, tarea o nota en la Bandeja" keys={["C"]} side="bottom">
+            <Button variant="primary" className="h-10" onClick={openCapture} aria-keyshortcuts="c">
+              <Plus className="size-4" /> Capturar
+              <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
+            </Button>
+          </Tooltip>
         </>
       )}
     </header>

@@ -60,7 +60,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav data={data} />
       <CommandPalette enabledModules={data.enabledModules} role={ctx.role} />
       {limited ? null : <CaptureDialog />}
-      <Shortcuts limited={limited} />
+      <Shortcuts limited={limited} enabledModules={data.enabledModules} role={ctx.role} />
     </div>
   );
 }

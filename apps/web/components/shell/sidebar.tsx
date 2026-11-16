@@ -50,7 +50,14 @@ export function Sidebar({ data }: { data: ShellData }) {
               <ul className="flex flex-col gap-0.5">
                 {groupItems.map((it) => (
                   <li key={it.key}>
-                    <NavLink href={it.href} icon={it.icon} label={it.label} count={it.countKey ? data.counts[it.countKey] : undefined} match={it.match} />
+                    <NavLink
+                      href={it.href}
+                      icon={it.icon}
+                      label={it.label}
+                      count={it.countKey ? data.counts[it.countKey] : undefined}
+                      match={it.match}
+                      go={it.go}
+                    />
                   </li>
                 ))}
               </ul>
