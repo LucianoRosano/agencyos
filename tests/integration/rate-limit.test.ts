@@ -45,7 +45,7 @@ describe("rate limit (ventana deslizante en Postgres)", () => {
     const res = await rateLimitResponse(r, "x", { json: true });
     expect(res?.status).toBe(429);
     expect(Number(res?.headers.get("retry-after"))).toBeGreaterThan(0);
-    expect(((await res?.json()) as { error: { code: string } }).error.code).toBe("RATE_LIMITED");
+    expect(((await res?.json()) as { error?: { code: string } } | undefined)?.error?.code).toBe("RATE_LIMITED");
     process.env.RATE_LIMIT = "off";
     try {
       expect(await rateLimitResponse(r, "x")).toBeNull();
