@@ -9,8 +9,9 @@ import { Logo } from "@/components/logo";
 import { navFor } from "./nav-config";
 import { BottomLink } from "./nav-link";
 import { openCapture, SearchIconButton } from "./palette-trigger";
-import { initials, type ShellData } from "./sidebar";
+import { initials, type ShellData, showWorkspaceSwitcher } from "./sidebar";
 import { BellLink } from "./topbar";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 export function MobileHeader({ data }: { data: ShellData }) {
   const router = useRouter();
@@ -21,6 +22,9 @@ export function MobileHeader({ data }: { data: ShellData }) {
         <Logo />
       </Link>
       <div className="flex items-center gap-2">
+        {showWorkspaceSwitcher(data) ? (
+          <WorkspaceSwitcher current={data.workspace} workspaces={data.workspaces} canCreate={data.canCreateWorkspace} compact />
+        ) : null}
         <BellLink count={data.counts.notifications ?? 0} className="size-11 rounded-xl" />
         <SearchIconButton />
         <Menu

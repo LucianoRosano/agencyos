@@ -1,6 +1,6 @@
 "use client";
 
-import { L, label } from "@agencyos/core";
+import { L, label, MEMBER_GRANT_KEYS } from "@agencyos/core";
 import { Button, Checkbox, Input, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Ban, Copy, Link2, Mail, MoreHorizontal, RotateCcw, Shield, UserPlus, X } from "lucide-react";
 import { useState } from "react";
@@ -8,7 +8,15 @@ import { toast } from "@/lib/toast";
 import { ActionForm, SubmitButton, useFieldError } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
-import { changeRoleAction, deactivateUserAction, inviteAction, reactivateUserAction, renewInvitationAction, revokeInvitationAction } from "./actions";
+import {
+  changeRoleAction,
+  deactivateUserAction,
+  inviteAction,
+  reactivateUserAction,
+  renewInvitationAction,
+  revokeInvitationAction,
+  setGrantsAction,
+} from "./actions";
 
 type Opt = { id: string; name: string; clientName?: string | null };
 export type Options = { clients: Opt[]; projects: Opt[]; emailConfigured: boolean };
@@ -247,5 +255,55 @@ export function UserMenu({
         </ActionForm>
       </Sheet>
     </>
+  );
+}
+
+/** Interruptores de permisos extra de un colaborador (siempre dentro de sus proyectos asignados). */
+export function GrantSwitches({ membershipId, name, grants }: { membershipId: string; name: string; grants: string[] }) {
+  const { exec, pending } = useAction();
+  const [on, setOn] = useState<string[]>(grants);
+  return (
+    <fieldset className="mt-2 flex flex-col gap-0.5 rounded-[10px] border border-border px-3 py-1.5" data-testid="member-grants">
+      <legend className="px-1 font-mono text-[11px] tracking-[0.14em] text-text-faint uppercase">Permisos extra</legend>
+      {MEMBER_GRANT_KEYS.map((g) => {
+        const checked = on.includes(g);
+        return (
+          <label key={g} className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+            <span className="min-w-0">
+              <span className="block text-[14px] text-text">{label(L.memberGrant, g)}</span>
+              <span className="block text-[12px] text-text-muted">{label(L.memberGrantHint, g)}</span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              aria-checked={checked}
+              aria-label={`${label(L.memberGrant, g)} (${name})`}
+              checked={checked}
+              disabled={pending}
+              onChange={(e) => {
+                const prev = on;
+                const next = e.target.checked ? [...on, g] : on.filter((x) => x !== g);
+                setOn(next);
+                exec(
+                  async () => {
+                    const r = await setGrantsAction(membershipId, next);
+                    if (!r.ok) setOn(prev);
+                    return r;
+                  },
+                  {
+                    success: e.target.checked ? `Permiso activado para ${name}` : `Permiso quitado a ${name}`,
+                    undo: async () => {
+                      setOn(prev);
+                      return setGrantsAction(membershipId, prev);
+                    },
+                  },
+                );
+              }}
+              className="size-5 shrink-0 accent-[var(--accent)]"
+            />
+          </label>
+        );
+      })}
+    </fieldset>
   );
 }

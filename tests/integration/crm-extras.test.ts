@@ -1,7 +1,7 @@
 import type { Ctx } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { opportunityServices, setOpportunityServices } from "@agencyos/modules/crm/opportunity-services";
-import { createClient, createOpportunity, moveOpportunity } from "@agencyos/modules/crm/service";
+import { createClient, createOpportunity, moveOpportunity, updateOpportunity } from "@agencyos/modules/crm/service";
 import { addStage, deleteStage, listPipelineStages, moveStage, pipelineFor, restoreStage, updateStage } from "@agencyos/modules/crm/stages";
 import { importWhatsapp, previewWhatsapp } from "@agencyos/modules/crm/whatsapp-import";
 import { createService } from "@agencyos/modules/quotes/service";
@@ -66,6 +66,26 @@ describe("CRM · etapas editables", () => {
     await restoreStage(ctx, demo?.key as string);
     expect((await pipelineFor(ctx, [{ id: o.id, stage: "contacted" }])).stageOf.get(o.id)).toBe(demo?.key);
     await expect(moveOpportunity(ctx, o.id, { stage: "inexistente" })).rejects.toThrow(/Etapa inválida/);
+  });
+
+  it("mover de etapa respeta la probabilidad editada a mano", async () => {
+    const ctx = await makeWorkspace();
+    const c = await createClient(ctx, { name: "Probabilidad SA" });
+    await addStage(ctx, { name: "Demo", probability: "45", afterKey: "contacted" });
+    // creada con 40 % en «Nuevo» (por defecto 10 %): manual → se respeta en todas las etapas abiertas
+    const manual = await createOpportunity(ctx, { clientId: c.id, title: "Manual", probability: "40" });
+    expect((await moveOpportunity(ctx, manual.id, { stage: "contacted" })).probability).toBe(40);
+    expect((await moveOpportunity(ctx, manual.id, { stage: "negotiation" })).probability).toBe(40);
+    // ganar/perder siempre fija 100/0; reabrir toma la de la etapa
+    expect((await moveOpportunity(ctx, manual.id, { stage: "won" })).probability).toBe(100);
+    expect((await moveOpportunity(ctx, manual.id, { stage: "meeting" })).probability).toBe(40);
+    // sin tocar: sigue la probabilidad por defecto de cada etapa
+    const auto = await createOpportunity(ctx, { clientId: c.id, title: "Automática" });
+    expect((await moveOpportunity(ctx, auto.id, { stage: "contacted" })).probability).toBe(20);
+    expect((await moveOpportunity(ctx, auto.id, { stage: "negotiation" })).probability).toBe(80);
+    // editarla a mano en una etapa la «congela»
+    await updateOpportunity(ctx, auto.id, { clientId: c.id, title: "Automática", probability: "55" });
+    expect((await moveOpportunity(ctx, auto.id, { stage: "meeting" })).probability).toBe(55);
   });
 
   it("solo administración edita etapas y cada workspace tiene las suyas", async () => {

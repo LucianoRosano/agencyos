@@ -26,3 +26,4 @@ export const revokeInvitationAction = async (id: string) => run((ctx) => svc.rev
 export const changeRoleAction = async (membershipId: string, _: S, fd: FormData) => run((ctx) => svc.changeRole(ctx, membershipId, form(fd)).then(() => null));
 export const deactivateUserAction = async (membershipId: string) => run((ctx) => svc.deactivateUser(ctx, membershipId).then(() => null));
 export const reactivateUserAction = async (membershipId: string) => run((ctx) => svc.reactivateUser(ctx, membershipId).then(() => null));
+export const setGrantsAction = async (membershipId: string, grants: string[]) => run((ctx) => svc.setMemberGrants(ctx, membershipId, { grants }));

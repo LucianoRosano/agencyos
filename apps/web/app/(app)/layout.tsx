@@ -3,6 +3,7 @@ import { pendingCount } from "@agencyos/modules/inbox/service";
 import { unreadCount } from "@agencyos/modules/notifications/service";
 import { projectScope, scoped } from "@agencyos/modules/shared/db";
 import { listSpacesWithCounts } from "@agencyos/modules/spaces/service";
+import { listMyWorkspaces } from "@agencyos/modules/workspaces/service";
 import { and, count, inArray, notInArray } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { LazyOverlays } from "@/components/shell/lazy-overlays";
@@ -18,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const ctx = await requireCtx();
   const db = getDb();
   const limited = ctx.role === "member";
-  const [spaces, inbox, [projects], [clients], selectedSpace, theme, unread] = await Promise.all([
+  const [spaces, inbox, [projects], [clients], selectedSpace, theme, unread, workspaces] = await Promise.all([
     limited ? Promise.resolve([]) : listSpacesWithCounts(ctx),
     limited ? Promise.resolve(0) : pendingCount(ctx),
     db
@@ -34,6 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     getSelectedSpace(),
     cookies().then((c) => c.get("ag-theme")?.value ?? "dark"),
     unreadCount(ctx),
+    listMyWorkspaces(ctx.userId ?? ""),
   ]);
   const data: ShellData = {
     user: { name: ctx.user.name, email: ctx.user.email },
@@ -45,6 +47,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     spaces: spaces.map((s) => ({ id: s.id, name: s.name, color: s.color, projects: s.projects })),
     selectedSpace: limited ? undefined : selectedSpace,
     theme,
+    workspace: { id: ctx.workspace.id, name: ctx.workspace.name },
+    workspaces: workspaces.map((w) => ({ id: w.id, name: w.name })),
+    canCreateWorkspace: ctx.role === "owner",
   };
   return (
     <div className="flex min-h-dvh">

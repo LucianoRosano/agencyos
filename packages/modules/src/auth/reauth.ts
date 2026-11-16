@@ -1,7 +1,7 @@
 import { validation } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { getAuth } from "./server";
+import { assertPasswordNotPwned, getAuth, hashNewPassword } from "./server";
 
 const MAX_FAILS = 5;
 const WINDOW_MS = 15 * 60_000;
@@ -30,7 +30,8 @@ export async function adminSetPassword(email: string, newPassword: string): Prom
   const actx = await getAuth().$context;
   const user = await actx.internalAdapter.findUserByEmail(email.toLowerCase());
   if (!user) throw validation("No existe un usuario con ese email");
-  const hash = await actx.password.hash(newPassword);
+  await assertPasswordNotPwned(newPassword);
+  const hash = await hashNewPassword(newPassword);
   await actx.internalAdapter.updatePassword(user.user.id, hash);
   await actx.internalAdapter.deleteUserSessions(user.user.id);
 }
