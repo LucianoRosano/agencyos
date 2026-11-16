@@ -34,6 +34,25 @@ const GraphCanvas = dynamic(() => import("./graph-canvas"), {
   ),
 });
 
+const Graph3D = dynamic(() => import("./graph-3d"), {
+  ssr: false,
+  loading: () => (
+    <div role="status" className="absolute inset-0 grid place-items-center" aria-busy="true" aria-label="Cargando el modo 3D">
+      <span className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-faint">Cargando el modo 3D…</span>
+    </div>
+  ),
+});
+
+/** WebGL disponible (si no, el botón 3D no se muestra). */
+function hasWebGL() {
+  try {
+    const c = document.createElement("canvas");
+    return Boolean(c.getContext("webgl2") ?? c.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 type Props = { graph: BrainGraph; layout: BrainLayout; includeTasks: boolean; initialNode: string | null; initialSpace?: string; viewKey: string };
 type View = "graph" | "list";
 
@@ -79,6 +98,8 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
   const [local, setLocal] = useState<number | null>(null);
   const [laying, setLaying] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [webgl, setWebgl] = useState(false);
+  const [dim3, setDim3] = useState(false);
   const api = useRef<GraphApi | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const pendingFly = useRef<string | null>(initialNode && byKey.has(initialNode) ? initialNode : null);
@@ -87,7 +108,20 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
     try {
       if (localStorage.getItem("ag-brain-view") === "list") setView("list");
     } catch {}
+    const ok = hasWebGL();
+    setWebgl(ok);
+    try {
+      if (ok && localStorage.getItem("ag-brain-dim") === "3d") setDim3(true);
+    } catch {}
   }, []);
+  const changeDim = (three: boolean) => {
+    api.current = null;
+    setDim3(three);
+    try {
+      localStorage.setItem("ag-brain-dim", three ? "3d" : "2d");
+    } catch {}
+  };
+  const show3d = webgl && dim3;
   const changeView = (v: View) => {
     setView(v);
     try {
@@ -187,7 +221,23 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       className="brain-surface relative -mx-4 -mt-5 -mb-28 h-[calc(100dvh-70px)] overflow-hidden md:-mx-8 md:-mt-8 md:-mb-12 md:h-[calc(100dvh-72px)]"
     >
       <h1 className="sr-only">Cerebro</h1>
-      {view === "graph" && !empty ? (
+      {view === "graph" && !empty && show3d ? (
+        <Graph3D
+          graph={graph}
+          visible={visible}
+          selected={selected}
+          onSelect={(k) => select(k)}
+          onReady={(a) => {
+            api.current = a;
+            if (pendingFly.current) {
+              const k = pendingFly.current;
+              pendingFly.current = null;
+              setTimeout(() => a.flyTo(k, panelInset()), 1500);
+            }
+          }}
+        />
+      ) : null}
+      {view === "graph" && !empty && !show3d ? (
         <GraphCanvas
           graph={graph}
           positions={layout?.positions ?? null}
@@ -218,6 +268,20 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
               select(k, true);
             }}
           />
+          {webgl && view === "graph" && !empty ? (
+            <button
+              type="button"
+              onClick={() => changeDim(!dim3)}
+              aria-pressed={dim3}
+              aria-label={dim3 ? "Volver al grafo 2D" : "Ver el grafo en 3D"}
+              className={cn(
+                "brain-glass grid size-12 shrink-0 place-items-center rounded-[12px] font-mono text-[13px] font-semibold md:hidden",
+                dim3 ? "text-text" : "text-text-muted",
+              )}
+            >
+              {dim3 ? "2D" : "3D"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
@@ -248,6 +312,30 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
             );
           })}
         </div>
+        {webgl && view === "graph" && !empty ? (
+          <div className="brain-glass hidden h-10 shrink-0 items-center rounded-[10px] p-0.5 md:flex" role="radiogroup" aria-label="Dimensión del grafo">
+            {(
+              [
+                [false, "2D"],
+                [true, "3D"],
+              ] as const
+            ).map(([three, l]) => (
+              <button
+                key={l}
+                type="button"
+                role="radio"
+                aria-checked={dim3 === three}
+                onClick={() => changeDim(three)}
+                className={cn(
+                  "flex h-9 min-w-11 items-center justify-center rounded-[8px] px-3 font-mono text-[13px]",
+                  dim3 === three ? "bg-white/10 text-text" : "text-text-muted hover:text-text",
+                )}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="brain-glass hidden h-10 shrink-0 items-center rounded-[10px] p-0.5 md:flex" role="radiogroup" aria-label="Vista">
           {(
             [

@@ -3,11 +3,12 @@ import { folderOptions, getFile, moveTargets, siteOptions } from "@agencyos/modu
 import { isFileShared } from "@agencyos/modules/portal/service";
 import { getStorage } from "@agencyos/modules/shared/storage";
 import { Badge, Button, Card, EntityChip, PageHeader, SectionLabel } from "@agencyos/ui";
-import { ChevronLeft, Download, ExternalLink, History, Info, Link2 } from "lucide-react";
+import { ChevronLeft, Download, History, Info, Link2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileThumb, formatBytes, LIBRARY_ACCENT } from "@/components/library/file-visual";
 import { EditFileSheet, FileMenu, NewVersionSheet, RestoreVersionButton, ShareWithClientSwitch } from "@/components/library/library-ui";
+import { PdfPreview } from "@/components/library/pdf-preview";
 import { clientOpts, projectOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
 
@@ -184,16 +185,12 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
               <pre className="max-h-[60vh] overflow-auto bg-bg-elevated p-4 font-mono text-[13px] leading-relaxed whitespace-pre-wrap break-words text-text">
                 {text}
               </pre>
+            ) : f.mime === "application/pdf" ? (
+              <PdfPreview url={d.previewUrl} openHref={`/api/files/${f.id}/link`} name={f.name} />
             ) : (
               <div className="flex flex-col items-center gap-4 bg-bg-elevated p-6">
                 <FileThumb thumbUrl={d.thumbUrl} kind={f.kind} name={f.name} className="h-56 w-full max-w-md rounded-lg" />
-                {f.mime === "application/pdf" ? (
-                  <Button asChild variant="secondary">
-                    <a href={`/api/files/${f.id}/link`} target="_blank" rel="noopener">
-                      <ExternalLink className="size-4" /> Abrir el PDF
-                    </a>
-                  </Button>
-                ) : f.mime === "image/svg+xml" ? (
+                {f.mime === "image/svg+xml" ? (
                   <p className="max-w-md text-center text-[13px] text-text-muted">
                     Vista previa rasterizada del SVG sanitizado. Por seguridad, el SVG se descarga (no se abre en el navegador).
                   </p>

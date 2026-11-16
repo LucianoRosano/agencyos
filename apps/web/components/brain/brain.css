@@ -96,3 +96,15 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* Modo 3D: etiqueta al pasar el mouse (el contenedor lo crea 3d-force-graph). */
+.brain-3d-label {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(11, 13, 18, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e6e9f0;
+  font:
+    500 12px / 1.4 var(--font-sans, system-ui),
+    sans-serif;
+}
