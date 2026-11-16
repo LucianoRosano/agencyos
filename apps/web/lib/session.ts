@@ -4,8 +4,9 @@ import { getDb, schema } from "@agencyos/db";
 import { getAuth } from "@agencyos/modules/auth/server";
 import { assertRateLimit, RATE_RULES } from "@agencyos/modules/shared/rate-limit";
 import { loadGrants, portalPrefKey } from "@agencyos/modules/users/service";
+import { ACTIVE_WORKSPACE_COOKIE, resolveActiveMembership } from "@agencyos/modules/workspaces/service";
 import { and, asc, eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -13,16 +14,13 @@ export const getSession = cache(async () => {
   return getAuth().api.getSession({ headers: await headers() });
 });
 
-/** Primer acceso activo del usuario (hoy hay un workspace por instalación). */
+/**
+ * Acceso activo de la sesión: el workspace elegido en el selector (cookie `ag-ws`) si el usuario tiene una
+ * membership activa en él; si no, el primero. La cookie nunca da acceso por sí sola (se valida acá).
+ */
 export const getMembership = cache(async (userId: string) => {
-  const [m] = await getDb()
-    .select({ m: schema.membership, w: schema.workspace })
-    .from(schema.membership)
-    .innerJoin(schema.workspace, eq(schema.workspace.id, schema.membership.workspaceId))
-    .where(and(eq(schema.membership.userId, userId), eq(schema.membership.status, "active")))
-    .orderBy(asc(schema.membership.createdAt))
-    .limit(1);
-  return m ?? null;
+  const preferred = (await cookies()).get(ACTIVE_WORKSPACE_COOKIE)?.value ?? null;
+  return resolveActiveMembership(userId, preferred);
 });
 
 /** A dónde va cada rol al entrar. `null` = sin acceso activo. */
