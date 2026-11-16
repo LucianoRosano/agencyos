@@ -482,6 +482,164 @@ export async function renameFolder(ctx: Ctx, id: string, raw: unknown) {
   });
 }
 
+// --- Mover carpetas y archivos ---
+
+/**
+ * Destino de «Mover a…»: `root` (raíz de la biblioteca), `client:<id>` / `project:<id>` (raíz del cliente o proyecto)
+ * o `folder:<id>` (dentro de una carpeta).
+ */
+export const moveTarget = z
+  .string({ error: "Elegí el destino" })
+  .trim()
+  .regex(/^(root|(client|project|folder):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i, "Elegí el destino");
+export const moveInput = z.object({ target: moveTarget });
+
+type Location = { folderId: string | null; clientId: string | null; projectId: string | null; label: string };
+
+async function resolveTarget(t: Tx, ctx: Ctx, target: string): Promise<Location> {
+  if (target === "root") return { folderId: null, clientId: null, projectId: null, label: "la raíz de la biblioteca" };
+  const [kind, id] = target.split(":") as ["client" | "project" | "folder", string];
+  if (kind === "client") {
+    const [c] = await t
+      .select({ id: schema.client.id, name: schema.client.name })
+      .from(schema.client)
+      .where(and(eq(schema.client.id, id), scoped(schema.client, ctx)));
+    if (!c) throw notFound("El cliente");
+    return { folderId: null, clientId: c.id, projectId: null, label: `el cliente «${c.name}»` };
+  }
+  if (kind === "project") {
+    const [p] = await t
+      .select({ id: schema.project.id, name: schema.project.name, clientId: schema.project.clientId })
+      .from(schema.project)
+      .where(and(eq(schema.project.id, id), scoped(schema.project, ctx)));
+    if (!p) throw notFound("El proyecto");
+    return { folderId: null, clientId: p.clientId, projectId: p.id, label: `el proyecto «${p.name}»` };
+  }
+  const [d] = await t
+    .select()
+    .from(schema.folder)
+    .where(and(eq(schema.folder.id, id), scoped(schema.folder, ctx)));
+  if (!d) throw notFound("La carpeta de destino");
+  return { folderId: d.id, clientId: d.clientId, projectId: d.projectId, label: `«${d.name}»` };
+}
+
+/** Ubicación actual de una carpeta expresada como destino (para «Deshacer»). */
+export const folderTargetOf = (d: { parentId: string | null; clientId: string | null; projectId: string | null }) =>
+  d.parentId ? `folder:${d.parentId}` : d.projectId ? `project:${d.projectId}` : d.clientId ? `client:${d.clientId}` : "root";
+
+/** Ids de la carpeta y todas sus subcarpetas (incluye las que están en la papelera). */
+async function folderSubtree(t: Tx, ctx: Ctx, id: string): Promise<string[]> {
+  const r = await t.execute<{ id: string }>(sql`
+    with recursive d(id) as (
+      select id from folder where id = ${id} and workspace_id = ${ctx.workspaceId}
+      union
+      select f.id from folder f join d on f.parent_id = d.id where f.workspace_id = ${ctx.workspaceId}
+    ) select id from d`);
+  return r.rows.map((x) => x.id);
+}
+
+/**
+ * Mueve una carpeta (con todo su contenido) a otra carpeta o a la raíz de la biblioteca / de un cliente / de un proyecto.
+ * No se puede mover dentro de sí misma ni de una subcarpeta. Las subcarpetas heredan el cliente y el proyecto del destino.
+ */
+export async function moveFolder(ctx: Ctx, id: string, raw: unknown) {
+  assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
+  zUuid.parse(id);
+  const { target } = moveInput.parse(raw);
+  return getDb().transaction(async (t) => {
+    const [d] = await t
+      .select()
+      .from(schema.folder)
+      .where(and(eq(schema.folder.id, id), scoped(schema.folder, ctx)))
+      .for("update");
+    if (!d) throw notFound("La carpeta");
+    const subtree = await folderSubtree(t, ctx, id);
+    const destId = target.startsWith("folder:") ? target.slice(7) : null;
+    if (destId === id) throw validation("No se puede mover una carpeta dentro de sí misma.", { target: "Elegí otra carpeta" });
+    if (destId && subtree.includes(destId))
+      throw validation("No se puede mover una carpeta dentro de una de sus subcarpetas.", { target: "Elegí otra carpeta" });
+    const to = await resolveTarget(t, ctx, target);
+    if (to.folderId === d.parentId && (to.folderId || (to.clientId === d.clientId && to.projectId === d.projectId)))
+      throw validation("La carpeta ya está en ese lugar.", { target: "Es la ubicación actual" });
+    const [row] = await t
+      .update(schema.folder)
+      .set({ parentId: to.folderId, clientId: to.clientId, projectId: to.projectId })
+      .where(eq(schema.folder.id, id))
+      .returning();
+    const children = subtree.filter((x) => x !== id);
+    if (children.length)
+      await t
+        .update(schema.folder)
+        .set({ clientId: to.clientId, projectId: to.projectId })
+        .where(and(eq(schema.folder.workspaceId, ctx.workspaceId), inArray(schema.folder.id, children)));
+    await recordEvent(t, ctx, {
+      type: "carpeta.movida",
+      entityType: "folder",
+      entityId: id,
+      summary: `Movió la carpeta «${d.name}» a ${to.label}`,
+      payload: { from: folderTargetOf(d), to: target },
+    });
+    return { folder: row, from: folderTargetOf(d) };
+  });
+}
+
+/**
+ * Mueve un archivo. A la raíz de la biblioteca / de un cliente / de un proyecto: queda suelto ahí (con ese cliente y proyecto).
+ * A una carpeta: si la carpeta es de un cliente, el archivo toma su cliente y proyecto; si no, conserva los suyos.
+ */
+export async function moveFile(ctx: Ctx, id: string, raw: unknown) {
+  assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
+  zUuid.parse(id);
+  const { target } = moveInput.parse(raw);
+  return getDb().transaction(async (t) => {
+    const [f] = await t
+      .select()
+      .from(schema.file)
+      .where(and(eq(schema.file.id, id), scoped(schema.file, ctx)))
+      .for("update");
+    if (!f) throw notFound("El archivo");
+    const to = await resolveTarget(t, ctx, target);
+    const keep = to.folderId && !to.clientId;
+    const next = { folderId: to.folderId, clientId: keep ? f.clientId : to.clientId, projectId: keep ? f.projectId : to.projectId };
+    if (next.folderId === f.folderId && next.clientId === f.clientId && next.projectId === f.projectId)
+      throw validation("El archivo ya está en ese lugar.", { target: "Es la ubicación actual" });
+    const [row] = await t.update(schema.file).set(next).where(eq(schema.file.id, id)).returning();
+    await recordEvent(t, ctx, {
+      type: "recurso.movido",
+      entityType: "file",
+      entityId: id,
+      summary: `Movió «${f.name}» a ${to.label}`,
+      payload: { from: { folderId: f.folderId, clientId: f.clientId, projectId: f.projectId }, to: target },
+    });
+    return { file: row, from: { folderId: f.folderId, clientId: f.clientId, projectId: f.projectId } };
+  });
+}
+
+export const fileLocationInput = z.object({ folderId: zOptUuid, clientId: zOptUuid, projectId: zOptUuid });
+
+/** «Deshacer» de mover un archivo: vuelve exactamente a la carpeta, cliente y proyecto anteriores. */
+export async function restoreFileLocation(ctx: Ctx, id: string, raw: unknown) {
+  assertCan(ctx, "update", R);
+  assertFullAccess(ctx);
+  zUuid.parse(id);
+  const input = fileLocationInput.parse(raw);
+  return getDb().transaction(async (t) => {
+    await assertOwned(t, ctx, schema.folder, input.folderId, "La carpeta");
+    await assertOwned(t, ctx, schema.client, input.clientId, "El cliente");
+    await assertOwned(t, ctx, schema.project, input.projectId, "El proyecto");
+    const [row] = await t
+      .update(schema.file)
+      .set({ folderId: input.folderId ?? null, clientId: input.clientId ?? null, projectId: input.projectId ?? null })
+      .where(and(eq(schema.file.id, id), scoped(schema.file, ctx)))
+      .returning();
+    if (!row) throw notFound("El archivo");
+    await recordEvent(t, ctx, { type: "recurso.movido", entityType: "file", entityId: id, summary: `Devolvió «${row.name}» a su lugar anterior` });
+    return row;
+  });
+}
+
 // --- Adjuntos ---
 
 export const attachInput = z.object({ fileId: zUuid, entityType: zRequired(40, "El tipo"), entityId: zUuid });

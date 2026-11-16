@@ -1,5 +1,6 @@
 import { L } from "@agencyos/core";
-import { getFolder, libraryTree, listFiles, listFolders, siteOptions, storageUsage } from "@agencyos/modules/library/queries";
+import { getFolder, libraryTree, listFiles, listFolders, moveTargets, siteOptions, storageUsage } from "@agencyos/modules/library/queries";
+import { folderTargetOf } from "@agencyos/modules/library/service";
 import { Button, EmptyState, PageHeader, Progress, Tabs } from "@agencyos/ui";
 import { ChevronRight, LayoutGrid, LayoutTemplate, Library, List, Palette, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
@@ -39,12 +40,13 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const q = sp.q?.trim().slice(0, 80) || undefined;
   const explorer = view === "todos" && !q && !kind && !siteId;
 
-  const [clients, projects, sites, usage, folderData] = await Promise.all([
+  const [clients, projects, sites, usage, folderData, targets] = await Promise.all([
     clientOpts(ctx),
     projectOpts(ctx),
     siteOptions(ctx),
     storageUsage(ctx),
     folderId ? getFolder(ctx, folderId) : Promise.resolve(null),
+    folderId ? moveTargets(ctx) : Promise.resolve([]),
   ]);
   const folder = folderData?.folder;
   const levelClient = folder ? (folder.clientId ?? undefined) : clientId;
@@ -215,7 +217,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                 )}
               </span>
             ))}
-            {folder ? <FolderMenu id={folder.id} name={folder.name} parentHref={parentHref} /> : null}
+            {folder ? <FolderMenu id={folder.id} name={folder.name} parentHref={parentHref} targets={targets} current={folderTargetOf(folder)} /> : null}
           </nav>
         ) : (
           <p className="text-[13px] text-text-muted">

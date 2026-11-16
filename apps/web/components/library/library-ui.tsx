@@ -1,16 +1,20 @@
 "use client";
 
-import { L } from "@agencyos/core";
-import { Button, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
-import { FolderPlus, History, MoreHorizontal, Pencil, Trash2, Upload } from "lucide-react";
+import { L, type Result } from "@agencyos/core";
+import { Button, Field, Menu, MenuItem, MenuSeparator, Select, Sheet } from "@agencyos/ui";
+import { FolderInput, FolderPlus, History, MoreHorizontal, Pencil, Trash2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   createFolderAction,
   deleteFileAction,
   deleteFolderAction,
+  moveFileAction,
+  moveFolderAction,
   renameFolderAction,
   restoreFileAction,
+  restoreFileLocationAction,
   restoreFolderAction,
   restoreVersionAction,
   setFileSharedAction,
@@ -52,10 +56,118 @@ export function NewFolderSheet({ parentId, clientId, projectId, where }: { paren
   );
 }
 
-export function FolderMenu({ id, name, parentHref }: { id: string; name: string; parentHref: string }) {
+// --- Mover a… ---
+
+export type MoveTargetOpt = { value: string; label: string; group: string; folderId?: string; parentId?: string | null };
+const GROUPS = ["Biblioteca", "Clientes", "Proyectos", "Carpetas"];
+
+/** Carpetas que no pueden ser destino de `id`: ella misma y todas sus descendientes. */
+function subtreeOf(id: string, targets: MoveTargetOpt[]) {
+  const out = new Set([id]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const t of targets)
+      if (t.folderId && t.parentId && out.has(t.parentId) && !out.has(t.folderId)) {
+        out.add(t.folderId);
+        grew = true;
+      }
+  }
+  return out;
+}
+
+/** Hoja «Mover a…»: elige carpeta o raíz (biblioteca, cliente, proyecto) y mueve con «Deshacer». */
+export function MoveSheet({
+  open,
+  onOpenChange,
+  title,
+  description,
+  targets,
+  current,
+  excludeFolderId,
+  onMove,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  title: string;
+  description: string;
+  targets: MoveTargetOpt[];
+  /** destino que corresponde a la ubicación actual (no se ofrece) */
+  current: string;
+  excludeFolderId?: string;
+  onMove: (target: string, label: string) => Promise<boolean>;
+}) {
+  const blocked = useMemo(() => (excludeFolderId ? subtreeOf(excludeFolderId, targets) : new Set<string>()), [excludeFolderId, targets]);
+  const options = targets.filter((t) => t.value !== current && !(t.folderId && blocked.has(t.folderId)));
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const chosen = options.find((o) => o.value === value);
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange} title={title} description={description}>
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!chosen) return;
+          setBusy(true);
+          const ok = await onMove(chosen.value, chosen.group === "Carpetas" ? `«${chosen.label}»` : chosen.label);
+          setBusy(false);
+          if (ok) {
+            setValue("");
+            onOpenChange(false);
+          }
+        }}
+      >
+        <Field
+          label="Destino"
+          name="move-target"
+          hint={options.length ? "Raíz de la biblioteca, de un cliente o proyecto, o dentro de una carpeta." : undefined}
+        >
+          <Select id="move-target" value={value} onChange={(e) => setValue(e.target.value)} required className="text-base md:text-sm">
+            <option value="" disabled>
+              Elegí dónde moverlo…
+            </option>
+            {GROUPS.map((g) => {
+              const items = options.filter((o) => o.group === g);
+              return items.length ? (
+                <optgroup key={g} label={g}>
+                  {items.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null;
+            })}
+          </Select>
+        </Field>
+        <div className="flex justify-end">
+          <Button type="submit" variant="primary" disabled={!chosen} loading={busy}>
+            <FolderInput className="size-4" /> Mover
+          </Button>
+        </div>
+      </form>
+    </Sheet>
+  );
+}
+
+export function FolderMenu({
+  id,
+  name,
+  parentHref,
+  targets = [],
+  current = "root",
+}: {
+  id: string;
+  name: string;
+  parentHref: string;
+  targets?: MoveTargetOpt[];
+  current?: string;
+}) {
   const { exec } = useAction();
   const router = useRouter();
   const [renaming, setRenaming] = useState(false);
+  const [moving, setMoving] = useState(false);
   return (
     <>
       <Menu
@@ -68,6 +180,11 @@ export function FolderMenu({ id, name, parentHref }: { id: string; name: string;
         <MenuItem icon={<Pencil />} onSelect={() => setRenaming(true)}>
           Renombrar
         </MenuItem>
+        {targets.length ? (
+          <MenuItem icon={<FolderInput />} onSelect={() => setMoving(true)}>
+            Mover a…
+          </MenuItem>
+        ) : null}
         <MenuSeparator />
         <MenuItem
           danger
@@ -93,8 +210,55 @@ export function FolderMenu({ id, name, parentHref }: { id: string; name: string;
           </div>
         </ActionForm>
       </Sheet>
+      {targets.length ? (
+        <MoveSheet
+          open={moving}
+          onOpenChange={setMoving}
+          title="Mover carpeta"
+          description={`«${name}» se mueve con todas sus subcarpetas y archivos.`}
+          targets={targets}
+          current={current}
+          excludeFolderId={id}
+          onMove={(target, label) =>
+            runMove(
+              () => moveFolderAction(id, target),
+              `Carpeta movida a ${label}`,
+              () => moveFolderAction(id, current),
+              router,
+            )
+          }
+        />
+      ) : null}
     </>
   );
+}
+
+/** Ejecuta un movimiento con toast y «Deshacer» (8 s). Devuelve si salió bien. */
+async function runMove(
+  fn: () => Promise<Result<unknown>>,
+  success: string,
+  undo: () => Promise<Result<unknown>>,
+  router: ReturnType<typeof useRouter>,
+): Promise<boolean> {
+  const r = await fn();
+  if (!r.ok) {
+    toast.error(r.error.message);
+    return false;
+  }
+  toast.success(success, {
+    duration: 8000,
+    action: {
+      label: "Deshacer",
+      onClick: () =>
+        void undo().then((u) => {
+          if (u.ok) toast.success("Deshecho");
+          else toast.error(u.error.message);
+          router.refresh();
+        }),
+    },
+  });
+  router.refresh();
+  return true;
 }
 
 // --- Archivo ---
@@ -204,29 +368,77 @@ export function RestoreVersionButton({ id, version }: { id: string; version: num
   );
 }
 
-export function FileMenu({ id, name }: { id: string; name: string }) {
+type FileLocation = { folderId: string | null; clientId: string | null; projectId: string | null };
+
+export function FileMenu({ id, name, targets = [], location }: { id: string; name: string; targets?: MoveTargetOpt[]; location?: FileLocation }) {
   const { exec } = useAction();
   const router = useRouter();
+  const [moving, setMoving] = useState(false);
+  const loc = location ?? { folderId: null, clientId: null, projectId: null };
+  const current = loc.folderId ? `folder:${loc.folderId}` : loc.projectId ? `project:${loc.projectId}` : loc.clientId ? `client:${loc.clientId}` : "root";
   return (
-    <Menu
-      trigger={
-        <Button variant="ghost" size="icon" aria-label="Más acciones">
-          <MoreHorizontal className="size-4" />
-        </Button>
-      }
-    >
-      <MenuItem
-        danger
-        icon={<Trash2 />}
-        onSelect={() => {
-          if (!confirm(`¿Mandar «${name}» a la papelera? Deja de verse en los adjuntos. Restaurable 30 días; después se borra con todas sus versiones.`))
-            return;
-          exec(() => deleteFileAction(id), { success: "Archivo en la papelera", undo: () => restoreFileAction(id), onDone: () => router.push("/biblioteca") });
-        }}
+    <>
+      <Menu
+        trigger={
+          <Button variant="ghost" size="icon" aria-label="Más acciones">
+            <MoreHorizontal className="size-4" />
+          </Button>
+        }
       >
-        Eliminar
-      </MenuItem>
-    </Menu>
+        {targets.length ? (
+          <>
+            <MenuItem icon={<FolderInput />} onSelect={() => setMoving(true)}>
+              Mover a…
+            </MenuItem>
+            <MenuSeparator />
+          </>
+        ) : null}
+        <FileDeleteItem id={id} name={name} exec={exec} router={router} />
+      </Menu>
+      {targets.length ? (
+        <MoveSheet
+          open={moving}
+          onOpenChange={setMoving}
+          title="Mover archivo"
+          description={`Elegí dónde guardar «${name}».`}
+          targets={targets}
+          current={current}
+          onMove={(target, label) =>
+            runMove(
+              () => moveFileAction(id, target),
+              `Archivo movido a ${label}`,
+              () => restoreFileLocationAction(id, loc),
+              router,
+            )
+          }
+        />
+      ) : null}
+    </>
+  );
+}
+
+function FileDeleteItem({
+  id,
+  name,
+  exec,
+  router,
+}: {
+  id: string;
+  name: string;
+  exec: ReturnType<typeof useAction>["exec"];
+  router: ReturnType<typeof useRouter>;
+}) {
+  return (
+    <MenuItem
+      danger
+      icon={<Trash2 />}
+      onSelect={() => {
+        if (!confirm(`¿Mandar «${name}» a la papelera? Deja de verse en los adjuntos. Restaurable 30 días; después se borra con todas sus versiones.`)) return;
+        exec(() => deleteFileAction(id), { success: "Archivo en la papelera", undo: () => restoreFileAction(id), onDone: () => router.push("/biblioteca") });
+      }}
+    >
+      Eliminar
+    </MenuItem>
   );
 }
 

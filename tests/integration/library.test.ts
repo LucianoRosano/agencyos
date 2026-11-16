@@ -275,3 +275,94 @@ describe("biblioteca: carpetas, kit de marca, plantillas y purga", () => {
     expect((await cleanupOrphanFiles()).versions).toBe(0);
   });
 });
+
+describe("biblioteca: mover carpetas y archivos", () => {
+  it("mueve una carpeta dentro de otra y las subcarpetas heredan cliente y proyecto; Deshacer la devuelve", async () => {
+    const [client] = await getDb().insert(schema.client).values({ workspaceId: A.workspaceId, name: "Ferretería" }).returning();
+    const dest = await lib.createFolder(A, { name: "Entregables", clientId: client?.id });
+    const src = await lib.createFolder(A, { name: "Bocetos" });
+    const child = await lib.createFolder(A, { name: "Viejos", parentId: src.id });
+    const moved = await lib.moveFolder(A, src.id, { target: `folder:${dest.id}` });
+    expect(moved.folder?.parentId).toBe(dest.id);
+    expect(moved.folder?.clientId).toBe(client?.id);
+    expect(moved.from).toBe("root");
+    const [c] = await getDb().select().from(schema.folder).where(eq(schema.folder.id, child.id));
+    expect(c?.clientId).toBe(client?.id);
+    expect(c?.parentId).toBe(src.id);
+    const ev = await getDb().select().from(schema.domainEvent).where(eq(schema.domainEvent.entityId, src.id));
+    expect(ev.map((e) => e.type)).toContain("carpeta.movida");
+    // Deshacer = mover al destino anterior
+    const back = await lib.moveFolder(A, src.id, { target: moved.from });
+    expect(back.folder?.parentId).toBeNull();
+    expect(back.folder?.clientId).toBeNull();
+    const [c2] = await getDb().select().from(schema.folder).where(eq(schema.folder.id, child.id));
+    expect(c2?.clientId).toBeNull();
+  });
+
+  it("no permite mover una carpeta dentro de sí misma ni de una descendiente", async () => {
+    const a = await lib.createFolder(A, { name: "Nivel 1" });
+    const b = await lib.createFolder(A, { name: "Nivel 2", parentId: a.id });
+    const c = await lib.createFolder(A, { name: "Nivel 3", parentId: b.id });
+    await expect(lib.moveFolder(A, a.id, { target: `folder:${a.id}` })).rejects.toThrow(/sí misma/);
+    await expect(lib.moveFolder(A, a.id, { target: `folder:${b.id}` })).rejects.toThrow(/subcarpetas/);
+    await expect(lib.moveFolder(A, a.id, { target: `folder:${c.id}` })).rejects.toThrow(/subcarpetas/);
+    await expect(lib.moveFolder(A, b.id, { target: `folder:${a.id}` })).rejects.toThrow(/ya está/);
+    await expect(lib.moveFolder(A, a.id, { target: "otro" })).rejects.toThrow();
+    // subir un nivel sí se puede
+    const up = await lib.moveFolder(A, c.id, { target: `folder:${a.id}` });
+    expect(up.folder?.parentId).toBe(a.id);
+    expect(up.from).toBe(`folder:${b.id}`);
+  });
+
+  it("mueve una carpeta a la raíz de un proyecto (toma el cliente del proyecto)", async () => {
+    const [client] = await getDb().insert(schema.client).values({ workspaceId: A.workspaceId, name: "Vivero" }).returning();
+    const [project] = await getDb()
+      .insert(schema.project)
+      .values({ workspaceId: A.workspaceId, name: "Web Vivero", clientId: client?.id, spaceId: A.spaces[0]?.id as string })
+      .returning();
+    const d = await lib.createFolder(A, { name: "Fotos vivero" });
+    const r = await lib.moveFolder(A, d.id, { target: `project:${project?.id}` });
+    expect(r.folder).toMatchObject({ parentId: null, clientId: client?.id, projectId: project?.id });
+    expect((await lib.moveFolder(A, d.id, { target: `client:${client?.id}` })).folder).toMatchObject({ clientId: client?.id, projectId: null });
+  });
+
+  it("mueve archivos entre carpetas y raíces; Deshacer restaura la ubicación exacta", async () => {
+    const [client] = await getDb().insert(schema.client).values({ workspaceId: A.workspaceId, name: "Librería" }).returning();
+    const plain = await lib.createFolder(A, { name: "Varios" });
+    const ofClient = await lib.createFolder(A, { name: "Logos librería", clientId: client?.id });
+    const { file } = await lib.uploadFile(A, "mover.png", makePng(5, 5, [1, 2, 3]), { clientId: client?.id });
+    // a una carpeta sin cliente: conserva su cliente
+    const r1 = await lib.moveFile(A, file.id, { target: `folder:${plain.id}` });
+    expect(r1.file).toMatchObject({ folderId: plain.id, clientId: client?.id });
+    expect(r1.from).toEqual({ folderId: null, clientId: client?.id, projectId: null });
+    // a la raíz de la biblioteca: queda suelto y sin cliente
+    const r2 = await lib.moveFile(A, file.id, { target: "root" });
+    expect(r2.file).toMatchObject({ folderId: null, clientId: null, projectId: null });
+    await expect(lib.moveFile(A, file.id, { target: "root" })).rejects.toThrow(/ya está/);
+    // a una carpeta de cliente: toma su cliente
+    const r3 = await lib.moveFile(A, file.id, { target: `folder:${ofClient.id}` });
+    expect(r3.file).toMatchObject({ folderId: ofClient.id, clientId: client?.id });
+    // deshacer
+    const back = await lib.restoreFileLocation(A, file.id, { folderId: plain.id, clientId: client?.id, projectId: "" });
+    expect(back).toMatchObject({ folderId: plain.id, clientId: client?.id, projectId: null });
+    const listed = await listFiles(A, { folderId: plain.id });
+    expect(listed.map((x) => x.f.id)).toContain(file.id);
+  });
+
+  it("aislamiento: no se mueve nada de otro workspace ni hacia otro workspace; sin permiso no se mueve", async () => {
+    const mine = await lib.createFolder(A, { name: "Propia" });
+    const theirs = await lib.createFolder(B, { name: "Ajena" });
+    const { file } = await lib.uploadFile(A, "aislado.png", makePng(4, 4, [4, 4, 4]));
+    await expect(lib.moveFolder(B, mine.id, { target: "root" })).rejects.toThrow(/no existe/);
+    await expect(lib.moveFolder(A, mine.id, { target: `folder:${theirs.id}` })).rejects.toThrow(/no existe/);
+    await expect(lib.moveFile(A, file.id, { target: `folder:${theirs.id}` })).rejects.toThrow(/no existe/);
+    await expect(lib.moveFile(B, file.id, { target: "root" })).rejects.toThrow(/no existe/);
+    await expect(lib.restoreFileLocation(A, file.id, { folderId: theirs.id })).rejects.toThrow(/no existe/);
+    const viewer = { ...A, role: "client" as const };
+    await expect(lib.moveFolder(viewer, mine.id, { target: "root" })).rejects.toThrow();
+    await expect(lib.moveFile(viewer, file.id, { target: `folder:${mine.id}` })).rejects.toThrow();
+    // carpeta en la papelera: no es destino válido
+    await moveToTrash(A, "folder", mine.id);
+    await expect(lib.moveFile(A, file.id, { target: `folder:${mine.id}` })).rejects.toThrow(/no existe/);
+  });
+});

@@ -146,6 +146,39 @@ export async function folderOptions(ctx: Ctx) {
   return rows.map((r) => ({ value: r.id, label: label(r) })).sort((a, b) => a.label.localeCompare(b.label, "es"));
 }
 
+export type MoveTarget = {
+  value: string;
+  label: string;
+  group: "Biblioteca" | "Clientes" | "Proyectos" | "Carpetas";
+  folderId?: string;
+  parentId?: string | null;
+};
+
+/** Destinos de «Mover a…»: raíz, raíz de cada cliente y proyecto, y todas las carpetas (con su ruta). */
+export async function moveTargets(ctx: Ctx): Promise<MoveTarget[]> {
+  assertCan(ctx, "read", "project");
+  const db = getDb();
+  const [clients, projects, folders] = await Promise.all([
+    db.select({ id: schema.client.id, name: schema.client.name }).from(schema.client).where(scoped(schema.client, ctx)).orderBy(asc(schema.client.name)),
+    db
+      .select({ id: schema.project.id, name: schema.project.name, clientName: schema.client.name })
+      .from(schema.project)
+      .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+      .where(scoped(schema.project, ctx))
+      .orderBy(asc(schema.project.name)),
+    db.select({ id: schema.folder.id, parentId: schema.folder.parentId }).from(schema.folder).where(scoped(schema.folder, ctx)),
+  ]);
+  const labels = new Map((await folderOptions(ctx)).map((o) => [o.value, o.label]));
+  return [
+    { value: "root", label: "Raíz de la biblioteca", group: "Biblioteca" as const },
+    ...clients.map((c) => ({ value: `client:${c.id}`, label: c.name, group: "Clientes" as const })),
+    ...projects.map((p) => ({ value: `project:${p.id}`, label: p.clientName ? `${p.clientName} › ${p.name}` : p.name, group: "Proyectos" as const })),
+    ...folders
+      .map((d) => ({ value: `folder:${d.id}`, label: labels.get(d.id) ?? "", group: "Carpetas" as const, folderId: d.id, parentId: d.parentId }))
+      .sort((a, b) => a.label.localeCompare(b.label, "es")),
+  ];
+}
+
 export async function siteOptions(ctx: Ctx) {
   const rows = await getDb()
     .select({ id: schema.site.id, name: schema.site.name })

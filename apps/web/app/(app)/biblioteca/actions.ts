@@ -21,6 +21,12 @@ export const renameFolderAction = async (id: string, _: S, fd: FormData) => run(
 export const deleteFolderAction = async (id: string) => run((ctx) => moveToTrash(ctx, "folder", id));
 export const restoreFolderAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "folder", id));
 
+// Mover a…
+export const moveFolderAction = async (id: string, target: string) => run((ctx) => svc.moveFolder(ctx, id, { target }));
+export const moveFileAction = async (id: string, target: string) => run((ctx) => svc.moveFile(ctx, id, { target }));
+export const restoreFileLocationAction = async (id: string, loc: { folderId: string | null; clientId: string | null; projectId: string | null }) =>
+  run((ctx) => svc.restoreFileLocation(ctx, id, { folderId: loc.folderId ?? "", clientId: loc.clientId ?? "", projectId: loc.projectId ?? "" }));
+
 // Adjuntos
 export const listAttachmentsAction = async (entityType: string, entityId: string) =>
   run((ctx) => attachmentsOf(ctx, entityType, entityId), { revalidate: false });

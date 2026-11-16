@@ -1,5 +1,5 @@
 import { ENTITY_COLORS, formatDateTime, L, label } from "@agencyos/core";
-import { folderOptions, getFile, siteOptions } from "@agencyos/modules/library/queries";
+import { folderOptions, getFile, moveTargets, siteOptions } from "@agencyos/modules/library/queries";
 import { isFileShared } from "@agencyos/modules/portal/service";
 import { getStorage } from "@agencyos/modules/shared/storage";
 import { Badge, Button, Card, EntityChip, PageHeader, SectionLabel } from "@agencyos/ui";
@@ -29,12 +29,13 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
   const d = await getFile(ctx, id);
   if (!d) notFound();
   const { f } = d;
-  const [clients, projects, sites, folders, shared] = await Promise.all([
+  const [clients, projects, sites, folders, shared, targets] = await Promise.all([
     clientOpts(ctx),
     projectOpts(ctx),
     siteOptions(ctx),
     folderOptions(ctx),
     isFileShared(ctx, f.id),
+    moveTargets(ctx),
   ]);
   let text: string | null = null;
   if (f.mime.startsWith("text/")) {
@@ -166,7 +167,7 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
                 tags: d.tags.join(", "),
               }}
             />
-            <FileMenu id={f.id} name={f.name} />
+            <FileMenu id={f.id} name={f.name} targets={targets} location={{ folderId: f.folderId, clientId: f.clientId, projectId: f.projectId }} />
           </>
         }
       />
