@@ -29,7 +29,7 @@ describe("observabilidad", () => {
       .trim()
       .split("\n")
       .filter((l) => !l.startsWith("#")))
-      expect(line).toMatch(/^[a-z_]+(\{[^}]*\})? -?[\d.e+]+$/);
+      expect(line).toMatch(/^[a-z0-9_]+(\{[^}]*\})? -?[\d.e+]+$/);
   });
 
   it("/api/metrics exige METRICS_TOKEN (404 sin configurar, 401 con token incorrecto)", async () => {
