@@ -2,7 +2,7 @@ import "server-only";
 import type { Ctx, Role } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { getAuth } from "@agencyos/modules/auth/server";
-import { portalPrefKey } from "@agencyos/modules/users/service";
+import { loadGrants, portalPrefKey } from "@agencyos/modules/users/service";
 import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -64,6 +64,7 @@ export const requireCtx = cache(async (): Promise<AppCtx> => {
     userId: s.user.id,
     role: m.m.role as Role,
     actor: { type: "user", id: s.user.id, name: s.user.name },
+    grants: await loadGrants(m.w.id, s.user.id, m.m.role as Role),
     ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     userAgent: h.get("user-agent"),
     user: { id: s.user.id, name: s.user.name, email: s.user.email, image: s.user.image ?? null },

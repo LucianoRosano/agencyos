@@ -3,7 +3,8 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { assertOwned, getDb, scoped } from "../shared/db";
+import { assertNoteOfProject } from "../projects/related";
+import { assertOwned, getDb, isProjectScoped, scoped } from "../shared/db";
 import {
   countWords,
   frontmatterAliases,
@@ -407,6 +408,20 @@ export async function updateNote(ctx: Ctx, id: string, raw: unknown): Promise<Sa
   assertCan(ctx, "update", "note");
   const input = notePatch.parse(raw);
   return getDb().transaction((t) => applyPatch(t, ctx, id, input));
+}
+
+export const projectNotePatch = z.object({ bodyMd: z.string({ error: "Escribí la nota" }).max(500_000, "La nota es demasiado larga") });
+
+/**
+ * Edición desde la pestaña Notas de un proyecto. Un colaborador (sin permiso de Notas) puede editar el cuerpo
+ * de las notas vinculadas a sus proyectos asignados; no las renombra ni las mueve (eso reescribe otras notas).
+ */
+export async function updateProjectNote(ctx: Ctx, projectId: string, noteId: string, raw: unknown) {
+  assertCan(ctx, "update", isProjectScoped(ctx) ? "project" : "note");
+  const input = projectNotePatch.parse(raw);
+  await assertNoteOfProject(ctx, projectId, noteId);
+  const r = await getDb().transaction((t) => applyPatch(t, ctx, noteId, { bodyMd: input.bodyMd }));
+  return { note: r.note, versioned: r.versioned };
 }
 
 export async function setNotePinned(ctx: Ctx, id: string, pinned: boolean) {

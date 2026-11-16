@@ -3,7 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { schema, type Tx } from "@agencyos/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { assertFullAccess, assertOwned, getDb, projectScope, scoped } from "../shared/db";
+import { assertFullAccess, assertOwned, fileScope, getDb, scoped } from "../shared/db";
 import { ENTITIES, type EntityType } from "../shared/entities";
 import { getStorage, newStorageKey, sha256 } from "../shared/storage";
 import { DEFAULT_QUOTA_MB, detectType, extOf, FILE_KINDS, MAX_FILE_BYTES, normalizeFileName, sanitizeSvg, THUMBABLE } from "./magic";
@@ -649,7 +649,7 @@ export async function resolveDownload(ctx: Ctx, id: string, opts: { version?: nu
   const [f] = await db
     .select()
     .from(schema.file)
-    .where(and(eq(schema.file.id, id), scoped(schema.file, ctx), projectScope(ctx, schema.file.projectId)));
+    .where(and(eq(schema.file.id, id), scoped(schema.file, ctx), fileScope(ctx)));
   if (!f) return null;
   if (opts.thumb) return f.thumbKey ? { file: f, key: f.thumbKey, mime: "image/webp", size: null as number | null, version: f.currentVersion } : null;
   if (opts.version && opts.version !== f.currentVersion) {
