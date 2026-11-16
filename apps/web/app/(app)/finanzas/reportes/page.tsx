@@ -45,7 +45,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
       <FinanceHeader active="reportes" title="Reportes" ledgers={f.ledgers} ledgerId={f.ledgerId} extraQuery={keep} />
       <form action="/finanzas/reportes" className="mb-5 grid grid-cols-2 gap-3 md:flex md:items-end">
         {f.ledgerId ? <input type="hidden" name="libro" value={f.ledgerId} /> : null}
-        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted">
+        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted md:shrink-0 md:w-28">
           Año
           <select name="anio" defaultValue={String(year)} className={ctl}>
             {Array.from({ length: 6 }, (_, i) => thisYear - i).map((y) => (
@@ -55,7 +55,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted">
+        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted md:shrink-0 md:w-44">
           Período
           <select name="mes" defaultValue={month ? String(month) : ""} className={ctl}>
             <option value="">Todo el año</option>
@@ -66,14 +66,14 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted">
+        <label className="flex flex-col gap-1.5 text-[13px] text-text-muted md:shrink-0 md:w-44">
           Moneda del reporte
           <select name="moneda" defaultValue={currency} className={ctl}>
             <option value="ARS">ARS · pesos</option>
             <option value="USD">USD · dólares</option>
           </select>
         </label>
-        <Button type="submit" variant="secondary" className="self-end">
+        <Button type="submit" variant="secondary" className="self-end md:shrink-0">
           Ver
         </Button>
         <div className="col-span-2 flex flex-wrap gap-2 md:ml-auto">

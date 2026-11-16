@@ -135,8 +135,8 @@ export function PipelineView({
   }
 
   const openCount = stages.filter((s) => s.kind === "open").length;
-  // Desktop ancho: hasta 6 abiertas en una fila y cierres abajo (sin scroll); con más, columnas con scroll propio.
-  const grid = openCount <= 6;
+  // Desktop ancho: hasta 5 abiertas en una fila (con 6+ las columnas quedaban de ~180 px y cortaban títulos) y cierres abajo (sin scroll); con más, columnas con scroll propio.
+  const grid = openCount <= 5;
   return (
     <>
       {/* Celular/tablet: columnas con scroll horizontal. */}
