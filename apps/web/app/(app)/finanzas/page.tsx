@@ -199,7 +199,6 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                           a: Number(m.income),
                           b: Number(m.expense),
                         }))}
-                        className="[&_svg]:mx-auto [&_svg]:max-h-44"
                       />
                       <details className="mt-2 text-[12px] text-text-muted">
                         <summary className="cursor-pointer select-none py-1">Ver datos</summary>

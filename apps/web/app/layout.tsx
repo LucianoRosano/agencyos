@@ -2,8 +2,8 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";
-import { Toaster } from "sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
+import { Toaster } from "@/components/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,11 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {children}
         <ServiceWorkerRegister />
-        <Toaster
-          theme={theme}
-          position="bottom-right"
-          toastOptions={{ className: "!bg-surface !text-text !border-border", style: { fontFamily: "var(--font-sans)" } }}
-        />
+        <Toaster theme={theme} />
       </body>
     </html>
   );
