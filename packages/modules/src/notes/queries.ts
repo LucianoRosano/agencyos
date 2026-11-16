@@ -48,7 +48,8 @@ function noteQuery(ctx: Ctx, f: NoteFilters, extra: SQL | undefined, limit: numb
   let rank: SQL = sql`0`;
   if (term) {
     const norm = sql`f_search_norm(${term})`;
-    const fts = sql`to_tsvector('spanish', f_unaccent(${schema.note.bodyMd})) @@ plainto_tsquery('spanish', f_unaccent(${term}))`;
+    // body_tsv: columna generada (migración 0005) — no recalcula to_tsvector del cuerpo por fila.
+    const fts = sql`"note"."body_tsv" @@ plainto_tsquery('spanish', f_unaccent(${term}))`;
     where.push(sql`(f_search_norm(${schema.note.title}) like '%' || ${norm} || '%' or f_search_norm(${schema.note.title}) % ${norm} or ${fts})`);
     rank = sql`greatest(similarity(f_search_norm(${schema.note.title}), ${norm}) + case when f_search_norm(${schema.note.title}) like '%' || ${norm} || '%' then 0.5 else 0 end, case when ${fts} then 0.3 else 0 end)`;
   }

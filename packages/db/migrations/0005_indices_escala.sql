@@ -41,4 +41,10 @@ CREATE OR REPLACE FUNCTION public.f_note_snippet(body text, n integer DEFAULT 18
 BEGIN
   RETURN left(regexp_replace(regexp_replace(left(regexp_replace(left(body, 4000), '^---.*?\n---\s*', ''), n * 4), '[#>*_`\[\]]+', '', 'g'), '\s+', ' ', 'g'), n);
 END
-$$;
+$$;--> statement-breakpoint
+-- Búsqueda de texto completo en notas: tsvector guardado (antes se recalculaba to_tsvector del cuerpo por cada fila
+-- candidata y otra vez para el ranking: ~1,4 s con 5.000 notas). Fuera del esquema Drizzle a propósito (no se lee
+-- en los select de la app; lo mantiene Postgres).
+ALTER TABLE "note" ADD COLUMN IF NOT EXISTS "body_tsv" tsvector GENERATED ALWAYS AS (to_tsvector('spanish'::regconfig, public.f_unaccent(body_md))) STORED;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "note_body_tsv" ON "note" USING gin ("body_tsv");--> statement-breakpoint
+DROP INDEX IF EXISTS "note_body_fts";

@@ -53,7 +53,7 @@ async function main() {
     ["Notas", "/notas"],
     ["Movimientos", "/finanzas/movimientos"],
     ["Búsqueda en tareas", "/tareas?ver=todas&q=dise%C3%B1o"],
-    ["Búsqueda en notas (FTS)", "/notas?q=procesos"],
+    ["Búsqueda en notas (FTS)", "/notas?q=nota%204321"],
     ["Cerebro", "/cerebro"],
     ["Health (readiness)", "/api/health"],
   ] as const;
@@ -63,6 +63,7 @@ async function main() {
       url: `${base}${path}`,
       connections: CONNECTIONS,
       duration: SECONDS,
+      timeout: 30,
       headers: { cookie },
     });
     const non2xx = r.non2xx + r.errors + r.timeouts;
