@@ -7,7 +7,7 @@ import { Badge, Button, Card, Checkbox, cn, Input, Menu, MenuItem, SectionLabel,
 import { ArrowDown, ArrowUp, Braces, CalendarClock, Plus, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ActionForm, SubmitButton, useFieldError } from "@/components/action-form";
 
 type FieldDef = BuilderMeta["events"][number] extends { payload?: (infer F)[] } ? F : never;

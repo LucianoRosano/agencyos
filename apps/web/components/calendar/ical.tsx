@@ -4,7 +4,7 @@ import { formatDate } from "@agencyos/core";
 import { Button, Input, Sheet } from "@agencyos/ui";
 import { Check, Copy, Smartphone } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { revokeIcalAction, rotateIcalAction } from "@/app/(app)/calendario/actions";
 import { useAction } from "@/components/use-action";
 

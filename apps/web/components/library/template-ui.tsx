@@ -4,7 +4,7 @@ import { L } from "@agencyos/core";
 import { Button, Input, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { createTemplateAction, deleteTemplateAction, restoreTemplateAction, updateTemplateAction } from "@/app/(app)/biblioteca/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";

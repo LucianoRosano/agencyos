@@ -5,7 +5,7 @@ import { Button, cn, Field, Select, Sheet, Textarea } from "@agencyos/ui";
 import { FileUp, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { importWhatsappAction, previewWhatsappAction } from "@/app/(app)/crm/actions";
 
 type Opt = { value: string; label: string };

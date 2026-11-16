@@ -3,7 +3,7 @@
 import type { Result } from "@agencyos/core";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 /**
  * Ejecuta una Server Action desde un botón, con toast y "Deshacer" opcional (8 s).

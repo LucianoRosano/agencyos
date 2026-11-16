@@ -4,7 +4,7 @@ import { Button, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Check, Copy, KeyRound, MoreHorizontal, Pause, Play, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   createEndpointAction,
   deleteEndpointAction,

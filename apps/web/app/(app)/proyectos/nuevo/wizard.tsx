@@ -4,7 +4,7 @@ import { Button, Card, cn, Field, Input, Select, Textarea } from "@agencyos/ui";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { wizardAction } from "../actions";
 
 type Tpl = { id: string; name: string; description: string; phases: number; tasks: number };

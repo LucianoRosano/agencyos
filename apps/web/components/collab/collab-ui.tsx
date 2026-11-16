@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, Link2, Plus, Search, Trash2, X } from "lu
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   addCommentAction,
   addLinkAction,

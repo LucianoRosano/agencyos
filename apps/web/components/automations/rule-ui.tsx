@@ -5,7 +5,7 @@ import { CheckCircle2, CircleSlash, Copy, FlaskConical, MoreHorizontal, Pause, P
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   deleteRuleAction,
   duplicateRuleAction,
