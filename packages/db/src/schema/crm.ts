@@ -76,6 +76,7 @@ export const interaction = pgTable(
   },
   (t) => [
     index("interaction_client").on(t.clientId, t.occurredAt),
+    index("interaction_next_step").on(t.workspaceId, t.nextStepDue).where(sql`${t.nextStepDue} is not null and ${t.deletedAt} is null`),
     check("interaction_kind", sql`${t.kind} in ('whatsapp','call','email','meeting','message','note')`),
   ],
 );
@@ -100,6 +101,7 @@ export const opportunity = pgTable(
   },
   (t) => [
     index("opportunity_ws_stage").on(t.workspaceId, t.stage),
+    index("opportunity_client").on(t.clientId).where(sql`${t.deletedAt} is null`),
     check("opportunity_stage", sql`${t.stage} in ('new','contacted','meeting','proposal_sent','negotiation','won','lost')`),
     check("opportunity_prob", sql`${t.probability} between 0 and 100`),
   ],

@@ -73,6 +73,15 @@ export const task = pgTable(
     index("task_ws_status_due").on(t.workspaceId, t.status, t.dueDate),
     index("task_project").on(t.projectId),
     index("task_parent").on(t.parentTaskId),
+    // 0005 (escala): listas de abiertas (orden por fecha y por prioridad) y de completadas, sin papelera ni archivadas.
+    // Índices ascendentes: un recorrido hacia atrás sirve a `order by … desc` (nulls first, el default de Postgres).
+    index("task_open_due")
+      .on(t.workspaceId, t.dueDate, t.priority, t.id)
+      .where(sql`${t.deletedAt} is null and ${t.archivedAt} is null and ${t.status} in ('todo','doing','waiting')`),
+    index("task_open_priority")
+      .on(t.workspaceId, t.priority, t.dueDate)
+      .where(sql`${t.deletedAt} is null and ${t.archivedAt} is null and ${t.status} in ('todo','doing','waiting')`),
+    index("task_done_completed").on(t.workspaceId, t.completedAt, t.id).where(sql`${t.deletedAt} is null and ${t.archivedAt} is null and ${t.status} = 'done'`),
     check("task_status", sql`${t.status} in ('todo','doing','waiting','done','cancelled')`),
     check("task_priority", sql`${t.priority} between 1 and 4`),
     check("task_assignee", sql`${t.assigneeType} in ('user','agent','client')`),

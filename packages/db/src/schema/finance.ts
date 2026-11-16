@@ -63,6 +63,9 @@ export const transaction = pgTable(
   (t) => [
     index("transaction_ws_date").on(t.workspaceId, t.date),
     index("transaction_account").on(t.accountId),
+    // 0005 (escala): lista paginada (fecha desc, id desc) y par de transferencias.
+    index("transaction_ws_list").on(t.workspaceId, t.date, t.id).where(sql`${t.deletedAt} is null and ${t.archivedAt} is null`),
+    index("transaction_pair").on(t.transferPairId).where(sql`${t.transferPairId} is not null`),
     check("transaction_kind", sql`${t.kind} in ('income','expense','transfer_in','transfer_out')`),
     check("transaction_amount_pos", sql`${t.amount} > 0`),
   ],

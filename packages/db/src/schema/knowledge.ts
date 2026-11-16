@@ -26,6 +26,7 @@ export const note = pgTable(
     index("note_ws_updated").on(t.workspaceId, t.updatedAt),
     uniqueIndex("note_ws_slug").on(t.workspaceId, t.slug),
     index("note_entity").on(t.entityType, t.entityId),
+    index("note_ws_list").on(t.workspaceId, t.pinned, t.updatedAt, t.id).where(sql`${t.deletedAt} is null and ${t.archivedAt} is null`),
   ],
 );
 

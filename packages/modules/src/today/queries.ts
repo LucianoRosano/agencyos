@@ -56,115 +56,135 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
   const spaceTask = sp ? eq(schema.task.spaceId, sp) : undefined;
   const spaceProject = sp ? eq(schema.project.spaceId, sp) : undefined;
 
-  const [overdueTasks, todayTasks, picks, payables, subs, receivables, quotes, reminders, projects, blockers, opps, interactions, inboxCount, approvals] =
-    await Promise.all([
-      db
-        .select({ t: schema.task, projectName: schema.project.name, clientName: schema.client.name })
-        .from(schema.task)
-        .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
-        .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
-        .where(and(scoped(schema.task, ctx), openTask, lt(schema.task.dueDate, today), spaceTask))
-        .orderBy(asc(schema.task.priority), asc(schema.task.dueDate))
-        .limit(50),
-      db
-        .select({ t: schema.task, projectName: schema.project.name, clientName: schema.client.name, spaceColor: schema.space.color })
-        .from(schema.task)
-        .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
-        .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
-        .leftJoin(schema.space, and(eq(schema.space.id, schema.task.spaceId), eq(schema.space.workspaceId, schema.task.workspaceId)))
-        .where(
-          and(
-            scoped(schema.task, ctx),
-            or(openTask, and(eq(schema.task.status, "done"), sql`${schema.task.completedAt} >= now() - interval '1 day'`)),
-            lte(schema.task.dueDate, today),
-            spaceTask,
-          ),
-        )
-        .orderBy(asc(schema.task.priority), asc(schema.task.dueTime)),
-      db
-        .select({ pick: schema.focusPick, t: schema.task, projectName: schema.project.name, clientName: schema.client.name })
-        .from(schema.focusPick)
-        .innerJoin(schema.task, eq(schema.task.id, schema.focusPick.taskId))
-        .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
-        .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
-        .where(and(eq(schema.focusPick.userId, opts.userId), eq(schema.focusPick.date, today), isNull(schema.task.deletedAt)))
-        .orderBy(asc(schema.focusPick.slot)),
-      db
-        .select()
-        .from(schema.payable)
-        .where(and(scoped(schema.payable, ctx), inArray(schema.payable.status, ["pending", "partial", "overdue"]), lte(schema.payable.dueDate, in7)))
-        .orderBy(asc(schema.payable.dueDate)),
-      db
-        .select()
-        .from(schema.subscription)
-        .where(and(scoped(schema.subscription, ctx), eq(schema.subscription.status, "active"), lte(schema.subscription.nextDue, addDays(today, 30))))
-        .orderBy(asc(schema.subscription.nextDue)),
-      db
-        .select({ r: schema.receivable, clientName: schema.client.name })
-        .from(schema.receivable)
-        .leftJoin(schema.client, eq(schema.client.id, schema.receivable.clientId))
-        .where(and(scoped(schema.receivable, ctx), inArray(schema.receivable.status, ["pending", "partial", "overdue"])))
-        .orderBy(asc(schema.receivable.dueDate)),
-      db
-        .select({ q: schema.quote, clientName: schema.client.name })
-        .from(schema.quote)
-        .leftJoin(schema.client, eq(schema.client.id, schema.quote.clientId))
-        .where(
-          and(scoped(schema.quote, ctx), inArray(schema.quote.status, ["sent", "viewed"]), lt(schema.quote.sentAt, new Date(Date.now() - 7 * 86_400_000))),
+  const [
+    overdueTasks,
+    todayTasks,
+    picks,
+    payables,
+    subs,
+    receivables,
+    quotes,
+    reminders,
+    projects,
+    blockers,
+    opps,
+    interactions,
+    inboxCount,
+    approvals,
+    overdueCount,
+  ] = await Promise.all([
+    db
+      .select({ t: schema.task, projectName: schema.project.name, clientName: schema.client.name })
+      .from(schema.task)
+      .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+      .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+      .where(and(scoped(schema.task, ctx), openTask, lt(schema.task.dueDate, today), spaceTask))
+      .orderBy(asc(schema.task.priority), asc(schema.task.dueDate))
+      .limit(50),
+    db
+      .select({ t: schema.task, projectName: schema.project.name, clientName: schema.client.name, spaceColor: schema.space.color })
+      .from(schema.task)
+      .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+      .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+      .leftJoin(schema.space, and(eq(schema.space.id, schema.task.spaceId), eq(schema.space.workspaceId, schema.task.workspaceId)))
+      .where(
+        and(
+          scoped(schema.task, ctx),
+          or(openTask, and(eq(schema.task.status, "done"), sql`${schema.task.completedAt} >= now() - interval '1 day'`)),
+          // Solo las de HOY: las vencidas ya vienen (con límite) en overdueTasks. Antes traía todas las vencidas sin límite.
+          eq(schema.task.dueDate, today),
+          spaceTask,
         ),
-      db
-        .select()
-        .from(schema.reminder)
-        .where(and(scoped(schema.reminder, ctx), isNull(schema.reminder.doneAt), lte(schema.reminder.dueDate, addDays(today, 60))))
-        .orderBy(asc(schema.reminder.dueDate)),
-      db
-        .select({ p: schema.project, clientName: schema.client.name, spaceName: schema.space.name, spaceColor: schema.space.color })
-        .from(schema.project)
-        .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
-        .leftJoin(schema.space, and(eq(schema.space.id, schema.project.spaceId), eq(schema.space.workspaceId, schema.project.workspaceId)))
-        .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived", "idea"]), spaceProject))
-        .orderBy(asc(schema.project.priority), desc(schema.project.lastActivityAt)),
-      db
-        .select({ b: schema.blocker, projectName: schema.project.name })
-        .from(schema.blocker)
-        .innerJoin(schema.project, eq(schema.project.id, schema.blocker.projectId))
-        .where(and(scoped(schema.blocker, ctx), isNull(schema.blocker.resolvedAt), lte(schema.blocker.revisitOn, today), isNull(schema.project.deletedAt))),
-      db
-        .select({ o: schema.opportunity, clientName: schema.client.name })
-        .from(schema.opportunity)
-        .leftJoin(schema.client, eq(schema.client.id, schema.opportunity.clientId))
-        .where(
-          and(
-            scoped(schema.opportunity, ctx),
-            notInArray(schema.opportunity.stage, ["won", "lost"]),
-            isNotNull(schema.opportunity.nextActionDue),
-            lte(schema.opportunity.nextActionDue, in7),
-          ),
+      )
+      .orderBy(asc(schema.task.priority), asc(schema.task.dueTime)),
+    db
+      .select({ pick: schema.focusPick, t: schema.task, projectName: schema.project.name, clientName: schema.client.name })
+      .from(schema.focusPick)
+      .innerJoin(schema.task, eq(schema.task.id, schema.focusPick.taskId))
+      .leftJoin(schema.project, and(eq(schema.project.id, schema.task.projectId), eq(schema.project.workspaceId, schema.task.workspaceId)))
+      .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+      .where(and(eq(schema.focusPick.userId, opts.userId), eq(schema.focusPick.date, today), isNull(schema.task.deletedAt)))
+      .orderBy(asc(schema.focusPick.slot)),
+    db
+      .select()
+      .from(schema.payable)
+      .where(and(scoped(schema.payable, ctx), inArray(schema.payable.status, ["pending", "partial", "overdue"]), lte(schema.payable.dueDate, in7)))
+      .orderBy(asc(schema.payable.dueDate)),
+    db
+      .select()
+      .from(schema.subscription)
+      .where(and(scoped(schema.subscription, ctx), eq(schema.subscription.status, "active"), lte(schema.subscription.nextDue, addDays(today, 30))))
+      .orderBy(asc(schema.subscription.nextDue)),
+    db
+      .select({ r: schema.receivable, clientName: schema.client.name })
+      .from(schema.receivable)
+      .leftJoin(schema.client, eq(schema.client.id, schema.receivable.clientId))
+      .where(and(scoped(schema.receivable, ctx), inArray(schema.receivable.status, ["pending", "partial", "overdue"])))
+      .orderBy(asc(schema.receivable.dueDate)),
+    db
+      .select({ q: schema.quote, clientName: schema.client.name })
+      .from(schema.quote)
+      .leftJoin(schema.client, eq(schema.client.id, schema.quote.clientId))
+      .where(and(scoped(schema.quote, ctx), inArray(schema.quote.status, ["sent", "viewed"]), lt(schema.quote.sentAt, new Date(Date.now() - 7 * 86_400_000)))),
+    db
+      .select()
+      .from(schema.reminder)
+      .where(and(scoped(schema.reminder, ctx), isNull(schema.reminder.doneAt), lte(schema.reminder.dueDate, addDays(today, 60))))
+      .orderBy(asc(schema.reminder.dueDate)),
+    db
+      .select({ p: schema.project, clientName: schema.client.name, spaceName: schema.space.name, spaceColor: schema.space.color })
+      .from(schema.project)
+      .leftJoin(schema.client, and(eq(schema.client.id, schema.project.clientId), eq(schema.client.workspaceId, schema.project.workspaceId)))
+      .leftJoin(schema.space, and(eq(schema.space.id, schema.project.spaceId), eq(schema.space.workspaceId, schema.project.workspaceId)))
+      .where(and(scoped(schema.project, ctx), notInArray(schema.project.status, ["done", "archived", "idea"]), spaceProject))
+      .orderBy(asc(schema.project.priority), desc(schema.project.lastActivityAt)),
+    db
+      .select({ b: schema.blocker, projectName: schema.project.name })
+      .from(schema.blocker)
+      .innerJoin(schema.project, eq(schema.project.id, schema.blocker.projectId))
+      .where(and(scoped(schema.blocker, ctx), isNull(schema.blocker.resolvedAt), lte(schema.blocker.revisitOn, today), isNull(schema.project.deletedAt))),
+    db
+      .select({ o: schema.opportunity, clientName: schema.client.name })
+      .from(schema.opportunity)
+      .leftJoin(schema.client, eq(schema.client.id, schema.opportunity.clientId))
+      .where(
+        and(
+          scoped(schema.opportunity, ctx),
+          notInArray(schema.opportunity.stage, ["won", "lost"]),
+          isNotNull(schema.opportunity.nextActionDue),
+          lte(schema.opportunity.nextActionDue, in7),
         ),
-      db
-        .select({ i: schema.interaction, clientName: schema.client.name })
-        .from(schema.interaction)
-        .leftJoin(schema.client, eq(schema.client.id, schema.interaction.clientId))
-        .where(
-          and(
-            scoped(schema.interaction, ctx),
-            isNotNull(schema.interaction.nextStepDue),
-            lte(schema.interaction.nextStepDue, today),
-            isNotNull(schema.interaction.nextStep),
-            gte(schema.interaction.nextStepDue, addDays(today, -30)),
-          ),
+      ),
+    db
+      .select({ i: schema.interaction, clientName: schema.client.name })
+      .from(schema.interaction)
+      .leftJoin(schema.client, eq(schema.client.id, schema.interaction.clientId))
+      .where(
+        and(
+          scoped(schema.interaction, ctx),
+          isNotNull(schema.interaction.nextStepDue),
+          lte(schema.interaction.nextStepDue, today),
+          isNotNull(schema.interaction.nextStep),
+          gte(schema.interaction.nextStepDue, addDays(today, -30)),
         ),
-      db
-        .select({ n: sql<number>`count(*)::int` })
-        .from(schema.inboxItem)
-        .where(and(scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)))
-        .then((r) => r[0]?.n ?? 0),
-      db
-        .select()
-        .from(schema.approval)
-        .where(and(scoped(schema.approval, ctx), eq(schema.approval.status, "pending")))
-        .orderBy(desc(schema.approval.createdAt)),
-    ]);
+      ),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.inboxItem)
+      .where(and(scoped(schema.inboxItem, ctx), isNull(schema.inboxItem.processedAt)))
+      .then((r) => r[0]?.n ?? 0),
+    db
+      .select()
+      .from(schema.approval)
+      .where(and(scoped(schema.approval, ctx), eq(schema.approval.status, "pending")))
+      .orderBy(desc(schema.approval.createdAt)),
+    // Conteo real de vencidas (overdueTasks está limitado a 50).
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.task)
+      .where(and(scoped(schema.task, ctx), openTask, lt(schema.task.dueDate, today), spaceTask))
+      .then((r) => r[0]?.n ?? 0),
+  ]);
 
   // Activos técnicos (dominios, hosting, certificados) y sitios caídos (Monitoreo).
   const [assetDue, sitesDown] = await Promise.all([assetDueDates(ctx, { to: addDays(today, 365) }), downEnvironments(ctx)]);
@@ -607,7 +627,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
   return {
     today,
     week: { number: isoWeek(today), done: week?.done ?? 0, total: week?.total ?? 0 },
-    counts: { forToday, overdue: overdueTasks.length, paymentsSoon, inbox: inboxCount },
+    counts: { forToday, overdue: overdueCount, paymentsSoon, inbox: inboxCount },
     focus,
     catchUp: items,
     agenda,

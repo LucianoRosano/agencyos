@@ -20,6 +20,8 @@
     "db:generate": "pnpm --filter @agencyos/db generate",
     "db:migrate": "pnpm --filter @agencyos/db migrate",
     "db:seed": "pnpm --filter @agencyos/db seed",
+    "seed:volumen": "pnpm --filter @agencyos/db exec tsx ../../scripts/seed-volumen.ts",
+    "explain:hot": "pnpm --filter @agencyos/db exec tsx ../../scripts/explain-hot.ts",
     "admin": "pnpm --filter @agencyos/modules admin"
   },
   "devDependencies": {
