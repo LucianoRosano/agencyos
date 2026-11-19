@@ -1,6 +1,6 @@
 # Pendientes de Luciano
 
-**Actualizado:** 14/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+**Actualizado:** 19/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
 
 ## A. Lo que tenés que hacer vos
 
@@ -26,6 +26,14 @@
 - **Cuenta de API de Anthropic + tope mensual** (agentes internos, F5).
 - **Portal de clientes**: con Brevo configurado, las invitaciones se mandan solas y los clientes pueden entrar con "Recibir enlace por email". Sin Brevo, copiá el enlace de invitación (Configuración → Usuarios) y mandalo por WhatsApp. Para compartir archivos con un cliente, en la ficha del archivo activá "Compartir con el cliente" (el archivo tiene que estar vinculado al cliente o a un proyecto suyo).
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
+- **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
+
+### Para probar cuando tengas un rato (nuevo)
+- **Abonos mensuales** (Finanzas → Abonos): cargá los mantenimientos/hostings/SEO que cobrás todos los meses. El cobro se genera solo el día de facturación y Negocio muestra tu ingreso recurrente.
+- **Importar CSV** (Configuración → Datos): subí tu planilla de clientes o el extracto del banco; primero ves la vista previa.
+- **Fechas escritas**: en `Ctrl+K` o al crear una tarea escribí «Llamar a Sofía mañana 10hs» o «Entregar el viernes».
+- **Automatización «cobro vencido → recordatorio»** (Automatizaciones → plantillas): el email al cliente queda en Aprobaciones.
+- **Permisos extra de colaboradores** (Configuración → Usuarios), **un segundo workspace** (selector arriba en la barra lateral) y el **enlace por email** en una cuenta de cliente con 2FA activado.
 
 ### Datos para cargar en AGENCYOS
 - Revisar la **carga inicial** (`pnpm admin import-inicial` muestra el plan; con `--aplicar` lo ejecuta): clientes y proyectos de tu contexto (A4), proyectos personales y los dos vencimientos (Claude Design 14/12/2026, certificado ARCA 27/10/2028). Ajustá lo que no esté bien desde la app.
@@ -34,22 +42,37 @@
 - Revisar el **texto base de los presupuestos** (Presupuestos → al crear uno; la plantilla base está en la base de datos) y tus datos en Configuración → Agencia (nombre "Luciano Rosano", email y WhatsApp 11 5526-0021 que aparecen en los PDFs).
 - ⚠️ **Exportar los diseños de LibreríaOS desde Claude Design antes del 14/12/2026** (también quedó como vencimiento en Hoy).
 
-## B. Lo que falta del programa (próxima pasada)
-Todo lo de las fases F1–F6 está construido y probado. Lo que sigue son ajustes finos; ninguno bloquea el uso diario.
+## B. Lo que falta del programa y mejoras propuestas
+Todo lo de las fases F1–F6 está construido y probado, más una tercera vuelta de mejoras y escalabilidad (ver ESTADO). Lo que sigue: primero lo que depende de algo tuyo, después ideas ordenadas por valor para tu negocio. Ninguna bloquea el uso diario.
 
 ### Depende de algo externo (no se puede cerrar sin vos)
-- **Medir LCP de Hoy en un celular real** (Lighthouse CI sobre staging) y **tests visuales** con capturas aprobadas: necesita el VPS con dominio.
-- **Envío real de emails** (invitaciones, magic link del portal, resumen diario, emails de automatizaciones, presupuestos por email): todo está programado; falta `BREVO_API_KEY`. Nunca se probó contra Brevo real.
+- **Medir en el VPS real**: LCP de Hoy en un celular (Lighthouse CI sobre staging), prueba de carga (`pnpm load:test`, ver `docs/SCALING.md`) y tests visuales con capturas aprobadas.
+- **Envío real de emails** (invitaciones, enlace del portal, resumen diario, automatizaciones, presupuestos y recordatorios de cobro): todo programado; falta `BREVO_API_KEY`. Nunca se probó contra Brevo real.
 - **Lighthouse y Core Web Vitals en SEO**: falta la API key de Google. **Search Console**: no está hecho (requiere OAuth de Google).
-- **Agentes de IA**: probados con un cliente simulado; falta la API key de Anthropic para verlos andar de verdad.
-- **Repositorios**: probados con GitHub simulado; falta crear la GitHub App con el dominio. Los planes tienen su propia pantalla (no aparecen en `/aprobaciones`).
-- **Organización inicial de tus repos** (doc 15 §4): hacerla desde Claude Code en tu PC (ahí está el código suelto y el acceso a Hostinger).
+- **Agentes de IA**: probados con un cliente simulado; falta la API key de Anthropic.
+- **Repositorios**: probados con GitHub simulado; falta crear la GitHub App con el dominio. Los planes tienen su pantalla propia (no aparecen en `/aprobaciones`).
+- **Almacenamiento S3 y varias instancias**: listo para activar (`STORAGE_DRIVER=s3`, réplicas en Compose); conviene cuando uses más de un servidor o quieras los archivos fuera del VPS (Cloudflare R2 tiene 10 GB gratis).
+- **Organización inicial de tus repos** (doc 15 §4): desde Claude Code en tu PC.
 
-### Mejoras chicas que quedaron afuera
-- Biblioteca: **vista previa de la primera página de los PDF** (hoy se abren en otra pestaña) y **mover carpetas** de lugar.
-- Finanzas: filtro por etiqueta en Movimientos (la lista está paginada; conviene hacerlo en la consulta) y exportación a PDF de los reportes (CSV y Excel ya están).
-- Cerebro: modo 3D (hay 2D con filtros por tipo, espacio, etiqueta y fecha).
-- Portal: adjuntar una captura al feedback del cliente; mostrarle al colaborador las notas y archivos internos vinculados a su proyecto (hoy no los ve, por seguridad); permisos editables por módulo (p. ej. dar Finanzas a un colaborador); multi-workspace visible.
-- Seguridad fina del portal: la contraseña creada al aceptar una invitación no pasa por el control de contraseñas filtradas, y el magic link saltea el 2FA opcional del cliente.
-- Pipeline: al mover una oportunidad de etapa (con etapas configuradas) toma la probabilidad por defecto de la etapa y pisa la que habías puesto a mano.
+### Ideas para hacer crecer el negocio (propuestas, no hechas)
+1. **Cobrar online con Mercado Pago**: link de pago en cada cobro, abono y presupuesto aceptado; el webhook lo marca como cobrado y registra el ingreso. Necesita tu cuenta de Mercado Pago y credenciales de producción.
+2. **Factura electrónica de ARCA** (monotributo, Factura C): emitir desde un cobro con CAE y PDF (WSAA + WSFE). Necesita el certificado digital de ARCA (ya tenés uno que vence el 27/10/2028) y definir punto de venta.
+3. **Informe mensual automático para cada cliente** (PDF por email el día 1): horas usadas del abono, uptime y SSL del sitio, auditoría SEO y tareas hechas. Todo el dato ya existe; falta el armado y Brevo.
+4. **Planificación de capacidad**: horas disponibles por semana contra lo estimado en tareas y abonos, para saber si podés tomar un proyecto nuevo.
+5. **Presupuesto vs. real por proyecto**: horas y gastos estimados en el presupuesto contra lo registrado, con alerta cuando un proyecto se pasa.
+6. **Aprobación de diseños con anotaciones** en el portal (el cliente marca sobre la imagen o la página, tipo Markup.io).
+7. **Encuesta de satisfacción (NPS)** automática al cerrar un proyecto, con el resultado en la ficha del cliente.
+8. **WhatsApp Business (Cloud API)**: recordatorios de cobro y avisos de entrega por WhatsApp en lugar de email. Necesita cuenta de Meta Business.
+9. **Google Calendar en las dos direcciones** y **Gmail → interacciones del CRM** (OAuth de Google).
+10. **Búsqueda semántica** en notas y clientes («¿qué le prometí a la librería sobre envíos?») con embeddings en PostgreSQL (pgvector). Necesita API key o un modelo local.
+
+### Mejoras técnicas y de UX propuestas
+- **Next.js Cache Components / PPR** en Hoy y Negocio (cache por workspace con invalidación por etiqueta): baja el tiempo de servidor de cada pantalla. Pide una migración cuidadosa por la autenticación.
+- **Captura sin conexión**: si estás sin señal, lo que capturás se guarda en el celular y se sube solo al volver la conexión (Background Sync).
+- **Temporizador global** de horas en la barra superior (iniciar/pausar desde cualquier pantalla) además del Modo foco.
+- **Alertas de seguridad**: email cuando se inicia sesión desde un dispositivo nuevo y sesiones con ubicación aproximada.
+- **Réplica de lectura de PostgreSQL** para reportes pesados y PgBouncer en modo sesión cuando haya muchas instancias (documentado en `docs/SCALING.md`).
+- Biblioteca: miniatura de la primera página del PDF en la grilla (hoy hay vista previa en la ficha). Finanzas: filtro por etiqueta también en los totales del Resumen.
+- Portal: selector de workspace para un cliente que está en dos workspaces; mensaje propio (no la pantalla de error genérica) al llegar al límite de pedidos.
+- Pipeline: con etapas configuradas, una probabilidad editada a mano se respeta; falta poder "volver a la de la etapa" con un botón.
 - Importador de Obsidian: no hace falta (arrancás de cero); queda la exportación compatible como salida de emergencia.

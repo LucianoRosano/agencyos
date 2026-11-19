@@ -1,6 +1,6 @@
 # Estado de AGENCYOS
 
-**Actualizado:** 14/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
+**Actualizado:** 19/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
 
 Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o compra externa · ⬜ no hecho (fase posterior)
 
@@ -52,6 +52,17 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Colaborador** (`member`): solo sus proyectos asignados y lo que cuelga de ellos (tareas, etapas, entregas, decisiones, bloqueos, sitios, comentarios, horas sin tarifa). Filtro centralizado `projectScope/siteScope/assertProjectAccess/assertEntityAccess` (`packages/modules/src/shared/db.ts`). Sin CRM, presupuestos, finanzas, notas, facultad, bandeja, biblioteca, configuración de la agencia, IA ni MCP; la navegación muestra solo Hoy, Proyectos, Tareas y Sitios, y cualquier otra ruta vuelve a Hoy. "Hoy" reducido (sus tareas, entregas y proyectos).
 - ✅ **Portal de clientes** (`/portal`, marca Luciano Rosano): sus proyectos con estado, etapa actual y avance; próximas entregas; ficha con etapas, **entregas para aprobar o pedir cambios** (evento + notificación al dueño), **feedback en la ronda de revisión abierta** del sitio, **recursos compartidos** (descarga con URL firmada de 5 min + sesión); **presupuestos** enviados: ver, PDF, aceptar o rechazar con nombre (misma lógica que el enlace público). Login con contraseña o **"Recibir enlace por email"** (magic link, solo para clientes y con Brevo); 2FA opcional. Un cliente que entra a la app interna es redirigido al portal.
 - ✅ Ficha de archivo de la Biblioteca: interruptor **"Compartir con el cliente"** (usa la etiqueta reservada `compartido`).
+
+### Tercera vuelta · mejoras, escalabilidad y diseño
+- ✅ **Abonos mensuales** (Finanzas → Abonos): mantenimiento, hosting, SEO… el cobro se genera solo cada mes el día de facturación (worker, idempotente, se pone al día hasta 3 meses), horas incluidas vs. usadas del mes, pausa/baja sin cobrar lo pausado, **ingreso recurrente (MRR)** en Negocio y en la ficha del cliente.
+- ✅ **Importar CSV** de clientes y movimientos (Configuración → Datos) con vista previa: duplicados, errores por fila, formatos de banco (Crédito/Débito) y montos argentinos.
+- ✅ **Fechas en lenguaje natural** («mañana 10hs», «el viernes», «en 2 semanas», «15/12») en `Ctrl+K`, al crear tareas y al procesar la Bandeja. Los montos aceptan «45.000» (punto de miles).
+- ✅ **Compartir desde el celular** a la Bandeja (PWA Share Target) y **contador de notificaciones en el ícono** de la app instalada.
+- ✅ **Automatización «cobro vencido → recordatorio»** al cliente (pasa por Aprobaciones) y tarea de seguimiento.
+- ✅ Biblioteca: **vista previa de PDF** (pdf.js) y **mover carpetas y archivos** con Deshacer. Finanzas: **filtro y etiquetas en Movimientos** e **informe PDF** de reportes con la marca. Cerebro: **modo 3D** (carga diferida).
+- ✅ Portal y permisos: **capturas en el feedback del cliente**, el colaborador ve **notas y archivos de sus proyectos**, **permisos extra por colaborador** (finanzas del proyecto, CRM del cliente, horas con tarifa), contraseñas filtradas también en invitaciones, el enlace por email **respeta el 2FA** del cliente, límite de pedidos en portal e invitaciones, la probabilidad editada a mano en el pipeline se respeta, **varios workspaces** con selector.
+- ✅ Escalabilidad (ADR 0012, `docs/SCALING.md`): índices medidos con 50.000 tareas y 100.000 eventos (Hoy en 35 ms, listas en 5–9 ms), **paginación "Cargar más"** por cursor, timeouts por proceso, **rate limiting** en PostgreSQL, **almacenamiento S3** (R2/B2/MinIO), **OpenTelemetry opcional, logs JSON con requestId, `/api/health` y `/api/metrics`** (`docs/OBSERVABILITY.md`), **varios workers sin duplicar** y apagado ordenado, réplicas web listas en Compose/Caddy.
+- ✅ Diseño y velocidad: esqueletos de carga y pantallas de error en todas las secciones, navegación entre pestañas sin recargar, respuestas instantáneas al completar tareas y checklist (`useOptimistic`), transiciones suaves (respetan "reducir movimiento"), atajos `G` + letra para todos los módulos y ayuda `?` completa, títulos de pestaña, 404 y página sin conexión con la identidad, **JS inicial por pantalla < ~170 KB**, recorrido de accesibilidad (axe) por todas las rutas.
 
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.

@@ -26,8 +26,10 @@ El centro de mando de Luciano Rosano: agencia, proyectos, dinero, conocimiento y
 | Automatizaciones (reglas, plantillas, webhooks firmados) | ✅ |
 | Repositorios con GitHub App (salud, planes con aprobación) | ✅ (falta crear la App con el dominio) |
 | Agentes internos con IA (Claude), con topes, trazas y aprobaciones | ✅ (ocultos hasta cargar la API key) |
-| Colaboradores y portal de clientes | ver docs/ESTADO.md |
+| Colaboradores (con permisos extra) y portal de clientes, varios workspaces | ✅ |
 | Revisión semanal, notificaciones push, passkeys | ✅ |
+| Abonos mensuales con MRR, importación CSV, fechas en lenguaje natural, compartir desde el celular | ✅ |
+| Escalabilidad: índices medidos, paginación, S3, observabilidad, workers horizontales ([SCALING](docs/SCALING.md)) | ✅ |
 | Facultad y Calendario (con iCal) | ✅ |
 | Servidor MCP con tokens de alcance limitado | ✅ |
 | Paleta `Ctrl+K`, búsqueda sin tildes, papelera 30 días, actividad, auditoría, exportación total, PWA | ✅ |

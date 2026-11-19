@@ -21,3 +21,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · versione
   - Registro de horas y rentabilidad por hora; etapas editables del pipeline; servicios de interés; importación de chats de WhatsApp; plantillas de notas.
   - Agentes internos con IA (ocultos hasta configurar la API key), con topes, trazas y aprobaciones.
   - Exportación a Excel en Finanzas; filtro por etiqueta en el Cerebro; términos y privacidad públicos.
+- Tercera vuelta (mejoras y escalabilidad):
+  - Abonos mensuales con cobro automático, horas incluidas y MRR; importación CSV de clientes y movimientos con vista previa.
+  - Fechas en lenguaje natural, compartir desde el celular (Share Target), contador en el ícono de la app, plantilla de recordatorio de cobro vencido.
+  - Vista previa de PDF, mover carpetas, etiquetas y filtro en Movimientos, informe PDF de Finanzas, Cerebro 3D.
+  - Capturas en el feedback del portal, permisos extra por colaborador, varios workspaces, seguridad del enlace por email e invitaciones.
+  - Índices y paginación por cursor, rate limiting en PostgreSQL, almacenamiento S3, observabilidad (OpenTelemetry, logs JSON, health y métricas), workers escalables (ADR 0012, docs/SCALING.md).
+  - Esqueletos y errores por sección, navegación y respuestas instantáneas, atajos completos, JS inicial < ~170 KB por pantalla, accesibilidad en todas las rutas.
