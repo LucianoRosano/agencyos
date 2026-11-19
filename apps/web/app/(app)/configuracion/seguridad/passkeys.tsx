@@ -4,8 +4,8 @@ import { formatDateTime } from "@agencyos/core";
 import { Button, Input } from "@agencyos/ui";
 import { Fingerprint, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
+import { getAuthClient } from "@/lib/auth-client-lazy";
+import { toast } from "@/lib/toast";
 
 type Pk = { id: string; name?: string | null; createdAt: Date | string; deviceType: string; backedUp: boolean };
 
@@ -16,7 +16,7 @@ export function PasskeysSection() {
   const [pending, setPending] = useState(false);
 
   async function load() {
-    const { data } = await authClient.passkey.listUserPasskeys();
+    const { data } = await (await getAuthClient()).passkey.listUserPasskeys();
     setItems((data ?? []) as Pk[]);
   }
   // biome-ignore lint/correctness/useExhaustiveDependencies: carga inicial única
@@ -48,7 +48,7 @@ export function PasskeysSection() {
                 aria-label={`Eliminar ${p.name || "passkey"}`}
                 onClick={async () => {
                   if (!confirm("¿Eliminar esta passkey? Vas a tener que entrar con contraseña y código en ese dispositivo.")) return;
-                  const { error } = await authClient.passkey.deletePasskey({ id: p.id });
+                  const { error } = await (await getAuthClient()).passkey.deletePasskey({ id: p.id });
                   if (error) return toast.error("No se pudo eliminar");
                   toast.success("Passkey eliminada");
                   void load();
@@ -67,7 +67,7 @@ export function PasskeysSection() {
             e.preventDefault();
             const name = String(new FormData(e.currentTarget).get("name") ?? "").trim() || "Mi dispositivo";
             setPending(true);
-            const res = await authClient.passkey.addPasskey({ name });
+            const res = await (await getAuthClient()).passkey.addPasskey({ name });
             setPending(false);
             if (res?.error) return toast.error(res.error.message ?? "No se pudo registrar la passkey");
             toast.success("Passkey registrada");

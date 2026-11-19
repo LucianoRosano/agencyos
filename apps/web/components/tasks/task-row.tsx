@@ -4,7 +4,7 @@ import { diffDays, formatDayMonth, recurrenceLabel, todayAR } from "@agencyos/co
 import { cn, EntityChip } from "@agencyos/ui";
 import { Clock, Repeat } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useOptimistic, useRef, useState } from "react";
 import { setTaskDueAction, setTaskStatusAction, snoozeTaskAction } from "@/app/(app)/tareas/actions";
 import { useAction } from "@/components/use-action";
 import { TaskCheck } from "./task-check";
@@ -37,16 +37,17 @@ const PRIO = ["", "bg-danger", "bg-warning", "bg-accent-2", "bg-text-faint"];
 
 /** Fila de tarea: completar con un toque; en el celular, deslizar → completa y ← pospone. */
 export function TaskRow({ task, showProject = true }: { task: TaskRowData; showProject?: boolean }) {
-  const { exec, pending } = useAction();
-  const [done, setDone] = useState(task.status === "done");
+  const { exec } = useAction();
+  // Optimista: el tilde cambia al instante y vuelve solo si el servidor rechaza el cambio.
+  const [done, setDone] = useOptimistic(task.status === "done");
   const [dx, setDx] = useState(0);
   const start = useRef<{ x: number; y: number } | null>(null);
   const due = dueLabel(task.dueDate);
 
   function complete() {
     const next = !done;
-    setDone(next);
     exec(() => setTaskStatusAction(task.id, next ? "done" : "todo"), {
+      optimistic: () => setDone(next),
       success: next ? "Tarea completada" : "Tarea reabierta",
       undo: next ? () => setTaskStatusAction(task.id, "todo") : undefined,
     });
@@ -68,7 +69,7 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
         {dx > 0 ? "Completar" : dx < 0 ? "Posponer" : ""}
       </div>
       <div
-        className={cn("relative flex min-h-14 items-center gap-3 border-b border-border bg-surface px-3 py-2.5 transition-transform", pending && "opacity-60")}
+        className={cn("relative flex min-h-14 items-center gap-3 border-b border-border bg-surface px-3 py-2.5 transition-transform")}
         style={{ transform: `translateX(${dx}px)`, transition: start.current ? "none" : undefined, touchAction: "pan-y" }}
         onPointerDown={(e) => {
           if (e.pointerType !== "touch") return;

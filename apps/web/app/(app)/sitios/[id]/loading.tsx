@@ -2,7 +2,7 @@ import { Skeleton } from "@agencyos/ui";
 
 export default function Loading() {
   return (
-    <div role="status" className="mx-auto flex max-w-6xl flex-col gap-4" aria-busy="true" aria-label="Cargando el sitio">
+    <div role="status" className="loading-shell mx-auto flex max-w-6xl flex-col gap-4" aria-busy="true" aria-label="Cargando el sitio">
       <Skeleton className="h-4 w-40" />
       <Skeleton className="h-9 w-64" />
       <Skeleton className="h-16 w-full" />

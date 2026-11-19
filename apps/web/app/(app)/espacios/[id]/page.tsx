@@ -10,6 +10,15 @@ import { ProjectCard } from "@/components/project-card";
 import { TaskRow } from "@/components/tasks/task-row";
 import { requireCtx } from "@/lib/session";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requireCtx();
+  const [space] = await getDb()
+    .select({ name: schema.space.name })
+    .from(schema.space)
+    .where(and(eq(schema.space.id, (await params).id), scoped(schema.space, ctx)));
+  return { title: space ? `${space.name} · Espacios` : "Espacio" };
+}
+
 export default async function SpacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ctx = await requireCtx();

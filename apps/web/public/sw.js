@@ -1,12 +1,12 @@
 /* AGENCYOS · service worker: estáticos cacheados y página offline. Datos siempre desde la red. */
-const VERSION = "agencyos-v2";
+const VERSION = "agencyos-v3";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches
       .open(VERSION)
-      .then((c) => c.addAll([OFFLINE, "/icons/icon.svg"]))
+      .then((c) => c.addAll([OFFLINE, "/icons/icon.svg", "/fonts/Geist-Variable.woff2"]))
       .then(() => self.skipWaiting()),
   );
 });
@@ -25,7 +25,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/fonts/")) {
     e.respondWith(
       caches.match(req).then(
         (hit) =>

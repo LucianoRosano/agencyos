@@ -3,7 +3,7 @@
 import type { Result } from "@agencyos/core";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 /** Quita un parámetro de la URL (p. ej. `?pagar=`) al cerrar el diálogo abierto por deep link. */
 export function useClearParam() {

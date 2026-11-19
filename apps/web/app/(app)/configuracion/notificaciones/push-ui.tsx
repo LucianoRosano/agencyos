@@ -3,7 +3,7 @@
 import { Button, Checkbox } from "@agencyos/ui";
 import { BellRing } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useAction } from "@/components/use-action";
 import { pushKeyAction, pushSubscribeAction, pushTestAction, pushUnsubscribeAction, setPreferenceAction } from "../actions";
 

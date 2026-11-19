@@ -4,6 +4,8 @@ import Link from "next/link";
 import { requireCtx } from "@/lib/session";
 import { ProfileForm, ThemePicker } from "./profile-ui";
 
+export const metadata = { title: "Perfil · Configuración" };
+
 export default async function ProfilePage() {
   const ctx = await requireCtx();
   const theme = (await cookies()).get("ag-theme")?.value ?? "dark";

@@ -4,7 +4,7 @@ import { Button, Card, cn, Select, Textarea } from "@agencyos/ui";
 import { Check, Pause, Play, Square } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { completeFocusTaskAction, logFocusAction } from "./actions";
 
 type T = { id: string; title: string; project: string | null };

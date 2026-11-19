@@ -10,6 +10,7 @@ export function OpenPaletteButton() {
     <button
       type="button"
       onClick={openPalette}
+      aria-keyshortcuts="Control+K Meta+K"
       className="flex h-10 w-full items-center gap-2.5 rounded-[9px] border border-border bg-surface px-3 text-[14px] text-text-muted transition-colors hover:border-border-strong"
     >
       <Search className="size-4" />

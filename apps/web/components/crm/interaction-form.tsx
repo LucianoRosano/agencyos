@@ -24,7 +24,7 @@ function KindPicker({ defaultValue = "whatsapp" }: { defaultValue?: string }) {
   return (
     <fieldset>
       <legend className="mb-1.5 text-[13px] font-medium text-text-muted">Tipo</legend>
-      <div className="grid grid-cols-3 gap-1.5 md:grid-cols-6">
+      <div className="grid grid-cols-3 gap-1.5 @lg:grid-cols-6">
         {Object.entries(L.interactionKind).map(([k, l]) => (
           <label
             key={k}
@@ -67,14 +67,15 @@ export function InteractionForm({
   defaultContactId?: string;
 }) {
   return (
-    <ActionForm action={logInteractionAction} successMessage="Interacción registrada" resetOnSuccess onSuccess={() => onDone?.()}>
+    <ActionForm action={logInteractionAction} successMessage="Interacción registrada" resetOnSuccess onSuccess={() => onDone?.()} className="@container">
+      {/* Las grillas responden al ancho del formulario (container queries): en la columna lateral de la ficha no se apretan. */}
       {clientId ? (
         <input type="hidden" name="clientId" value={clientId} />
       ) : (
         <SelectField label="Cliente" name="clientId" options={clients ?? []} placeholder="Elegí un cliente" required />
       )}
       <KindPicker />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-[1fr_120px_1.4fr]">
+      <div className="grid grid-cols-2 gap-3 @lg:grid-cols-[1fr_120px_1.4fr]">
         <TextField label="Fecha" name="date" type="date" defaultValue={now.date} />
         <TextField label="Hora" name="time" type="time" defaultValue={now.time} />
         {contacts.length ? (
@@ -84,12 +85,12 @@ export function InteractionForm({
             options={contacts}
             placeholder="Sin contacto"
             defaultValue={defaultContactId}
-            className="col-span-2 md:col-span-1"
+            className="col-span-2 @lg:col-span-1"
           />
         ) : null}
       </div>
       <TextAreaField label="Resumen (Markdown)" name="summaryMd" required rows={compact ? 3 : 4} placeholder="¿Qué se habló? ¿Qué quedó acordado?" />
-      <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+      <div className="grid gap-3 @lg:grid-cols-[1fr_180px]">
         <TextField label="Próximo paso" name="nextStep" placeholder="Opcional · ej.: mandar propuesta" />
         <TextField label="Para el" name="nextStepDue" type="date" hint="Aparece en Hoy ese día." />
       </div>

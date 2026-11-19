@@ -5,6 +5,7 @@ export * from "./charts";
 export * from "./dialog";
 export * from "./empty-state";
 export * from "./field";
+export * from "./kbd";
 export { cn } from "./lib/cn";
 export * from "./menu";
 export * from "./page-header";

@@ -8,9 +8,9 @@ import { ActionForm, SubmitButton } from "../action-form";
 
 const TYPES = Object.entries(L.inboxType);
 
-export function CaptureDialog() {
-  const [open, setOpen] = useState(false);
-  const [text, setText] = useState("");
+export function CaptureDialog({ initialOpen = false, initialText = "" }: { initialOpen?: boolean; initialText?: string }) {
+  const [open, setOpen] = useState(initialOpen);
+  const [text, setText] = useState(initialText);
   const ref = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const onOpen = () => setOpen(true);

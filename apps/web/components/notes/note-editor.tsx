@@ -5,7 +5,7 @@ import { AlertCircle, Check, Columns2, Eye, History, Loader2, PenLine, RotateCcw
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { createLinkedNoteAction, notePreviewAction, noteVersionsAction, restoreVersionAction, saveNoteAction } from "@/app/(app)/notas/actions";
 import { NotePreviewPane } from "./note-preview";
 import "./notes.css";

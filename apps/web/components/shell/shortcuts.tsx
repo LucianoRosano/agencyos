@@ -1,25 +1,28 @@
 "use client";
 
-import { Sheet } from "@agencyos/ui";
+import { Kbd, SectionLabel, Sheet } from "@agencyos/ui";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { openCapture } from "./palette-trigger";
+import { useEffect, useMemo, useState } from "react";
+import { navFor } from "./nav-config";
+import { openCapture, openPalette } from "./palette-trigger";
 
-const GOTO: Record<string, string> = {
-  h: "/hoy",
-  p: "/proyectos",
-  t: "/tareas",
-  c: "/crm/clientes",
-  f: "/finanzas",
-  n: "/notas",
-  b: "/cerebro",
-  i: "/bandeja",
-};
+const GENERAL: [string[], string][] = [
+  [["Ctrl", "K"], "Paleta de comandos: buscar, crear e ir a cualquier lado"],
+  [["C"], "Capturar en la Bandeja"],
+  [["Ctrl", "Enter"], "Guardar el formulario abierto"],
+  [["Esc"], "Cerrar la ventana o la hoja abierta"],
+  [["?"], "Ver esta ayuda"],
+];
+const IN_SCREEN: [string[], string][] = [
+  [["/"], "Cerebro: buscar y volar al nodo"],
+  [["Esc"], "Cerebro: limpiar la búsqueda"],
+];
 
-/** Atajos globales (docs/06 §6). Se ignoran mientras se escribe en un campo. */
-export function Shortcuts({ limited }: { limited?: boolean }) {
+/** Atajos globales (docs/06 §6). Se ignoran mientras se escribe en un campo. «G luego X» sale de la navegación (nav-config). */
+export function Shortcuts({ limited, enabledModules, role }: { limited?: boolean; enabledModules: string[]; role: string }) {
   const router = useRouter();
   const [help, setHelp] = useState(false);
+  const goto = useMemo(() => navFor(enabledModules, role).filter((n) => n.go), [enabledModules, role]);
   useEffect(() => {
     let g = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -31,10 +34,10 @@ export function Shortcuts({ limited }: { limited?: boolean }) {
       const k = e.key.toLowerCase();
       if (g) {
         g = false;
-        const to = GOTO[k];
+        const to = goto.find((n) => n.go?.toLowerCase() === k);
         if (to) {
           e.preventDefault();
-          router.push(to);
+          router.push(to.href);
         }
         return;
       }
@@ -51,28 +54,43 @@ export function Shortcuts({ limited }: { limited?: boolean }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, limited]);
+  }, [router, limited, goto]);
+
+  const general = GENERAL.filter(([k]) => !(limited && k[0] === "C" && k.length === 1));
   return (
-    <Sheet open={help} onOpenChange={setHelp} title="Atajos de teclado">
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 text-[14px]">
-        {[
-          ["Ctrl / ⌘ K", "Paleta de comandos y búsqueda"],
-          ["C", "Capturar en la Bandeja"],
-          ["G luego H", "Ir a Hoy"],
-          ["G luego P / T", "Ir a Proyectos / Tareas"],
-          ["G luego C / F", "Ir a Clientes / Finanzas"],
-          ["G luego N / B / I", "Ir a Notas / Cerebro / Bandeja"],
-          ["Ctrl + Enter", "Guardar el formulario"],
-          ["?", "Ver esta ayuda"],
-        ].map(([k, d]) => (
-          <div key={k} className="contents">
-            <dt>
-              <kbd className="rounded border border-border bg-surface-2 px-2 py-0.5 font-mono text-[12px]">{k}</kbd>
-            </dt>
-            <dd className="text-text-muted">{d}</dd>
+    <Sheet open={help} onOpenChange={setHelp} title="Atajos de teclado" description="Funcionan en cualquier pantalla, salvo mientras escribís en un campo.">
+      <div className="flex flex-col gap-6 text-[14px]">
+        <ShortcutList title="Generales" rows={general} />
+        <ShortcutList title="Ir a… (G y después la letra)" rows={goto.map((n) => [["G", n.go ?? ""], n.label])} columns />
+        <ShortcutList title="En pantallas puntuales" rows={IN_SCREEN} />
+        <button
+          type="button"
+          onClick={() => (setHelp(false), openPalette())}
+          className="self-start text-[13px] text-text-muted underline-offset-2 hover:text-text hover:underline"
+        >
+          ¿Buscás una acción? Abrí la paleta de comandos →
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+function ShortcutList({ title, rows, columns }: { title: string; rows: [string[], string][]; columns?: boolean }) {
+  return (
+    <section>
+      <SectionLabel className="mb-3">{title}</SectionLabel>
+      <dl className={columns ? "grid gap-x-6 gap-y-2 sm:grid-cols-2" : "flex flex-col gap-2"}>
+        {rows.map(([keys, desc]) => (
+          <div key={desc} className="flex min-h-8 items-center justify-between gap-4">
+            <dt className="text-text-muted">{desc}</dt>
+            <dd className="flex shrink-0 items-center gap-1">
+              {keys.map((k) => (
+                <Kbd key={k}>{k}</Kbd>
+              ))}
+            </dd>
           </div>
         ))}
       </dl>
-    </Sheet>
+    </section>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "./lib/cn";
 
@@ -29,13 +30,15 @@ export function PageHeader({
   );
 }
 
+/** Pestañas de sección: navegación cliente (sin recargar la página) con prefetch de cada pestaña visible. */
 export function Tabs({ items, active }: { items: { href: string; label: string; key: string; count?: number }[]; active: string }) {
   return (
     <nav className="no-scrollbar -mx-4 mb-6 flex gap-1 overflow-x-auto border-b border-border px-4 md:mx-0 md:px-0" aria-label="Secciones">
       {items.map((it) => (
-        <a
+        <Link
           key={it.key}
           href={it.href}
+          scroll={false}
           aria-current={active === it.key ? "page" : undefined}
           className={cn(
             "relative flex h-10 shrink-0 items-center gap-2 px-3 text-sm transition-colors",
@@ -46,7 +49,7 @@ export function Tabs({ items, active }: { items: { href: string; label: string; 
         >
           {it.label}
           {it.count !== undefined ? <span className="font-mono text-[11px] text-text-faint">{it.count}</span> : null}
-        </a>
+        </Link>
       ))}
     </nav>
   );

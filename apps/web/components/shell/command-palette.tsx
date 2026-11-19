@@ -5,7 +5,7 @@ import { Command } from "cmdk";
 import { CornerDownLeft, FilePlus2, FolderPlus, Inbox, ListPlus, Plus, Search, UserPlus, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { quickTaskAction, searchAction } from "@/app/actions/shell";
 import { ENTITY_DOT } from "@/lib/entity-colors";
 import { navFor } from "./nav-config";
@@ -13,9 +13,9 @@ import { openCapture } from "./palette-trigger";
 
 type Hit = Awaited<ReturnType<typeof searchAction>>[number];
 
-export function CommandPalette({ enabledModules, role }: { enabledModules: string[]; role?: string }) {
+export function CommandPalette({ enabledModules, role, initialOpen = false }: { enabledModules: string[]; role?: string; initialOpen?: boolean }) {
   const limited = role === "member";
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [, start] = useTransition();

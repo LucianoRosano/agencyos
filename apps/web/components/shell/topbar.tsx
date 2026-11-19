@@ -64,12 +64,12 @@ export function Topbar({ data }: { data: ShellData }) {
             <MenuSeparator />
             <MenuItem onSelect={() => router.push("/espacios")}>Administrar espacios</MenuItem>
           </Menu>
-          <Button asChild variant="secondary" className="h-10">
+          <Button asChild variant="secondary" className="h-10" title="Una tarea a la vez, sin distracciones">
             <Link href="/foco">
               <Crosshair className="size-4" /> Modo foco
             </Link>
           </Button>
-          <Button variant="primary" className="h-10" onClick={openCapture}>
+          <Button variant="primary" className="h-10" onClick={openCapture} aria-keyshortcuts="c" title="Capturar una idea, tarea o nota en la Bandeja (C)">
             <Plus className="size-4" /> Capturar
             <kbd className="ml-1 rounded border border-white/40 px-1.5 font-mono text-[11px]">C</kbd>
           </Button>

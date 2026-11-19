@@ -4,8 +4,8 @@ import { formatDateTime } from "@agencyos/core";
 import { Button, Field, Input } from "@agencyos/ui";
 import { LogOut, MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
+import { getAuthClient } from "@/lib/auth-client-lazy";
+import { toast } from "@/lib/toast";
 import { PasskeysSection } from "./passkeys";
 
 type Session = { id: string; token: string; createdAt: Date; updatedAt: Date; userAgent?: string | null; ipAddress?: string | null };
@@ -34,7 +34,7 @@ export function SecurityPanel() {
   const [pending, setPending] = useState(false);
 
   async function load() {
-    const [list, me] = await Promise.all([authClient.listSessions(), authClient.getSession()]);
+    const [list, me] = await Promise.all([(await getAuthClient()).listSessions(), (await getAuthClient()).getSession()]);
     setSessions((list.data ?? []) as Session[]);
     setCurrent(me.data?.session.token ?? null);
   }
@@ -65,7 +65,7 @@ export function SecurityPanel() {
                   size="sm"
                   variant="ghost"
                   onClick={async () => {
-                    await authClient.revokeSession({ token: s.token });
+                    await (await getAuthClient()).revokeSession({ token: s.token });
                     toast.success("Sesión cerrada");
                     void load();
                   }}
@@ -80,7 +80,7 @@ export function SecurityPanel() {
           <Button
             variant="secondary"
             onClick={async () => {
-              await authClient.revokeOtherSessions();
+              await (await getAuthClient()).revokeOtherSessions();
               toast.success("Se cerraron las demás sesiones");
               void load();
             }}
@@ -90,7 +90,7 @@ export function SecurityPanel() {
           <Button
             variant="danger"
             onClick={async () => {
-              await authClient.signOut();
+              await (await getAuthClient()).signOut();
               window.location.href = "/login";
             }}
           >
@@ -109,7 +109,7 @@ export function SecurityPanel() {
             const form = e.currentTarget;
             if (fd.get("new") !== fd.get("new2")) return toast.error("Las contraseñas nuevas no coinciden");
             setPending(true);
-            const { error } = await authClient.changePassword({
+            const { error } = await (await getAuthClient()).changePassword({
               currentPassword: String(fd.get("current")),
               newPassword: String(fd.get("new")),
               revokeOtherSessions: true,
@@ -152,7 +152,7 @@ export function SecurityPanel() {
           onSubmit={async (e) => {
             e.preventDefault();
             const password = String(new FormData(e.currentTarget).get("password"));
-            const { data, error } = await authClient.twoFactor.generateBackupCodes({ password });
+            const { data, error } = await (await getAuthClient()).twoFactor.generateBackupCodes({ password });
             if (error || !data) return toast.error("Contraseña incorrecta");
             setCodes(data.backupCodes);
           }}

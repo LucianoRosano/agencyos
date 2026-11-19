@@ -1,6 +1,10 @@
 /** Gráficos SVG propios, sin dependencias (docs/03). Siempre con alternativa textual. */
 import { cn } from "./lib/cn";
 
+/**
+ * Barras pareadas por período (p. ej. ingresos vs. gastos). HTML/CSS en vez de un SVG escalado: las etiquetas quedan
+ * siempre en Geist Mono 11 px y las barras con ancho máximo fijo, sin importar el ancho del bloque.
+ */
 export function BarPairs({
   data,
   className,
@@ -11,25 +15,25 @@ export function BarPairs({
   labels?: [string, string];
 }) {
   const max = Math.max(1, ...data.flatMap((d) => [d.a, d.b]));
-  const h = 64;
+  const pct = (v: number) => (v > 0 ? `max(2px, ${(v / max) * 100}%)` : "0");
   return (
     <figure className={cn("w-full", className)}>
-      <svg viewBox={`0 0 ${data.length * 40} ${h + 18}`} className="w-full" role="img" aria-label={`${labels[0]} y ${labels[1]} por mes`}>
-        {data.map((d, i) => {
-          const ha = (d.a / max) * h;
-          const hb = (d.b / max) * h;
-          const x = i * 40 + 4;
-          return (
-            <g key={d.label}>
-              <rect x={x} y={h - ha} width={15} height={Math.max(ha, d.a > 0 ? 2 : 0)} rx={2} fill="var(--success)" opacity={0.85} />
-              <rect x={x + 17} y={h - hb} width={15} height={Math.max(hb, d.b > 0 ? 2 : 0)} rx={2} fill="var(--accent)" opacity={0.75} />
-              <text x={x + 16} y={h + 14} textAnchor="middle" className="fill-[var(--text-faint)] font-mono" fontSize={9}>
-                {d.label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+      <div
+        role="img"
+        aria-label={`${labels[0]} y ${labels[1]} por período`}
+        className="grid gap-x-1.5"
+        style={{ gridTemplateColumns: `repeat(${Math.max(1, data.length)}, minmax(0, 1fr))` }}
+      >
+        {data.map((d) => (
+          <div key={d.label} className="flex min-w-0 flex-col items-center gap-2">
+            <div className="flex h-24 w-full items-end justify-center gap-[3px] border-b border-border md:h-28">
+              <span className="block w-full max-w-4 rounded-t-[3px] bg-success/85" style={{ height: pct(d.a) }} />
+              <span className="block w-full max-w-4 rounded-t-[3px] bg-accent/75" style={{ height: pct(d.b) }} />
+            </div>
+            <span className="truncate font-mono text-[11px] uppercase tracking-[0.08em] text-text-faint">{d.label}</span>
+          </div>
+        ))}
+      </div>
       <figcaption className="sr-only">{data.map((d) => `${d.label}: ${labels[0]} ${d.a}, ${labels[1]} ${d.b}`).join(". ")}</figcaption>
     </figure>
   );

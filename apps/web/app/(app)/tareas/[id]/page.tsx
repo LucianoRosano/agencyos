@@ -12,6 +12,12 @@ import { projectOpts, spaceOpts } from "@/lib/options";
 import { requireCtx } from "@/lib/session";
 import { Checklist, TaskActions, TaskEditForm } from "./task-detail";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requireCtx();
+  const data = await getTask(ctx, (await params).id);
+  return { title: data?.t.title ?? "Tarea" };
+}
+
 export default async function TaskPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ctx = await requireCtx();

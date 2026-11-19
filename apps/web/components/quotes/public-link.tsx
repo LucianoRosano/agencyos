@@ -3,7 +3,7 @@
 import { Button, Input, Sheet } from "@agencyos/ui";
 import { Copy, Link2, Mail, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { createPublicLinkAction, emailPublicLinkAction, revokePublicLinkAction } from "@/app/(app)/presupuestos/actions";
 import { useAction } from "@/components/use-action";
 

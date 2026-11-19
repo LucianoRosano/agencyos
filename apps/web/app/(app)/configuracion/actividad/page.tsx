@@ -6,6 +6,8 @@ import { ActivityList } from "@/components/activity-list";
 import { LoadMore } from "@/components/load-more";
 import { requireCtx } from "@/lib/session";
 
+export const metadata = { title: "Actividad · Configuración" };
+
 const ACTION_LABEL: Record<string, string> = {
   "setup.owner_created": "Cuenta del dueño creada",
   "mcp_token.created": "Token MCP creado",

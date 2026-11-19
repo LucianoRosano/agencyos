@@ -4,6 +4,8 @@ import { TargetRateForm } from "@/components/time/target-rate-form";
 import { requireCtx } from "@/lib/session";
 import { WorkspaceForm } from "./workspace-form";
 
+export const metadata = { title: "Agencia · Configuración" };
+
 export default async function WorkspacePage() {
   const ctx = await requireCtx();
   const usage = await storageUsage(ctx).catch(() => null);

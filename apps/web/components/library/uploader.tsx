@@ -4,7 +4,7 @@ import { cn, Progress } from "@agencyos/ui";
 import { CheckCircle2, CircleAlert, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 /** Mismo listado que el servidor (packages/modules/src/library/magic.ts); el servidor valida igual. */
 export const ACCEPT = ".png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.zip,.docx,.xlsx,.pptx,.txt,.md,.csv,.mp4,.webm,.woff,.woff2,.ttf,.otf";
