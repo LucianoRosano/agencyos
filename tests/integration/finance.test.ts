@@ -181,13 +181,10 @@ describe("finanzas", () => {
     });
     expect((await getAccountBalance(ws, a.id))?.balance).toBe("1235.46");
     await expect(createTransaction(ws, { kind: "income", amount: "0", accountId: a.id })).rejects.toThrow();
-    await expect(
-      createTransaction(ws, {
-        kind: "income",
-        amount: "1.234",
-        accountId: a.id,
-      }),
-    ).rejects.toThrow(); // ambiguo: 3 decimales
+    // «1.234» es punto de miles (formato argentino): 1234,00; con 4 dígitos después del punto es inválido.
+    const miles = await createTransaction(ws, { kind: "income", amount: "1.234", accountId: a.id });
+    expect(miles.amount).toBe("1234.00");
+    await expect(createTransaction(ws, { kind: "income", amount: "1.2345", accountId: a.id })).rejects.toThrow();
   });
 
   it("valida la categoría según el tipo y permite jerarquía de dos niveles", async () => {
