@@ -1,6 +1,7 @@
-import { cmpMoney, formatDate, formatMoney, L, label, subMoney } from "@agencyos/core";
+import { can, cmpMoney, formatDate, formatMoney, L, label, subMoney } from "@agencyos/core";
 import { businessKpis, type Range, resolveRange } from "@agencyos/modules/business/queries";
 import { listPipelineStages } from "@agencyos/modules/crm/stages";
+import { retainerMrr } from "@agencyos/modules/retainers/service";
 import { effectiveHourlyRate, hoursLabel } from "@agencyos/modules/time/duration";
 import { minutesByClient, targetRate } from "@agencyos/modules/time/queries";
 import { BarPairs, BlockCard, Card, EmptyState, HBars, PageHeader, Tabs } from "@agencyos/ui";
@@ -43,7 +44,7 @@ function Kpi({
       {empty ? (
         <p className="text-[13px] text-text-faint">
           {empty.text}{" "}
-          <Link href={empty.href} className="text-accent hover:underline">
+          <Link href={empty.href} className="text-accent-text underline underline-offset-2">
             {empty.action}
           </Link>
         </p>
@@ -67,7 +68,11 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const range = (["mes", "trimestre", "anio", "personalizado"].includes(sp.rango ?? "") ? sp.rango : "mes") as Range;
   const r = resolveRange(range, undefined, sp.desde, sp.hasta);
   const k = await businessKpis(ctx, r);
-  const [hoursOf, pipelineStages] = await Promise.all([minutesByClient(ctx, [...new Set(k.profit.map((p) => p.id))], r.start, r.end), listPipelineStages(ctx)]);
+  const [hoursOf, pipelineStages, mrr] = await Promise.all([
+    minutesByClient(ctx, [...new Set(k.profit.map((p) => p.id))], r.start, r.end),
+    listPipelineStages(ctx),
+    can(ctx, "read", "finance") ? retainerMrr(ctx) : Promise.resolve(null),
+  ]);
   const target = targetRate(ctx);
   const curs = currencies(k.income, k.expense);
   const rate = k.quotes.accepted + k.quotes.rejected ? Math.round((k.quotes.accepted / (k.quotes.accepted + k.quotes.rejected)) * 100) : null;
@@ -211,6 +216,20 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
             </p>
           ))}
         </Kpi>
+        {mrr ? (
+          <Kpi
+            title="Ingreso recurrente (abonos)"
+            href="/finanzas/abonos"
+            empty={mrr.byCurrency.length ? null : { text: "Sin abonos mensuales.", action: "Crear un abono", href: "/finanzas/abonos" }}
+          >
+            {mrr.byCurrency.map((x) => (
+              <p key={x.currency} className="font-mono text-[22px] tabular-nums">
+                {formatMoney(x.total, x.currency)}
+                <span className="text-[13px] text-text-muted"> /mes</span>
+              </p>
+            ))}
+          </Kpi>
+        ) : null}
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">

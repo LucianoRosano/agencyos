@@ -1,6 +1,6 @@
 "use client";
 
-import { L, todayAR } from "@agencyos/core";
+import { L, parseNaturalDate, todayAR } from "@agencyos/core";
 import { Badge, Button, Card, Select } from "@agencyos/ui";
 import { CalendarPlus, FileText, FolderPlus, Trash2, Wallet, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ export function Processor({ items, spaces, projects, financeEnabled }: { items: 
   const router = useRouter();
   const queue = items.filter((i) => !skipped.has(i.id));
   const item = queue[0];
+  const nd = parseNaturalDate(item?.text.split("\n")[0] ?? "");
   const next = () => setMode("choose");
   if (!item) {
     return (
@@ -92,9 +93,16 @@ export function Processor({ items, spaces, projects, financeEnabled }: { items: 
               exec(() => toTaskAction(item.id, null, fd), { success: "Convertido en tarea", onDone: next });
             }}
           >
-            <TextField label="Título" name="title" defaultValue={item.text.split("\n")[0]?.slice(0, 300)} required />
+            <TextField label="Título" name="title" defaultValue={nd.rest.slice(0, 300)} required />
             <div className="grid gap-4 md:grid-cols-3">
-              <TextField label="Fecha" name="dueDate" type="date" defaultValue={todayAR()} />
+              <TextField
+                label="Fecha"
+                name="dueDate"
+                type="date"
+                defaultValue={nd.date ?? todayAR()}
+                hint={nd.date ? `Tomada del texto${nd.time ? ` · ${nd.time}` : ""}` : undefined}
+              />
+              {nd.time ? <input type="hidden" name="dueTime" value={nd.time} /> : null}
               <SelectField label="Proyecto" name="projectId" placeholder="Sin proyecto" options={projects} />
               <SelectField
                 label="Prioridad"

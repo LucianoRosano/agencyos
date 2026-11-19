@@ -7,6 +7,7 @@ import { assertEntityAccess, assertFullAccess, getDb } from "../shared/db";
 import { ENTITIES, type EntityType, isEntityType } from "../shared/entities";
 
 const RESOURCE: Partial<Record<EntityType, Resource>> = {
+  retainer: "finance",
   client: "crm",
   contact: "crm",
   opportunity: "crm",

@@ -35,6 +35,12 @@ describe("dinero", () => {
   it("valida montos con coma decimal", () => {
     expect(zMoney.parse("1.234,50")).toBe("1234.50");
     expect(zMoney.parse("99")).toBe("99.00");
+    expect(zMoney.parse("45.000")).toBe("45000.00");
+    expect(zMoney.parse("1.250.000")).toBe("1250000.00");
+    expect(zMoney.parse("$ 12.500")).toBe("12500.00");
+    expect(zMoney.parse("1234.5")).toBe("1234.50");
+    expect(zMoney.parse("1.5")).toBe("1.50");
+    expect(() => zMoney.parse("1.2345")).toThrow();
     expect(() => zMoney.parse("-1")).toThrow();
   });
 });

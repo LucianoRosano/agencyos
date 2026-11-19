@@ -133,3 +133,34 @@ export const payable = pgTable(
     check("payable_status", sql`${t.status} in ('pending','partial','paid','overdue','void')`),
   ],
 );
+
+/**
+ * Abonos mensuales (retainers): mantenimiento web, hosting gestionado, SEO mensual… Cada mes, el día de facturación,
+ * el worker genera el cobro (receivable) y avanza `next_issue_date`. `hours_included` habilita el control de horas
+ * usadas (time_entry del proyecto vinculado) contra las incluidas.
+ */
+export const retainer = pgTable(
+  "retainer",
+  {
+    ...baseColumns(),
+    clientId: uuid("client_id").notNull(),
+    projectId: uuid("project_id"),
+    concept: text("concept").notNull(),
+    amount: amount("amount").notNull(),
+    currency: text("currency").notNull().default("ARS"),
+    hoursIncluded: numeric("hours_included", { precision: 6, scale: 2 }),
+    billingDay: integer("billing_day").notNull().default(1),
+    dueDays: integer("due_days").notNull().default(10),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date"),
+    nextIssueDate: date("next_issue_date").notNull(),
+    status: text("status").notNull().default("active"),
+    notesMd: text("notes_md"),
+  },
+  (t) => [
+    index("retainer_due").on(t.workspaceId, t.status, t.nextIssueDate),
+    index("retainer_client").on(t.workspaceId, t.clientId),
+    check("retainer_status", sql`${t.status} in ('active','paused','cancelled')`),
+    check("retainer_day", sql`${t.billingDay} between 1 and 28`),
+  ],
+);

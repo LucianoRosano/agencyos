@@ -3,7 +3,7 @@ import type { Ctx } from "@agencyos/core";
 import { attachmentsOf } from "@agencyos/modules/library/queries";
 import { Card, SectionLabel } from "@agencyos/ui";
 import { Paperclip } from "lucide-react";
-import { Attachments } from "./attachments";
+import { LazyAttachments as Attachments } from "./attachments-lazy";
 
 /** Bloque "Archivos" con la lista ya cargada en el servidor (fichas de tarea, cliente, nota). */
 export async function AttachmentsBlock({

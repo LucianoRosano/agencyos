@@ -94,8 +94,12 @@ export function Sidebar({ data }: { data: ShellData }) {
         </ul>
       </nav>
       <div className="flex items-center gap-3 border-t border-border px-4 py-4">
-        <Link href="/configuracion" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-surface" aria-label="Configuración y perfil">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold text-text">
+        <Link href="/configuracion" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 hover:bg-surface">
+          <span className="sr-only">Configuración y perfil: </span>
+          <span
+            aria-hidden
+            className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold text-text"
+          >
             {initials(data.user.name)}
           </span>
           <span className="min-w-0">

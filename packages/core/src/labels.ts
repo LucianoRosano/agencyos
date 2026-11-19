@@ -113,6 +113,7 @@ export const L = {
     time_entry: "Registro de horas",
     note_template: "Plantilla de nota",
     seo_audit: "Auditoría SEO",
+    retainer: "Abono",
     domain: "Dominio",
     hosting: "Hosting",
     certificate: "Certificado",
@@ -141,6 +142,7 @@ export const L = {
   agentPermission: { read: "Solo lectura", propose: "Propone (crea borradores y aprobaciones)", execute_with_approval: "Ejecuta con aprobación" },
   agentStepKind: { model: "Modelo", tool: "Herramienta", approval: "Aprobación" },
   agentTrigger: { manual: "Manual", automation: "Automatización", schedule: "Programada", mcp: "MCP" },
+  retainerStatus: { active: "Activo", paused: "En pausa", cancelled: "De baja" },
 } as const;
 
 export function label<T extends Record<string, string>>(map: T, key: string | null | undefined): string {

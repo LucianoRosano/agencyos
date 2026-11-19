@@ -4,6 +4,7 @@ export * from "./dates";
 export * from "./errors";
 export * from "./labels";
 export * from "./money";
+export * from "./natural-date";
 export * from "./permissions";
 export * from "./recurrence";
 export * from "./validation";

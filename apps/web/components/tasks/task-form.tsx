@@ -1,6 +1,6 @@
 "use client";
 
-import { L, RECURRENCE_PRESETS } from "@agencyos/core";
+import { dowName, formatDate, L, parseNaturalDate, RECURRENCE_PRESETS } from "@agencyos/core";
 import { Sheet } from "@agencyos/ui";
 import { useState } from "react";
 import { createTaskAction } from "@/app/(app)/tareas/actions";
@@ -14,16 +14,44 @@ export function TaskFields({
   projects,
   spaces,
   phases,
+  detectDates = false,
 }: {
   defaults?: Partial<Record<string, string | number | null>>;
   projects: Option[];
   spaces: Option[];
   phases?: Option[];
+  /** Al salir del título, toma «mañana 10hs», «el viernes», «15/12»… y completa fecha y hora (solo al crear). */
+  detectDates?: boolean;
 }) {
   const v = (k: string) => (defaults[k] === null || defaults[k] === undefined ? "" : String(defaults[k]));
+  const [detected, setDetected] = useState<string | null>(null);
   return (
     <>
-      <TextField label="Título" name="title" required defaultValue={v("title")} autoFocus maxLength={300} />
+      <TextField
+        label="Título"
+        name="title"
+        required
+        defaultValue={v("title")}
+        autoFocus
+        maxLength={300}
+        hint={detected ?? (detectDates ? "Podés escribir la fecha en el título: «mañana 10hs», «el viernes», «en 2 semanas», «15/12»." : undefined)}
+        onBlur={
+          detectDates
+            ? (e) => {
+                const input = e.currentTarget;
+                const r = parseNaturalDate(input.value);
+                if (!r.date) return;
+                const form = input.form;
+                const date = form?.elements.namedItem("dueDate") as HTMLInputElement | null;
+                const time = form?.elements.namedItem("dueTime") as HTMLInputElement | null;
+                if (date) date.value = r.date;
+                if (time && r.time) time.value = r.time;
+                input.value = r.rest;
+                setDetected(`Fecha tomada del título: ${dowName(r.date)} ${formatDate(r.date)}${r.time ? ` · ${r.time}` : ""}.`);
+              }
+            : undefined
+        }
+      />
       <div className="grid gap-4 md:grid-cols-2">
         <TextField label="Fecha" name="dueDate" type="date" defaultValue={v("dueDate")} />
         <TextField label="Hora (opcional)" name="dueTime" type="time" defaultValue={v("dueTime")} />
@@ -61,7 +89,7 @@ export function NewTaskSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen} title="Nueva tarea" trigger={trigger} wide>
       <ActionForm action={createTaskAction} successMessage="Tarea creada" onSuccess={() => setOpen(false)}>
-        <TaskFields projects={projects} spaces={spaces} defaults={defaults} />
+        <TaskFields projects={projects} spaces={spaces} defaults={defaults} detectDates />
         {defaults?.parentTaskId ? <input type="hidden" name="parentTaskId" value={String(defaults.parentTaskId)} /> : null}
         <div className="flex justify-end">
           <SubmitButton>Crear tarea</SubmitButton>

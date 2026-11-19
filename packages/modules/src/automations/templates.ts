@@ -160,6 +160,29 @@ export const TEMPLATES: AutomationTemplate[] = [
       ],
     },
   },
+  {
+    key: "cobro-vencido-recordatorio",
+    name: "Cobro vencido → recordatorio amable al cliente",
+    description: "Cuando un cobro vence, prepara el email de recordatorio (queda en Aprobaciones hasta que lo apruebes) y te deja la tarea de seguirlo.",
+    rule: {
+      name: "Recordatorio de cobro vencido",
+      triggerKind: "event",
+      eventType: "cobro.vencido",
+      conditions: { match: "all", items: [] },
+      actions: [
+        {
+          type: "send_email",
+          params: {
+            to: "client",
+            subject: "Recordatorio: {{cobro.concepto}}",
+            body: "Hola {{cliente.contacto}}:\n\nTe escribo por el pago de «{{cobro.concepto}}» ({{cobro.moneda}} {{cobro.monto}}), que venció el {{cobro.vence}}. Si ya lo hiciste, avisame así lo registro; si no, cuando puedas me pasás el comprobante.\n\n¡Gracias!\nLuciano Rosano",
+            automatic: false,
+          },
+        },
+        { type: "create_task", params: { title: "Seguir el cobro «{{cobro.concepto}}» de {{cliente.nombre}}", priority: 2, dueInDays: 3, project: "event" } },
+      ],
+    },
+  },
 ];
 
 export const findTemplate = (key: string | null | undefined) => TEMPLATES.find((t) => t.key === key) ?? null;

@@ -14,6 +14,7 @@ export const FIN_TABS = [
     label: "Suscripciones",
     href: "/finanzas/suscripciones",
   },
+  { key: "abonos", label: "Abonos", href: "/finanzas/abonos" },
   { key: "cuentas", label: "Cuentas", href: "/finanzas/cuentas" },
   { key: "reportes", label: "Reportes", href: "/finanzas/reportes" },
 ] as const;

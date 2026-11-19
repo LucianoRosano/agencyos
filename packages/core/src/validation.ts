@@ -41,15 +41,22 @@ export const zUrl = z.preprocess((v) => {
   return s;
 }, z.string().url("URL inválida").optional());
 
-/** Monto decimal ≥ 0 como string normalizado ("1234.50"). Acepta coma decimal. */
+/**
+ * Monto decimal ≥ 0 como string normalizado ("1234.50"). Acepta coma decimal y punto de miles es-AR:
+ * «1.234,56», «45.000», «1.250.000», «$ 12.500», «1234.5».
+ */
 export const zMoney = z.preprocess(
-  (v) =>
-    typeof v === "string"
-      ? v
-          .trim()
-          .replace(/\./g, (m, i, s: string) => (s.includes(",") ? "" : m))
-          .replace(",", ".")
-      : v,
+  (v) => {
+    if (typeof v !== "string") return v;
+    const s = v
+      .trim()
+      .replace(/^\$\s*/, "")
+      .replace(/\s/g, "");
+    if (s.includes(",")) return s.replace(/\./g, "").replace(",", ".");
+    // Sin coma: «45.000» o «1.250.000» son miles (formato argentino); «1234.5» es decimal.
+    if (/^\d{1,3}(\.\d{3})+$/.test(s)) return s.replace(/\./g, "");
+    return s;
+  },
   z
     .union([z.string(), z.number()])
     .transform((v) => String(v))

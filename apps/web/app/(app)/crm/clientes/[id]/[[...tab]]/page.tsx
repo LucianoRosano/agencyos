@@ -38,6 +38,7 @@ import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
 import { type PipelineOpp, PipelineView } from "@/components/crm/pipeline";
 import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, stageColor, stageName } from "@/components/crm/shared";
 import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
+import { ClientRetainers } from "@/components/finance/client-retainers";
 import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectCard } from "@/components/project-card";
@@ -543,7 +544,12 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </div>
       ) : null}
 
-      {tab === "dinero" && data.canSeeMoney ? <MoneyTab clientId={id} ctx={ctx} /> : null}
+      {tab === "dinero" && data.canSeeMoney ? (
+        <div className="flex flex-col gap-5">
+          <ClientRetainers ctx={ctx} clientId={id} />
+          <MoneyTab clientId={id} ctx={ctx} />
+        </div>
+      ) : null}
 
       {tab === "archivos" ? <ClientFilesTab ctx={ctx} clientId={id} /> : null}
 

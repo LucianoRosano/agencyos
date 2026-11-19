@@ -16,6 +16,7 @@ export const ENTITIES = {
   transaction: { table: schema.transaction, title: "description", href: (_id: string) => `/finanzas/movimientos` },
   receivable: { table: schema.receivable, title: "concept", href: (_id: string) => `/finanzas/por-cobrar` },
   payable: { table: schema.payable, title: "concept", href: (_id: string) => `/finanzas/por-pagar` },
+  retainer: { table: schema.retainer, title: "concept", href: (_id: string) => `/finanzas/abonos` },
   subscription: { table: schema.subscription, title: "vendor", href: (_id: string) => `/finanzas/suscripciones` },
   reminder: { table: schema.reminder, title: "title", href: (_id: string) => `/hoy` },
   inbox_item: { table: schema.inboxItem, title: "text", href: (_id: string) => `/bandeja` },

@@ -18,10 +18,13 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    // Compartir desde otras apps del celular (Android/Chrome): llega a /compartir y se guarda en la Bandeja.
+    share_target: { action: "/compartir", method: "GET", params: { title: "title", text: "text", url: "url" } },
     shortcuts: [
       { name: "Hoy", url: "/hoy" },
       { name: "Bandeja", url: "/bandeja" },
       { name: "Nueva tarea", url: "/tareas?nueva=1" },
+      { name: "Capturar", url: "/compartir" },
     ],
   };
 }

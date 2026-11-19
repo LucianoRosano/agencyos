@@ -45,8 +45,8 @@ import {
 import Link from "next/link";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
-import { Attachments } from "@/components/library/attachments";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
+import { LazyAttachments as Attachments } from "@/components/library/attachments-lazy";
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
 import type { AppCtx } from "@/lib/session";

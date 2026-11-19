@@ -30,10 +30,12 @@ export async function captureAction(_prev: unknown, fd: FormData) {
   return run((ctx) => capture(ctx, Object.fromEntries(fd)));
 }
 
-export async function quickTaskAction(title: string) {
+/** Tarea rápida desde la paleta: entiende fechas en el texto («Llamar a Sofía mañana 10hs»); si no hay, va para hoy. */
+export async function quickTaskAction(text: string) {
   const { createTask } = await import("@agencyos/modules/tasks/service");
-  const { todayAR } = await import("@agencyos/core");
-  return run((ctx) => createTask(ctx, { title, dueDate: todayAR() }));
+  const { parseNaturalDate, todayAR } = await import("@agencyos/core");
+  const r = parseNaturalDate(text);
+  return run((ctx) => createTask(ctx, { title: r.rest, dueDate: r.date ?? todayAR(), dueTime: r.time ?? undefined }));
 }
 
 /** Cookie del workspace activo: solo guarda la preferencia; requireCtx la valida contra las memberships activas. */

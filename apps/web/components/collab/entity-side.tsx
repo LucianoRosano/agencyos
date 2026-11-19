@@ -2,7 +2,7 @@ import { ENTITY_COLORS, L, label } from "@agencyos/core";
 import * as collab from "@agencyos/modules/collab/service";
 import { Card, SectionLabel } from "@agencyos/ui";
 import type { AppCtx } from "@/lib/session";
-import { CommentThread, ConnectionsEditor, TagEditor } from "./collab-ui";
+import { LazyCommentThread as CommentThread, LazyConnectionsEditor as ConnectionsEditor, LazyTagEditor as TagEditor } from "./collab-lazy";
 
 /**
  * Panel lateral común de las fichas: etiquetas (N6), "Conectado con" (N5) y comentarios internos (N10).

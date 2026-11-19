@@ -5,8 +5,9 @@ import { Button, EntityChip, Menu, MenuItem, MenuSeparator, Sheet } from "@agenc
 import { ArrowLeftRight, FileText, MoreHorizontal, Paperclip, Pencil, Repeat, Tag as TagIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { deleteTransactionAction, restoreTransactionAction } from "@/app/(app)/finanzas/actions";
-import { TagChip, TagEditor } from "@/components/collab/collab-ui";
-import { Attachments } from "@/components/library/attachments";
+import { LazyTagEditor as TagEditor } from "@/components/collab/collab-lazy";
+import { TagChip } from "@/components/collab/tag-chip";
+import { LazyAttachments as Attachments } from "@/components/library/attachments-lazy";
 import { useAction } from "@/components/use-action";
 import { Amount, type FormOptions } from "./shared";
 import { TransactionSheet, type TxDefaults } from "./tx-form";

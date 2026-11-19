@@ -31,7 +31,7 @@ export function WorkspaceSwitcher({
           <button
             type="button"
             disabled={pending}
-            aria-label={`Espacio de trabajo: ${current.name}. Cambiar`}
+            aria-label={compact ? `Espacio de trabajo ${current.name} (cambiar)` : undefined}
             className={
               compact
                 ? "grid size-11 place-items-center rounded-xl border border-border bg-surface-2 text-text-muted"
@@ -46,7 +46,8 @@ export function WorkspaceSwitcher({
                   <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-text-faint">Espacio de trabajo</span>
                   <span className="block truncate text-[14px] text-text">{current.name}</span>
                 </span>
-                <ChevronsUpDown className="size-4 shrink-0 text-text-muted" />
+                <span className="sr-only"> (cambiar)</span>
+                <ChevronsUpDown className="size-4 shrink-0 text-text-muted" aria-hidden />
               </>
             )}
           </button>

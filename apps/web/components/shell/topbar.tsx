@@ -4,6 +4,7 @@ import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
 import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { setSpaceAction } from "@/app/actions/shell";
 import { ROUTE_TITLES } from "./nav-config";
 import { openCapture } from "./palette-trigger";
@@ -79,7 +80,17 @@ export function Topbar({ data }: { data: ShellData }) {
   );
 }
 
+/** Número en el ícono de la app instalada (PWA, Badging API): notificaciones sin leer. */
+function useAppBadge(count: number) {
+  useEffect(() => {
+    const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    if (!nav.setAppBadge) return;
+    (count > 0 ? nav.setAppBadge(count) : (nav.clearAppBadge?.() ?? Promise.resolve())).catch(() => {});
+  }, [count]);
+}
+
 export function BellLink({ count, className }: { count: number; className?: string }) {
+  useAppBadge(count);
   return (
     <Link
       href="/notificaciones"
@@ -88,7 +99,7 @@ export function BellLink({ count, className }: { count: number; className?: stri
     >
       <Bell className="size-[18px]" />
       {count ? (
-        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 font-mono text-[10px] text-white">
+        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#5B3DF5] px-1 font-mono text-[10px] font-semibold text-white">
           {count > 99 ? "99+" : count}
         </span>
       ) : null}

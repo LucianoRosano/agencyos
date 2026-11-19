@@ -1,6 +1,6 @@
 "use client";
 
-import { L, label } from "@agencyos/core";
+import { dowName, formatDate, L, label, parseNaturalDate } from "@agencyos/core";
 import { Command } from "cmdk";
 import { CornerDownLeft, FilePlus2, FolderPlus, Inbox, ListPlus, Plus, Search, UserPlus, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,8 @@ export function CommandPalette({ enabledModules, role, initialOpen = false }: { 
   const limited = role === "member";
   const [open, setOpen] = useState(initialOpen);
   const [q, setQ] = useState("");
+  const quick = parseNaturalDate(q);
+  const quickLabel = quick.date ? `${dowName(quick.date)} ${formatDate(quick.date)}${quick.time ? ` ${quick.time}` : ""}` : "";
   const [hits, setHits] = useState<Hit[]>([]);
   const [, start] = useTransition();
   const router = useRouter();
@@ -113,14 +115,14 @@ export function CommandPalette({ enabledModules, role, initialOpen = false }: { 
                   onSelect={async () => {
                     const r = await quickTaskAction(q);
                     if (r.ok) {
-                      toast.success("Tarea creada para hoy");
+                      toast.success(quick.date ? `Tarea creada para ${quickLabel}` : "Tarea creada para hoy");
                       setOpen(false);
                       setQ("");
                       router.refresh();
                     } else toast.error(r.error.message);
                   }}
                 >
-                  Crear tarea para hoy: «{q}»
+                  {quick.date ? `Crear tarea «${quick.rest}» para ${quickLabel}` : `Crear tarea para hoy: «${q}»`}
                 </Item>
               ) : null}
             </Command.Group>
