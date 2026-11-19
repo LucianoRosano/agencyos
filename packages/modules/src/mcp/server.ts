@@ -1,4 +1,4 @@
-import { assertCan, type Ctx, DomainError, L, label } from "@agencyos/core";
+import { assertCan, type Ctx, DomainError, L, label, parseNaturalDate } from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -9,6 +9,7 @@ import { getProject, listProjects } from "../projects/queries";
 import { addDecision } from "../projects/service";
 import { getRepo, listRepos } from "../repos/queries";
 import { generatePlan } from "../repos/service";
+import { listRetainers, retainerMrr } from "../retainers/service";
 import { globalSearch } from "../search/service";
 import { getDb, scoped } from "../shared/db";
 import { listTasks } from "../tasks/queries";
@@ -220,6 +221,34 @@ export function buildMcpServer(ctx: Ctx) {
   );
 
   server.registerTool(
+    "listar_abonos",
+    {
+      title: "Abonos mensuales",
+      description:
+        "Abonos mensuales de clientes (mantenimiento, hosting, SEO): monto, próximo cobro, horas incluidas vs. usadas este mes, y el ingreso recurrente total por moneda.",
+      inputSchema: { cliente_id: z.string().uuid().optional() },
+    },
+    wrap("listar_abonos", async ({ cliente_id }: { cliente_id?: string }) => {
+      const rows = await listRetainers(ctx, { clientId: cliente_id });
+      return {
+        ingreso_recurrente: (await retainerMrr(ctx)).byCurrency,
+        abonos: rows.map(({ r, clientName, projectName, minutesUsed }) => ({
+          id: r.id,
+          cliente: clientName,
+          proyecto: projectName,
+          concepto: r.concept,
+          monto: r.amount,
+          moneda: r.currency,
+          estado: label(L.retainerStatus, r.status),
+          proximo_cobro: r.status === "active" ? r.nextIssueDate : null,
+          horas_incluidas: r.hoursIncluded,
+          horas_usadas_mes: minutesUsed === null ? null : Math.round((minutesUsed / 60) * 10) / 10,
+        })),
+      };
+    }),
+  );
+
+  server.registerTool(
     "capturar",
     {
       title: "Capturar en la Bandeja",
@@ -236,7 +265,8 @@ export function buildMcpServer(ctx: Ctx) {
     "crear_tarea",
     {
       title: "Crear tarea",
-      description: "Crea una tarea en un proyecto o espacio. Fechas en formato AAAA-MM-DD.",
+      description:
+        "Crea una tarea en un proyecto o espacio. `fecha` acepta AAAA-MM-DD o texto en español («mañana», «el viernes», «en 2 semanas», «15/12», con hora opcional «10hs»).",
       inputSchema: {
         titulo: z.string().min(1).max(300),
         proyecto_id: z.string().uuid().optional(),
@@ -246,10 +276,13 @@ export function buildMcpServer(ctx: Ctx) {
       },
     },
     wrap("crear_tarea", async (a: { titulo: string; proyecto_id?: string; fecha?: string; prioridad?: number; descripcion?: string }) => {
+      const natural = a.fecha && !/^\d{4}-\d{2}-\d{2}$/.test(a.fecha) ? parseNaturalDate(a.fecha) : null;
+      if (natural && !natural.date) throw new DomainError("VALIDATION", `No entendí la fecha «${a.fecha}». Usá AAAA-MM-DD o «mañana», «el viernes»…`);
       const t = await createTask(ctx, {
         title: a.titulo,
         projectId: a.proyecto_id,
-        dueDate: a.fecha,
+        dueDate: natural?.date ?? a.fecha,
+        dueTime: natural?.time ?? undefined,
         priority: a.prioridad ?? 3,
         descriptionMd: a.descripcion,
       });

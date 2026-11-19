@@ -74,3 +74,29 @@ describe("servidor MCP", () => {
     expect(r.isError).toBe(true);
   });
 });
+
+describe("servidor MCP · fechas escritas y abonos", () => {
+  it("crear_tarea entiende «mañana 10hs» y listar_abonos devuelve el ingreso recurrente", async () => {
+    const { addDays, todayAR } = await import("@agencyos/core");
+    const { createClient } = await import("@agencyos/modules/crm/service");
+    const { createRetainer } = await import("@agencyos/modules/retainers/service");
+    const owner = await makeWorkspace();
+    const c = await createClient(owner, { name: "Cliente MCP" });
+    await createRetainer(owner, { clientId: c.id, concept: "Mantenimiento", amount: "30000", currency: "ARS" });
+    const { token } = await createMcpToken(owner, { name: "Claude", scopes: ["read:all", "write:tasks"] });
+    const { client } = await connect(token);
+    const t = await client.callTool({ name: "crear_tarea", arguments: { titulo: "Llamar a la imprenta", fecha: "mañana 10hs" } });
+    expect(t.isError).toBeFalsy();
+    const [row] = await getDb()
+      .select()
+      .from(schema.task)
+      .where(and(eq(schema.task.workspaceId, owner.workspaceId), eq(schema.task.title, "Llamar a la imprenta")));
+    expect(row?.dueDate).toBe(addDays(todayAR(), 1));
+    expect(row?.dueTime?.slice(0, 5)).toBe("10:00");
+    const bad = await client.callTool({ name: "crear_tarea", arguments: { titulo: "X", fecha: "cuando pueda" } });
+    expect(bad.isError).toBe(true);
+    const ab = JSON.parse(textOf(await client.callTool({ name: "listar_abonos", arguments: {} })));
+    expect(ab.ingreso_recurrente).toEqual([{ currency: "ARS", total: "30000.00" }]);
+    expect(ab.abonos[0]).toMatchObject({ cliente: "Cliente MCP", concepto: "Mantenimiento", moneda: "ARS" });
+  });
+});
