@@ -39,6 +39,8 @@ const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
 const seed = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 200, 7);
 
 async function upload(page: Page, files: { name: string; mimeType: string; buffer: Buffer }[]) {
+  // Esperar la hidratación: el input de archivos necesita su onChange.
+  await page.waitForLoadState("networkidle");
   await page.locator('input[type="file"]').first().setInputFiles(files);
 }
 

@@ -54,6 +54,7 @@ test("importar clientes desde CSV con vista previa @visual", async ({ page }, in
   await login(page);
   await page.goto("/configuracion/datos");
   const panel = page.getByTestId("import-panel");
+  await page.waitForLoadState("networkidle");
   const csv = `Nombre;Rubro;Ciudad;Email\nImport Uno ${tag};Panadería;San Miguel;uno-${tag}@ejemplo.com\nImport Dos ${tag};Librería;;\n;sin nombre;;`;
   await panel.locator('input[type="file"]').setInputFiles({ name: "clientes.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
   await panel.getByRole("button", { name: "Vista previa" }).click();

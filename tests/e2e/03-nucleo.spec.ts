@@ -6,15 +6,14 @@ test.describe.configure({ mode: "serial" });
 test("Bandeja → procesar → tarea con fecha → aparece en Hoy → completarla @visual", async ({ page }, info) => {
   const text = `Llamar a Sofía por el panel ${info.project.name}`;
   await login(page);
+  // La captura se carga bajo demanda: la tecla C la abre, pero puede tardar un instante en aparecer.
   await page.keyboard.press("c").catch(() => undefined);
-  if (
-    !(await page
-      .getByRole("dialog", { name: "Capturar" })
-      .isVisible()
-      .catch(() => false))
-  ) {
-    await page.getByRole("button", { name: "Capturar" }).first().click();
-  }
+  const opened = await page
+    .getByRole("dialog", { name: "Capturar" })
+    .waitFor({ timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!opened) await page.getByRole("button", { name: "Capturar" }).first().click();
   await page.getByPlaceholder("Una tarea, una idea, un gasto, un link…").fill(text);
   await page.keyboard.press("Enter");
   await expect(page.getByText("Guardado en la Bandeja")).toBeVisible();

@@ -47,8 +47,12 @@ test("CRM: cliente + contacto + interacción + oportunidad → pipeline → gana
   await expect(page.getByText("Primera charla: quiere vender")).toBeVisible();
 
   // Oportunidad desde la ficha
-  await page.getByRole("button", { name: "Nueva", exact: true }).click();
   const od = page.getByRole("dialog", { name: "Nueva oportunidad" });
+  // Tras registrar la interacción la ficha se refresca: reintentar el clic hasta que abra la hoja.
+  await expect(async () => {
+    await page.getByRole("button", { name: "Nueva", exact: true }).click();
+    await expect(od).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
   await od.locator("#title").fill(opp);
   await od.locator("#valueAmount").fill("1.500.000");
   await od.locator("#probability").fill("40");
