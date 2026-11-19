@@ -1,6 +1,8 @@
 import "server-only";
-import { ok, type Result, toResultError } from "@agencyos/core";
+import { DomainError, ok, type Result, toResultError } from "@agencyos/core";
+import { log, requestIdFrom } from "@agencyos/modules/shared/log";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { type AppCtx, requireCtx } from "./session";
 
 export type ActionState<T = unknown> = Result<T> | null;
@@ -25,6 +27,9 @@ export async function run<T>(fn: (ctx: AppCtx) => Promise<T>, opts: { revalidate
       (e as { digest: string }).digest.startsWith("NEXT_")
     )
       throw e;
+    // Errores de dominio (validación, permisos…) son esperables; el resto se registra con su requestId.
+    if (!(e instanceof DomainError) && !(e instanceof Error && e.name === "ZodError"))
+      log.error({ requestId: requestIdFrom(await headers().catch(() => null)), err: e instanceof Error ? e.message : String(e) }, "server action falló");
     return toResultError(e);
   }
 }

@@ -1,11 +1,12 @@
 import { L, label, relativeFromDate } from "@agencyos/core";
-import { clientStatusCounts, listClients } from "@agencyos/modules/crm/queries";
+import { clientStatusCounts, listClientsPage } from "@agencyos/modules/crm/queries";
 import { Badge, Button, EmptyState, PageHeader } from "@agencyos/ui";
 import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { filterByTag, ListToolbar } from "@/components/collab/list-toolbar";
 import { CrmNav, FilterChips, SearchBox } from "@/components/crm/crm-nav";
 import { CLIENT_STATUS_TONE, CRM_ACCENT } from "@/components/crm/shared";
+import { LoadMore } from "@/components/load-more";
 import { getSelectedSpace } from "@/lib/prefs";
 import { requireCtx } from "@/lib/session";
 
@@ -26,7 +27,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const ctx = await requireCtx();
   const status = FILTERS.find((f) => f === sp.estado && f !== "todos");
   const spaceId = await getSelectedSpace();
-  const [allRows, counts] = await Promise.all([listClients(ctx, { status, q: sp.q, spaceId }), clientStatusCounts(ctx, spaceId)]);
+  const [page, counts] = await Promise.all([
+    listClientsPage(ctx, { status, q: sp.q, spaceId, hasta: sp.hasta, pageSize: 100 }),
+    clientStatusCounts(ctx, spaceId),
+  ]);
+  const allRows = page.items;
   const rows = await filterByTag(ctx, "client", sp.etiqueta, allRows, (r) => r.c.id);
   const notArchived = Object.entries(counts).reduce((a, [k, n]) => (k === "archived" ? a : a + n), 0);
   const href = (k: string) => `/crm/clientes?${new URLSearchParams({ estado: k, ...(sp.q ? { q: sp.q } : {}) })}`;
@@ -117,6 +122,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               </li>
             ))}
           </ul>
+          <LoadMore basePath="/crm/clientes" params={sp} nextCursor={page.nextCursor} capped={page.capped} shown={allRows.length} />
         </>
       ) : (
         <EmptyState

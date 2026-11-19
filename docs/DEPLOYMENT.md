@@ -243,6 +243,31 @@ cat infra/.deploy/backup-prod.json               # estado del último backup
 tail -n 50 /var/log/agencyos/backup.log
 ```
 
+## 13. Almacenamiento de archivos: disco o S3-compatible
+
+Por defecto los archivos (Biblioteca, adjuntos, portal) se guardan en disco (`FILES_DIR=/data/files`, volumen `agencyos_files`, incluido en el backup). Para varias instancias web en distintos hosts, o para que los archivos sobrevivan a la pérdida del VPS, se puede usar un bucket S3-compatible. **Cambiarlo es una decisión de Luciano** (tiene costo y requiere migrar los archivos existentes).
+
+| Proveedor | `S3_ENDPOINT` | `S3_REGION` | Notas |
+|---|---|---|---|
+| Cloudflare R2 | `https://<cuenta>.r2.cloudflarestorage.com` | `auto` | Sin costo de salida. Token de API "Object Read & Write" limitado al bucket. |
+| Backblaze B2 | `https://s3.<región>.backblazeb2.com` | la del bucket (ej. `us-east-005`) | Application Key limitada al bucket. |
+| MinIO (mismo VPS) | `http://minio:9000` | `us-east-1` | Servicio comentado en `infra/docker-compose.yml`; solo red interna. No protege ante la pérdida del VPS. |
+| AWS S3 | (vacío) | la del bucket | `S3_FORCE_PATH_STYLE=false`. |
+
+Pasos:
+1. Crear un bucket **privado** (sin acceso público ni sitio web) y una credencial limitada a ese bucket. Guardar la credencial en Bitwarden.
+2. En `infra/.env.prod` (y `.env.staging` con otro bucket o `S3_PREFIX=staging/`): `STORAGE_DRIVER=s3`, `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (web **y** worker leen el mismo archivo).
+3. Copiar los archivos existentes manteniendo las claves (la clave en la base es la ruta relativa dentro de `FILES_DIR`):
+   `rclone copy /var/lib/docker/volumes/agencyos_files/_data r2:agencyos-prod/` (con `S3_PREFIX`, agregarlo al destino). Verificar con `rclone check`.
+4. Deploy. Abrir un archivo y una miniatura en Biblioteca; Configuración → Estado debe mostrar el almacenamiento S3 (`/api/health` → `checks.storage.driver = "s3"`).
+5. Backups: el bucket ya no está en el volumen respaldado. Activar el versionado/retención del proveedor o sumar un `rclone sync` del bucket al Drive en `backup.sh`.
+
+**Descargas:** siguen pasando por la ruta autenticada de la app (`/api/files/[id]`: sesión + URL firmada de 5 min + `nosniff`/CSP sandbox + rate limit). No se usan URLs prefirmadas del proveedor: el bucket nunca se expone y los permisos siguen siendo los de AGENCYOS (ADR 0012). Costo: el archivo atraviesa la app (límite de subida 25 MB, suficiente).
+
+## 14. Varias instancias (escala horizontal)
+
+Ver [`docs/SCALING.md`](SCALING.md) §Escalado horizontal: `deploy.replicas` en Compose, bloque `reverse_proxy` con `lb_policy` comentado en el Caddyfile, almacenamiento compartido y dimensionamiento de pools. Observabilidad (health, métricas, trazas): [`docs/OBSERVABILITY.md`](OBSERVABILITY.md).
+
 ## Apéndice: decisiones
 
 - **Una sola máquina, dos entornos:** staging y producción comparten Caddy pero tienen bases, volúmenes, redes internas y secretos separados. Las bases están en redes Docker `internal` sin salida a internet ni puertos publicados.

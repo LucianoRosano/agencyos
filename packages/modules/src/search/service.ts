@@ -49,7 +49,7 @@ export async function globalSearch(ctx: Ctx, q: string, opts: { types?: string[]
     },
     {
       type: "note",
-      q: sql`select 'note', id, title, folder_path, greatest(similarity(f_search_norm(title), ${norm}), case when to_tsvector('spanish', f_unaccent(body_md)) @@ plainto_tsquery('spanish', f_unaccent(${term})) then 0.3 else 0 end) from note where workspace_id = ${ws} and deleted_at is null and (f_search_norm(title) like ${like} or f_search_norm(title) % ${norm} or to_tsvector('spanish', f_unaccent(body_md)) @@ plainto_tsquery('spanish', f_unaccent(${term})))`,
+      q: sql`select 'note', id, title, folder_path, greatest(similarity(f_search_norm(title), ${norm}), case when body_tsv @@ plainto_tsquery('spanish', f_unaccent(${term})) then 0.3 else 0 end) from note where workspace_id = ${ws} and deleted_at is null and (f_search_norm(title) like ${like} or f_search_norm(title) % ${norm} or body_tsv @@ plainto_tsquery('spanish', f_unaccent(${term})))`,
     },
     {
       type: "course",

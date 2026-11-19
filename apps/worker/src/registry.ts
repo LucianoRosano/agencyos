@@ -4,20 +4,24 @@ import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
 import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";
 import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
+import { purgeRateLimits } from "@agencyos/modules/shared/rate-limit";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
  * Registro de trabajos del worker. Cada módulo agrega los suyos acá (una línea por job).
  * cron en zona America/Buenos_Aires.
  */
-export type Job = { name: string; cron: string; run: () => Promise<unknown>; quiet?: boolean };
+// - `exclusive` (default true): con varios workers, solo uno lo corre a la vez (lease en job_lease; ver runtime.ts).
+// - `leaseMs`: TTL del lease (se renueva mientras corre; vence solo si el proceso muere). Default 5 min.
+export type Job = { name: string; cron: string; run: () => Promise<unknown>; quiet?: boolean; exclusive?: boolean; leaseMs?: number };
 
 export const JOBS: Job[] = [
-  { name: "outbox-dispatch", cron: "* * * * *", run: () => dispatchOutbox(), quiet: true },
-  { name: "heartbeat", cron: "*/5 * * * *", run: async () => true, quiet: true },
+  { name: "outbox-dispatch", cron: "* * * * *", run: () => dispatchOutbox(), quiet: true, leaseMs: 2 * 60_000 },
+  { name: "heartbeat", cron: "*/5 * * * *", run: async () => true, quiet: true, exclusive: false },
   { name: "daily-due-dates", cron: "5 6 * * *", run: () => dailyDueDates() },
   { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
+  { name: "rate-limit-purge", cron: "40 4 * * *", run: () => purgeRateLimits() },
   // — módulos de la segunda vuelta: agregar debajo —
   { name: "library-orphans", cron: "45 4 * * *", run: () => cleanupOrphanFiles() },
   { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },
@@ -29,5 +33,5 @@ export const JOBS: Job[] = [
   { name: "automations-tick", cron: "* * * * *", run: () => automationsTick(), quiet: true },
   { name: "repos-execute-plans", cron: "* * * * *", run: () => reposExecutePlans(), quiet: true },
   { name: "repos-daily-sync", cron: "0 4 * * *", run: () => reposDailySync() },
-  { name: "ai-agent-runs", cron: "* * * * *", run: () => processAgentRuns({ maxMs: 50_000, pollMs: 3_000 }), quiet: true },
+  { name: "ai-agent-runs", cron: "* * * * *", run: () => processAgentRuns({ maxMs: 50_000, pollMs: 3_000 }), quiet: true, leaseMs: 2 * 60_000 },
 ];

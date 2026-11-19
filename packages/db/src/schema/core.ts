@@ -92,6 +92,7 @@ export const link = pgTable(
   (t) => [
     index("link_from").on(t.fromType, t.fromId),
     index("link_to").on(t.toType, t.toId),
+    index("link_ws_from_id").on(t.workspaceId, t.fromId),
     uniqueIndex("link_unique").on(t.workspaceId, t.fromType, t.fromId, t.toType, t.toId, t.kind),
   ],
 );
@@ -171,7 +172,12 @@ export const notification = pgTable(
     readAt: tz("read_at"),
     createdAt: tz("created_at").notNull().defaultNow(),
   },
-  (t) => [index("notification_user").on(t.userId, t.createdAt), uniqueIndex("notification_dedupe").on(t.userId, t.dedupeKey)],
+  (t) => [
+    index("notification_user").on(t.userId, t.createdAt),
+    uniqueIndex("notification_dedupe").on(t.userId, t.dedupeKey),
+    // Badge de no leídas: se consulta en cada página.
+    index("notification_unread").on(t.userId, t.workspaceId).where(sql`${t.readAt} is null`),
+  ],
 );
 
 export const auditLog = pgTable(

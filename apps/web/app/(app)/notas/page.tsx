@@ -1,8 +1,9 @@
 import { relativeFromDate } from "@agencyos/core";
-import { type FolderNode, folderTree, listNotes, noteTags } from "@agencyos/modules/notes/queries";
+import { type FolderNode, folderTree, listNotesPage, noteTags } from "@agencyos/modules/notes/queries";
 import { Button, Card, cn, EmptyState, PageHeader, SectionLabel } from "@agencyos/ui";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Folder, FolderOpen, Hash, LayoutTemplate, Pin, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { LoadMore } from "@/components/load-more";
 import { FilterSelect } from "@/components/notes/filter-select";
 import { spaceOpts } from "@/lib/options";
 import { getSelectedSpace } from "@/lib/prefs";
@@ -10,11 +11,11 @@ import { requireCtx } from "@/lib/session";
 
 export const metadata = { title: "Notas" };
 
-type SP = { q?: string; carpeta?: string; etiqueta?: string; espacio?: string };
+type SP = { q?: string; carpeta?: string; etiqueta?: string; espacio?: string; hasta?: string };
 
 function qs(sp: SP, patch: Partial<SP>) {
   const p = new URLSearchParams();
-  for (const [k, v] of Object.entries({ ...sp, ...patch })) if (v) p.set(k, v);
+  for (const [k, v] of Object.entries({ ...sp, hasta: undefined, ...patch })) if (v) p.set(k, v);
   const s = p.toString();
   return s ? `/notas?${s}` : "/notas";
 }
@@ -60,12 +61,13 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const ctx = await requireCtx();
   const spaceId = sp.espacio || (await getSelectedSpace());
-  const [rows, tree, tags, spaces] = await Promise.all([
-    listNotes(ctx, { q: sp.q, folder: sp.carpeta, tag: sp.etiqueta, spaceId, limit: 300 }),
+  const [page, tree, tags, spaces] = await Promise.all([
+    listNotesPage(ctx, { q: sp.q, folder: sp.carpeta, tag: sp.etiqueta, spaceId, hasta: sp.hasta, pageSize: 100 }),
     folderTree(ctx),
     noteTags(ctx),
     spaceOpts(ctx),
   ]);
+  const rows = page.items;
   const filtered = Boolean(sp.q || sp.carpeta || sp.etiqueta || sp.espacio);
   const current = sp.carpeta ? findFolder(tree.tree, sp.carpeta) : undefined;
   const parent = sp.carpeta?.includes("/") ? sp.carpeta.split("/").slice(0, -1).join("/") : undefined;
@@ -267,36 +269,39 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
 
           {mobileHome ? <SectionLabel className="mb-2 md:hidden">Recientes</SectionLabel> : null}
           {rows.length ? (
-            <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface" aria-label="Notas">
-              {rows.map((r) => (
-                <li key={r.id} className="border-b border-border last:border-0">
-                  <Link href={`/notas/${r.id}`} className="flex min-h-14 flex-col gap-0.5 px-4 py-3 hover:bg-surface-2 md:min-h-0">
-                    <span className="flex items-center gap-2">
-                      {r.pinned ? <Pin className="size-3.5 shrink-0 text-accent" aria-label="Fijada" /> : null}
-                      {r.isDaily ? <CalendarDays className="size-3.5 shrink-0 text-text-faint" aria-label="Diaria" /> : null}
-                      <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-text">{r.title}</span>
-                      <span className="shrink-0 font-mono text-[11px] text-text-faint">{relativeFromDate(r.updatedAt)}</span>
-                    </span>
-                    {r.snippet?.trim() ? <span className="line-clamp-1 text-[13px] text-text-muted">{r.snippet}</span> : null}
-                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-faint">
-                      {r.folderPath ? (
-                        <span className="flex min-w-0 items-center gap-1">
-                          <Folder className="size-3" />
-                          <span className="truncate">{r.folderPath}</span>
-                        </span>
-                      ) : null}
-                      {r.spaceName ? (
-                        <span className="flex items-center gap-1.5">
-                          <span aria-hidden className="size-1.5 rounded-full" style={{ background: r.spaceColor ?? "#8A93A6" }} />
-                          {r.spaceName}
-                        </span>
-                      ) : null}
-                      <span className="font-mono">{r.wordCount} pal.</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface" aria-label="Notas">
+                {rows.map((r) => (
+                  <li key={r.id} className="border-b border-border last:border-0">
+                    <Link href={`/notas/${r.id}`} className="flex min-h-14 flex-col gap-0.5 px-4 py-3 hover:bg-surface-2 md:min-h-0">
+                      <span className="flex items-center gap-2">
+                        {r.pinned ? <Pin className="size-3.5 shrink-0 text-accent" aria-label="Fijada" /> : null}
+                        {r.isDaily ? <CalendarDays className="size-3.5 shrink-0 text-text-faint" aria-label="Diaria" /> : null}
+                        <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-text">{r.title}</span>
+                        <span className="shrink-0 font-mono text-[11px] text-text-faint">{relativeFromDate(r.updatedAt)}</span>
+                      </span>
+                      {r.snippet?.trim() ? <span className="line-clamp-1 text-[13px] text-text-muted">{r.snippet}</span> : null}
+                      <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-faint">
+                        {r.folderPath ? (
+                          <span className="flex min-w-0 items-center gap-1">
+                            <Folder className="size-3" />
+                            <span className="truncate">{r.folderPath}</span>
+                          </span>
+                        ) : null}
+                        {r.spaceName ? (
+                          <span className="flex items-center gap-1.5">
+                            <span aria-hidden className="size-1.5 rounded-full" style={{ background: r.spaceColor ?? "#8A93A6" }} />
+                            {r.spaceName}
+                          </span>
+                        ) : null}
+                        <span className="font-mono">{r.wordCount} pal.</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <LoadMore basePath="/notas" params={sp} nextCursor={page.nextCursor} capped={page.capped} shown={rows.length} />
+            </>
           ) : (
             <Card className="p-2">
               <EmptyState

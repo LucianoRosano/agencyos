@@ -3,6 +3,7 @@ import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNull, ne, or, type SQL, sql } from "drizzle-orm";
 import { getDb, scoped } from "../shared/db";
 import { ENTITIES, entityHref, isEntityType } from "../shared/entities";
+import { cursorColumn, orderByKeys, paginate, type SortKey } from "../shared/pagination";
 import { hasPlainMention, normName } from "./parse";
 
 export type NoteFilters = { q?: string; spaceId?: string; folder?: string; tag?: string; limit?: number };
@@ -21,11 +22,17 @@ const noteCols = {
   entityId: schema.note.entityId,
   spaceName: schema.space.name,
   spaceColor: schema.space.color,
-  snippet: sql<string>`left(regexp_replace(regexp_replace(regexp_replace(${schema.note.bodyMd}, '^---.*?\\n---\\s*', ''), '[#>*_\`\\[\\]]+', '', 'g'), '\\s+', ' ', 'g'), 180)`,
+  // f_note_snippet (migración 0005): se evalúa después del LIMIT, solo en las filas devueltas.
+  snippet: sql<string>`f_note_snippet(${schema.note.bodyMd})`,
 };
 
-/** Lista de notas: búsqueda de texto completo (tolerante a tildes y errores leves) + filtros, orden por modificación. */
-export async function listNotes(ctx: Ctx, f: NoteFilters = {}) {
+const NOTE_KEYS: SortKey[] = [
+  { col: schema.note.pinned, dir: "desc" },
+  { col: schema.note.updatedAt, dir: "desc" },
+  { col: schema.note.id, dir: "desc" },
+];
+
+function noteQuery(ctx: Ctx, f: NoteFilters, extra: SQL | undefined, limit: number) {
   const where: SQL[] = [scoped(schema.note, ctx)];
   if (f.spaceId) where.push(eq(schema.note.spaceId, f.spaceId));
   if (f.folder)
@@ -36,21 +43,37 @@ export async function listNotes(ctx: Ctx, f: NoteFilters = {}) {
       sql`exists (select 1 from ${schema.tagging} tg join ${schema.tag} t on t.id = tg.tag_id where tg.entity_type = 'note' and tg.entity_id = ${schema.note.id} and t.name = ${f.tag.toLowerCase()})`,
     );
   }
+  if (extra) where.push(extra);
   const term = f.q?.trim().slice(0, 100);
   let rank: SQL = sql`0`;
   if (term) {
     const norm = sql`f_search_norm(${term})`;
-    const fts = sql`to_tsvector('spanish', f_unaccent(${schema.note.bodyMd})) @@ plainto_tsquery('spanish', f_unaccent(${term}))`;
+    // body_tsv: columna generada (migración 0005) — no recalcula to_tsvector del cuerpo por fila.
+    const fts = sql`"note"."body_tsv" @@ plainto_tsquery('spanish', f_unaccent(${term}))`;
     where.push(sql`(f_search_norm(${schema.note.title}) like '%' || ${norm} || '%' or f_search_norm(${schema.note.title}) % ${norm} or ${fts})`);
     rank = sql`greatest(similarity(f_search_norm(${schema.note.title}), ${norm}) + case when f_search_norm(${schema.note.title}) like '%' || ${norm} || '%' then 0.5 else 0 end, case when ${fts} then 0.3 else 0 end)`;
   }
   return getDb()
-    .select(noteCols)
+    .select({ ...noteCols, _cursor: cursorColumn(NOTE_KEYS) })
     .from(schema.note)
     .leftJoin(schema.space, eq(schema.space.id, schema.note.spaceId))
     .where(and(...where))
-    .orderBy(...(term ? [desc(rank)] : [desc(schema.note.pinned)]), desc(schema.note.updatedAt))
-    .limit(f.limit ?? 300);
+    .orderBy(...(term ? [desc(rank), desc(schema.note.updatedAt), desc(schema.note.id)] : orderByKeys(NOTE_KEYS)))
+    .limit(limit);
+}
+
+/** Lista de notas: búsqueda de texto completo (tolerante a tildes y errores leves) + filtros, orden por modificación. */
+export async function listNotes(ctx: Ctx, f: NoteFilters = {}) {
+  return noteQuery(ctx, f, undefined, f.limit ?? 300);
+}
+
+/**
+ * Lista paginada por cursor ("Cargar más" con `?hasta=`). Con búsqueda (`q`) el orden es por relevancia: no se pagina
+ * (se devuelven los 100 mejores resultados).
+ */
+export async function listNotesPage(ctx: Ctx, f: NoteFilters & { hasta?: string | null; pageSize?: number } = {}) {
+  if (f.q?.trim()) return { items: await noteQuery(ctx, f, undefined, 100), nextCursor: null, capped: false };
+  return paginate(NOTE_KEYS, (extra, limit) => noteQuery(ctx, f, extra, limit), { hasta: f.hasta, pageSize: f.pageSize });
 }
 
 export type FolderNode = { name: string; path: string; count: number; children: FolderNode[] };

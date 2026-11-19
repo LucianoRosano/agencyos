@@ -20,6 +20,9 @@
     "db:generate": "pnpm --filter @agencyos/db generate",
     "db:migrate": "pnpm --filter @agencyos/db migrate",
     "db:seed": "pnpm --filter @agencyos/db seed",
+    "seed:volumen": "pnpm --filter @agencyos/db exec tsx ../../scripts/seed-volumen.ts",
+    "explain:hot": "pnpm --filter @agencyos/db exec tsx ../../scripts/explain-hot.ts",
+    "load:test": "pnpm --filter @agencyos/db exec tsx ../../scripts/load-test.ts",
     "admin": "pnpm --filter @agencyos/modules admin"
   },
   "devDependencies": {
@@ -28,6 +31,7 @@
     "@modelcontextprotocol/sdk": "1.32.2",
     "@playwright/test": "1.64.1",
     "@types/node": "^22",
+    "autocannon": "9.0.0",
     "drizzle-orm": "0.45.4",
     "jszip": "3.10.2",
     "playwright-core": "1.64.1",

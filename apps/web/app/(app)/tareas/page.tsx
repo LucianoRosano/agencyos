@@ -1,10 +1,11 @@
 import { todayAR } from "@agencyos/core";
 import { tagsFor } from "@agencyos/modules/collab/service";
-import { listTasks, type TaskView } from "@agencyos/modules/tasks/queries";
+import { listTasks, listTasksPage, type TaskView } from "@agencyos/modules/tasks/queries";
 import { Button, EmptyState, PageHeader, Tabs } from "@agencyos/ui";
 import { CircleCheck, Columns3, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { filterByTag, ListToolbar } from "@/components/collab/list-toolbar";
+import { LoadMore } from "@/components/load-more";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow, type TaskRowData } from "@/components/tasks/task-row";
@@ -28,7 +29,12 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
   const view = (VIEWS.find((v) => v.key === sp.ver)?.key ?? "hoy") as TaskView;
   const board = sp.vista === "kanban";
   const spaceId = await getSelectedSpace();
-  const [rows, projects, spaces] = await Promise.all([listTasks(ctx, { view: board ? "todas" : view, spaceId, q: sp.q }), projectOpts(ctx), spaceOpts(ctx)]);
+  // Lista: paginada por cursor ("Cargar más"). Kanban: hasta 300 abiertas (columnas por estado).
+  const page = board
+    ? { items: await listTasks(ctx, { view: "todas", spaceId, q: sp.q }), nextCursor: null, capped: false }
+    : await listTasksPage(ctx, { view, spaceId, q: sp.q, hasta: sp.hasta, pageSize: 100 });
+  const rows = page.items;
+  const [projects, spaces] = await Promise.all([projectOpts(ctx), spaceOpts(ctx)]);
   const tagged = await filterByTag(ctx, "task", sp.etiqueta, rows, (r) => r.t.id);
   const tagMap = await tagsFor(
     ctx,
@@ -86,11 +92,14 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
       {board ? (
         <TaskBoard tasks={tasks} />
       ) : tasks.length ? (
-        <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">
-          {tasks.map((t) => (
-            <TaskRow key={t.id} task={t} />
-          ))}
-        </ul>
+        <>
+          <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">
+            {tasks.map((t) => (
+              <TaskRow key={t.id} task={t} />
+            ))}
+          </ul>
+          <LoadMore basePath="/tareas" params={sp} nextCursor={page.nextCursor} capped={page.capped} shown={rows.length} />
+        </>
       ) : (
         <EmptyState
           icon={<CircleCheck />}

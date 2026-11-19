@@ -1,5 +1,6 @@
 import { SIGNATURE_HEADER } from "@agencyos/modules/automations/engine";
 import { receiveWebhook } from "@agencyos/modules/automations/service";
+import { clientIp, RATE_RULES, rateLimitResponse } from "@agencyos/modules/shared/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ async function readCapped(req: Request): Promise<string | null> {
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const limited = await rateLimitResponse(RATE_RULES.webhook, `in:${id}:${clientIp(req.headers)}`, { json: true });
+  if (limited) return limited;
   const body = await readCapped(req);
   if (body === null) return Response.json({ ok: false, error: "Cuerpo demasiado grande" }, { status: 413, headers });
   const r = await receiveWebhook(id, body, req.headers.get(SIGNATURE_HEADER));

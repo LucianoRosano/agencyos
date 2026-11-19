@@ -1,9 +1,11 @@
 import { formatDate, formatMoney } from "@agencyos/core";
 import { openPublicQuote } from "@agencyos/modules/quotes/public";
+import { clientIp, RATE_LIMIT_MESSAGE, RATE_RULES, rateLimit } from "@agencyos/modules/shared/rate-limit";
 import { geistFontCss } from "@agencyos/pdf/fonts";
 import { renderQuoteHtml } from "@agencyos/pdf/quote-html";
 import { Download } from "lucide-react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { DecisionForm } from "./decision-form";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +13,16 @@ export const metadata: Metadata = { title: "Presupuesto · Luciano Rosano", robo
 
 export default async function PublicQuotePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  if (!(await rateLimit(RATE_RULES.publicOpen, clientIp(await headers()))).ok) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-bg px-4 text-center">
+        <div>
+          <h1 className="text-xl font-semibold">Demasiados intentos</h1>
+          <p className="mt-2 text-sm text-text-muted">{RATE_LIMIT_MESSAGE}</p>
+        </div>
+      </main>
+    );
+  }
   const data = await openPublicQuote(token);
   if (!data) {
     return (

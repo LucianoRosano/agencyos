@@ -6,6 +6,7 @@ export * from "./extras";
 export * from "./finance";
 export * from "./knowledge";
 export * from "./library";
+export * from "./ops";
 export * from "./projects";
 export * from "./quotes";
 export * from "./repos";

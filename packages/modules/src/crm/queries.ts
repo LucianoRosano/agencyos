@@ -2,14 +2,19 @@ import { type Ctx, can } from "@agencyos/core";
 import { schema } from "@agencyos/db";
 import { and, asc, desc, eq, gte, inArray, ne, or, type SQL, sql } from "drizzle-orm";
 import { getDb, scoped } from "../shared/db";
+import { cursorColumn, orderByKeys, paginate, type SortKey } from "../shared/pagination";
 
 const OPEN = ["new", "contacted", "meeting", "proposal_sent", "negotiation"];
 
 export type ClientFilters = { status?: string; q?: string; spaceId?: string };
 
-/** Lista de clientes con contacto principal y oportunidades abiertas. "archived" solo si se pide. */
-export async function listClients(ctx: Ctx, f: ClientFilters = {}) {
-  const db = getDb();
+const CLIENT_KEYS: SortKey[] = [
+  { col: schema.client.lastActivityAt, dir: "desc" },
+  { col: schema.client.name, dir: "asc" },
+  { col: schema.client.id, dir: "asc" },
+];
+
+function clientQuery(ctx: Ctx, f: ClientFilters, extra: SQL | undefined, limit: number) {
   const where: SQL[] = [scoped(schema.client, ctx)];
   if (f.status) where.push(eq(schema.client.status, f.status));
   else where.push(ne(schema.client.status, "archived"));
@@ -19,7 +24,8 @@ export async function listClients(ctx: Ctx, f: ClientFilters = {}) {
       sql`f_search_norm(coalesce(${schema.client.name},'') || ' ' || coalesce(${schema.client.tradeName},'') || ' ' || coalesce(${schema.client.industry},'') || ' ' || coalesce(${schema.client.city},'')) like '%' || f_search_norm(${f.q}) || '%'`,
     );
   }
-  return db
+  if (extra) where.push(extra);
+  return getDb()
     .select({
       c: schema.client,
       primaryContact: sql<
@@ -27,11 +33,22 @@ export async function listClients(ctx: Ctx, f: ClientFilters = {}) {
       >`(select ct.name from client_contact cc join contact ct on ct.id = cc.contact_id and ct.deleted_at is null where cc.client_id = "client"."id" order by cc.is_primary desc, ct.name limit 1)`,
       openOpps: sql<number>`(select count(*)::int from opportunity o where o.client_id = "client"."id" and o.deleted_at is null and o.stage in ('new','contacted','meeting','proposal_sent','negotiation'))`,
       activeProjects: sql<number>`(select count(*)::int from project p where p.client_id = "client"."id" and p.deleted_at is null and p.archived_at is null and p.status not in ('done','archived'))`,
+      _cursor: cursorColumn(CLIENT_KEYS),
     })
     .from(schema.client)
     .where(and(...where))
-    .orderBy(desc(schema.client.lastActivityAt), asc(schema.client.name))
-    .limit(500);
+    .orderBy(...orderByKeys(CLIENT_KEYS))
+    .limit(limit);
+}
+
+/** Lista de clientes con contacto principal y oportunidades abiertas. "archived" solo si se pide. */
+export async function listClients(ctx: Ctx, f: ClientFilters = {}) {
+  return clientQuery(ctx, f, undefined, 500);
+}
+
+/** Lista paginada por cursor ("Cargar más" con `?hasta=`). */
+export async function listClientsPage(ctx: Ctx, f: ClientFilters & { hasta?: string | null; pageSize?: number } = {}) {
+  return paginate(CLIENT_KEYS, (extra, limit) => clientQuery(ctx, f, extra, limit), { hasta: f.hasta, pageSize: f.pageSize });
 }
 
 /** Conteo por estado (chips de filtro). */
