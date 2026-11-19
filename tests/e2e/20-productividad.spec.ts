@@ -21,6 +21,10 @@ test("fechas en lenguaje natural: paleta y formulario de tarea", async ({ page }
       .getByText(/mañana 10:00/),
   ).toBeVisible();
 
+  // Carga de la semana: la tarea de mañana (sin estimar) aparece en la franja
+  await expect(page.getByTestId("week-load")).toBeVisible();
+  await expect(page.getByTestId("week-load").getByText(/s\/e/).first()).toBeVisible();
+
   // Formulario: al salir del título completa fecha y hora
   await page.goto("/tareas?nueva=1");
   const title = page.locator("#title");

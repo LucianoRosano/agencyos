@@ -101,8 +101,13 @@ test("presupuesto: 3 ítems con descuentos → PDF → enviado → v2 → acepta
   expect(pdf.length).toBeGreaterThan(10_000);
 
   // Enviado (MVP: PDF + texto) → la oportunidad pasa a «Propuesta enviada»
-  await page.getByRole("button", { name: "Marcar como enviado" }).click();
-  await expect(page.getByRole("textbox", { name: "Texto para WhatsApp o email" })).toHaveValue(/Total: \$ 384\.750 \(precios finales\)/);
+  const sendText = page.getByRole("textbox", { name: "Texto para WhatsApp o email" });
+  // La hoja se carga bajo demanda: reintentar el clic si llegó antes de hidratar.
+  await expect(async () => {
+    await page.getByRole("button", { name: "Marcar como enviado" }).click();
+    await expect(sendText).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
+  await expect(sendText).toHaveValue(/Total: \$ 384\.750 \(precios finales\)/);
   await page.getByRole("button", { name: "Ya lo envié" }).click();
   await expect(page.getByText("Enviado", { exact: true }).first()).toBeVisible();
   expect((await sql<{ stage: string }>("select stage from opportunity where id = $1", [oppId]))[0]?.stage).toBe("proposal_sent");

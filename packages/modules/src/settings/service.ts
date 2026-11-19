@@ -37,6 +37,8 @@ export const workspaceInput = z.object({
   maxActiveProjects: zInt(1, 50).default(8),
   /** Cuota de la Biblioteca en MB (por defecto 5000). Bajarla no borra nada: solo frena subidas nuevas. */
   storageQuotaMb: zInt(100, 1_000_000).default(5000),
+  /** Horas de trabajo por día hábil para la «Carga de la semana» de Tareas. */
+  dailyCapacityHours: zInt(1, 16).default(6),
 });
 
 export async function updateWorkspaceSettings(ctx: Ctx, raw: unknown) {

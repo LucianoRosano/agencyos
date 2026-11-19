@@ -1,5 +1,6 @@
 import { todayAR } from "@agencyos/core";
 import { tagsFor } from "@agencyos/modules/collab/service";
+import { weekLoad } from "@agencyos/modules/tasks/capacity";
 import { listTasks, listTasksPage, type TaskView } from "@agencyos/modules/tasks/queries";
 import { Button, EmptyState, PageHeader, Tabs } from "@agencyos/ui";
 import { CircleCheck, Columns3, List, Plus } from "lucide-react";
@@ -9,6 +10,7 @@ import { LoadMore } from "@/components/load-more";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { NewTaskSheet } from "@/components/tasks/task-form";
 import { TaskRow, type TaskRowData } from "@/components/tasks/task-row";
+import { WeekLoad } from "@/components/tasks/week-load";
 import { projectOpts, spaceOpts } from "@/lib/options";
 import { getSelectedSpace } from "@/lib/prefs";
 import { requireCtx } from "@/lib/session";
@@ -34,7 +36,7 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
     ? { items: await listTasks(ctx, { view: "todas", spaceId, q: sp.q }), nextCursor: null, capped: false }
     : await listTasksPage(ctx, { view, spaceId, q: sp.q, hasta: sp.hasta, pageSize: 100 });
   const rows = page.items;
-  const [projects, spaces] = await Promise.all([projectOpts(ctx), spaceOpts(ctx)]);
+  const [projects, spaces, load] = await Promise.all([projectOpts(ctx), spaceOpts(ctx), weekLoad(ctx)]);
   const tagged = await filterByTag(ctx, "task", sp.etiqueta, rows, (r) => r.t.id);
   const tagMap = await tagsFor(
     ctx,
@@ -78,6 +80,7 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
         }
       />
       {!board ? <Tabs active={view} items={VIEWS.map((v) => ({ key: v.key, label: v.label, href: `/tareas?ver=${v.key}` }))} /> : null}
+      <WeekLoad days={load} />
       <ListToolbar ctx={ctx} module="tareas" basePath="/tareas" sp={sp} />
       <form className="mb-4" action="/tareas">
         {sp.ver ? <input type="hidden" name="ver" value={sp.ver} /> : null}

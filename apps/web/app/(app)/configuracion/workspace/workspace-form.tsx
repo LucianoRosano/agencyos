@@ -27,6 +27,15 @@ export function WorkspaceForm({ s, usedMb }: { s: Record<string, unknown>; usedM
           defaultValue={v("maxActiveProjects") || "8"}
         />
         <TextField
+          label="Horas de trabajo por día hábil"
+          name="dailyCapacityHours"
+          type="number"
+          min={1}
+          max={16}
+          defaultValue={v("dailyCapacityHours") || "6"}
+          hint="Se usa en Tareas para mostrar la carga de la semana contra tu capacidad."
+        />
+        <TextField
           label="Cuota de la Biblioteca (MB)"
           name="storageQuotaMb"
           type="number"
