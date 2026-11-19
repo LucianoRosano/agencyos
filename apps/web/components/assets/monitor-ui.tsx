@@ -3,7 +3,6 @@
 import { Button, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Activity, KeyRound, MoreHorizontal, Pause, Pencil, Play, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/lib/toast";
 import {
   checkNowAction,
   createEnvironmentAction,
@@ -17,6 +16,7 @@ import {
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 import { ENV_KIND, type Opt, opts } from "./shared";
 
 type EnvOptions = { sites: Opt[]; clients: Opt[]; hostings: Opt[] };

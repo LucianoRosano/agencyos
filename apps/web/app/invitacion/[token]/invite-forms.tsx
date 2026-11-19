@@ -2,10 +2,10 @@
 
 import { Button } from "@agencyos/ui";
 import { useTransition } from "react";
-import { toast } from "@/lib/toast";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { TextField } from "@/components/fields";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "@/lib/toast";
 import { acceptExistingAction, acceptNewAction } from "./actions";
 
 export function NewAccountForm({ token, email }: { token: string; email: string }) {

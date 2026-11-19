@@ -6,8 +6,8 @@ import { FilePlus2, FolderPlus, PartyPopper } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import { moveOpportunityAction } from "@/app/(app)/crm/actions";
+import { toast } from "@/lib/toast";
 import { DEFAULT_STAGES, type StageDef, stageName } from "./shared";
 
 export type OppLite = {

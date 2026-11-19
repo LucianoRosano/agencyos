@@ -4,7 +4,6 @@ import { Button, Menu, MenuItem, MenuSeparator, Sheet } from "@agencyos/ui";
 import { Check, Copy, KeyRound, MoreHorizontal, Pause, Play, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "@/lib/toast";
 import {
   createEndpointAction,
   deleteEndpointAction,
@@ -15,6 +14,7 @@ import {
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 
 function CopyRow({ label, value, testId }: { label: string; value: string; testId?: string }) {
   const [done, setDone] = useState(false);

@@ -5,7 +5,6 @@ import { CheckCircle2, CircleSlash, Copy, FlaskConical, MoreHorizontal, Pause, P
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import {
   deleteRuleAction,
   duplicateRuleAction,
@@ -16,6 +15,7 @@ import {
   setRuleTestModeAction,
 } from "@/app/(app)/automatizaciones/actions";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 
 export function RuleToggle({ id, name, active }: { id: string; name: string; active: boolean }) {
   const { exec, pending } = useAction();

@@ -4,10 +4,10 @@ import { DEFAULT_MCP_SCOPES, MCP_SCOPES } from "@agencyos/core";
 import { Button } from "@agencyos/ui";
 import { Copy } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/lib/toast";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 import { createTokenAction, revokeTokenAction } from "../actions";
 
 const SCOPE_LABEL: Record<string, string> = {

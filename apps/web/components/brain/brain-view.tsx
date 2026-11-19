@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "@/lib/toast";
 import { saveLayoutAction } from "@/app/(app)/cerebro/actions";
+import { toast } from "@/lib/toast";
 import type { GraphApi, Insets } from "./graph-canvas";
 import {
   type BrainGraph,

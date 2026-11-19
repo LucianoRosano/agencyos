@@ -6,7 +6,6 @@ import { ArrowLeft, ArrowRight, Check, Link2, Plus, Search, Trash2, X } from "lu
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import {
   addCommentAction,
   addLinkAction,
@@ -17,6 +16,7 @@ import {
   setTagsAction,
 } from "@/app/actions/collab";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 
 type Tag = { id: string; name: string; color: string };
 

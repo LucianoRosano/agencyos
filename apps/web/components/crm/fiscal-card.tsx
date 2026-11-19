@@ -3,11 +3,11 @@
 import { Badge, BlockCard, Button } from "@agencyos/ui";
 import { Eye, EyeOff, Landmark, Lock, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import { addFiscalAction, removeFiscalAction, revealFiscalAction } from "@/app/(app)/crm/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { CheckField, SelectField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 import { opts, VAT_LABELS } from "./shared";
 
 type Holder = { id: string; legalName: string; taxId: string | null; vatCondition: string | null; isDefault: boolean };

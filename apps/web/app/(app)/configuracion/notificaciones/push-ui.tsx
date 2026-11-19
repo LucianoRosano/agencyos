@@ -3,8 +3,8 @@
 import { Button, Checkbox } from "@agencyos/ui";
 import { BellRing } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "@/lib/toast";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 import { pushKeyAction, pushSubscribeAction, pushTestAction, pushUnsubscribeAction, setPreferenceAction } from "../actions";
 
 function b64ToUint8(b64: string) {

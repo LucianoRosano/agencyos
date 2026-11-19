@@ -4,8 +4,8 @@ import { Button, EmptyState, Input, Sheet } from "@agencyos/ui";
 import { Download, Library, Paperclip, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import { attachFileAction, detachFileAction, listAttachmentsAction, pickerFilesAction } from "@/app/(app)/biblioteca/actions";
+import { toast } from "@/lib/toast";
 import { FileThumb, formatBytes } from "./file-visual";
 import { UploadZone } from "./uploader";
 

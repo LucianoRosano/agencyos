@@ -5,9 +5,9 @@ import { Command } from "cmdk";
 import { CornerDownLeft, FilePlus2, FolderPlus, Inbox, ListPlus, Plus, Search, UserPlus, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { toast } from "@/lib/toast";
 import { quickTaskAction, searchAction } from "@/app/actions/shell";
 import { ENTITY_DOT } from "@/lib/entity-colors";
+import { toast } from "@/lib/toast";
 import { navFor } from "./nav-config";
 import { openCapture } from "./palette-trigger";
 

@@ -4,9 +4,9 @@ import { formatDate } from "@agencyos/core";
 import { Button, Input, Sheet } from "@agencyos/ui";
 import { Check, Copy, Smartphone } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/lib/toast";
 import { revokeIcalAction, rotateIcalAction } from "@/app/(app)/calendario/actions";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 
 /**
  * Suscripción iCal de solo lectura. La URL (con el token) se muestra una sola vez;
