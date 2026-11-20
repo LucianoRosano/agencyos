@@ -103,3 +103,29 @@ test("abonos mensuales: crear, ingreso recurrente y menú @visual", async ({ pag
   await page.getByRole("menuitem", { name: "Pausar" }).click();
   await expect(page.getByText(/Abono en pausa/)).toBeVisible();
 });
+
+test("captura sin conexión → queda en el dispositivo → se sube sola al volver", async ({ page, context }, info) => {
+  const tag = info.project.name.replace(/[^a-z]/gi, "");
+  const text = `Idea sin señal ${tag}`;
+  await login(page);
+  await page.goto("/hoy");
+  await page.waitForLoadState("networkidle"); // la captura se precarga cuando el navegador está ocioso
+  await page.getByRole("button", { name: "Capturar" }).first().click();
+  await page.getByPlaceholder("Una tarea, una idea, un gasto, un link…").fill(text);
+  await context.setOffline(true);
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Sin conexión: quedó en este dispositivo")).toBeVisible();
+  await context.setOffline(false);
+  await expect(page.getByText(/Se subió a la Bandeja 1 captura/)).toBeVisible({ timeout: 15_000 });
+  await page.goto("/bandeja");
+  await expect(page.getByText(text)).toBeVisible();
+});
+
+test("Negocio: capacidad de las próximas semanas", async ({ page }) => {
+  await login(page);
+  await page.goto("/negocio");
+  // Con tareas con fecha (otras pruebas las crean) aparece el bloque; si no, su estado vacío.
+  await expect(page.getByText("Capacidad · próximas 6 semanas")).toBeVisible();
+  await expect(page.getByTestId("capacity-ahead").or(page.getByText("Sin tareas con fecha"))).toBeVisible();
+  await expectNoHorizontalScroll(page);
+});
