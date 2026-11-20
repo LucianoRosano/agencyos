@@ -1,5 +1,5 @@
 import { addDays } from "@agencyos/core";
-import { weekLoad } from "@agencyos/modules/tasks/capacity";
+import { capacityAhead, weekLoad } from "@agencyos/modules/tasks/capacity";
 import { createTask } from "@agencyos/modules/tasks/service";
 import { describe, expect, it } from "vitest";
 import { makeWorkspace } from "./helpers";
@@ -30,5 +30,28 @@ describe("carga de la semana", () => {
     await createTask(a, { title: "Solo A", dueDate: MON, estimateMinutes: 60 });
     const wb = await weekLoad(b, { from: MON });
     expect(wb[0]).toMatchObject({ minutes: 0, tasks: 0, capacityMinutes: 360 });
+  });
+});
+
+describe("capacidad a futuro", () => {
+  it("semanas desde la actual: días hábiles restantes, tareas por semana (vencidas a la primera) y horas de abonos", async () => {
+    const ws = await makeWorkspace();
+    const { createClient } = await import("@agencyos/modules/crm/service");
+    const { createRetainer } = await import("@agencyos/modules/retainers/service");
+    const WED = addDays(MON, 2); // miércoles 25/11
+    await createTask(ws, { title: "Vencida", dueDate: addDays(MON, -10), estimateMinutes: 60 });
+    await createTask(ws, { title: "Esta semana", dueDate: addDays(MON, 4), estimateMinutes: 120 });
+    await createTask(ws, { title: "Próxima", dueDate: addDays(MON, 8), estimateMinutes: 600 });
+    await createTask(ws, { title: "Sin estimar", dueDate: addDays(MON, 9) });
+    const c = await createClient(ws, { name: "Cliente abono" });
+    // 21 h en diciembre 2026 (23 días hábiles) y noviembre 2026 (21 días hábiles): 1 h por día hábil en noviembre
+    await createRetainer(ws, { clientId: c.id, concept: "Mantenimiento", amount: "10000", hoursIncluded: "21", startDate: "2026-11-01" });
+    const w = await capacityAhead({ ...ws, workspace: { settings: { dailyCapacityHours: 6 } } }, { weeks: 3, today: WED });
+    expect(w).toHaveLength(3);
+    // esta semana: mié, jue, vie = 3 días hábiles
+    expect(w[0]).toMatchObject({ start: MON, capacityMinutes: 3 * 360, taskMinutes: 180, tasks: 2, retainerMinutes: 180 });
+    expect(w[1]).toMatchObject({ start: addDays(MON, 7), capacityMinutes: 5 * 360, taskMinutes: 600, tasks: 2, unestimated: 1 });
+    // semana 30/11–6/12: lunes de noviembre (60 min) + 4 días de diciembre (21 h / 23 días)
+    expect(w[1]?.retainerMinutes).toBe(Math.round(60 + (4 * 21 * 60) / 23));
   });
 });

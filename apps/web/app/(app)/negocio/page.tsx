@@ -2,12 +2,14 @@ import { can, cmpMoney, formatDate, formatMoney, L, label, subMoney } from "@age
 import { businessKpis, type Range, resolveRange } from "@agencyos/modules/business/queries";
 import { listPipelineStages } from "@agencyos/modules/crm/stages";
 import { retainerMrr } from "@agencyos/modules/retainers/service";
+import { capacityAhead } from "@agencyos/modules/tasks/capacity";
 import { effectiveHourlyRate, hoursLabel } from "@agencyos/modules/time/duration";
 import { minutesByClient, targetRate } from "@agencyos/modules/time/queries";
 import { BarPairs, BlockCard, Card, EmptyState, HBars, PageHeader, Tabs } from "@agencyos/ui";
-import { Activity, CalendarClock, ChartNoAxesCombined, Target, TrendingUp } from "lucide-react";
+import { Activity, CalendarClock, ChartNoAxesCombined, Gauge, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { ActivityList } from "@/components/activity-list";
+import { CapacityAhead } from "@/components/tasks/capacity-ahead";
 import { requireCtx } from "@/lib/session";
 
 export const metadata = { title: "Negocio" };
@@ -68,11 +70,13 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const range = (["mes", "trimestre", "anio", "personalizado"].includes(sp.rango ?? "") ? sp.rango : "mes") as Range;
   const r = resolveRange(range, undefined, sp.desde, sp.hasta);
   const k = await businessKpis(ctx, r);
-  const [hoursOf, pipelineStages, mrr] = await Promise.all([
+  const [hoursOf, pipelineStages, mrr, ahead] = await Promise.all([
     minutesByClient(ctx, [...new Set(k.profit.map((p) => p.id))], r.start, r.end),
     listPipelineStages(ctx),
     can(ctx, "read", "finance") ? retainerMrr(ctx) : Promise.resolve(null),
+    can(ctx, "read", "task") ? capacityAhead(ctx, { weeks: 6 }) : Promise.resolve([]),
   ]);
+  const hasLoad = ahead.some((w) => w.taskMinutes || w.retainerMinutes || w.tasks);
   const target = targetRate(ctx);
   const curs = currencies(k.income, k.expense);
   const rate = k.quotes.accepted + k.quotes.rejected ? Math.round((k.quotes.accepted / (k.quotes.accepted + k.quotes.rejected)) * 100) : null;
@@ -305,6 +309,23 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
             </ul>
           ) : (
             <EmptyState compact icon={<TrendingUp />} title="Sin datos" description="Asigná clientes a tus ingresos y gastos para ver la rentabilidad." />
+          )}
+        </BlockCard>
+        <BlockCard icon={<Gauge />} title="Capacidad · próximas 6 semanas">
+          {hasLoad ? (
+            <CapacityAhead weeks={ahead} />
+          ) : (
+            <EmptyState
+              compact
+              icon={<Gauge />}
+              title="Sin tareas con fecha"
+              description="Poné fecha y estimación a tus tareas (y horas incluidas a tus abonos) para ver cuánto te queda libre."
+              action={
+                <Link href="/tareas" className="text-[13px] text-accent-text underline underline-offset-2">
+                  Ir a Tareas
+                </Link>
+              }
+            />
           )}
         </BlockCard>
         <BlockCard icon={<CalendarClock />} title="Próximos vencimientos · 30 días">
