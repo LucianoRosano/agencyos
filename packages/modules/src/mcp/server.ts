@@ -12,6 +12,7 @@ import { generatePlan } from "../repos/service";
 import { listRetainers, retainerMrr } from "../retainers/service";
 import { globalSearch } from "../search/service";
 import { getDb, scoped } from "../shared/db";
+import { capacityAhead } from "../tasks/capacity";
 import { listTasks } from "../tasks/queries";
 import { createTask, setTaskStatus, updateTask } from "../tasks/service";
 import { getToday, moneySummary } from "../today/queries";
@@ -243,6 +244,33 @@ export function buildMcpServer(ctx: Ctx) {
           proximo_cobro: r.status === "active" ? r.nextIssueDate : null,
           horas_incluidas: r.hoursIncluded,
           horas_usadas_mes: minutesUsed === null ? null : Math.round((minutesUsed / 60) * 10) / 10,
+        })),
+      };
+    }),
+  );
+
+  server.registerTool(
+    "ver_capacidad",
+    {
+      title: "Capacidad de las próximas semanas",
+      description:
+        "Por semana (lunes a domingo, desde la actual): horas disponibles según la capacidad diaria, horas comprometidas en tareas con fecha y estimación, horas incluidas de abonos y horas libres. Sirve para decidir si entra un proyecto nuevo y cuándo.",
+      inputSchema: { semanas: z.number().int().min(1).max(12).optional() },
+    },
+    wrap("ver_capacidad", async ({ semanas }: { semanas?: number }) => {
+      const [ws] = await getDb().select({ settings: schema.workspace.settings }).from(schema.workspace).where(eq(schema.workspace.id, ctx.workspaceId));
+      const weeks = await capacityAhead({ ...ctx, workspace: { settings: ws?.settings } }, { weeks: semanas ?? 6 });
+      const h = (m: number) => Math.round((m / 60) * 10) / 10;
+      return {
+        semanas: weeks.map((w) => ({
+          desde: w.start,
+          hasta: w.end,
+          horas_disponibles: h(w.capacityMinutes),
+          horas_tareas: h(w.taskMinutes),
+          horas_abonos: h(w.retainerMinutes),
+          horas_libres: h(w.capacityMinutes - w.taskMinutes - w.retainerMinutes),
+          tareas: w.tasks,
+          tareas_sin_estimar: w.unestimated,
         })),
       };
     }),

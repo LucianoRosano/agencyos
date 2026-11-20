@@ -98,5 +98,10 @@ describe("servidor MCP · fechas escritas y abonos", () => {
     const ab = JSON.parse(textOf(await client.callTool({ name: "listar_abonos", arguments: {} })));
     expect(ab.ingreso_recurrente).toEqual([{ currency: "ARS", total: "30000.00" }]);
     expect(ab.abonos[0]).toMatchObject({ cliente: "Cliente MCP", concepto: "Mantenimiento", moneda: "ARS" });
+    // capacidad: la tarea de mañana (sin estimar) cuenta en la semana que corresponda
+    const cap = JSON.parse(textOf(await client.callTool({ name: "ver_capacidad", arguments: { semanas: 3 } })));
+    expect(cap.semanas).toHaveLength(3);
+    expect(cap.semanas.reduce((a: number, w: { tareas_sin_estimar: number }) => a + w.tareas_sin_estimar, 0)).toBe(1);
+    expect(cap.semanas[1].horas_disponibles).toBe(30); // 5 días hábiles × 6 h por defecto
   });
 });
