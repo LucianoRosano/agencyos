@@ -54,7 +54,7 @@ export function LaunchStatusToggle({ id, status, item }: { id: string; status: s
           )}
         >
           {c.icon}
-          <span className="hidden sm:inline">{c.label}</span>
+          <span className="sr-only sm:not-sr-only">{c.label}</span>
         </button>
       ))}
     </fieldset>

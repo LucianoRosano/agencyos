@@ -77,7 +77,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
     <>
       <Button asChild variant="ghost" className="h-11 md:h-10">
         <a href="/notas/exportar" download>
-          <Download className="size-4" /> <span className="hidden sm:inline">Exportar</span>
+          <Download className="size-4" aria-hidden /> <span className="sr-only sm:not-sr-only">Exportar notas</span>
         </a>
       </Button>
       <Button asChild variant="ghost" className="h-11 md:h-10">
