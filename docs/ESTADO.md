@@ -1,6 +1,6 @@
 # Estado de AGENCYOS
 
-**Actualizado:** 19/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
+**Actualizado:** 20/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
 
 Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o compra externa · ⬜ no hecho (fase posterior)
 
@@ -59,6 +59,10 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Fechas en lenguaje natural** («mañana 10hs», «el viernes», «en 2 semanas», «15/12») en `Ctrl+K`, al crear tareas y al procesar la Bandeja. Los montos aceptan «45.000» (punto de miles).
 - ✅ **Compartir desde el celular** a la Bandeja (PWA Share Target) y **contador de notificaciones en el ícono** de la app instalada.
 - ✅ **Automatización «cobro vencido → recordatorio»** al cliente (pasa por Aprobaciones) y tarea de seguimiento.
+- ✅ **Informe mensual por cliente en PDF** (menú «…» de la ficha del cliente): tareas cerradas por proyecto, entregas, horas, abonos con horas usadas, sitios con disponibilidad, SSL y puntaje SEO, y dominios. Con tu marca, para mandar por WhatsApp o email.
+- ✅ **Carga de la semana** en Tareas: horas estimadas por día contra tu capacidad (Configuración → Agencia → horas por día hábil); lo vencido suma a hoy y marca los días por encima de tu capacidad.
+- ✅ **Claude por MCP**: `listar_abonos` (con ingreso recurrente y horas) y `crear_tarea` entiende fechas escritas («mañana 10hs», «el viernes»).
+- ✅ Pipeline: la probabilidad que ponés a mano queda marcada y se respeta al mover de etapa (antes podía pisarse si coincidía con la de una etapa intermedia).
 - ✅ Biblioteca: **vista previa de PDF** (pdf.js) y **mover carpetas y archivos** con Deshacer. Finanzas: **filtro y etiquetas en Movimientos** e **informe PDF** de reportes con la marca. Cerebro: **modo 3D** (carga diferida).
 - ✅ Portal y permisos: **capturas en el feedback del cliente**, el colaborador ve **notas y archivos de sus proyectos**, **permisos extra por colaborador** (finanzas del proyecto, CRM del cliente, horas con tarifa), contraseñas filtradas también en invitaciones, el enlace por email **respeta el 2FA** del cliente, límite de pedidos en portal e invitaciones, la probabilidad editada a mano en el pipeline se respeta, **varios workspaces** con selector.
 - ✅ Escalabilidad (ADR 0012, `docs/SCALING.md`): índices medidos con 50.000 tareas y 100.000 eventos (Hoy en 35 ms, listas en 5–9 ms), **paginación "Cargar más"** por cursor, timeouts por proceso, **rate limiting** en PostgreSQL, **almacenamiento S3** (R2/B2/MinIO), **OpenTelemetry opcional, logs JSON con requestId, `/api/health` y `/api/metrics`** (`docs/OBSERVABILITY.md`), **varios workers sin duplicar** y apagado ordenado, réplicas web listas en Compose/Caddy.

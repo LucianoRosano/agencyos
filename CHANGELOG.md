@@ -24,6 +24,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · versione
 - Tercera vuelta (mejoras y escalabilidad):
   - Abonos mensuales con cobro automático, horas incluidas y MRR; importación CSV de clientes y movimientos con vista previa.
   - Fechas en lenguaje natural, compartir desde el celular (Share Target), contador en el ícono de la app, plantilla de recordatorio de cobro vencido.
+  - Informe mensual por cliente en PDF, carga de la semana en Tareas, herramientas MCP `listar_abonos` y fechas escritas en `crear_tarea`, probabilidad manual del pipeline guardada (migración 0007).
   - Vista previa de PDF, mover carpetas, etiquetas y filtro en Movimientos, informe PDF de Finanzas, Cerebro 3D.
   - Capturas en el feedback del portal, permisos extra por colaborador, varios workspaces, seguridad del enlace por email e invitaciones.
   - Índices y paginación por cursor, rate limiting en PostgreSQL, almacenamiento S3, observabilidad (OpenTelemetry, logs JSON, health y métricas), workers escalables (ADR 0012, docs/SCALING.md).

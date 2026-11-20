@@ -1,6 +1,6 @@
 # Pendientes de Luciano
 
-**Actualizado:** 19/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+**Actualizado:** 20/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
 
 ## A. Lo que tenés que hacer vos
 
@@ -32,6 +32,8 @@
 - **Abonos mensuales** (Finanzas → Abonos): cargá los mantenimientos/hostings/SEO que cobrás todos los meses. El cobro se genera solo el día de facturación y Negocio muestra tu ingreso recurrente.
 - **Importar CSV** (Configuración → Datos): subí tu planilla de clientes o el extracto del banco; primero ves la vista previa.
 - **Fechas escritas**: en `Ctrl+K` o al crear una tarea escribí «Llamar a Sofía mañana 10hs» o «Entregar el viernes».
+- **Informe mensual para un cliente**: en la ficha del cliente, menú «…» → «Informe de octubre · PDF». Revisá que el texto y los datos te sirvan para mandarlo.
+- **Capacidad**: en Configuración → Agencia cargá tus horas de trabajo por día hábil; en Tareas aparece la carga de la semana (poné estimaciones a las tareas para que sea útil).
 - **Automatización «cobro vencido → recordatorio»** (Automatizaciones → plantillas): el email al cliente queda en Aprobaciones.
 - **Permisos extra de colaboradores** (Configuración → Usuarios), **un segundo workspace** (selector arriba en la barra lateral) y el **enlace por email** en una cuenta de cliente con 2FA activado.
 
@@ -57,8 +59,8 @@ Todo lo de las fases F1–F6 está construido y probado, más una tercera vuelta
 ### Ideas para hacer crecer el negocio (propuestas, no hechas)
 1. **Cobrar online con Mercado Pago**: link de pago en cada cobro, abono y presupuesto aceptado; el webhook lo marca como cobrado y registra el ingreso. Necesita tu cuenta de Mercado Pago y credenciales de producción.
 2. **Factura electrónica de ARCA** (monotributo, Factura C): emitir desde un cobro con CAE y PDF (WSAA + WSFE). Necesita el certificado digital de ARCA (ya tenés uno que vence el 27/10/2028) y definir punto de venta.
-3. **Informe mensual automático para cada cliente** (PDF por email el día 1): horas usadas del abono, uptime y SSL del sitio, auditoría SEO y tareas hechas. Todo el dato ya existe; falta el armado y Brevo.
-4. **Planificación de capacidad**: horas disponibles por semana contra lo estimado en tareas y abonos, para saber si podés tomar un proyecto nuevo.
+3. **Envío automático del informe mensual** a cada cliente el día 1 (el PDF ya existe: falta Brevo y elegir a qué clientes se manda).
+4. **Capacidad a futuro**: hoy se ve la semana; falta proyectar 4–8 semanas sumando las horas incluidas de los abonos, para decidir si tomás un proyecto nuevo.
 5. **Presupuesto vs. real por proyecto**: horas y gastos estimados en el presupuesto contra lo registrado, con alerta cuando un proyecto se pasa.
 6. **Aprobación de diseños con anotaciones** en el portal (el cliente marca sobre la imagen o la página, tipo Markup.io).
 7. **Encuesta de satisfacción (NPS)** automática al cerrar un proyecto, con el resultado en la ficha del cliente.
