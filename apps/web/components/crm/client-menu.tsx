@@ -1,8 +1,8 @@
 "use client";
 
-import { L } from "@agencyos/core";
+import { addMonths, L, monthName, todayAR } from "@agencyos/core";
 import { Button, Menu, MenuItem, MenuSeparator, Select, Sheet } from "@agencyos/ui";
-import { Archive, ArchiveRestore, GitMerge, MoreHorizontal, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, FileText, GitMerge, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
@@ -100,6 +100,17 @@ export function ClientMenu({
             Archivar
           </MenuItem>
         )}
+        {[addMonths(`${todayAR().slice(0, 7)}-01`, -1), `${todayAR().slice(0, 7)}-01`].map((m, i) => (
+          <MenuItem
+            key={m}
+            icon={<FileText />}
+            onSelect={() => window.open(`/api/clientes/${id}/informe?anio=${m.slice(0, 4)}&mes=${Number(m.slice(5, 7))}`, "_blank", "noopener")}
+          >
+            Informe de {monthName(Number(m.slice(5, 7)))}
+            {i === 1 ? " (hasta hoy)" : ""} · PDF
+          </MenuItem>
+        ))}
+        <MenuSeparator />
         <MenuItem icon={<GitMerge />} onSelect={() => setMerge(true)} disabled={!mergeOptions.length}>
           Fusionar duplicado…
         </MenuItem>

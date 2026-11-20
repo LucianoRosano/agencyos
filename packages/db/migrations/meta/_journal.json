@@ -50,6 +50,13 @@
       "when": 1795118238747,
       "tag": "0006_abonos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795134185330,
+      "tag": "0007_probabilidad_manual",
+      "breakpoints": true
     }
   ]
 }

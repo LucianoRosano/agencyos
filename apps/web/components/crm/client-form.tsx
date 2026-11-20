@@ -1,43 +1,20 @@
 "use client";
 
-import { L } from "@agencyos/core";
 import { Button, Sheet } from "@agencyos/ui";
 import { Pencil } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { createClientAction, updateClientAction } from "@/app/(app)/crm/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
-import { SelectField, TextAreaField, TextField } from "@/components/fields";
-import { opts } from "./shared";
+import { TextField } from "@/components/fields";
+
+/** Campos del formulario cargados al abrir la hoja (fuera del JS inicial de la ficha). */
+const ClientFields = dynamic(() => import("./client-fields").then((m) => m.ClientFields), {
+  loading: () => <div className="h-64 animate-pulse rounded-lg bg-surface-2" />,
+});
 
 type Opt = { value: string; label: string };
 type Defaults = Record<string, string | null | undefined>;
-
-function ClientFields({ spaces, d = {} }: { spaces: Opt[]; d?: Defaults }) {
-  const v = (k: string) => d[k] ?? "";
-  return (
-    <>
-      <TextField label="Nombre" name="name" required defaultValue={v("name")} autoFocus={!d.name} maxLength={160} placeholder="Ej.: Bellezatecnia" />
-      <div className="grid gap-4 md:grid-cols-2">
-        <SelectField label="Estado" name="status" defaultValue={v("status") || "prospect"} options={opts(L.clientStatus)} />
-        <SelectField label="Relación" name="relationship" defaultValue={v("relationship") || "external"} options={opts(L.relationship)} />
-        <TextField label="Nombre comercial" name="tradeName" defaultValue={v("tradeName")} />
-        <TextField label="Rubro" name="industry" defaultValue={v("industry")} placeholder="Ej.: Estética" />
-        <TextField label="Sitio web" name="website" defaultValue={v("website")} inputMode="url" placeholder="ejemplo.com.ar" />
-        <TextField label="Origen" name="source" defaultValue={v("source")} placeholder="Referido, Instagram, web…" />
-        <TextField label="Ciudad" name="city" defaultValue={v("city")} />
-        <TextField label="Provincia" name="province" defaultValue={v("province")} />
-        <SelectField
-          label="Espacio"
-          name="spaceId"
-          defaultValue={v("spaceId")}
-          options={spaces}
-          placeholder={d.spaceId ? undefined : "Agencia (por defecto)"}
-        />
-      </div>
-      <TextAreaField label="Notas internas (Markdown)" name="notesMd" defaultValue={v("notesMd")} rows={5} className="font-mono" />
-    </>
-  );
-}
 
 /** Alta de cliente con contacto principal opcional: un solo paso para el flujo prospecto → proyecto. */
 export function NewClientForm({ spaces }: { spaces: Opt[] }) {

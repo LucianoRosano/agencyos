@@ -164,13 +164,13 @@ export function MonthGrid({
               <div className="flex items-center justify-between">
                 <Link
                   href={dayHref(d)}
-                  aria-label={`Ver el ${formatDayMonth(d)}`}
                   className={cn(
                     "grid h-7 min-w-7 place-items-center rounded-md px-1 font-mono text-[12px] hover:bg-surface-2",
                     isToday ? "bg-[image:var(--gradient)] text-white" : out ? "text-text-faint" : "text-text-muted",
                   )}
                 >
                   {Number(d.slice(8, 10))}
+                  <span className="sr-only"> · ver el {formatDayMonth(d)}</span>
                 </Link>
                 <AddOnDayButton date={d} className="size-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" />
               </div>

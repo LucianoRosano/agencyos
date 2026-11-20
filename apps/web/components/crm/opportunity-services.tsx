@@ -78,7 +78,7 @@ export function OpportunityServices({
       ) : (
         <p className="mb-4 rounded-[10px] border border-dashed border-border p-4 text-[14px] text-text-muted">
           El catálogo está vacío.{" "}
-          <Link href="/presupuestos/servicios" className="text-accent hover:underline">
+          <Link href="/presupuestos/servicios" className="text-accent-text underline underline-offset-2">
             Cargá tus servicios
           </Link>{" "}
           y volvé.

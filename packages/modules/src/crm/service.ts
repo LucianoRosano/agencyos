@@ -666,8 +666,11 @@ async function getOppRow(t: Tx, ctx: Ctx, id: string) {
 export async function createOpportunity(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "crm");
   const input = opportunityInput.parse(raw);
+  const sentProbability = typeof raw === "object" && raw !== null && "probability" in raw && String((raw as { probability: unknown }).probability ?? "") !== "";
   return getDb().transaction(async (t) => {
     const c = await getClientRow(t, ctx, input.clientId);
+    const { stage: newStage } = await stageByKey(t, ctx, "new");
+    const probabilityManual = sentProbability && input.probability !== (newStage?.probability ?? 10);
     const [{ s } = { s: 0 }] = await t
       .select({ s: sql<number>`coalesce(min(${schema.opportunity.sort}), 0)::int` })
       .from(schema.opportunity)
@@ -683,6 +686,7 @@ export async function createOpportunity(ctx: Ctx, raw: unknown) {
         valueAmount: input.valueAmount ?? null,
         valueCurrency: input.valueCurrency,
         probability: input.probability,
+        probabilityManual,
         expectedClose: input.expectedClose ?? null,
         nextAction: input.nextAction ?? null,
         nextActionDue: input.nextAction ? (input.nextActionDue ?? null) : null,
@@ -716,6 +720,8 @@ export async function updateOpportunity(ctx: Ctx, id: string, raw: unknown) {
         valueAmount: input.valueAmount ?? null,
         valueCurrency: input.valueCurrency,
         probability: input.probability,
+        // Cambiarla en el formulario la marca como manual (se respeta al mover de etapa).
+        probabilityManual: before.probabilityManual || input.probability !== before.probability,
         expectedClose: input.expectedClose ?? null,
         nextAction: input.nextAction ?? null,
         nextActionDue: input.nextAction ? (input.nextActionDue ?? null) : null,
@@ -762,10 +768,8 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     const changed = fromKey !== target.key;
     const stageName = (k: string) => stages.find((s) => s.key === k)?.name ?? label(L.stage, k);
     const configured = stages.some((s) => s.id !== null);
-    // La probabilidad «automática» es la por defecto de la etapa de origen. Si no coincide, la editó
-    // alguien a mano y se respeta al mover (salvo al ganar/perder, o al reabrir una ganada/perdida).
-    const fromStage = stages.find((s) => s.key === fromKey);
-    const manualProbability = fromStage !== undefined && fromStage.kind === "open" && o.probability !== fromStage.probability;
+    // Si la probabilidad la puso alguien a mano se respeta al mover (salvo al ganar/perder o reabrir).
+    const manualProbability = o.probabilityManual;
 
     if (input.quoteId) {
       const [q] = await t
@@ -788,9 +792,10 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     if (stage === "lost" && !input.lostReason) throw validation("Para marcarla perdida elegí un motivo.", { lostReason: "Elegí un motivo" });
 
     const patch: Partial<typeof schema.opportunity.$inferInsert> = { stage };
-    if (stage === "won") Object.assign(patch, { wonAt: o.stage === "won" ? o.wonAt : now(), lostAt: null, lostReason: null, probability: 100 });
+    if (stage === "won")
+      Object.assign(patch, { wonAt: o.stage === "won" ? o.wonAt : now(), lostAt: null, lostReason: null, probability: 100, probabilityManual: false });
     else if (stage === "lost")
-      Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0 });
+      Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0, probabilityManual: false });
     else
       Object.assign(patch, {
         wonAt: null,

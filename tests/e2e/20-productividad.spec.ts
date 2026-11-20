@@ -94,7 +94,7 @@ test("abonos mensuales: crear, ingreso recurrente y menú @visual", async ({ pag
   await expect(dlg).toBeHidden();
   const card = page.locator(`[data-retainer="Mantenimiento ${tag}"]`);
   await expect(card).toBeVisible();
-  await expect(card.getByText("$ 45.000,00")).toBeVisible();
+  await expect(card.getByText("$ 45.000", { exact: true })).toBeVisible();
   await expect(card.getByText(/Horas del mes/)).toBeVisible();
   await expect(page.getByTestId("mrr")).toContainText("ARS / mes");
   await expectNoHorizontalScroll(page);

@@ -91,6 +91,8 @@ export const opportunity = pgTable(
     valueAmount: numeric("value_amount", { precision: 14, scale: 2 }),
     valueCurrency: text("value_currency").notNull().default("ARS"),
     probability: integer("probability").notNull().default(10),
+    /** La probabilidad la puso alguien a mano: al mover de etapa no se reemplaza por la de la etapa. */
+    probabilityManual: boolean("probability_manual").notNull().default(false),
     expectedClose: date("expected_close"),
     nextAction: text("next_action"),
     nextActionDue: date("next_action_due"),

@@ -24,11 +24,11 @@ export default async function ProfilePage() {
         <p className="text-[14px] text-text-muted">
           Apretá <kbd className="rounded border border-border px-1.5 font-mono text-[12px]">?</kbd> en cualquier pantalla para ver los atajos. Los espacios se
           administran en{" "}
-          <Link href="/espacios" className="text-accent hover:underline">
+          <Link href="/espacios" className="text-accent-text underline underline-offset-2">
             Espacios
           </Link>{" "}
           y lo eliminado está en la{" "}
-          <Link href="/papelera" className="text-accent hover:underline">
+          <Link href="/papelera" className="text-accent-text underline underline-offset-2">
             Papelera
           </Link>
           .

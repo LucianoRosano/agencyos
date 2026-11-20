@@ -32,7 +32,7 @@ export function NewNoteForm({
         hint={
           <>
             {"Reemplaza {{fecha}}, {{titulo}} y {{cliente}}. "}
-            <Link href="/notas/plantillas" className="text-accent hover:underline">
+            <Link href="/notas/plantillas" className="text-accent-text underline underline-offset-2">
               Gestionar plantillas
             </Link>
           </>

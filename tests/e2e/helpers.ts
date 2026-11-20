@@ -47,8 +47,16 @@ export async function login(page: Page) {
 export async function expectNoHorizontalScroll(page: Page) {
   const { overflow, culprits } = await page.evaluate(() => {
     const w = document.documentElement.clientWidth;
+    // Ignorar lo que está dentro de un contenedor con scroll horizontal propio (pestañas, carruseles).
+    const clipped = (el: Element) => {
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        const ox = getComputedStyle(p).overflowX;
+        if (ox === "auto" || ox === "scroll" || ox === "hidden" || ox === "clip") return true;
+      }
+      return false;
+    };
     const culprits = [...document.querySelectorAll("body *")]
-      .filter((el) => el.getBoundingClientRect().right > w + 1)
+      .filter((el) => el.getBoundingClientRect().right > w + 1 && !clipped(el))
       .slice(0, 5)
       .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 80)}`);
     return { overflow: document.documentElement.scrollWidth - w, culprits };

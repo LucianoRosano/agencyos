@@ -174,3 +174,24 @@ describe("CRM · importar chat de WhatsApp", () => {
     await expect(importWhatsapp(agentCtx(a, ["read:all"]), { clientId: ca.id, text: CHAT })).rejects.toThrow();
   });
 });
+
+describe("probabilidad editada a mano", () => {
+  it("se respeta al mover aunque pase por una etapa cuyo valor por defecto coincide", async () => {
+    const { createClient, createOpportunity, moveOpportunity } = await import("@agencyos/modules/crm/service");
+    const { updateStage } = await import("@agencyos/modules/crm/stages");
+    const ws = await makeWorkspace();
+    await updateStage(ws, "negotiation", { name: "Negociación", probability: 80 }); // etapas configuradas
+    const c = await createClient(ws, { name: "Cliente prob" });
+    const o = await createOpportunity(ws, { clientId: c.id, title: "Op", probability: 40 });
+    expect(o.probabilityManual).toBe(true);
+    await moveOpportunity(ws, o.id, { stage: "contacted" });
+    await moveOpportunity(ws, o.id, { stage: "meeting" }); // default de «Reunión» = 40, igual a la manual
+    const moved = await moveOpportunity(ws, o.id, { stage: "negotiation" });
+    expect((moved as { opportunity?: { probability: number } }).opportunity?.probability ?? (moved as { probability?: number }).probability).toBe(40);
+    // sin edición manual, toma la de la etapa
+    const auto = await createOpportunity(ws, { clientId: c.id, title: "Auto" });
+    expect(auto.probabilityManual).toBe(false);
+    const m2 = await moveOpportunity(ws, auto.id, { stage: "negotiation" });
+    expect((m2 as { opportunity?: { probability: number } }).opportunity?.probability ?? (m2 as { probability?: number }).probability).toBe(80);
+  });
+});

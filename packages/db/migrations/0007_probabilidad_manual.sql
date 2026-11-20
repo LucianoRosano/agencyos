@@ -1,0 +1,1 @@
+ALTER TABLE "opportunity" ADD COLUMN "probability_manual" boolean DEFAULT false NOT NULL;

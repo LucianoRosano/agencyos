@@ -33,7 +33,8 @@ test("Bandeja → procesar → tarea con fecha → aparece en Hoy → completarl
   await expectNoHorizontalScroll(page);
   await shot(page, "hoy", info.project.name);
   await expectAccessible(page);
-  await page.goto("/tareas?ver=hoy");
+  // Filtrado por texto: con muchas tareas de otras corridas, la lista pagina («Cargar más»).
+  await page.goto(`/tareas?ver=hoy&q=${encodeURIComponent(text)}`);
   const row = page.getByRole("listitem").filter({ hasText: text });
   await row.getByRole("checkbox").click();
   await expect(page.getByText("Tarea completada")).toBeVisible();
@@ -64,14 +65,15 @@ test("paleta Ctrl+K: buscar con y sin tildes, crear desde la paleta", async ({ p
 
 test("papelera: eliminar → deshacer; eliminar → restaurar", async ({ page }, info) => {
   await login(page);
-  await page.goto("/tareas?ver=hoy");
+  const q = `/tareas?ver=hoy&q=${encodeURIComponent(`Revisión del catálogo ${info.project.name}`)}`;
+  await page.goto(q);
   await page.getByRole("link", { name: new RegExp(`Revisión del catálogo ${info.project.name}`) }).click();
   await page.getByRole("button", { name: "Más acciones" }).click();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("menuitem", { name: "Eliminar" }).click();
   await page.getByRole("button", { name: "Deshacer" }).click();
   await expect(page.getByText("Deshecho")).toBeVisible();
-  await page.goto("/tareas?ver=hoy");
+  await page.goto(q);
   await expect(page.getByText(`Revisión del catálogo ${info.project.name}`)).toBeVisible();
   await page.getByRole("link", { name: new RegExp(`Revisión del catálogo ${info.project.name}`) }).click();
   await page.getByRole("button", { name: "Más acciones" }).click();
@@ -86,7 +88,7 @@ test("papelera: eliminar → deshacer; eliminar → restaurar", async ({ page },
     .last();
   await item.getByRole("button", { name: "Restaurar" }).click();
   await expect(page.getByText("Restaurado")).toBeVisible();
-  await page.goto("/tareas?ver=hoy");
+  await page.goto(q);
   await expect(page.getByText(`Revisión del catálogo ${info.project.name}`)).toBeVisible();
 });
 

@@ -18,8 +18,8 @@ function ColorPicker({ colors, value }: { colors: string[]; value?: string }) {
           <span
             className="block size-9 rounded-full border-2 border-transparent peer-checked:border-text peer-focus-visible:ring-2 peer-focus-visible:ring-accent"
             style={{ background: c }}
-            aria-label={c}
           />
+          <span className="sr-only">Color {c}</span>
         </label>
       ))}
     </fieldset>

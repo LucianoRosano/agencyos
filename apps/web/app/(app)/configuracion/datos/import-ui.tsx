@@ -78,7 +78,8 @@ export function ImportPanel({
         ))}
       </div>
       <p className="text-[13px] text-text-muted">
-        Columnas que reconoce (en cualquier orden, con o sin tildes): <code className="font-mono text-[12px] text-text">{templates[kind]}</code>.
+        Columnas que reconoce (en cualquier orden, con o sin tildes):{" "}
+        <code className="font-mono text-[12px] break-all text-text">{templates[kind].replaceAll(";", "; ")}</code>.
         {kind === "movimientos"
           ? " El monto puede venir con signo (−: gasto) o en columnas Crédito / Débito como exportan los bancos. Los repetidos (misma fecha, monto y descripción) se saltean."
           : " Solo «Nombre» es obligatoria. Los clientes que ya existen se saltean."}
@@ -100,7 +101,7 @@ export function ImportPanel({
           htmlFor={fileId}
           className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-4 text-[14px] text-text hover:bg-surface-2"
         >
-          <FileUp className="size-4" /> {fileName || "Elegir archivo CSV"}
+          <FileUp className="size-4 shrink-0" /> <span className="max-w-[60vw] truncate">{fileName || "Elegir archivo CSV"}</span>
         </label>
         <input id={fileId} type="file" accept=".csv,text/csv,text/plain" className="sr-only" onChange={(e) => void onFile(e.target.files?.[0])} />
         <Button variant="secondary" disabled={!csv || pending || (kind === "movimientos" && !accountId)} loading={pending && !preview} onClick={doPreview}>

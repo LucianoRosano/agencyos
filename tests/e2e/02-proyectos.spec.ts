@@ -20,7 +20,7 @@ test("asistente de arranque con la plantilla Tienda → primera acción en Hoy @
   await shot(page, "proyecto-ficha", info.project.name);
   await page.goto("/proyectos/" + page.url().split("/").pop() + "/etapas");
   await expect(page.getByText("Checklist de lanzamiento")).toBeVisible();
-  await page.goto("/tareas?ver=hoy");
+  await page.goto(`/tareas?ver=hoy&q=${encodeURIComponent(`Primera acción ${info.project.name}`)}`);
   await expect(page.getByText(`Primera acción ${info.project.name}`)).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "tareas-hoy", info.project.name);
