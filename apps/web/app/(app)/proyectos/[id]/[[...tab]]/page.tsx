@@ -4,6 +4,7 @@ import { ENTRY_POINTS } from "@agencyos/modules/ai/agents";
 import { availableAgents } from "@agencyos/modules/ai/queries";
 import { getProject } from "@agencyos/modules/projects/queries";
 import { siteForProject } from "@agencyos/modules/sites/queries";
+import { projectBudget } from "@agencyos/modules/time/queries";
 import { Badge, Button, Card, EmptyState, PageHeader, Progress, SectionLabel, Tabs } from "@agencyos/ui";
 import { CornerDownRight, LayoutTemplate, ListChecks } from "lucide-react";
 import Link from "next/link";
@@ -93,13 +94,14 @@ export default async function ProjectPage({
   const doneTasks = data.tasks.filter((t) => !t.parentTaskId && t.status === "done");
   const activeBlockers = data.blockers.filter((b) => !b.resolvedAt);
   const sitesOn = ctx.workspace.enabledModules.includes("sites") && (p.kind === "website" || p.kind === "store");
-  const [projects, spaces, clients, site, hours, ai] = await Promise.all([
+  const [projects, spaces, clients, site, hours, ai, budget] = await Promise.all([
     projectOpts(ctx),
     full ? spaceOpts(ctx) : Promise.resolve([]),
     full ? clientOpts(ctx) : Promise.resolve([]),
     sitesOn ? siteForProject(ctx, p.id) : Promise.resolve(null),
     full && tab === "resumen" ? projectHoursLine(ctx, p.id) : Promise.resolve(null),
     full ? availableAgents(ctx) : Promise.resolve(new Set<string>()),
+    full && tab === "resumen" && can(ctx, "read", "finance") ? projectBudget(ctx, p.id) : Promise.resolve(null),
   ]);
   const phaseName = new Map(data.phases.map((ph) => [ph.id, ph.name]));
   const today = todayAR();
@@ -238,6 +240,11 @@ export default async function ProjectPage({
                       <Link href={`/proyectos/${p.id}/horas`} className="hover:underline">
                         {hours ?? "0 h"}
                       </Link>
+                      {budget?.over ? (
+                        <Badge tone="warning" className="ml-2">
+                          {budget.over === "budget" ? "pasado del presupuesto" : "pasado de lo estimado"}
+                        </Badge>
+                      ) : null}
                     </dd>
                   </>
                 ) : null}

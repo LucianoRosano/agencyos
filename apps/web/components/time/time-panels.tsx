@@ -1,9 +1,11 @@
 import "server-only";
 import { type Ctx, can, cmpMoney, formatDate, formatMoney, todayAR } from "@agencyos/core";
 import { formatMinutes, hoursLabel } from "@agencyos/modules/time/duration";
-import { listTimeEntries, projectProfitability, targetRate, timeSummary } from "@agencyos/modules/time/queries";
-import { BlockCard, Card, EmptyState, Progress, SectionLabel } from "@agencyos/ui";
-import { CalendarRange, Gauge, Timer } from "lucide-react";
+import { listTimeEntries, type ProjectBudget, projectBudget, projectProfitability, targetRate, timeSummary } from "@agencyos/modules/time/queries";
+import { BlockCard, Card, cn, EmptyState, Progress, SectionLabel } from "@agencyos/ui";
+import { CalendarRange, Gauge, Scale, Timer } from "lucide-react";
+import Link from "next/link";
+import { Fragment } from "react";
 import { RegisterTimeButton, TimeEntryList, type TimeRow } from "./time-ui";
 
 type Entries = Awaited<ReturnType<typeof listTimeEntries>>;
@@ -30,7 +32,11 @@ export function toRows(entries: Entries): TimeRow[] {
 /** Pestaña «Horas» de la ficha de proyecto: total, rentabilidad, semanas y registros. */
 export async function ProjectHoursTab({ ctx, projectId }: { ctx: Ctx & { workspace?: { settings: unknown } }; projectId: string }) {
   const today = todayAR();
-  const [profit, entries] = await Promise.all([projectProfitability(ctx, projectId), listTimeEntries(ctx, { projectId })]);
+  const [profit, entries, budget] = await Promise.all([
+    projectProfitability(ctx, projectId),
+    listTimeEntries(ctx, { projectId }),
+    can(ctx, "read", "finance") ? projectBudget(ctx, projectId) : Promise.resolve(null),
+  ]);
   const target = targetRate(ctx);
   const maxWeek = Math.max(1, ...profit.weeks.map((w) => w.minutes));
   const register = <RegisterTimeButton fixed={{ projectId }} today={today} />;
@@ -58,6 +64,7 @@ export async function ProjectHoursTab({ ctx, projectId }: { ctx: Ctx & { workspa
         <TimeEntryList rows={toRows(entries)} today={today} />
       </div>
       <div className="flex min-w-0 flex-col gap-5">
+        {budget ? <BudgetBlock b={budget} /> : null}
         <BlockCard icon={<Gauge />} title="Rentabilidad">
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]">
             <dt className="text-text-muted">Horas</dt>
@@ -115,6 +122,71 @@ function RateLines({
 }
 
 /** Línea compacta para el Resumen del proyecto. */
+/** Presupuesto vs. real: lo que cubre el presupuesto a tu tarifa objetivo, lo estimado y lo registrado. */
+function BudgetBlock({ b }: { b: ProjectBudget }) {
+  const ref = b.coveredMinutes ?? (b.estimateMinutes || null);
+  const pct = ref ? Math.round((b.loggedMinutes / ref) * 100) : null;
+  return (
+    <BlockCard icon={<Scale />} title="Presupuesto vs. real">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[14px]" data-testid="project-budget">
+        {b.quote ? (
+          <>
+            <dt className="text-text-muted">Presupuesto</dt>
+            <dd className="text-right">
+              <Link href={`/presupuestos/${b.quote.id}`} className="font-mono text-text hover:underline">
+                {formatMoney(b.quote.total, b.quote.currency)}
+              </Link>
+              <span className="block text-[12px] text-text-muted">{b.quote.number}</span>
+            </dd>
+            <dt className="text-text-muted">Cubre</dt>
+            <dd className="text-right font-mono text-text">
+              {b.coveredMinutes !== null ? `${hoursLabel(b.coveredMinutes)} h` : <span className="text-[12px] text-text-muted">cargá tu tarifa objetivo</span>}
+            </dd>
+          </>
+        ) : null}
+        <dt className="text-text-muted">Estimado</dt>
+        <dd className="text-right font-mono text-text-muted">
+          {b.estimateMinutes ? `${hoursLabel(b.estimateMinutes)} h` : "—"}
+          {b.unestimatedTasks ? <span className="block font-sans text-[12px]">{b.unestimatedTasks} tareas sin estimar</span> : null}
+        </dd>
+        <dt className="text-text-muted">Registrado</dt>
+        <dd className={cn("text-right font-mono", b.over ? "text-warning" : "text-text")}>
+          {hoursLabel(b.loggedMinutes)} h{pct !== null ? ` · ${pct}%` : ""}
+        </dd>
+        {b.expenses.map((e) => (
+          <Fragment key={e.currency}>
+            <dt className="text-text-muted">Gastos {e.currency}</dt>
+            <dd className="text-right font-mono text-text-muted">{formatMoney(e.total, e.currency)}</dd>
+          </Fragment>
+        ))}
+        {b.realRate && b.quote ? (
+          <>
+            <dt className="text-text-muted">Tarifa real hoy</dt>
+            <dd className="text-right font-mono text-text">{formatMoney(b.realRate, b.quote.currency)}/h</dd>
+          </>
+        ) : null}
+      </dl>
+      {ref ? (
+        <Progress
+          value={Math.min(100, pct ?? 0)}
+          className="mt-3"
+          tone={b.over ? "warning" : undefined}
+          label={`Horas registradas: ${pct ?? 0}% de lo presupuestado`}
+        />
+      ) : null}
+      {b.over ? (
+        <p className="mt-2 text-[13px] text-warning">
+          {b.over === "budget"
+            ? `Ya registraste ${hoursLabel(b.loggedMinutes - (b.coveredMinutes ?? 0))} h más de las que cubre el presupuesto a tu tarifa objetivo.`
+            : `Ya registraste ${hoursLabel(b.loggedMinutes - b.estimateMinutes)} h más de lo estimado en las tareas.`}
+        </p>
+      ) : !b.quote ? (
+        <p className="mt-2 text-[13px] text-text-muted">Vinculá el presupuesto aceptado al proyecto para comparar contra lo cobrado.</p>
+      ) : null}
+    </BlockCard>
+  );
+}
+
 export async function projectHoursLine(ctx: Ctx, projectId: string) {
   const s = await timeSummary(ctx, { projectId });
   return s.entries ? `${hoursLabel(s.minutes)} h` : null;
