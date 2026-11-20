@@ -1,3 +1,4 @@
+import { todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { createClient } from "@agencyos/modules/crm/service";
 import { createProject } from "@agencyos/modules/projects/service";
@@ -97,7 +98,7 @@ describe("abonos mensuales", () => {
       { currency: "ARS", total: "30000.00" },
       { currency: "USD", total: "200.00" },
     ]);
-    await createTimeEntry(ws, { projectId: p.id, duration: "1h30", date: new Date().toISOString().slice(0, 10) });
+    await createTimeEntry(ws, { projectId: p.id, duration: "1h30", date: todayAR() });
     const list = await listRetainers(ws, { clientId: c.id });
     expect(list.find((x) => x.r.concept === "Mantenimiento")?.minutesUsed).toBe(90);
     expect(list.find((x) => x.r.concept === "Ads")?.minutesUsed).toBeNull();

@@ -1,12 +1,12 @@
+import { todayAR } from "@agencyos/core";
 import { clientReportDoc, defaultReportMonth } from "@agencyos/modules/crm/report";
 import { createClient } from "@agencyos/modules/crm/service";
 import { createProject } from "@agencyos/modules/projects/service";
 import { createRetainer } from "@agencyos/modules/retainers/service";
 import { createTask, setTaskStatus } from "@agencyos/modules/tasks/service";
 import { createTimeEntry } from "@agencyos/modules/time/service";
-import { renderClientReportHtml } from "../../packages/pdf/src/client-report"; // @agencyos/pdf no es dependencia de la raíz
-import { todayAR } from "@agencyos/core";
 import { describe, expect, it } from "vitest";
+import { renderClientReportHtml } from "../../packages/pdf/src/client-report"; // @agencyos/pdf no es dependencia de la raíz
 import { makeWorkspace } from "./helpers";
 
 describe("informe mensual del cliente", () => {

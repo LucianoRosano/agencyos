@@ -1,4 +1,5 @@
 import type { Ctx } from "@agencyos/core";
+import { todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { addComment, listComments } from "@agencyos/modules/collab/service";
 import { createClient, updateClient } from "@agencyos/modules/crm/service";
@@ -27,7 +28,7 @@ async function setup() {
   await getDb().insert(schema.membership).values({ workspaceId: owner.workspaceId, userId, role: "member" });
   await getDb().insert(schema.projectMember).values({ workspaceId: owner.workspaceId, projectId: mine.id, userId });
   const member: Ctx = { workspaceId: owner.workspaceId, userId, role: "member", actor: { type: "user", id: userId, name: "Colab" } };
-  const myTask = await createTask(owner, { title: "Tarea mía", projectId: mine.id, dueDate: new Date().toISOString().slice(0, 10) });
+  const myTask = await createTask(owner, { title: "Tarea mía", projectId: mine.id, dueDate: todayAR() });
   const otherTask = await createTask(owner, { title: "Tarea ajena Zeta", projectId: other.id });
   const looseTask = await createTask(owner, { title: "Tarea personal del dueño Zeta" });
   return { owner, member, cli, mine, other, myTask, otherTask, looseTask };
