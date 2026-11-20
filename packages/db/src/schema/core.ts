@@ -196,7 +196,11 @@ export const auditLog = pgTable(
     after: jsonb("after"),
     at: tz("at").notNull().defaultNow(),
   },
-  (t) => [index("audit_ws_at").on(t.workspaceId, t.at)],
+  (t) => [
+    index("audit_ws_at").on(t.workspaceId, t.at),
+    // Dispositivos conocidos por usuario (alerta de inicio de sesión desde un dispositivo nuevo).
+    index("audit_device").on(t.actorId, t.targetId).where(sql`${t.action} = 'auth.device'`),
+  ],
 );
 
 export const approval = pgTable(

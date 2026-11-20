@@ -1,6 +1,7 @@
 export * from "./context";
 export * from "./cuit";
 export * from "./dates";
+export * from "./device";
 export * from "./errors";
 export * from "./labels";
 export * from "./money";

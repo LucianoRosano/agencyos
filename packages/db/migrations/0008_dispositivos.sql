@@ -1,0 +1,1 @@
+CREATE INDEX "audit_device" ON "audit_log" USING btree ("actor_id","target_id") WHERE "audit_log"."action" = 'auth.device';

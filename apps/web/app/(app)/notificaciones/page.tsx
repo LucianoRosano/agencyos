@@ -27,14 +27,19 @@ export default async function NotificationsPage() {
                 .map((n) => (
                   <Link
                     key={n.id}
-                    href={n.entityType && n.entityId ? entityHref(n.entityType, n.entityId) : "/hoy"}
+                    href={
+                      n.entityType && n.entityId ? entityHref(n.entityType, n.entityId) : n.type.startsWith("security.") ? "/configuracion/seguridad" : "/hoy"
+                    }
                     className="flex items-start gap-3 p-4 hover:bg-surface-2"
                   >
-                    <span
-                      className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-accent")}
-                      aria-label={n.readAt ? undefined : "Sin leer"}
-                    />
-                    <span className="flex-1 text-[14px] text-text">{n.title}</span>
+                    <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-accent")} aria-hidden />
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-[14px] text-text">
+                        {n.readAt ? null : <span className="sr-only">Sin leer: </span>}
+                        {n.title}
+                      </span>
+                      {n.body ? <span className="text-[13px] text-text-muted">{n.body}</span> : null}
+                    </span>
                     <span className="font-mono text-[12px] text-text-faint">{relativeFromDate(n.createdAt)}</span>
                   </Link>
                 ))}

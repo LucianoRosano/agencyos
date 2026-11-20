@@ -102,6 +102,17 @@ function createAuth() {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
     },
+    databaseHooks: {
+      session: {
+        create: {
+          // Alerta de dispositivo nuevo: en segundo plano, nunca demora ni bloquea el ingreso.
+          after: async (session) => {
+            const { recordLoginDevice } = await import("./devices");
+            void recordLoginDevice(session).catch((e) => console.error("[auth] dispositivo:", e instanceof Error ? e.message : e));
+          },
+        },
+      },
+    },
     rateLimit: {
       enabled: process.env.AUTH_RATE_LIMIT !== "off",
       storage: "database",

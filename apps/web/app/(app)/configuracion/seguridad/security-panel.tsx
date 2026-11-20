@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDateTime } from "@agencyos/core";
+import { deviceLabel, formatDateTime } from "@agencyos/core";
 import { Button, Field, Input } from "@agencyos/ui";
 import { LogOut, MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,22 +10,7 @@ import { PasskeysSection } from "./passkeys";
 
 type Session = { id: string; token: string; createdAt: Date; updatedAt: Date; userAgent?: string | null; ipAddress?: string | null };
 
-function device(ua?: string | null) {
-  if (!ua) return "Dispositivo desconocido";
-  const os = /Android/.test(ua)
-    ? "Android"
-    : /iPhone|iPad/.test(ua)
-      ? "iOS"
-      : /Windows/.test(ua)
-        ? "Windows"
-        : /Mac OS/.test(ua)
-          ? "macOS"
-          : /Linux/.test(ua)
-            ? "Linux"
-            : "Otro";
-  const br = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
-  return `${br} · ${os}`;
-}
+const device = deviceLabel;
 
 export function SecurityPanel() {
   const [sessions, setSessions] = useState<Session[]>([]);
