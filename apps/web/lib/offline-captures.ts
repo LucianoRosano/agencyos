@@ -25,6 +25,15 @@ export function queueCapture(fd: FormData) {
 
 export const pendingCount = () => read().length;
 
+/** Al cerrar sesión: lo pendiente no debe subirse a la cuenta de otra persona que entre en este dispositivo. */
+export function clearPendingCaptures() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}
+
 /** Sube las pendientes en orden; deja las que fallen para el próximo intento. Devuelve cuántas subió. */
 export async function flushCaptures(send: (fd: FormData) => Promise<{ ok: boolean }>): Promise<number> {
   const list = read();

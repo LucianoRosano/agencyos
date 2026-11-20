@@ -5,6 +5,7 @@ import { Button, Field, Input } from "@agencyos/ui";
 import { LogOut, MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAuthClient } from "@/lib/auth-client-lazy";
+import { clearPendingCaptures } from "@/lib/offline-captures";
 import { toast } from "@/lib/toast";
 import { PasskeysSection } from "./passkeys";
 
@@ -76,6 +77,7 @@ export function SecurityPanel() {
             variant="danger"
             onClick={async () => {
               await (await getAuthClient()).signOut();
+              clearPendingCaptures();
               window.location.href = "/login";
             }}
           >
