@@ -73,6 +73,7 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
 
   // Estructura desde la plantilla Tienda
   await page.goto(`${siteUrl}/estructura`);
+  await page.waitForLoadState("networkidle"); // cada pestaña carga sus componentes aparte
   await expect(page.getByText("Todavía no hay estructura")).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Plantilla de estructura" })).toHaveValue("store");
   await page.getByRole("button", { name: "Generar desde plantilla" }).click();
@@ -81,10 +82,13 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
 
   // Contenidos: un slot aprobado
   await page.goto(`${siteUrl}/contenidos`);
+  await page.waitForLoadState("networkidle"); // cada pestaña carga sus componentes aparte
   await page.getByRole("combobox", { name: "Estado de «Título principal»" }).selectOption("approved");
   await expect(page.getByText("«Título principal»: aprobado")).toBeVisible();
 
   await page.goto(`${siteUrl}/estructura`);
+
+  await page.waitForLoadState("networkidle"); // cada pestaña carga sus componentes aparte
   await expect(page.locator("li").filter({ hasText: "Título principal" }).getByText("Aprobado")).toBeVisible();
   await expectNoHorizontalScroll(page);
   await expectAccessible(page);
@@ -92,6 +96,7 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
 
   // Revisiones: R1 con un ítem; no cierra con el ítem abierto; resuelto sí
   await page.goto(`${siteUrl}/revisiones`);
+  await page.waitForLoadState("networkidle"); // cada pestaña carga sus componentes aparte
   await page.getByRole("button", { name: "Abrir ronda R1" }).click();
   await expect(page.getByText("Ronda R1 abierta")).toBeVisible();
   await page.getByRole("button", { name: "Agregar ítem" }).click();
@@ -121,6 +126,7 @@ test("sitio para cliente: proyecto Tienda → crear sitio → briefing → pregu
 
   // Publicación: 17 áreas; publicar con críticos pendientes pide confirmación
   await page.goto(`${siteUrl}/publicacion`);
+  await page.waitForLoadState("networkidle"); // cada pestaña carga sus componentes aparte
   await expect(page.locator("details")).toHaveCount(17);
   const first = page.getByRole("group", { name: /Estado de «Indexación habilitada/ });
   await first.getByRole("button", { name: "Hecho" }).click();
