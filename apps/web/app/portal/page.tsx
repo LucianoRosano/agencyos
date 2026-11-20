@@ -1,9 +1,10 @@
 import { formatDate, greeting, L, label } from "@agencyos/core";
-import { portalHome } from "@agencyos/modules/portal/service";
+import { pendingSurveys, portalHome } from "@agencyos/modules/portal/service";
 import { Badge, Card, EmptyState, PageHeader, Progress, SectionLabel } from "@agencyos/ui";
 import { FolderKanban, PackageCheck } from "lucide-react";
 import Link from "next/link";
 import { firstName, requirePortalCtx } from "@/lib/session";
+import { SurveyCard } from "./survey-card";
 
 export const metadata = { title: "Inicio" };
 const PORTAL_ACCENT = "#22D3EE";
@@ -20,7 +21,7 @@ export default async function PortalHome() {
         description="Luciano tiene que vincular tu cuenta con tu empresa. Escribile y lo resuelve en un minuto."
       />
     );
-  const data = await portalHome(pc);
+  const [data, surveys] = await Promise.all([portalHome(pc), pendingSurveys(pc)]);
   const toApprove = data.deliverables.filter((d) => d.status === "delivered");
   return (
     <div className="flex flex-col gap-6">
@@ -34,6 +35,11 @@ export default async function PortalHome() {
         }
         accent={PORTAL_ACCENT}
       />
+      {surveys[0] ? (
+        <section aria-label="Encuesta de satisfacción">
+          <SurveyCard key={surveys[0].id} projectId={surveys[0].id} projectName={surveys[0].name} />
+        </section>
+      ) : null}
       <section aria-labelledby="proyectos">
         <SectionLabel className="mb-3">
           <span id="proyectos">Tus proyectos</span>

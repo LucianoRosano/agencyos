@@ -1,5 +1,6 @@
 import { can, cmpMoney, formatDate, formatMoney, L, label, subMoney } from "@agencyos/core";
 import { businessKpis, type Range, resolveRange } from "@agencyos/modules/business/queries";
+import { npsSummary } from "@agencyos/modules/crm/satisfaction";
 import { listPipelineStages } from "@agencyos/modules/crm/stages";
 import { retainerMrr } from "@agencyos/modules/retainers/service";
 import { capacityAhead } from "@agencyos/modules/tasks/capacity";
@@ -70,11 +71,12 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const range = (["mes", "trimestre", "anio", "personalizado"].includes(sp.rango ?? "") ? sp.rango : "mes") as Range;
   const r = resolveRange(range, undefined, sp.desde, sp.hasta);
   const k = await businessKpis(ctx, r);
-  const [hoursOf, pipelineStages, mrr, ahead] = await Promise.all([
+  const [hoursOf, pipelineStages, mrr, ahead, nps] = await Promise.all([
     minutesByClient(ctx, [...new Set(k.profit.map((p) => p.id))], r.start, r.end),
     listPipelineStages(ctx),
     can(ctx, "read", "finance") ? retainerMrr(ctx) : Promise.resolve(null),
     can(ctx, "read", "task") ? capacityAhead(ctx, { weeks: 6 }) : Promise.resolve([]),
+    can(ctx, "read", "crm") ? npsSummary(ctx, r) : Promise.resolve(null),
   ]);
   const hasLoad = ahead.some((w) => w.taskMinutes || w.retainerMinutes || w.tasks);
   const target = targetRate(ctx);
@@ -220,6 +222,14 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
             </p>
           ))}
         </Kpi>
+        {nps?.count ? (
+          <Kpi title="Satisfacción de clientes (NPS)">
+            <p className={`font-mono text-[30px] tabular-nums ${(nps.nps ?? 0) < 0 ? "text-danger" : ""}`}>{nps.nps}</p>
+            <p className="text-[12px] text-text-muted">
+              {nps.count} respuesta{nps.count === 1 ? "" : "s"} en el período · promotores − detractores
+            </p>
+          </Kpi>
+        ) : null}
         {mrr ? (
           <Kpi
             title="Ingreso recurrente (abonos)"

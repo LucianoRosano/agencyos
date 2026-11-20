@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, numeric, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, numeric, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { baseColumns, pk, tz } from "./_common";
 
 export const client = pgTable(
@@ -106,5 +106,23 @@ export const opportunity = pgTable(
     index("opportunity_client").on(t.clientId).where(sql`${t.deletedAt} is null`),
     check("opportunity_stage", sql`${t.stage} in ('new','contacted','meeting','proposal_sent','negotiation','won','lost')`),
     check("opportunity_prob", sql`${t.probability} between 0 and 100`),
+  ],
+);
+
+/** Encuesta de satisfacción (NPS) que responde el cliente en el portal al cerrarse un proyecto. Una por proyecto y usuario. */
+export const clientFeedback = pgTable(
+  "client_feedback",
+  {
+    ...baseColumns(),
+    projectId: uuid("project_id").notNull(),
+    clientId: uuid("client_id").notNull(),
+    userId: text("user_id").notNull(),
+    score: integer("score").notNull(),
+    comment: text("comment"),
+  },
+  (t) => [
+    uniqueIndex("client_feedback_project_user").on(t.projectId, t.userId),
+    index("client_feedback_client").on(t.workspaceId, t.clientId),
+    check("client_feedback_score", sql`${t.score} between 0 and 10`),
   ],
 );

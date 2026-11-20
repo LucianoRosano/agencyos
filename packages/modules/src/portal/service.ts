@@ -516,3 +516,71 @@ export async function decidePortalQuote(pc: PortalCtx, quoteId: string, raw: unk
   if (!q) throw notFound("El presupuesto");
   return decideQuoteForClient(q, raw, { ip: pc.ip, userAgent: pc.userAgent, via: "portal" });
 }
+
+// --- Encuesta de satisfacción (NPS) ---
+
+export const surveyInput = z.object({
+  score: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number({ error: "Elegí un puntaje del 0 al 10" }).int().min(0).max(10),
+  ),
+  comment: zOptText(2000),
+});
+
+/** Proyectos terminados (en los últimos 120 días) que este usuario todavía no calificó. El más reciente primero. */
+export async function pendingSurveys(pc: PortalCtx) {
+  const clientId = requireClient(pc);
+  return getDb()
+    .select({ id: schema.project.id, name: schema.project.name })
+    .from(schema.project)
+    .where(
+      and(
+        scoped(schema.project, pc, { withArchived: true }),
+        eq(schema.project.clientId, clientId),
+        eq(schema.project.status, "done"),
+        sql`coalesce(${schema.project.deliveredDate}, ${schema.project.updatedAt}::date) >= (now() at time zone 'America/Argentina/Buenos_Aires')::date - 120`,
+        sql`not exists (select 1 from client_feedback f where f.project_id = ${schema.project.id} and f.user_id = ${pc.userId} and f.deleted_at is null)`,
+      ),
+    )
+    .orderBy(desc(schema.project.updatedAt))
+    .limit(3);
+}
+
+/** El cliente califica un proyecto terminado (una vez por proyecto). Le llega al dueño como notificación. */
+export async function answerSurvey(pc: PortalCtx, projectId: string, raw: unknown) {
+  const clientId = requireClient(pc);
+  const input = surveyInput.parse(raw);
+  if (!z.string().uuid().safeParse(projectId).success) throw notFound("El proyecto");
+  const ctx = actorCtx(pc);
+  return getDb().transaction(async (t) => {
+    const [p] = await t
+      .select({ id: schema.project.id, name: schema.project.name, status: schema.project.status })
+      .from(schema.project)
+      .where(and(eq(schema.project.id, projectId), eq(schema.project.clientId, clientId), scoped(schema.project, pc, { withArchived: true })));
+    if (!p) throw notFound("El proyecto");
+    if (p.status !== "done") throw conflict("La encuesta se responde cuando el proyecto está terminado.");
+    const [row] = await t
+      .insert(schema.clientFeedback)
+      .values({
+        workspaceId: pc.workspaceId,
+        createdBy: pc.userId,
+        projectId,
+        clientId,
+        userId: pc.userId as string,
+        score: input.score,
+        comment: input.comment ?? null,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (!row) throw conflict("Ya calificaste este proyecto. ¡Gracias!");
+    await recordEvent(t, ctx, {
+      type: "satisfaccion.respondida",
+      entityType: "project",
+      entityId: projectId,
+      summary: `${pc.actor.name} calificó «${p.name}» con ${input.score}/10${input.comment ? `: ${input.comment.slice(0, 120)}` : ""}`,
+      payload: { score: input.score, clientId },
+    });
+    await audit(t, ctx, { action: "portal.encuesta", targetType: "project", targetId: projectId, after: { score: input.score } });
+    return row;
+  });
+}

@@ -21,6 +21,7 @@ const NOTIFY: Record<string, (p: Record<string, unknown>, summary: string) => st
   "entrega.aprobada_por_cliente": (_p, s) => s,
   "entrega.cambios_pedidos": (_p, s) => s,
   "revision.feedback_cliente": (_p, s) => s,
+  "satisfaccion.respondida": (_p, s) => s,
   "usuario.unido": (_p, s) => s,
 };
 

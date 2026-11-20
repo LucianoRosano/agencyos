@@ -35,3 +35,5 @@ export const feedbackAction = async (projectId: string, _: S, fd: FormData) =>
   runPortal((pc) => portal.addSiteFeedback(pc, projectId, Object.fromEntries(fd)).then((item) => ({ id: item?.id ?? null })));
 export const decideQuoteAction = async (quoteId: string, _: S, fd: FormData) =>
   runPortal((pc) => portal.decidePortalQuote(pc, quoteId, Object.fromEntries(fd)));
+export const surveyAction = async (projectId: string, _: S, fd: FormData) =>
+  runPortal((pc) => portal.answerSurvey(pc, projectId, Object.fromEntries(fd)).then(() => null));

@@ -1,5 +1,6 @@
 import { formatDate, formatMoney, formatTime, L, label, relativeFromDate, subMoney, todayAR } from "@agencyos/core";
 import { clientActivity, clientMoney, contactOptions, getClient, mergeCandidates, nextStepsOf } from "@agencyos/modules/crm/queries";
+import { clientSatisfaction } from "@agencyos/modules/crm/satisfaction";
 import { pipelineFor } from "@agencyos/modules/crm/stages";
 import { attachmentsForMany } from "@agencyos/modules/library/queries";
 import { listSites } from "@agencyos/modules/sites/queries";
@@ -87,7 +88,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const openOpps = data.opportunities.filter((o) => OPEN_STAGES.includes(o.stage));
   const activeProjects = data.projects.filter((p) => !p.archivedAt && !["done", "archived"].includes(p.status));
   const steps = nextStepsOf(data);
-  const [spaces, merge, allContacts, { stages, stageOf }, clientSites, interactionFiles] = await Promise.all([
+  const [spaces, merge, allContacts, { stages, stageOf }, clientSites, interactionFiles, satisfaction] = await Promise.all([
     spaceOpts(ctx),
     mergeCandidates(ctx, id),
     tab === "contactos" ? contactOptions(ctx) : Promise.resolve([]),
@@ -100,6 +101,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           data.interactions.map((x) => x.i.id),
         )
       : Promise.resolve(undefined),
+    tab === "resumen" ? clientSatisfaction(ctx, id) : Promise.resolve(null),
   ]);
   const linked = new Set(data.contacts.map((x) => x.ct.id));
   const pipelineOpps: PipelineOpp[] = data.opportunities.map((o) => ({
@@ -339,6 +341,23 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 <dd className="font-mono text-[13px]">{formatDate(c.createdAt)}</dd>
                 <dt className="text-text-muted">Actividad</dt>
                 <dd>{relativeFromDate(c.lastActivityAt ?? c.createdAt)}</dd>
+                {satisfaction?.count ? (
+                  <>
+                    <dt className="text-text-muted">Satisfacción</dt>
+                    <dd data-testid="client-satisfaction">
+                      <span className="font-mono text-[13px]">{String(satisfaction.average).replace(".", ",")}/10</span>
+                      <span className="text-[12px] text-text-muted">
+                        {" "}
+                        · {satisfaction.count} respuesta{satisfaction.count === 1 ? "" : "s"}
+                      </span>
+                      {satisfaction.responses[0]?.comment ? (
+                        <span className="mt-1 block text-[13px] text-text-muted">
+                          «{satisfaction.responses[0].comment}»{satisfaction.responses[0].projectName ? ` — ${satisfaction.responses[0].projectName}` : ""}
+                        </span>
+                      ) : null}
+                    </dd>
+                  </>
+                ) : null}
               </dl>
             </Card>
 
