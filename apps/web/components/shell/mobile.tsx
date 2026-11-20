@@ -31,10 +31,10 @@ export function MobileHeader({ data }: { data: ShellData }) {
           trigger={
             <button
               type="button"
-              aria-label="Más: módulos y configuración"
+              aria-label={`${initials(data.user.name)} · más: módulos y configuración`}
               className="grid size-11 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold"
             >
-              <span aria-hidden>{initials(data.user.name)}</span>
+              {initials(data.user.name)}
             </button>
           }
         >
