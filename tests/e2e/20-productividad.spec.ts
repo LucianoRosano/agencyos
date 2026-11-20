@@ -100,8 +100,12 @@ test("abonos mensuales: crear, ingreso recurrente y menú @visual", async ({ pag
   await expectNoHorizontalScroll(page);
   await shot(page, "abonos", info.project.name);
   // Ajuste por inflación: solo este abono, 10 % redondeado a $ 100
-  await page.getByRole("button", { name: "Ajustar montos" }).click();
   const adj = page.getByRole("dialog", { name: "Ajustar montos" });
+  // el botón se carga aparte: reintentar hasta que la hoja abra
+  await expect(async () => {
+    if (!(await adj.isVisible())) await page.getByRole("button", { name: "Ajustar montos" }).click({ timeout: 2000 });
+    await expect(adj).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
   await adj.locator("#adj-pct").fill("10");
   const others = adj.locator("li label").filter({ hasNotText: `Mantenimiento ${tag}` });
   for (const box of await others.locator('input[type="checkbox"]').all()) await box.uncheck();
