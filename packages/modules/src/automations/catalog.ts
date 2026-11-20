@@ -205,6 +205,12 @@ export const SCHEDULE_SOURCES: Record<string, { label: string; entity: string; d
     daysLabel: "Vence dentro de (días)",
     help: "Corre una vez por dominio y por fecha de vencimiento.",
   },
+  quote_no_answer: {
+    label: "Cada presupuesto enviado sin respuesta",
+    entity: "quote",
+    daysLabel: "Enviado hace al menos (días)",
+    help: "Corre una vez por presupuesto enviado (o visto) que el cliente todavía no aceptó ni rechazó.",
+  },
   receivable_overdue: {
     label: "Cada cobro vencido",
     entity: "receivable",

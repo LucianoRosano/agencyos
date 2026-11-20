@@ -323,6 +323,22 @@ export async function sourceItems(
         .limit(limit);
       return rows.map((r) => ({ entityType: "domain", id: r.id, version: String(r.exp), label: r.name }));
     }
+    case "quote_no_answer": {
+      const rows = await db
+        .select({ id: schema.quote.id, title: schema.quote.title, number: schema.quote.number, sentAt: schema.quote.sentAt })
+        .from(schema.quote)
+        .where(
+          and(
+            scoped(schema.quote, ws),
+            sql`${schema.quote.status} in ('sent','viewed')`,
+            sql`${schema.quote.sentAt} is not null`,
+            sql`(${schema.quote.sentAt} at time zone 'America/Argentina/Buenos_Aires')::date <= (${today}::date - ${days}::int)`,
+          ),
+        )
+        .limit(limit);
+      // Versión = fecha de envío: si se reenvía, cuenta como nuevo.
+      return rows.map((r) => ({ entityType: "quote", id: r.id, version: r.sentAt?.toISOString() ?? "1", label: `${r.number} · ${r.title}` }));
+    }
     case "receivable_overdue": {
       const rows = await db
         .select({ id: schema.receivable.id, concept: schema.receivable.concept, due: schema.receivable.dueDate })

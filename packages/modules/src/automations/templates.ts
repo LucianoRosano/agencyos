@@ -183,6 +183,30 @@ export const TEMPLATES: AutomationTemplate[] = [
       ],
     },
   },
+  {
+    key: "presupuesto-sin-respuesta",
+    name: "Presupuesto sin respuesta en 4 días → seguimiento",
+    description: "Todos los días a las 10:00, una tarea para escribirle al cliente por cada presupuesto enviado hace 4 días o más que no aceptó ni rechazó.",
+    rule: {
+      name: "Presupuesto sin respuesta → seguimiento",
+      triggerKind: "schedule",
+      schedule: { preset: "daily", time: "10:00" },
+      source: { kind: "quote_no_answer", days: 4 },
+      conditions: { match: "all", items: [] },
+      actions: [
+        {
+          type: "create_task",
+          params: {
+            title: "Seguimiento del presupuesto {{presupuesto.numero}} ({{cliente.nombre}})",
+            description: "Preguntale si tiene dudas sobre «{{presupuesto.titulo}}» o si necesita algún ajuste.",
+            priority: 2,
+            dueInDays: 0,
+            project: "none",
+          },
+        },
+      ],
+    },
+  },
 ];
 
 export const findTemplate = (key: string | null | undefined) => TEMPLATES.find((t) => t.key === key) ?? null;

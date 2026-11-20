@@ -277,6 +277,41 @@ describe("automatizaciones: programadas", () => {
     await runScheduledRules(new Date(`${todayAR()}T18:00:00Z`));
     expect(await runsOf(r2.id)).toHaveLength(0);
   });
+
+  it("presupuesto sin respuesta en 4 días → tarea de seguimiento, una sola vez por presupuesto", async () => {
+    const { createQuote } = await import("@agencyos/modules/quotes/service");
+    const ctx = await makeWorkspace();
+    const c = await createClient(ctx, { name: "Cliente Lento" });
+    const today = todayAR();
+    const base = {
+      clientId: c.id,
+      currency: "ARS",
+      issueDate: today,
+      validUntil: addDays(today, 30),
+      items: [{ description: "Web", quantity: "1", unitPrice: "1000" }],
+    };
+    const old = await createQuote(ctx, { ...base, title: "Tienda" });
+    const fresh = await createQuote(ctx, { ...base, title: "Landing" });
+    await createQuote(ctx, { ...base, title: "Borrador" });
+    await db()
+      .update(schema.quote)
+      .set({ status: "sent", sentAt: new Date(Date.now() - 6 * 86_400_000) })
+      .where(eq(schema.quote.id, old.id));
+    await db()
+      .update(schema.quote)
+      .set({ status: "viewed", sentAt: new Date(Date.now() - 86_400_000) })
+      .where(eq(schema.quote.id, fresh.id));
+    const rule = await createRuleFromTemplate(ctx, "presupuesto-sin-respuesta");
+    await db()
+      .update(schema.automationRule)
+      .set({ createdAt: new Date(Date.now() - 2 * 86_400_000) })
+      .where(eq(schema.automationRule.id, rule.id));
+    const ten = new Date(`${today}T13:05:00Z`); // 10:05 ART
+    await runScheduledRules(ten);
+    await runScheduledRules(ten);
+    const titles = (await tasksOf(ctx.workspaceId)).map((t) => t.title).filter((t) => t.startsWith("Seguimiento del presupuesto"));
+    expect(titles).toEqual([`Seguimiento del presupuesto ${old.number} (Cliente Lento)`]);
+  });
 });
 
 describe("webhooks", () => {
