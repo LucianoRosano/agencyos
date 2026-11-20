@@ -50,7 +50,7 @@ form button{margin-top:12px;width:100%}
 addEventListener("online",()=> {location.reload()});
 (function(){
   var KEY="agencyos:capturas-pendientes",f=document.getElementById("cap"),t=document.getElementById("cap-text"),m=document.getElementById("cap-msg");
-  function list(){try{var v=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(v)?v:[]}catch(e){return[]}}
+  function list(){var v;try{v=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){v=[]}return Array.isArray(v)?v:[]}
   function show(){var n=list().length;m.textContent=n?(n===1?"1 captura":n+" capturas")+" esperando conexión: se suben solas a la Bandeja.":""}
   f.addEventListener("submit",function(e){e.preventDefault();var x=t.value.trim();if(!x)return;var l=list();l.push({text:x.slice(0,5000),at:new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(l.slice(-200)));t.value="";show();t.focus()});
   show();

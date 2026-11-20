@@ -140,7 +140,9 @@ describe("ajuste de montos (inflación)", () => {
     const r = await adjustRetainers(ws, { percent: "12,5", currency: "ARS", roundTo: 100 });
     expect(r.count).toBe(2);
     const amounts = async () =>
-      Object.fromEntries((await getDb().select().from(schema.retainer).where(eq(schema.retainer.workspaceId, ws.workspaceId))).map((x) => [x.concept, x.amount]));
+      Object.fromEntries(
+        (await getDb().select().from(schema.retainer).where(eq(schema.retainer.workspaceId, ws.workspaceId))).map((x) => [x.concept, x.amount]),
+      );
     expect(await amounts()).toEqual({ Mantenimiento: "50600.00", Hosting: "13500.00", SEO: "100.00", Viejo: "5000.00" });
     // solo los elegidos
     await adjustRetainers(ws, { percent: "10", currency: "USD", roundTo: 1, ids: [usd.id] });

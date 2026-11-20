@@ -199,13 +199,16 @@ async function txDrafts(ctx: Ctx, csv: string, accountId: string) {
   const clientBy = new Map(clients.map((c) => [norm(c.name), c.id]));
   const seen = new Set(existing.map((e) => `${e.date}|${e.kind}|${Number(e.amount).toFixed(2)}|${norm(e.description ?? "")}`));
   const out: { line: number; draft?: TxDraft; row: PreviewRow }[] = [];
-  body.forEach((cells, i) => {
+  for (const [i, cells] of body.entries()) {
     const line = i + 2;
     const get = (k: keyof typeof TX_COLS) => (idx[k] >= 0 ? cells[idx[k]]?.trim() || undefined : undefined);
     const description = get("description");
     const date = parseDateCell(get("date") ?? "");
     const fail = (message: string) => out.push({ line, row: { line, status: "error", summary: description ?? "(sin descripción)", message } });
-    if (!date) return void fail(`Fecha inválida «${get("date") ?? ""}»`);
+    if (!date) {
+      fail(`Fecha inválida «${get("date") ?? ""}»`);
+      continue;
+    }
     let amount: ReturnType<typeof parseAmount> = null;
     let kind: "income" | "expense" | null = null;
     const credit = get("credit") ? parseAmount(get("credit") ?? "") : null;
@@ -224,13 +227,19 @@ async function txDrafts(ctx: Ctx, csv: string, accountId: string) {
     if (kindRaw) {
       if (/^(ingreso|income|entrada|cobro|credito)/.test(kindRaw)) kind = "income";
       else if (/^(gasto|egreso|expense|salida|pago|debito)/.test(kindRaw)) kind = "expense";
-      else return void fail(`Tipo desconocido «${get("kind")}»`);
+      else {
+        fail(`Tipo desconocido «${get("kind")}»`);
+        continue;
+      }
     }
-    if (!amount || !kind || Number(amount.value) <= 0) return void fail(`Monto inválido «${get("amount") ?? get("credit") ?? get("debit") ?? ""}»`);
+    if (!amount || !kind || Number(amount.value) <= 0) {
+      fail(`Monto inválido «${get("amount") ?? get("credit") ?? get("debit") ?? ""}»`);
+      continue;
+    }
     const key = `${date}|${kind}|${Number(amount.value).toFixed(2)}|${norm(description ?? "")}`;
     if (seen.has(key)) {
       out.push({ line, row: { line, status: "duplicate", summary: description ?? "", message: "Ya está en la cuenta (misma fecha, monto y descripción)" } });
-      return;
+      continue;
     }
     seen.add(key);
     const catName = get("category");
@@ -253,7 +262,7 @@ async function txDrafts(ctx: Ctx, csv: string, accountId: string) {
         message: notes || undefined,
       },
     });
-  });
+  }
   return { headers, out };
 }
 
