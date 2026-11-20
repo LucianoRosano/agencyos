@@ -49,6 +49,17 @@ export function percentOf(amount: string | number, pct: string | number): string
   return fromCents(rounded);
 }
 
+/**
+ * Ajuste porcentual (p. ej. por inflación): monto × (1 + pct/100), redondeado al múltiplo de `roundTo` (en unidades
+ * de la moneda: 1, 100, 1000) más cercano. `pct` admite decimales ("12.5") y negativos.
+ */
+export function adjustByPercent(amount: string | number, pct: string | number, roundTo = 1): string {
+  const raised = toCents(amount) + toCents(percentOf(amount, pct));
+  const unit = BigInt(Math.max(1, Math.round(roundTo))) * 100n;
+  const q = raised >= 0n ? (raised + unit / 2n) / unit : (raised - unit / 2n) / unit;
+  return fromCents(q * unit);
+}
+
 /** Reparte un total en partes por porcentaje; la última absorbe el redondeo. */
 export function splitByPercents(total: string, percents: number[]): string[] {
   const parts: string[] = [];

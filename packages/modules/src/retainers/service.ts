@@ -1,6 +1,7 @@
 import {
   addDays,
   addMoney,
+  adjustByPercent,
   assertCan,
   type Ctx,
   endOfMonth,
@@ -162,6 +163,84 @@ export async function setRetainerStatus(ctx: Ctx, id: string, status: string) {
     const verb = { active: "Reanudó", paused: "Pausó", cancelled: "Dio de baja" }[s];
     await recordEvent(t, ctx, { type: `abono.${s}`, entityType: "retainer", entityId: id, summary: `${verb} el abono «${before.concept}»` });
     return row;
+  });
+}
+
+/** Ajuste de montos (inflación): un porcentaje a los abonos activos y pausados de una moneda (o a los elegidos). */
+export const adjustInput = z.object({
+  percent: z.preprocess(
+    (v) =>
+      String(v ?? "")
+        .trim()
+        .replace(",", ".")
+        .replace("%", ""),
+    z
+      .string()
+      .regex(/^-?\d{1,3}(\.\d{1,2})?$/, "Porcentaje inválido")
+      .refine((p) => Number(p) !== 0 && Number(p) > -50 && Number(p) <= 300, "Entre −50 % y 300 %, distinto de 0"),
+  ),
+  currency: zCurrency.default("ARS"),
+  roundTo: z.coerce
+    .number()
+    .refine((n) => [1, 100, 1000].includes(n), "Redondeo inválido")
+    .default(100),
+  ids: z.array(z.string().uuid()).max(500).optional(),
+});
+
+export async function adjustRetainers(ctx: Ctx, raw: unknown) {
+  assertCan(ctx, "update", "finance");
+  const input = adjustInput.parse(raw);
+  return getDb().transaction(async (t) => {
+    const rows = await t
+      .select()
+      .from(schema.retainer)
+      .where(
+        and(
+          scoped(schema.retainer, ctx),
+          inArray(schema.retainer.status, ["active", "paused"]),
+          eq(schema.retainer.currency, input.currency),
+          input.ids?.length ? inArray(schema.retainer.id, input.ids) : undefined,
+        ),
+      )
+      .for("update");
+    if (!rows.length) throw validation(`No hay abonos activos o pausados en ${input.currency} para ajustar.`);
+    const changes: { id: string; concept: string; from: string; to: string }[] = [];
+    for (const r of rows) {
+      const to = adjustByPercent(r.amount, input.percent, input.roundTo);
+      if (to === r.amount || Number(to) <= 0) continue;
+      await t.update(schema.retainer).set({ amount: to }).where(eq(schema.retainer.id, r.id));
+      changes.push({ id: r.id, concept: r.concept, from: r.amount, to });
+    }
+    await recordEvent(t, ctx, {
+      type: "abono.ajustado",
+      entityType: "retainer",
+      entityId: changes[0]?.id,
+      summary: `Ajustó ${changes.length} abono${changes.length === 1 ? "" : "s"} en ${input.currency} un ${input.percent.replace(".", ",")} %`,
+      payload: { percent: input.percent, currency: input.currency, changes },
+    });
+    return { count: changes.length, changes };
+  });
+}
+
+/** Deshacer un ajuste: vuelve cada abono a su monto anterior (solo si nadie lo cambió después). */
+export async function revertRetainerAmounts(ctx: Ctx, changes: { id: string; from: string; to: string }[]) {
+  assertCan(ctx, "update", "finance");
+  const list = z
+    .array(z.object({ id: z.string().uuid(), from: zPositiveMoney, to: zPositiveMoney }))
+    .max(500)
+    .parse(changes);
+  return getDb().transaction(async (t) => {
+    let n = 0;
+    for (const c of list) {
+      const res = await t
+        .update(schema.retainer)
+        .set({ amount: c.from })
+        .where(and(eq(schema.retainer.id, c.id), scoped(schema.retainer, ctx), eq(schema.retainer.amount, c.to)))
+        .returning({ id: schema.retainer.id });
+      n += res.length;
+    }
+    await recordEvent(t, ctx, { type: "abono.ajuste_deshecho", entityType: "retainer", entityId: list[0]?.id, summary: `Deshizo el ajuste de ${n} abonos` });
+    return { count: n };
   });
 }
 

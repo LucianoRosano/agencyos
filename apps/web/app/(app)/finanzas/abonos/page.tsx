@@ -4,6 +4,7 @@ import { Badge, Card, cn, EmptyState, Progress, SectionLabel } from "@agencyos/u
 import { CalendarClock, Repeat2 } from "lucide-react";
 import Link from "next/link";
 import { FinanceHeader, NoFinanceAccess } from "@/components/finance/finance-header";
+import { LazyAdjustRetainersButton } from "@/components/finance/retainer-lazy";
 import { NewRetainerButton, RetainerMenu } from "@/components/finance/retainer-ui";
 import { financePage, type SP } from "@/components/finance/server";
 import { clientOpts, projectOpts } from "@/lib/options";
@@ -26,7 +27,16 @@ export default async function AbonosPage({ searchParams }: { searchParams: Promi
         description="Mantenimientos, hostings gestionados, SEO mensual: cada mes se genera solo el cobro."
         ledgers={f.ledgers}
         ledgerId={f.ledgerId}
-        actions={<NewRetainerButton clients={clients} projects={projects} />}
+        actions={
+          <>
+            <LazyAdjustRetainersButton
+              rows={rows
+                .filter((x) => x.r.status !== "cancelled")
+                .map(({ r, clientName }) => ({ id: r.id, concept: r.concept, clientName, amount: r.amount, currency: r.currency }))}
+            />
+            <NewRetainerButton clients={clients} projects={projects} />
+          </>
+        }
       />
       {rows.length ? (
         <>

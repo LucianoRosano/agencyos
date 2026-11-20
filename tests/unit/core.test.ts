@@ -75,3 +75,14 @@ describe("CUIT", () => {
     expect(isValidCuit("30-71234567-1")).toBe(isValidCuit("30712345671"));
   });
 });
+
+describe("adjustByPercent (ajuste de abonos)", () => {
+  it("aplica el porcentaje y redondea", async () => {
+    const { adjustByPercent } = await import("@agencyos/core");
+    expect(adjustByPercent("45000", "15")).toBe("51750.00");
+    expect(adjustByPercent("45000", "12.5", 100)).toBe("50600.00"); // 50.625 → 50.600
+    expect(adjustByPercent("45000", "12.5", 1000)).toBe("51000.00"); // 50.625 → 51.000
+    expect(adjustByPercent("100", "-10")).toBe("90.00");
+    expect(adjustByPercent("99.99", "0")).toBe("100.00");
+  });
+});

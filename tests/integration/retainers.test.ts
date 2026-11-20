@@ -124,3 +124,32 @@ describe("abonos mensuales", () => {
     expect(rows).toHaveLength(0);
   });
 });
+
+describe("ajuste de montos (inflación)", () => {
+  it("aplica el porcentaje con redondeo a los activos y pausados de la moneda, y se puede deshacer", async () => {
+    const { createRetainer, adjustRetainers, revertRetainerAmounts, setRetainerStatus } = await import("@agencyos/modules/retainers/service");
+    const { createClient } = await import("@agencyos/modules/crm/service");
+    const ws = await makeWorkspace();
+    const c = await createClient(ws, { name: "Cliente ajuste" });
+    const a = await createRetainer(ws, { clientId: c.id, concept: "Mantenimiento", amount: "45000" });
+    const b = await createRetainer(ws, { clientId: c.id, concept: "Hosting", amount: "12000" });
+    const usd = await createRetainer(ws, { clientId: c.id, concept: "SEO", amount: "100", currency: "USD" });
+    const gone = await createRetainer(ws, { clientId: c.id, concept: "Viejo", amount: "5000" });
+    await setRetainerStatus(ws, b.id, "paused");
+    await setRetainerStatus(ws, gone.id, "cancelled");
+    const r = await adjustRetainers(ws, { percent: "12,5", currency: "ARS", roundTo: 100 });
+    expect(r.count).toBe(2);
+    const amounts = async () =>
+      Object.fromEntries((await getDb().select().from(schema.retainer).where(eq(schema.retainer.workspaceId, ws.workspaceId))).map((x) => [x.concept, x.amount]));
+    expect(await amounts()).toEqual({ Mantenimiento: "50600.00", Hosting: "13500.00", SEO: "100.00", Viejo: "5000.00" });
+    // solo los elegidos
+    await adjustRetainers(ws, { percent: "10", currency: "USD", roundTo: 1, ids: [usd.id] });
+    expect((await amounts()).SEO).toBe("110.00");
+    // deshacer: vuelve al anterior (y no pisa un monto editado después)
+    await revertRetainerAmounts(ws, r.changes);
+    expect(await amounts()).toMatchObject({ Mantenimiento: "45000.00", Hosting: "12000.00" });
+    await expect(adjustRetainers(ws, { percent: "0" })).rejects.toThrow();
+    await expect(adjustRetainers({ ...ws, role: "member" }, { percent: "10" })).rejects.toThrow();
+    expect(a.id).toBeTruthy();
+  });
+});

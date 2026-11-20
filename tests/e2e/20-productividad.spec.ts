@@ -99,6 +99,17 @@ test("abonos mensuales: crear, ingreso recurrente y menú @visual", async ({ pag
   await expect(page.getByTestId("mrr")).toContainText("ARS / mes");
   await expectNoHorizontalScroll(page);
   await shot(page, "abonos", info.project.name);
+  // Ajuste por inflación: solo este abono, 10 % redondeado a $ 100
+  await page.getByRole("button", { name: "Ajustar montos" }).click();
+  const adj = page.getByRole("dialog", { name: "Ajustar montos" });
+  await adj.locator("#adj-pct").fill("10");
+  const others = adj.locator("li label").filter({ hasNotText: `Mantenimiento ${tag}` });
+  for (const box of await others.locator('input[type="checkbox"]').all()) await box.uncheck();
+  await expect(adj.locator("li label").filter({ hasText: `Mantenimiento ${tag}` })).toContainText("→ $ 49.500");
+  await expectNoHorizontalScroll(page);
+  await adj.getByRole("button", { name: "Aplicar a 1 abono" }).click();
+  await expect(page.getByText("Abonos ajustados un 10 %")).toBeVisible();
+  await expect(card.getByText("$ 49.500", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: `Acciones de Mantenimiento ${tag}` }).click();
   await page.getByRole("menuitem", { name: "Pausar" }).click();
   await expect(page.getByText(/Abono en pausa/)).toBeVisible();

@@ -12,3 +12,6 @@ export const updateRetainerAction = async (id: string, _: S, fd: FormData) => ru
 export const setRetainerStatusAction = async (id: string, status: "active" | "paused" | "cancelled") => run((ctx) => svc.setRetainerStatus(ctx, id, status));
 export const deleteRetainerAction = async (id: string) => run((ctx) => moveToTrash(ctx, "retainer", id));
 export const restoreRetainerAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "retainer", id));
+export const adjustRetainersAction = async (input: { percent: string; currency: string; roundTo: number; ids?: string[] }) =>
+  run((ctx) => svc.adjustRetainers(ctx, input));
+export const revertRetainerAmountsAction = async (changes: { id: string; from: string; to: string }[]) => run((ctx) => svc.revertRetainerAmounts(ctx, changes));
