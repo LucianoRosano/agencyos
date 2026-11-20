@@ -68,6 +68,19 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Escalabilidad (ADR 0012, `docs/SCALING.md`): índices medidos con 50.000 tareas y 100.000 eventos (Hoy en 35 ms, listas en 5–9 ms), **paginación "Cargar más"** por cursor, timeouts por proceso, **rate limiting** en PostgreSQL, **almacenamiento S3** (R2/B2/MinIO), **OpenTelemetry opcional, logs JSON con requestId, `/api/health` y `/api/metrics`** (`docs/OBSERVABILITY.md`), **varios workers sin duplicar** y apagado ordenado, réplicas web listas en Compose/Caddy.
 - ✅ Diseño y velocidad: esqueletos de carga y pantallas de error en todas las secciones, navegación entre pestañas sin recargar, respuestas instantáneas al completar tareas y checklist (`useOptimistic`), transiciones suaves (respetan "reducir movimiento"), atajos `G` + letra para todos los módulos y ayuda `?` completa, títulos de pestaña, 404 y página sin conexión con la identidad, **JS inicial por pantalla < ~170 KB**, recorrido de accesibilidad (axe) por todas las rutas.
 
+### Cuarta vuelta · más mejoras (20/11/2026)
+- ✅ **Capacidad de las próximas 6 semanas** (Negocio): por semana, horas de las tareas con fecha y estimación más las horas incluidas de los abonos (repartidas por día hábil) contra tu capacidad; cuánto te queda libre para decidir si tomás un proyecto nuevo.
+- ✅ **Presupuesto vs. real por proyecto** (pestaña Horas): presupuesto vinculado, cuántas horas cubre a tu tarifa objetivo, estimado en tareas, registrado, gastos del proyecto y **tarifa real hoy**; aviso «pasado del presupuesto / de lo estimado» también en el Resumen del proyecto.
+- ✅ **Encuesta de satisfacción (NPS)**: al terminar un proyecto, el cliente la ve en su portal (0–10 + comentario, una vez por proyecto); te llega como notificación, se ve en la ficha del cliente y hay un KPI de NPS en Negocio (migración 0009).
+- ✅ **Aviso de inicio de sesión desde un dispositivo nuevo** (navegador + sistema): notificación en la campana y email (con Brevo); el primero no avisa. Las notificaciones ahora muestran el detalle (migración 0008, índice parcial).
+- ✅ **Captura sin conexión**: si no hay señal, lo que capturás queda en el celular (también desde la página «Sin conexión») y se sube solo a la Bandeja cuando vuelve la conexión.
+- ✅ Pipeline: botón **«Usar la de la etapa»** cuando la probabilidad se editó a mano.
+- ✅ Automatización nueva: **presupuesto enviado sin respuesta en 4 días → tarea de seguimiento** (plantilla). Claude por MCP: `ver_capacidad` (horas libres por semana).
+- ✅ **Ajuste de abonos por inflación** (Finanzas → Abonos → «Ajustar montos»): un porcentaje a todos o a los que elijas, con redondeo a $ 100 o $ 1.000, vista previa y Deshacer. Los cobros ya generados no cambian.
+- ✅ Finanzas: el **Resumen se filtra por etiqueta** (totales del mes y gráfico de 6 meses).
+- ✅ Portal: página propia (con cuánto esperar y volver) al pasar el límite de descargas de PDF.
+- ✅ Rendimiento y accesibilidad: la ficha de sitio carga cada pestaña aparte (vuelve a quedar < 170 KB); «Exportar notas» con nombre accesible en el celular.
+
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 

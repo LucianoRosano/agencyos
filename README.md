@@ -29,6 +29,8 @@ El centro de mando de Luciano Rosano: agencia, proyectos, dinero, conocimiento y
 | Colaboradores (con permisos extra) y portal de clientes, varios workspaces | ✅ |
 | Revisión semanal, notificaciones push, passkeys | ✅ |
 | Abonos mensuales con MRR, importación CSV, fechas en lenguaje natural, compartir desde el celular | ✅ |
+| Informe mensual por cliente (PDF), capacidad de las próximas semanas, presupuesto vs. real, encuesta NPS en el portal | ✅ |
+| Captura sin conexión y aviso de inicio de sesión desde un dispositivo nuevo | ✅ |
 | Escalabilidad: índices medidos, paginación, S3, observabilidad, workers horizontales ([SCALING](docs/SCALING.md)) | ✅ |
 | Facultad y Calendario (con iCal) | ✅ |
 | Servidor MCP con tokens de alcance limitado | ✅ |

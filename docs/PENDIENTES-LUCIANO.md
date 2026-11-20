@@ -36,6 +36,13 @@
 - **Capacidad**: en Configuración → Agencia cargá tus horas de trabajo por día hábil; en Tareas aparece la carga de la semana (poné estimaciones a las tareas para que sea útil).
 - **Automatización «cobro vencido → recordatorio»** (Automatizaciones → plantillas): el email al cliente queda en Aprobaciones.
 - **Permisos extra de colaboradores** (Configuración → Usuarios), **un segundo workspace** (selector arriba en la barra lateral) y el **enlace por email** en una cuenta de cliente con 2FA activado.
+- **Capacidad de las próximas 6 semanas** (Negocio): poné estimación y fecha a tus tareas y horas incluidas a tus abonos; ahí ves cuánto te queda libre por semana.
+- **Presupuesto vs. real** (proyecto → Horas): cargá tu tarifa objetivo (Configuración → Agencia) y vinculá el presupuesto aceptado; avisa cuando un proyecto se pasa.
+- **Encuesta de satisfacción**: cuando pases un proyecto a «Terminado», tu cliente ve la encuesta en su portal; el resultado aparece en su ficha y en Negocio.
+- **Captura sin conexión**: en el celular, poné modo avión, capturá algo y volvé a conectar: se sube solo a la Bandeja.
+- **Ajustar abonos por inflación** (Finanzas → Abonos → «Ajustar montos»): probá con un porcentaje y usá «Deshacer» si querés volver.
+- **Automatización «presupuesto sin respuesta → seguimiento»** (Automatizaciones → plantillas): te deja una tarea a los 4 días de enviado.
+- **Aviso de dispositivo nuevo**: al entrar desde otro navegador o celular te llega una notificación (y un email cuando configures Brevo). Si no fuiste vos, cerrá esa sesión en Configuración → Seguridad.
 
 ### Datos para cargar en AGENCYOS
 - Revisar la **carga inicial** (`pnpm admin import-inicial` muestra el plan; con `--aplicar` lo ejecuta): clientes y proyectos de tu contexto (A4), proyectos personales y los dos vencimientos (Claude Design 14/12/2026, certificado ARCA 27/10/2028). Ajustá lo que no esté bien desde la app.
@@ -60,21 +67,20 @@ Todo lo de las fases F1–F6 está construido y probado, más una tercera vuelta
 1. **Cobrar online con Mercado Pago**: link de pago en cada cobro, abono y presupuesto aceptado; el webhook lo marca como cobrado y registra el ingreso. Necesita tu cuenta de Mercado Pago y credenciales de producción.
 2. **Factura electrónica de ARCA** (monotributo, Factura C): emitir desde un cobro con CAE y PDF (WSAA + WSFE). Necesita el certificado digital de ARCA (ya tenés uno que vence el 27/10/2028) y definir punto de venta.
 3. **Envío automático del informe mensual** a cada cliente el día 1 (el PDF ya existe: falta Brevo y elegir a qué clientes se manda).
-4. **Capacidad a futuro**: hoy se ve la semana; falta proyectar 4–8 semanas sumando las horas incluidas de los abonos, para decidir si tomás un proyecto nuevo.
-5. **Presupuesto vs. real por proyecto**: horas y gastos estimados en el presupuesto contra lo registrado, con alerta cuando un proyecto se pasa.
-6. **Aprobación de diseños con anotaciones** en el portal (el cliente marca sobre la imagen o la página, tipo Markup.io).
-7. **Encuesta de satisfacción (NPS)** automática al cerrar un proyecto, con el resultado en la ficha del cliente.
-8. **WhatsApp Business (Cloud API)**: recordatorios de cobro y avisos de entrega por WhatsApp en lugar de email. Necesita cuenta de Meta Business.
-9. **Google Calendar en las dos direcciones** y **Gmail → interacciones del CRM** (OAuth de Google).
-10. **Búsqueda semántica** en notas y clientes («¿qué le prometí a la librería sobre envíos?») con embeddings en PostgreSQL (pgvector). Necesita API key o un modelo local.
+4. **Aprobación de diseños con anotaciones** en el portal (el cliente marca sobre la imagen o la página, tipo Markup.io).
+5. **WhatsApp Business (Cloud API)**: recordatorios de cobro y avisos de entrega por WhatsApp en lugar de email. Necesita cuenta de Meta Business.
+6. **Google Calendar en las dos direcciones** y **Gmail → interacciones del CRM** (OAuth de Google).
+7. **Pedido de NPS por email** además del portal (falta Brevo) y recordatorio si no responde en una semana.
+8. **Cotización del dólar automática** (oficial, MEP y blue de una API pública como DolarAPI) para convertir abonos y presupuestos en USD y ver Negocio en una sola moneda. Hoy la cotización se carga a mano en cada movimiento.
+9. **Ajuste automático por IPC** (INDEC) cada N meses en los abonos que elijas, con aviso al cliente un mes antes (hoy el ajuste es manual y masivo).
+10. **Recordatorios fiscales**: recategorización de monotributo (enero y julio), vencimientos mensuales y el certificado de ARCA, como vencimientos recurrentes en Hoy y Calendario.
+11. **Búsqueda semántica** en notas y clientes («¿qué le prometí a la librería sobre envíos?») con embeddings en PostgreSQL (pgvector). Necesita API key o un modelo local.
 
 ### Mejoras técnicas y de UX propuestas
 - **Next.js Cache Components / PPR** en Hoy y Negocio (cache por workspace con invalidación por etiqueta): baja el tiempo de servidor de cada pantalla. Pide una migración cuidadosa por la autenticación.
-- **Captura sin conexión**: si estás sin señal, lo que capturás se guarda en el celular y se sube solo al volver la conexión (Background Sync).
-- **Temporizador global** de horas en la barra superior (iniciar/pausar desde cualquier pantalla) además del Modo foco.
-- **Alertas de seguridad**: email cuando se inicia sesión desde un dispositivo nuevo y sesiones con ubicación aproximada.
+- **Alertas de seguridad**: falta mostrar la ubicación aproximada de cada sesión (requiere una base de geolocalización por IP).
 - **Réplica de lectura de PostgreSQL** para reportes pesados y PgBouncer en modo sesión cuando haya muchas instancias (documentado en `docs/SCALING.md`).
-- Biblioteca: miniatura de la primera página del PDF en la grilla (hoy hay vista previa en la ficha). Finanzas: filtro por etiqueta también en los totales del Resumen.
-- Portal: selector de workspace para un cliente que está en dos workspaces; mensaje propio (no la pantalla de error genérica) al llegar al límite de pedidos.
-- Pipeline: con etapas configuradas, una probabilidad editada a mano se respeta; falta poder "volver a la de la etapa" con un botón.
+- Biblioteca: miniatura de la primera página del PDF en la grilla (hoy hay vista previa en la ficha).
+- Portal: selector de workspace para un cliente que está en dos workspaces.
+- **Temporizador global** visible en la barra superior: se dejó para después porque suma JS a todas las pantallas (hoy varias están a 1–2 KB del tope de 170 KB); conviene hacerlo junto con una optimización del JS común.
 - Importador de Obsidian: no hace falta (arrancás de cero); queda la exportación compatible como salida de emergencia.

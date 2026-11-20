@@ -29,3 +29,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · versione
   - Capturas en el feedback del portal, permisos extra por colaborador, varios workspaces, seguridad del enlace por email e invitaciones.
   - Índices y paginación por cursor, rate limiting en PostgreSQL, almacenamiento S3, observabilidad (OpenTelemetry, logs JSON, health y métricas), workers escalables (ADR 0012, docs/SCALING.md).
   - Esqueletos y errores por sección, navegación y respuestas instantáneas, atajos completos, JS inicial < ~170 KB por pantalla, accesibilidad en todas las rutas.
+- Cuarta vuelta:
+  - Capacidad de las próximas 6 semanas en Negocio (tareas estimadas + horas de abonos) y presupuesto vs. real por proyecto con tarifa real y aviso.
+  - Encuesta de satisfacción (NPS) en el portal al terminar un proyecto, con resultado en la ficha del cliente y KPI en Negocio (migración 0009).
+  - Aviso de inicio de sesión desde un dispositivo nuevo (migración 0008) y detalle en las notificaciones.
+  - Captura sin conexión con subida automática; Resumen de Finanzas filtrable por etiqueta; botón para volver a la probabilidad de la etapa; página propia al pasar el límite de descargas del portal.
+  - Ajuste de abonos por inflación con vista previa y Deshacer; plantilla «presupuesto sin respuesta → seguimiento»; herramienta MCP `ver_capacidad`.
+  - Ficha de sitio con pestañas cargadas aparte (JS < 170 KB) y correcciones de accesibilidad.
