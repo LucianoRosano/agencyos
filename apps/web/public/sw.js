@@ -1,5 +1,5 @@
 /* AGENCYOS · service worker: estáticos cacheados y página offline. Datos siempre desde la red. */
-const VERSION = "agencyos-v3";
+const VERSION = "agencyos-v4";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (e) => {

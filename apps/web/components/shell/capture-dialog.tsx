@@ -2,9 +2,29 @@
 
 import { L } from "@agencyos/core";
 import { Sheet } from "@agencyos/ui";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { captureAction } from "@/app/actions/shell";
+import { flushCaptures, queueCapture } from "@/lib/offline-captures";
+import { toast } from "@/lib/toast";
 import { ActionForm, SubmitButton } from "../action-form";
+
+type CaptureResult = Awaited<ReturnType<typeof captureAction>>;
+const QUEUED = { ok: true, data: { queued: true } } as unknown as CaptureResult;
+
+/** Sin señal (o si el envío falla por red), la captura queda en el dispositivo y se sube al volver la conexión. */
+async function submitCapture(prev: CaptureResult | null, fd: FormData): Promise<CaptureResult> {
+  if (!navigator.onLine) {
+    queueCapture(fd);
+    return QUEUED;
+  }
+  try {
+    return await captureAction(prev, fd);
+  } catch {
+    queueCapture(fd);
+    return QUEUED;
+  }
+}
 
 const TYPES = Object.entries(L.inboxType);
 
@@ -12,6 +32,19 @@ export function CaptureDialog({ initialOpen = false, initialText = "" }: { initi
   const [open, setOpen] = useState(initialOpen);
   const [text, setText] = useState(initialText);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
+  // Al montar (cada pantalla de la app) y al volver la conexión: subir lo capturado sin señal.
+  useEffect(() => {
+    const flush = () =>
+      void flushCaptures((fd) => captureAction(null, fd)).then((n) => {
+        if (!n) return;
+        toast.success(n === 1 ? "Se subió a la Bandeja 1 captura hecha sin conexión" : `Se subieron a la Bandeja ${n} capturas hechas sin conexión`);
+        router.refresh();
+      });
+    flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [router]);
   useEffect(() => {
     const onOpen = () => setOpen(true);
     const onText = (e: Event) => setText(String((e as CustomEvent).detail ?? ""));
@@ -33,8 +66,10 @@ export function CaptureDialog({ initialOpen = false, initialText = "" }: { initi
       description="Anotalo ahora, ordenalo después desde la Bandeja."
     >
       <ActionForm
-        action={captureAction}
-        successMessage="Guardado en la Bandeja"
+        action={submitCapture}
+        successMessage={(d) =>
+          (d as { queued?: boolean } | null)?.queued ? "Sin conexión: quedó en este dispositivo y se sube solo al volver" : "Guardado en la Bandeja"
+        }
         onSuccess={() => {
           setOpen(false);
           setText("");

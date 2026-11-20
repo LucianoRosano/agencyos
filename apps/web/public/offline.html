@@ -21,6 +21,11 @@ p.lead{color:var(--muted);font-size:15px;line-height:1.6;margin:12px 0 0}
 button{margin-top:28px;min-height:44px;padding:0 22px;border-radius:8px;border:0;color:#fff;background:linear-gradient(90deg,#7C5CFF,#22D3EE);font:500 15px Geist,system-ui,sans-serif;cursor:pointer}
 button:focus-visible{outline:2px solid #7C5CFF;outline-offset:2px}
 .hint{margin-top:20px;font-size:13px;color:var(--muted)}
+form{margin-top:36px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-align:left}
+label{display:block;font:12px/1 ui-monospace,monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+textarea{width:100%;min-height:96px;resize:vertical;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font:16px/1.5 Geist,system-ui,sans-serif}
+textarea:focus-visible{outline:2px solid #7C5CFF;outline-offset:1px}
+form button{margin-top:12px;width:100%}
 </style>
 </head>
 <body>
@@ -34,7 +39,22 @@ button:focus-visible{outline:2px solid #7C5CFF;outline-offset:2px}
   <p class="lead">AGENCYOS muestra siempre tus datos actualizados, así que necesita conexión.</p>
   <button type="button" onclick="location.reload()">Reintentar</button>
   <p class="hint">Se reintenta solo cuando vuelva la conexión.</p>
+  <form id="cap">
+    <label for="cap-text">Capturar igual</label>
+    <textarea id="cap-text" required placeholder="Una tarea, una idea, un gasto, un link…"></textarea>
+    <button type="submit">Guardar en este dispositivo</button>
+    <p id="cap-msg" class="hint" role="status" aria-live="polite"></p>
+  </form>
 </main>
-<script>addEventListener("online",()=> {location.reload()})</script>
+<script>
+addEventListener("online",()=> {location.reload()});
+(function(){
+  var KEY="agencyos:capturas-pendientes",f=document.getElementById("cap"),t=document.getElementById("cap-text"),m=document.getElementById("cap-msg");
+  function list(){try{var v=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(v)?v:[]}catch(e){return[]}}
+  function show(){var n=list().length;m.textContent=n?(n===1?"1 captura":n+" capturas")+" esperando conexión: se suben solas a la Bandeja.":""}
+  f.addEventListener("submit",function(e){e.preventDefault();var x=t.value.trim();if(!x)return;var l=list();l.push({text:x.slice(0,5000),at:new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(l.slice(-200)));t.value="";show();t.focus()});
+  show();
+})();
+</script>
 </body>
 </html>
