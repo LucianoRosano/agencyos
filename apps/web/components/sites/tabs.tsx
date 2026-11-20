@@ -50,13 +50,29 @@ import { LazyAttachments as Attachments } from "@/components/library/attachments
 import { MarkdownView } from "@/components/markdown";
 import { renderMarkdown } from "@/lib/markdown";
 import type { AppCtx } from "@/lib/session";
-import { BlueprintEditor, RestoreVersionButton, TemplatePicker, type Tree } from "./blueprint-editor";
-import { BriefForm, QuestionsPanel } from "./brief-ui";
-import { SlotEditSheet, SlotStatusSelect } from "./content-ui";
-import { DeleteEnvironmentButton, EnvironmentSheet } from "./env-ui";
-import { EnsureDocsButton, LaunchEditSheet, LaunchStatusToggle, NewLaunchCheckSheet } from "./launch-ui";
-import { NewRequirementSheet, RequirementList } from "./requirements-ui";
-import { CloseRoundButton, EditItemSheet, ItemStatusSelect, NewItemSheet, OpenRoundButton } from "./revisions-ui";
+import type { Tree } from "./blueprint-editor";
+import {
+  BlueprintEditor,
+  BriefForm,
+  CloseRoundButton,
+  DeleteEnvironmentButton,
+  EditItemSheet,
+  EnsureDocsButton,
+  EnvironmentSheet,
+  ItemStatusSelect,
+  LaunchEditSheet,
+  LaunchStatusToggle,
+  NewItemSheet,
+  NewLaunchCheckSheet,
+  NewRequirementSheet,
+  OpenRoundButton,
+  QuestionsPanel,
+  RequirementList,
+  RestoreVersionButton,
+  SlotEditSheet,
+  SlotStatusSelect,
+  TemplatePicker,
+} from "./lazy";
 import { pct, REVISION_TONE, SITES_ACCENT, SLOT_COLOR, SLOT_STATUS_ORDER, SLOT_TONE } from "./shared";
 import { PublicationStatusSelect } from "./site-header";
 
