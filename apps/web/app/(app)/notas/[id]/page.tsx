@@ -6,7 +6,7 @@ import { Card, EntityChip, SectionLabel } from "@agencyos/ui";
 import { CalendarDays, ChevronLeft, Folder, Pin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AgentEntryButton } from "@/components/ai/ai-ui";
+import { AgentEntryButton } from "@/components/ai/agent-entry-button";
 import { LocalGraph } from "@/components/brain/local-graph";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { Connections } from "@/components/notes/connections";

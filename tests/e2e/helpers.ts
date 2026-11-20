@@ -103,3 +103,12 @@ export async function expectAccessible(page: Page) {
     ),
   ).toEqual([]);
 }
+
+/** Abre la paleta Ctrl+K (se carga bajo demanda): reintenta si la tecla llegó antes de hidratar. */
+export async function openPalette(page: Page) {
+  const input = page.getByPlaceholder(/Buscar clientes, proyectos/);
+  await expect(async () => {
+    if (!(await input.isVisible())) await page.keyboard.press("Control+k");
+    await expect(input).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
+}

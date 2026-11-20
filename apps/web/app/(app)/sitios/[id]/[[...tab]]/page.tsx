@@ -6,7 +6,7 @@ import { Badge, Card, PageHeader, Progress, Tabs } from "@agencyos/ui";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AgentEntryButton } from "@/components/ai/ai-ui";
+import { AgentEntryButton } from "@/components/ai/agent-entry-button";
 import { pct, SITES_ACCENT } from "@/components/sites/shared";
 import { EditSiteSheet } from "@/components/sites/site-form";
 import { PublicationStatusSelect, SiteMenu } from "@/components/sites/site-header";

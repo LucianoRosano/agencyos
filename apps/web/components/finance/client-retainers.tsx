@@ -5,7 +5,7 @@ import { Repeat2 } from "lucide-react";
 import Link from "next/link";
 import { clientOpts, projectOpts } from "@/lib/options";
 import type { AppCtx } from "@/lib/session";
-import { NewRetainerButton } from "./retainer-ui";
+import { LazyNewRetainerButton as NewRetainerButton } from "./retainer-lazy";
 
 /** Abonos del cliente (pestaña Dinero de la ficha): qué paga por mes y cuándo se genera el próximo cobro. */
 export async function ClientRetainers({ ctx, clientId }: { ctx: AppCtx; clientId: string }) {

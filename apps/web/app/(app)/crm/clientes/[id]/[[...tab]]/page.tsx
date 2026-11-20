@@ -30,14 +30,20 @@ import { EntitySide } from "@/components/collab/entity-side";
 import { EditClientSheet } from "@/components/crm/client-form";
 import { ClientMenu, ClientStatusSelect } from "@/components/crm/client-menu";
 import { ClientStory } from "@/components/crm/client-story";
-import { ClientContactMenu, LinkContactSheet, NewContactSheet } from "@/components/crm/contact-forms";
+import {
+  LazyClientContactMenu as ClientContactMenu,
+  LazyInteractionForm as InteractionForm,
+  LazyLinkContactSheet as LinkContactSheet,
+  LazyPipelineView as PipelineView,
+  LazyWhatsappImportSheet as WhatsappImportSheet,
+} from "@/components/crm/client-tabs-lazy";
+import { NewContactSheet } from "@/components/crm/contact-forms";
 import { ContactLinks } from "@/components/crm/contact-links";
 import { FiscalCard } from "@/components/crm/fiscal-card";
-import { InteractionForm, InteractionSheet, NextStepDone } from "@/components/crm/interaction-form";
+import { InteractionSheet, NextStepDone } from "@/components/crm/interaction-form";
 import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
-import { type PipelineOpp, PipelineView } from "@/components/crm/pipeline";
+import type { PipelineOpp } from "@/components/crm/pipeline";
 import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, stageColor, stageName } from "@/components/crm/shared";
-import { WhatsappImportSheet } from "@/components/crm/whatsapp-import";
 import { ClientRetainers } from "@/components/finance/client-retainers";
 import { ClientFilesTab } from "@/components/library/client-files";
 import { MarkdownView } from "@/components/markdown";

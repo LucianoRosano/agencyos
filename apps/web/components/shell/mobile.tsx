@@ -34,7 +34,7 @@ export function MobileHeader({ data }: { data: ShellData }) {
               aria-label="Más: módulos y configuración"
               className="grid size-11 place-items-center rounded-full border border-border bg-surface-2 font-mono text-[13px] font-semibold"
             >
-              {initials(data.user.name)}
+              <span aria-hidden>{initials(data.user.name)}</span>
             </button>
           }
         >

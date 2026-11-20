@@ -25,8 +25,8 @@ export function WeekLoad({ days }: { days: DayLoad[] }) {
           const pct = d.capacityMinutes ? Math.min(100, Math.round((d.minutes / d.capacityMinutes) * 100)) : d.minutes ? 100 : 0;
           const isOver = d.minutes > d.capacityMinutes;
           return (
-            <li key={d.date} className={cn("flex min-w-0 flex-col gap-1 rounded-lg px-1.5 py-2 text-center", !d.workday && "opacity-60")}>
-              <span className="font-mono text-[10px] tracking-[0.08em] text-text-faint">{dowShort(d.date)}</span>
+            <li key={d.date} className={cn("flex min-w-0 flex-col gap-1 rounded-lg px-1.5 py-2 text-center", !d.workday && "bg-surface-2/60")}>
+              <span className="font-mono text-[10px] tracking-[0.08em] text-text-muted">{dowShort(d.date)}</span>
               <span className="hidden text-[11px] text-text-muted sm:block">{formatDayMonth(d.date)}</span>
               <span
                 className="relative mx-auto h-14 w-3 overflow-hidden rounded-full bg-surface-3"
@@ -39,7 +39,7 @@ export function WeekLoad({ days }: { days: DayLoad[] }) {
                 />
               </span>
               <span className={cn("font-mono text-[11px] tabular-nums", isOver ? "text-warning" : "text-text-muted")}>{d.minutes ? h(d.minutes) : "—"}</span>
-              {d.unestimated ? <span className="text-[10px] text-text-faint">+{d.unestimated} s/e</span> : null}
+              {d.unestimated ? <span className="text-[10px] text-text-muted">+{d.unestimated} s/e</span> : null}
             </li>
           );
         })}

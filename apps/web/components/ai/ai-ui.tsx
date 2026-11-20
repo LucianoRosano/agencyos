@@ -9,7 +9,6 @@ import {
   removeProviderKeyAction,
   saveProviderAction,
   setAgentEnabledAction,
-  startEntityRunAction,
   startRunAction,
   testProviderAction,
   updateAgentAction,
@@ -228,21 +227,5 @@ export function AutoRefresh({ active }: { active: boolean }) {
 }
 
 /** Botón contextual en una ficha (solo se renderiza si hay proveedor y el agente está activo). */
-export function AgentEntryButton({ entityType, entityId, label }: { entityType: "project" | "site" | "note"; entityId: string; label: string }) {
-  const { exec, pending } = useAction();
-  const router = useRouter();
-  return (
-    <Button
-      variant="secondary"
-      loading={pending}
-      onClick={() =>
-        exec(() => startEntityRunAction(entityType, entityId), {
-          success: "Pedido en cola: el resultado queda como comentario y te aviso.",
-          onDone: (id) => router.push(`/ia/ejecuciones/${id}`),
-        })
-      }
-    >
-      <Sparkles className="size-4" /> {label}
-    </Button>
-  );
-}
+
+export { AgentEntryButton } from "./agent-entry-button";

@@ -5,7 +5,6 @@ import { Button, Field, Menu, MenuItem, MenuSeparator, Select, Sheet } from "@ag
 import { FolderInput, FolderPlus, History, MoreHorizontal, Pencil, Trash2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
   createFolderAction,
   deleteFileAction,
@@ -23,6 +22,7 @@ import {
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/fields";
 import { useAction } from "@/components/use-action";
+import { toast } from "@/lib/toast";
 import { UploadZone } from "./uploader";
 
 type Opt = { value: string; label: string };

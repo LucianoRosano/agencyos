@@ -9,7 +9,7 @@ import { CornerDownRight, LayoutTemplate, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
-import { AgentEntryButton } from "@/components/ai/ai-ui";
+import { AgentEntryButton } from "@/components/ai/agent-entry-button";
 import { EntitySide } from "@/components/collab/entity-side";
 import { MarkdownView } from "@/components/markdown";
 import { ProjectClientTab, ProjectFilesTab, ProjectFinanceTab, ProjectNotesTab } from "@/components/projects/project-related";

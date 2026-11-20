@@ -8,7 +8,8 @@ import { assertOwned, getDb, scoped } from "../shared/db";
 export const INBOX_TYPES = ["task", "note", "idea", "expense", "link"] as const;
 
 export const captureInput = z.object({
-  text: zRequired(2000, "El texto"),
+  // Los formularios mandan saltos «\r\n»: se guardan como «\n».
+  text: z.preprocess((v) => (typeof v === "string" ? v.replace(/\r\n?/g, "\n") : v), zRequired(2000, "El texto")),
   suggestedType: z.preprocess((v) => (v === "" ? undefined : v), z.enum(INBOX_TYPES).optional()),
   spaceId: zOptUuid,
 });

@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { expectNoHorizontalScroll, login, shot } from "./helpers";
+import { expectNoHorizontalScroll, login, openPalette, shot } from "./helpers";
 
 test("fechas en lenguaje natural: paleta y formulario de tarea", async ({ page }, info) => {
   const tag = info.project.name.replace(/[^a-z]/gi, "");
   await login(page);
   // Paleta: «mañana 10hs» → tarea para mañana a las 10
-  await page.keyboard.press("Control+k");
+  await openPalette(page);
   const input = page.getByPlaceholder(/Buscar clientes, proyectos/);
   await input.fill(`Llamar a Bruno ${tag} mañana 10hs`);
   const create = page.getByRole("option", { name: new RegExp(`Crear tarea «Llamar a Bruno ${tag}» para`) });

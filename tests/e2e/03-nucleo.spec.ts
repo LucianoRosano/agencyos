@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { expectAccessible, expectNoHorizontalScroll, login, shot } from "./helpers";
+import { expectAccessible, expectNoHorizontalScroll, login, openPalette, shot } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -20,6 +20,7 @@ test("Bandeja → procesar → tarea con fecha → aparece en Hoy → completarl
   await page.goto("/bandeja");
   await expect(page.getByText(text)).toBeVisible();
   await page.getByRole("link", { name: /Procesar/ }).click();
+  await page.waitForLoadState("networkidle"); // «Saltear» necesita la pantalla hidratada
   // procesar hasta encontrar el nuestro
   for (let i = 0; i < 10; i++) {
     if (await page.getByText(text, { exact: true }).isVisible()) break;
@@ -44,8 +45,8 @@ test("paleta Ctrl+K: buscar con y sin tildes, crear desde la paleta", async ({ p
   await login(page);
   await page.goto("/hoy");
   const title = `Revisión del catálogo ${info.project.name}`;
-  await page.keyboard.press("Control+k");
   const input = page.getByPlaceholder(/Buscar clientes, proyectos/);
+  await openPalette(page);
   await input.fill(title);
   await page.getByRole("option", { name: new RegExp(`Crear tarea para hoy: «${title}»`) }).click();
   await expect(page.getByText("Tarea creada para hoy")).toBeVisible();

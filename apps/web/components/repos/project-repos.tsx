@@ -4,7 +4,7 @@ import { githubStatus, listRepos, listTemplates } from "@agencyos/modules/repos/
 import { Badge, Card, EmptyState } from "@agencyos/ui";
 import { ChevronRight, GitBranch } from "lucide-react";
 import Link from "next/link";
-import { CreateRepoSheet } from "./repo-ui";
+import { LazyCreateRepoSheet as CreateRepoSheet } from "./repo-lazy";
 import { HealthRing } from "./shared";
 
 const TYPES = ["wp-plugin", "wp-tema", "wp-sitio", "php-panel", "app-web", "herramienta", "docs", "plantilla"];
