@@ -31,6 +31,19 @@ export async function listTags(ctx: Ctx) {
   return getDb().select().from(schema.tag).where(scoped(schema.tag, ctx)).orderBy(asc(schema.tag.name));
 }
 
+/** Etiquetas que tienen al menos un elemento de este tipo (para filtros: no ofrecer filtros vacíos). */
+export async function tagsUsedOn(ctx: Ctx, entityType: EntityType) {
+  return getDb()
+    .selectDistinct({ id: schema.tag.id, name: schema.tag.name, color: schema.tag.color })
+    .from(schema.tag)
+    .innerJoin(
+      schema.tagging,
+      and(eq(schema.tagging.tagId, schema.tag.id), eq(schema.tagging.workspaceId, ctx.workspaceId), eq(schema.tagging.entityType, entityType)),
+    )
+    .where(scoped(schema.tag, ctx))
+    .orderBy(asc(schema.tag.name));
+}
+
 export async function createTag(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "tag");
   const input = z

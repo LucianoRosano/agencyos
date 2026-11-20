@@ -1,4 +1,5 @@
 import { diffDays, dowShort, formatMoney, L, label, monthName } from "@agencyos/core";
+import { tagsUsedOn } from "@agencyos/modules/collab/service";
 import { financeOverview } from "@agencyos/modules/finance/queries";
 import { BarPairs, BlockCard, Button, Card, cn, EmptyState, SectionLabel } from "@agencyos/ui";
 import { ArrowRight, CalendarClock, ChartColumn, HandCoins, Landmark, Repeat, Wallet } from "lucide-react";
@@ -34,11 +35,15 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const f = await financePage(sp);
   if (!f.allowed) return <NoFinanceAccess />;
+  const tags = await tagsUsedOn(f.ctx, "transaction");
+  const tag = tags.find((t) => t.id === sp.etiqueta);
   const o = await financeOverview(f.ctx, {
     ledgerId: f.ledgerId,
     includeReceivables: f.showReceivables,
+    tagId: tag?.id,
   });
   const mes = monthName(Number(o.month.slice(5, 7)));
+  const suffix = tag ? ` · #${tag.name}` : "";
   const empty = !o.accounts.length && !o.upcoming.length && !o.receivable.length && !o.payable.length && !o.chart.length && !o.monthlyCost.count;
   const L_ = (path: string, extra: Record<string, string | undefined> = {}) => `${path}${qs(f.ledgerId, extra)}`;
   return (
@@ -68,14 +73,36 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
         </Card>
       ) : (
         <div className="flex flex-col gap-4 md:gap-5">
+          {tags.length ? (
+            <nav aria-label="Filtrar ingresos y gastos por etiqueta" className="-mb-1 flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[13px] text-text-muted">Etiqueta:</span>
+              {[{ id: "", name: "Todas", color: "" }, ...tags].map((t) => {
+                const active = (tag?.id ?? "") === t.id;
+                return (
+                  <Link
+                    key={t.id || "todas"}
+                    href={L_("/finanzas", { etiqueta: t.id || undefined })}
+                    aria-current={active ? "true" : undefined}
+                    className={cn(
+                      "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] transition-colors",
+                      active ? "border-accent bg-accent-soft text-text" : "border-border text-text-muted hover:text-text",
+                    )}
+                  >
+                    {t.color ? <span className="size-2 rounded-full" style={{ background: t.color }} aria-hidden /> : null}
+                    {t.id ? `#${t.name}` : t.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : null}
           <section aria-label={`Este mes: ${mes}`} className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-            <Stat title={`Ingresos · ${mes}`}>
+            <Stat title={`Ingresos · ${mes}${suffix}`}>
               <MoneyLines items={o.income} className="text-success" empty="$ 0" />
             </Stat>
-            <Stat title={`Gastos · ${mes}`}>
+            <Stat title={`Gastos · ${mes}${suffix}`}>
               <MoneyLines items={o.expense} empty="$ 0" />
             </Stat>
-            <Stat title="Resultado del mes" hint="Ingresos − gastos, por moneda">
+            <Stat title={`Resultado del mes${suffix}`} hint="Ingresos − gastos, por moneda">
               <MoneyLines items={o.result} empty="$ 0" />
             </Stat>
             <Stat
@@ -177,7 +204,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-3">
-            <BlockCard icon={<ChartColumn />} title="Ingresos y gastos · 6 meses" className="lg:col-span-2">
+            <BlockCard icon={<ChartColumn />} title={`Ingresos y gastos · 6 meses${suffix}`} className="lg:col-span-2">
               {o.chart.length ? (
                 <div className="flex flex-col gap-6">
                   {o.chart.map((c) => (

@@ -467,9 +467,16 @@ export async function financeOverview(
     ledgerId?: string;
     includeReceivables?: boolean;
     today?: string;
+    /** Solo ingresos y gastos con esta etiqueta (los totales del mes y el gráfico). */
+    tagId?: string;
   } = {},
 ) {
   can(ctx);
+  const byTag = opts.tagId
+    ? UUID_RE.test(opts.tagId)
+      ? sql`exists (select 1 from tagging tg where tg.workspace_id = ${ctx.workspaceId} and tg.entity_type = 'transaction' and tg.entity_id = ${T.id} and tg.tag_id = ${opts.tagId})`
+      : sql`false`
+    : undefined;
   const db = getDb();
   const today = opts.today ?? todayAR();
   const from = startOfMonth(today);
@@ -488,7 +495,7 @@ export async function financeOverview(
         total: sql<string>`sum(${T.amount})::text`,
       })
       .from(T)
-      .where(and(scoped(T, ctx), gte(T.date, from), lte(T.date, to), inArray(T.kind, ["income", "expense"]), L ? eq(T.ledgerId, L) : undefined))
+      .where(and(scoped(T, ctx), gte(T.date, from), lte(T.date, to), inArray(T.kind, ["income", "expense"]), L ? eq(T.ledgerId, L) : undefined, byTag))
       .groupBy(T.kind, T.currency),
     db
       .select({
@@ -498,7 +505,7 @@ export async function financeOverview(
         total: sql<string>`sum(${T.amount})::text`,
       })
       .from(T)
-      .where(and(scoped(T, ctx), gte(T.date, sixFrom), lte(T.date, to), inArray(T.kind, ["income", "expense"]), L ? eq(T.ledgerId, L) : undefined))
+      .where(and(scoped(T, ctx), gte(T.date, sixFrom), lte(T.date, to), inArray(T.kind, ["income", "expense"]), L ? eq(T.ledgerId, L) : undefined, byTag))
       .groupBy(sql`1`, T.kind, T.currency),
     withRec
       ? db
