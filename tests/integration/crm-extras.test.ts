@@ -195,3 +195,19 @@ describe("probabilidad editada a mano", () => {
     expect((m2 as { opportunity?: { probability: number } }).opportunity?.probability ?? (m2 as { probability?: number }).probability).toBe(80);
   });
 });
+
+describe("volver a la probabilidad de la etapa", () => {
+  it("resetea la manual a la de la etapa actual y la vuelve automática", async () => {
+    const { createClient, createOpportunity, moveOpportunity, resetOpportunityProbability } = await import("@agencyos/modules/crm/service");
+    const ws = await makeWorkspace();
+    const c = await createClient(ws, { name: "Cliente reset" });
+    const o = await createOpportunity(ws, { clientId: c.id, title: "Op reset", probability: 35 });
+    expect(o.probabilityManual).toBe(true);
+    await moveOpportunity(ws, o.id, { stage: "meeting" });
+    const r = await resetOpportunityProbability(ws, o.id);
+    expect(r.probability).toBe(40);
+    expect(r.probabilityManual).toBe(false);
+    await moveOpportunity(ws, o.id, { stage: "lost", lostReason: "price" });
+    await expect(resetOpportunityProbability(ws, o.id)).rejects.toThrow(/cerrada/);
+  });
+});

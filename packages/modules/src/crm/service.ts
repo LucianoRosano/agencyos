@@ -741,6 +741,29 @@ export async function updateOpportunity(ctx: Ctx, id: string, raw: unknown) {
   });
 }
 
+/** Vuelve la probabilidad a la de su etapa actual y deja de tratarla como manual. */
+export async function resetOpportunityProbability(ctx: Ctx, id: string) {
+  assertCan(ctx, "update", "crm");
+  return getDb().transaction(async (t) => {
+    const o = await getOppRow(t, ctx, id);
+    if (o.stage === "won" || o.stage === "lost") throw validation("La oportunidad está cerrada: su probabilidad es fija.");
+    const { stages } = await stageByKey(t, ctx, o.stage);
+    const key = effectiveStage(o, await stagePlacements(ctx, [o.id], t), stages);
+    const stage = stages.find((s) => s.key === key);
+    const probability = stage?.probability ?? 50;
+    const [row] = await t.update(schema.opportunity).set({ probability, probabilityManual: false }).where(eq(schema.opportunity.id, id)).returning();
+    if (!row) throw notFound("La oportunidad");
+    await recordEvent(t, ctx, {
+      type: "oportunidad.actualizada",
+      entityType: "opportunity",
+      entityId: id,
+      summary: `Volvió la probabilidad de «${row.title}» a la de la etapa (${probability} %)`,
+      payload: { clientId: row.clientId },
+    });
+    return row;
+  });
+}
+
 export const moveInput = z.object({
   // Clave de etapa: de sistema (STAGES) o propia del workspace (crm_stage).
   stage: z.string({ error: "Etapa inválida" }).trim().min(1, "Etapa inválida").max(40, "Etapa inválida"),
@@ -795,7 +818,13 @@ export async function moveOpportunity(ctx: Ctx, id: string, raw: unknown) {
     if (stage === "won")
       Object.assign(patch, { wonAt: o.stage === "won" ? o.wonAt : now(), lostAt: null, lostReason: null, probability: 100, probabilityManual: false });
     else if (stage === "lost")
-      Object.assign(patch, { lostAt: o.stage === "lost" ? o.lostAt : now(), lostReason: input.lostReason, wonAt: null, probability: 0, probabilityManual: false });
+      Object.assign(patch, {
+        lostAt: o.stage === "lost" ? o.lostAt : now(),
+        lostReason: input.lostReason,
+        wonAt: null,
+        probability: 0,
+        probabilityManual: false,
+      });
     else
       Object.assign(patch, {
         wonAt: null,

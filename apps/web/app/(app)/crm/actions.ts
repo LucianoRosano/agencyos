@@ -52,6 +52,7 @@ export const createOpportunityAction = async (_: S, fd: FormData) => run((ctx) =
 export const updateOpportunityAction = async (id: string, _: S, fd: FormData) => run((ctx) => svc.updateOpportunity(ctx, id, obj(fd)));
 export const moveOpportunityAction = async (id: string, input: { stage: string; quoteId?: string; lostReason?: string }) =>
   run((ctx) => svc.moveOpportunity(ctx, id, input));
+export const resetProbabilityAction = async (id: string) => run((ctx) => svc.resetOpportunityProbability(ctx, id));
 export const unlinkQuoteAction = async (opportunityId: string, quoteId: string) => run((ctx) => svc.unlinkQuote(ctx, opportunityId, quoteId));
 export const deleteOpportunityAction = async (id: string) => run((ctx) => moveToTrash(ctx, "opportunity", id));
 export const restoreOpportunityAction = async (id: string) => run((ctx) => restoreFromTrash(ctx, "opportunity", id));

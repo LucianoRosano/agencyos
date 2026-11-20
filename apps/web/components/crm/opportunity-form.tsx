@@ -1,11 +1,17 @@
 "use client";
 
 import { Button, Menu, MenuItem, Sheet } from "@agencyos/ui";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
-import { createOpportunityAction, deleteOpportunityAction, restoreOpportunityAction, updateOpportunityAction } from "@/app/(app)/crm/actions";
+import {
+  createOpportunityAction,
+  deleteOpportunityAction,
+  resetProbabilityAction,
+  restoreOpportunityAction,
+  updateOpportunityAction,
+} from "@/app/(app)/crm/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { useAction } from "@/components/use-action";
 
@@ -93,5 +99,21 @@ export function OpportunityMenu({ id, title }: { id: string; title: string }) {
         Eliminar
       </MenuItem>
     </Menu>
+  );
+}
+
+/** La probabilidad se editó a mano: botón para volver a la de la etapa. */
+export function ResetProbabilityButton({ id, stageProbability }: { id: string; stageProbability: number }) {
+  const { exec, pending } = useAction();
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => exec(() => resetProbabilityAction(id), { success: `Probabilidad: ${stageProbability} % (la de la etapa)` })}
+      className="inline-flex min-h-11 items-center gap-1.5 text-[13px] text-accent-text underline underline-offset-2 hover:text-text disabled:opacity-60 md:min-h-0"
+    >
+      <RotateCcw className="size-3.5" aria-hidden />
+      Usar la de la etapa ({stageProbability} %)
+    </button>
   );
 }

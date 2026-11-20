@@ -8,7 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
-import { EditOpportunitySheet, OpportunityMenu } from "@/components/crm/opportunity-form";
+import { EditOpportunitySheet, OpportunityMenu, ResetProbabilityButton } from "@/components/crm/opportunity-form";
 import { OpportunityServices } from "@/components/crm/opportunity-services";
 import { LinkedQuotes, OpportunityStage } from "@/components/crm/opportunity-stage";
 import { CRM_ACCENT, dueTone } from "@/components/crm/shared";
@@ -35,7 +35,8 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
     serviceCatalog(ctx),
   ]);
   const stageKey = stageOf.get(o.id) ?? o.stage;
-  const stageLabel = stages.find((s) => s.key === stageKey)?.name ?? label(L.stage, o.stage);
+  const stageDef = stages.find((s) => s.key === stageKey);
+  const stageLabel = stageDef?.name ?? label(L.stage, o.stage);
   if (!clients.some((c) => c.value === o.clientId)) clients.unshift({ value: o.clientId, label: clientName });
   const due = dueTone(o.nextActionDue);
   const closed = o.stage === "won" || o.stage === "lost";
@@ -149,7 +150,15 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
               <dt className="text-text-muted">Valor</dt>
               <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(o.valueAmount, o.valueCurrency) : "—"}</dd>
               <dt className="text-text-muted">Probabilidad</dt>
-              <dd className="font-mono text-[13px]">{o.probability}%</dd>
+              <dd>
+                <span className="font-mono text-[13px]">{o.probability}%</span>
+                {o.probabilityManual && !closed && stageDef && stageDef.probability !== o.probability ? (
+                  <span className="mt-0.5 flex flex-col items-start">
+                    <span className="text-[12px] text-text-faint">editada a mano</span>
+                    <ResetProbabilityButton id={o.id} stageProbability={stageDef.probability} />
+                  </span>
+                ) : null}
+              </dd>
               <dt className="text-text-muted">Ponderado</dt>
               <dd className="font-mono text-[13px]">{o.valueAmount ? formatMoney(percentOf(o.valueAmount, o.probability), o.valueCurrency) : "—"}</dd>
               <dt className="text-text-muted">Cierre est.</dt>
