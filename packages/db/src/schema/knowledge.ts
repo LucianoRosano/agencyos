@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, jsonb, numeric, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, jsonb, numeric, pgTable, primaryKey, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { baseColumns, pk, tz } from "./_common";
 
 export const note = pgTable(
@@ -90,4 +90,40 @@ export const assessment = pgTable(
     grade: numeric("grade", { precision: 4, scale: 2 }),
   },
   (t) => [index("assessment_course").on(t.courseId, t.date), check("assessment_kind", sql`${t.kind} in ('parcial','tp','final','recuperatorio','otro')`)],
+);
+
+/**
+ * Cerebro inteligente (ADR 0014): fragmentos de texto de notas, documentos, decisiones, conversaciones, proyectos y
+ * clientes. La columna `tsv` (búsqueda de texto completo en español, sin acentos) se crea en la migración 0011.
+ */
+export const knowledgeChunk = pgTable(
+  "knowledge_chunk",
+  {
+    id: pk(),
+    workspaceId: uuid("workspace_id").notNull(),
+    sourceType: text("source_type").notNull(),
+    sourceId: uuid("source_id").notNull(),
+    chunk: integer("chunk").notNull().default(0),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    href: text("href").notNull(),
+    meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+    sourceUpdatedAt: tz("source_updated_at").notNull(),
+    createdAt: tz("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("knowledge_chunk_source").on(t.sourceType, t.sourceId), index("knowledge_chunk_ws").on(t.workspaceId, t.sourceType)],
+);
+
+/** Estado del índice por fuente: qué versión se indexó (para reindexar solo lo cambiado). */
+export const knowledgeSource = pgTable(
+  "knowledge_source",
+  {
+    sourceType: text("source_type").notNull(),
+    sourceId: uuid("source_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    sourceUpdatedAt: tz("source_updated_at").notNull(),
+    chunks: integer("chunks").notNull().default(0),
+    indexedAt: tz("indexed_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.sourceType, t.sourceId] }), index("knowledge_source_ws").on(t.workspaceId)],
 );

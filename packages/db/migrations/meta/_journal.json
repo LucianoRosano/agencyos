@@ -71,6 +71,20 @@
       "when": 1795136886771,
       "tag": "0009_satisfaccion",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795231919601,
+      "tag": "0010_sin_conexion",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795232777277,
+      "tag": "0011_cerebro_inteligente",
+      "breakpoints": true
     }
   ]
 }

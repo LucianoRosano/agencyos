@@ -266,3 +266,26 @@ export const reminder = pgTable(
   },
   (t) => [index("reminder_due").on(t.workspaceId, t.dueDate)],
 );
+
+/**
+ * Cambios hechos sin conexión (modo offline). El id lo genera el dispositivo: cada cambio se aplica una sola vez
+ * aunque se reenvíe (reintentos, dos pestañas). Guarda el resultado para devolverlo igual en el reenvío.
+ */
+export const syncMutation = pgTable(
+  "sync_mutation",
+  {
+    id: uuid("id").primaryKey(),
+    workspaceId: uuid("workspace_id").notNull(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(),
+    entityId: uuid("entity_id"),
+    status: text("status").notNull().default("pending"),
+    message: text("message"),
+    createdAt: tz("created_at").notNull().defaultNow(),
+    appliedAt: tz("applied_at"),
+  },
+  (t) => [
+    index("sync_mutation_user").on(t.userId, t.createdAt),
+    check("sync_mutation_status", sql`${t.status} in ('pending','applied','conflict','rejected')`),
+  ],
+);
