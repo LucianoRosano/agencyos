@@ -98,11 +98,12 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 
-### Calidad (última corrida: 20/11/2026)
-- **Unit + integración (Vitest):** 463 tests en verde (61 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad, y lo nuevo (capacidad, presupuesto vs. real, NPS, dispositivos nuevos, ajuste de abonos, filtro por etiqueta, automatización de presupuestos, `ver_capacidad`).
+### Calidad (última corrida: 21/11/2026)
+- **Unit + integración (Vitest):** 475 tests en verde (65 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad, y lo nuevo (capacidad, presupuesto vs. real, NPS, dispositivos nuevos, ajuste de abonos, filtro por etiqueta, automatización de presupuestos, `ver_capacidad`).
 - **E2E (Playwright, build de producción):** 156 pruebas (23 archivos de flujos) en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones moderadas o más) y control de scroll horizontal. Última corrida completa: 152 en verde y 2 fallas del flujo de sitios por interactuar antes de que cargara la pestaña (test corregido y verificado en la corrida focalizada). JS inicial de todas las rutas < 170 KB.
 - **Lint (Biome) y typecheck:** en verde en los 7 paquetes.
 - **Revisión de seguridad:** hallazgos altos y medios corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
+- **Séptima vuelta (21/11/2026):** e2e focalizadas en verde (Cerebro, accesibilidad en todas las rutas, rendimiento, presupuestos y comercios con comprobante PDF) en mobile-390 y desktop-1440, oscuro y claro; build de producción sin avisos.
 - Capturas: `docs/capturas/<proyecto>/*.png`.
 
 ## En curso

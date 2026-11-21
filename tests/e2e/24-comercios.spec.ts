@@ -74,6 +74,14 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   await shot(shop, "comercio-inicio", info.project.name);
   await shop.goto("/comercio/ventas");
   await expect(shop.getByTestId("sales-list")).toContainText("n.º 1");
+  // Comprobante de venta en PDF desde la ficha de la venta
+  await shop.getByTestId("sales-list").getByRole("link").filter({ hasText: "n.º 1" }).first().click();
+  const comprobante = shop.getByRole("link", { name: "Comprobante" });
+  await expect(comprobante).toBeVisible();
+  const pdf = await shop.request.get((await comprobante.getAttribute("href")) ?? "");
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()["content-type"]).toContain("application/pdf");
+  expect((await pdf.body()).subarray(0, 4).toString()).toBe("%PDF");
   await shop.goto("/comercio/reportes");
   await expect(shop.getByTestId("report-current")).toContainText("$ 7.000");
   await ctx.close();

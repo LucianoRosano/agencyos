@@ -187,7 +187,7 @@ function CourseCard({ c, today }: { c: CourseListItem; today: string }) {
       href={`/facultad/${c.id}`}
       className={cn(
         "group relative flex min-h-44 flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5",
-        dim && "opacity-55",
+        dim && "border-dashed bg-transparent [&_h3]:text-text-muted",
       )}
     >
       <span aria-hidden className="absolute inset-y-0 left-0 w-0.5" style={{ background: color }} />

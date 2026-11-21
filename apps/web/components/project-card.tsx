@@ -25,7 +25,7 @@ export function ProjectCard({ p }: { p: ProjectCardData }) {
       href={`/proyectos/${p.id}`}
       className={cn(
         "group flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5",
-        dim && "opacity-55",
+        dim && "border-dashed bg-transparent [&_h3]:text-text-muted",
       )}
     >
       <div className="flex items-start justify-between gap-2">

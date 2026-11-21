@@ -17,13 +17,13 @@ export { FAMILY };
 export function docFontPath(font: DocFont): string | null {
   const cwd = process.cwd();
   const dirs = [
-    path.join(cwd, "public", "fonts"),
-    path.join(cwd, "apps", "web", "public", "fonts"),
-    path.join(cwd, "..", "web", "public", "fonts"),
-    path.join(cwd, "..", "..", "apps", "web", "public", "fonts"),
+    path.join(/*turbopackIgnore: true*/ cwd, "public", "fonts"),
+    path.join(/*turbopackIgnore: true*/ cwd, "apps", "web", "public", "fonts"),
+    path.join(/*turbopackIgnore: true*/ cwd, "..", "web", "public", "fonts"),
+    path.join(/*turbopackIgnore: true*/ cwd, "..", "..", "apps", "web", "public", "fonts"),
   ];
   for (const d of dirs) {
-    const p = path.join(d, FILES[font]);
+    const p = path.join(/*turbopackIgnore: true*/ d, FILES[font]);
     if (existsSync(/*turbopackIgnore: true*/ p)) return p;
   }
   return null;

@@ -680,8 +680,8 @@ describe("finanzas: filtro por etiqueta en movimientos", () => {
         await createTransaction(ws, { kind: i % 2 ? "income" : "expense", amount: `${i}00`, accountId: a.id, date: `2026-05-0${i}`, description: `Etiq ${i}` }),
       );
     const id = (i: number) => txs[i]?.id as string;
-    const viaje = await createTag(ws, { name: "viaje", color: "#22D3EE" });
-    const fijo = await createTag(ws, { name: "fijo", color: "#FBBF24" });
+    const viaje = await createTag(ws, { name: "viaje", color: "#7A4E7E" });
+    const fijo = await createTag(ws, { name: "fijo", color: "#B7791F" });
     // ingreso 1 (100), gasto 2 (200), ingreso 5 (500) → #viaje; gasto 4 (400) → #fijo y #viaje
     for (const i of [0, 1, 4]) await setEntityTags(ws, "transaction", id(i), [viaje.id]);
     await setEntityTags(ws, "transaction", id(3), [fijo.id, viaje.id]);

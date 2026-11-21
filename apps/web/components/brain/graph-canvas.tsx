@@ -287,12 +287,12 @@ export default function GraphCanvas({
         cy /= pts.length;
         let r = 0;
         for (const p of pts) r = Math.max(r, Math.hypot(p.x - cx, p.y - cy));
-        r = Math.min(Math.max(r * 1.05 + 46, 70), Math.max(width, height) * 0.6);
+        r = Math.min(Math.max(r + 26, 56), Math.max(width, height) * 0.45);
         if (cx + r < 0 || cy + r < 0 || cx - r > width || cy - r > height) continue;
         const faded = focus && focusCluster !== key;
         const color = c.done ? (theme === "dark" ? "#8a8075" : "#857b70") : theme === "dark" ? mixHex(c.color, "#ffffff", 0.3) : c.color;
         // Territorio: tinte muy suave y borde punteado, como una región en un mapa.
-        ctx.fillStyle = rgba(color, (c.done ? 0.025 : theme === "dark" ? 0.06 : 0.045) * (faded ? 0.5 : 1));
+        ctx.fillStyle = rgba(color, (c.done ? 0.02 : theme === "dark" ? 0.05 : 0.04) * (faded ? 0.5 : 1));
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.fill();
