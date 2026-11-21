@@ -161,9 +161,9 @@ export function Pos({ mode = "sale", currency = "ARS", canDiscount }: { mode?: "
             <ul className="flex flex-col divide-y divide-border" aria-label="Carrito">
               {lines.map((l) => (
                 <li key={l.id} className="flex flex-wrap items-center gap-2 py-2.5">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px]">{l.name}</span>
-                    <span className="font-mono text-[12px] text-text-muted">{formatMoney(l.price, currency)} c/u</span>
+                  <span className="min-w-0 basis-full sm:basis-0 sm:flex-1">
+                    <span className="block text-[15px] sm:truncate">{l.name}</span>
+                    <span className="font-mono text-[12px] whitespace-nowrap text-text-muted">{formatMoney(l.price, currency)} c/u</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" aria-label={`Uno menos de ${l.name}`} onClick={() => setQty(l.id, l.qty - 1)}>
@@ -176,7 +176,7 @@ export function Pos({ mode = "sale", currency = "ARS", canDiscount }: { mode?: "
                       <Plus className="size-4" />
                     </Button>
                   </span>
-                  <span className="w-28 text-right font-mono text-[14px]">{formatMoney(mulMoney(l.price, l.qty), currency)}</span>
+                  <span className="ml-auto w-28 text-right font-mono text-[14px] whitespace-nowrap">{formatMoney(mulMoney(l.price, l.qty), currency)}</span>
                   <Button variant="ghost" size="icon" aria-label={`Quitar ${l.name}`} onClick={() => setQty(l.id, 0)}>
                     <Trash2 className="size-4" />
                   </Button>

@@ -23,7 +23,7 @@ test("Centro de control: skill desde plantilla → objetivo → plan aprobado �
   // Skill desde plantilla + exportación para Claude Code
   await page.goto("/control/skills");
   await page.waitForLoadState("networkidle");
-  const tpl = page.getByRole("listitem").filter({ hasText: "Arreglar un error con prueba" });
+  const tpl = page.getByRole("region", { name: "Plantillas para la agencia" }).getByRole("listitem").filter({ hasText: "Arreglar un error con prueba" });
   if (await tpl.count()) {
     await tpl.getByRole("button", { name: "Agregar" }).click();
     await expect(page.getByText("Agregaste «Arreglar un error con prueba»")).toBeVisible();

@@ -1,4 +1,4 @@
-import { formatDate, formatMoney } from "@agencyos/core";
+import { formatDate, formatMoney, todayAR } from "@agencyos/core";
 import { shopStats } from "@agencyos/modules/shop/service";
 import { Card, EmptyState, HBars, PageHeader, SectionLabel, Sparkline } from "@agencyos/ui";
 import { PackageX, ShoppingBag, TrendingUp } from "lucide-react";
@@ -6,6 +6,8 @@ import Link from "next/link";
 import { requireShopCtx } from "@/lib/session";
 
 export const metadata = { title: "Inicio" };
+
+const ops = (n: number) => `${n} operaci${n === 1 ? "ón" : "ones"}`;
 
 function Kpi({ title, value, detail, href }: { title: string; value: string; detail?: string; href?: string }) {
   const body = (
@@ -32,13 +34,13 @@ export default async function ShopHome() {
   const change = prev > 0 ? Math.round(((Number(st.month.total) - prev) / prev) * 100) : null;
   return (
     <>
-      <PageHeader eyebrow={formatDate(new Date().toISOString().slice(0, 10))} title={`Hola, ${sc.user.name.split(" ")[0]}`} accent="#34D399" />
+      <PageHeader eyebrow={formatDate(todayAR())} title={`Hola, ${sc.user.name.split(" ")[0]}`} accent="#34D399" />
       <section aria-label="Resumen" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi title="Ventas de hoy" value={formatMoney(st.today.total, cur)} detail={`${st.today.count} operaciones`} href="/comercio/ventas" />
+        <Kpi title="Ventas de hoy" value={formatMoney(st.today.total, cur)} detail={ops(st.today.count)} href="/comercio/ventas" />
         <Kpi
           title="Ventas del mes"
           value={formatMoney(st.month.total, cur)}
-          detail={change === null ? `${st.month.count} operaciones` : `${change >= 0 ? "▲" : "▼"} ${Math.abs(change)} % vs. mes anterior`}
+          detail={change === null ? ops(st.month.count) : `${change >= 0 ? "▲" : "▼"} ${Math.abs(change)} % vs. mes anterior`}
         />
         <Kpi
           title="Ticket promedio"
