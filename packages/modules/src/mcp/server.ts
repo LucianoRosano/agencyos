@@ -4,6 +4,7 @@ import { schema } from "@agencyos/db";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
+import { askBrain, type SourceType } from "../brain/knowledge";
 import { capture } from "../inbox/service";
 import { getProject, listProjects } from "../projects/queries";
 import { addDecision } from "../projects/service";
@@ -66,6 +67,26 @@ export function buildMcpServer(ctx: Ctx) {
     wrap("buscar", async ({ consulta, tipos }: { consulta: string; tipos?: string[] }) => {
       assertCan(ctx, "read", "project");
       return globalSearch(ctx, consulta, { types: tipos, limit: 30 });
+    }),
+  );
+
+  server.registerTool(
+    "preguntar_cerebro",
+    {
+      title: "Preguntar al Cerebro",
+      description:
+        "Busca en todo el conocimiento de la agencia (notas, documentos PDF/Word, decisiones de proyectos, conversaciones con clientes, proyectos y clientes) y devuelve los pasajes más relevantes con su fuente y fecha. Usalo para recuperar decisiones anteriores o qué se habló con un cliente antes de responder.",
+      inputSchema: {
+        pregunta: z.string().min(2).max(500),
+        tipos: z.array(z.enum(["note", "file", "decision", "interaction", "project", "client"])).optional(),
+      },
+    },
+    wrap("preguntar_cerebro", async ({ pregunta, tipos }: { pregunta: string; tipos?: SourceType[] }) => {
+      const a = await askBrain(ctx, pregunta, { types: tipos, limit: 8 });
+      return {
+        respuesta_probable: a.lead ? { texto: a.lead.text, fuente: a.lead.hit.title, tipo: a.lead.hit.typeLabel, fecha: a.lead.hit.date } : null,
+        fuentes: a.hits.map((h) => ({ tipo: h.typeLabel, titulo: h.title, fecha: h.date, enlace: h.href, pasajes: h.excerpts })),
+      };
     }),
   );
 

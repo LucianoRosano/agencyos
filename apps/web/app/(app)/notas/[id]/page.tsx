@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgentEntryButton } from "@/components/ai/agent-entry-button";
 import { LocalGraph } from "@/components/brain/local-graph";
+import { RelatedBlock } from "@/components/brain/related-block";
 import { AttachmentsBlock } from "@/components/library/attachments-block";
 import { Connections } from "@/components/notes/connections";
 import { NoteEditor } from "@/components/notes/note-editor";
@@ -100,6 +101,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
         />
 
         <aside className="flex flex-col gap-4" aria-label="Contexto de la nota">
+          <RelatedBlock ctx={ctx} type="note" id={n.id} />
           <Card className="p-4">
             <SectionLabel className="mb-3">Propiedades</SectionLabel>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[13px]">

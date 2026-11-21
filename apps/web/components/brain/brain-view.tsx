@@ -2,7 +2,21 @@
 
 import type { BrainLayout } from "@agencyos/modules/brain/types";
 import { Button, cn, EmptyState, Sheet, Skeleton } from "@agencyos/ui";
-import { Activity, ArrowUpRight, Brain, History, List, Maximize, Minus, Plus, Search, SlidersHorizontal, Waypoints, X } from "lucide-react";
+import {
+  Activity,
+  ArrowUpRight,
+  Brain,
+  History,
+  List,
+  Maximize,
+  MessageCircleQuestion,
+  Minus,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Waypoints,
+  X,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -359,6 +373,12 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
             </button>
           ))}
         </div>
+        <Link
+          href="/cerebro/preguntar"
+          className="brain-glass flex h-10 shrink-0 items-center gap-2 rounded-[10px] px-3.5 text-[14px] text-text-muted hover:text-text"
+        >
+          <MessageCircleQuestion className="size-4" aria-hidden /> Preguntar
+        </Link>
       </div>
 
       {local && sel ? (

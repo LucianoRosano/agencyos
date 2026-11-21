@@ -103,5 +103,14 @@ describe("servidor MCP · fechas escritas y abonos", () => {
     expect(cap.semanas).toHaveLength(3);
     expect(cap.semanas.reduce((a: number, w: { tareas_sin_estimar: number }) => a + w.tareas_sin_estimar, 0)).toBe(1);
     expect(cap.semanas[1].horas_disponibles).toBe(30); // 5 días hábiles × 6 h por defecto
+    // Cerebro: recupera una decisión anterior con su fuente
+    const { createProject, addDecision } = await import("@agencyos/modules/projects/service");
+    const { indexPending } = await import("@agencyos/modules/brain/knowledge");
+    const p = await createProject(owner, { name: "Tienda MCP", clientId: c.id });
+    await addDecision(owner, p.id, { title: "Cobrar con Mercado Pago y transferencia" });
+    await indexPending({ workspaceId: owner.workspaceId });
+    const br = JSON.parse(textOf(await client.callTool({ name: "preguntar_cerebro", arguments: { pregunta: "¿cómo decidimos cobrar?" } })));
+    expect(br.fuentes[0]).toMatchObject({ tipo: "Decisión" });
+    expect(br.respuesta_probable.texto).toMatch(/Mercado Pago/);
   });
 });
