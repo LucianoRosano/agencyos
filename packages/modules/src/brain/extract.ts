@@ -75,7 +75,7 @@ export async function extractText(buf: Buffer, mime: string, name = ""): Promise
   else if (mime.startsWith("text/") || mime === "application/json" || mime === "application/xml" || /\.(md|txt|csv|json|xml)$/.test(lower))
     out = buf.toString("utf8");
   return out
-    .replace(/\u0000/g, "")
+    .replaceAll("\u0000", "")
     .replace(/\r\n/g, "\n")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/\n{3,}/g, "\n\n")

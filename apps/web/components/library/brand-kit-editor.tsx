@@ -161,7 +161,7 @@ export function BrandKitEditor({
             <li key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-2">
               <Input
                 aria-label={`Tipografía ${i + 1}`}
-                placeholder="Geist"
+                placeholder="Inter"
                 value={f.name}
                 maxLength={80}
                 onChange={(e) => setFonts((p) => p.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))}

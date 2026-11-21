@@ -63,7 +63,16 @@ export const CHANNEL_LABEL: Record<(typeof CHANNELS)[number], string> = {
 };
 
 export type ShopCtx = { shopId: string; userId: string; role: ShopRole; actorName: string; shopName: string; currency: string; settings: ShopSettings };
-export type ShopSettings = { allowNegativeStock?: boolean; weeklyReport?: boolean; brandColor?: string };
+export type ShopSettings = {
+  allowNegativeStock?: boolean;
+  weeklyReport?: boolean;
+  brandColor?: string;
+  /** Datos impresos en comprobantes y remitos (opcionales). */
+  address?: string;
+  phone?: string;
+  taxId?: string;
+  ticketFooter?: string;
+};
 
 const INVITE_DAYS = 7;
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -371,6 +380,17 @@ export const settingsInput = z.object({
   name: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().min(2).max(80).optional()),
   allowNegativeStock: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()),
   weeklyReport: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()),
+  address: z.preprocess((v) => v ?? "", z.string().trim().max(160)),
+  phone: z.preprocess((v) => v ?? "", z.string().trim().max(40)),
+  taxId: z.preprocess(
+    (v) => v ?? "",
+    z
+      .string()
+      .trim()
+      .max(20)
+      .refine((v) => !v || /^[\d-]{8,13}$/.test(v), "Escribí el CUIT con números (ej. 20-12345678-3)"),
+  ),
+  ticketFooter: z.preprocess((v) => v ?? "", z.string().trim().max(200)),
 });
 
 export async function updateShopSettings(sc: ShopCtx, raw: unknown) {
@@ -380,7 +400,14 @@ export async function updateShopSettings(sc: ShopCtx, raw: unknown) {
     .update(schema.shop)
     .set({
       ...(input.name && sc.role === "owner" ? { name: input.name } : {}),
-      settings: sql`${schema.shop.settings} || ${JSON.stringify({ allowNegativeStock: input.allowNegativeStock, weeklyReport: input.weeklyReport })}::jsonb`,
+      settings: sql`${schema.shop.settings} || ${JSON.stringify({
+        allowNegativeStock: input.allowNegativeStock,
+        weeklyReport: input.weeklyReport,
+        address: input.address,
+        phone: input.phone,
+        taxId: input.taxId,
+        ticketFooter: input.ticketFooter,
+      })}::jsonb`,
     })
     .where(eq(schema.shop.id, sc.shopId))
     .returning();

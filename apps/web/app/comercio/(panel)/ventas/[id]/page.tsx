@@ -1,6 +1,7 @@
 import { formatDateTime, formatMoney } from "@agencyos/core";
 import { getSale, PAYMENT_LABEL } from "@agencyos/modules/shop/service";
-import { Badge, Card, PageHeader } from "@agencyos/ui";
+import { Badge, Button, Card, PageHeader } from "@agencyos/ui";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CancelSaleButton } from "@/components/shop/shop-ui";
@@ -25,11 +26,19 @@ export default async function SalePage({ params }: { params: Promise<{ id: strin
         description={`${formatDateTime(v.s.soldAt)} · ${v.customer ?? "Consumidor final"} · ${PAYMENT_LABEL[v.s.paymentMethod as keyof typeof PAYMENT_LABEL]}`}
         accent="#4F7A52"
         actions={
-          v.s.status === "completed" && sc.role !== "seller" ? (
-            <CancelSaleButton id={v.s.id} number={v.s.number} />
-          ) : v.s.status === "cancelled" ? (
-            <Badge tone="danger">Anulada</Badge>
-          ) : null
+          <>
+            <Button asChild variant="secondary">
+              <a href={`/comercio/ventas/${v.s.id}/comprobante`} target="_blank" rel="noopener">
+                <FileText className="size-4" aria-hidden />
+                Comprobante
+              </a>
+            </Button>
+            {v.s.status === "completed" && sc.role !== "seller" ? (
+              <CancelSaleButton id={v.s.id} number={v.s.number} />
+            ) : v.s.status === "cancelled" ? (
+              <Badge tone="danger">Anulada</Badge>
+            ) : null}
+          </>
         }
       />
       <Card className="p-5">

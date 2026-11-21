@@ -4,7 +4,7 @@ import type { Result } from "@agencyos/core";
 import { previewDocument } from "@agencyos/modules/quotes/queries";
 import * as svc from "@agencyos/modules/quotes/service";
 import { moveToTrash, restoreFromTrash } from "@agencyos/modules/trash/service";
-import { geistFontCssFromUrl } from "@agencyos/pdf/fonts";
+import { docFontCssFromUrl } from "@agencyos/pdf/fonts";
 import { renderQuoteHtml } from "@agencyos/pdf/quote-html";
 import { run } from "@/lib/action";
 
@@ -41,7 +41,7 @@ export const previewQuoteAction = async (payload: unknown, meta: { number?: stri
     async (ctx) => {
       const doc = await previewDocument(ctx, payload, meta);
       return {
-        html: renderQuoteHtml(doc, { fontCss: geistFontCssFromUrl("/presupuestos/fuente"), preview: true }),
+        html: renderQuoteHtml(doc, { fontCss: docFontCssFromUrl("/presupuestos/fuente"), preview: true }),
         totals: {
           lines: doc.calc.lines.map((l) => l.lineTotal),
           subtotal: doc.calc.subtotal,

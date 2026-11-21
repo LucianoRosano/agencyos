@@ -1,59 +1,59 @@
 import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
-
-const REL = path.join("fonts", "geist-sans", "Geist-Variable.woff2");
+import { FAMILY } from "./font-names";
 
 /**
- * Ruta del Geist variable del paquete `geist` (dependencia de apps/web).
- * Se resuelve con createRequire desde varias bases porque el proceso puede correr
- * en apps/web (Next), en la raíz del monorepo (tests) o en el worker.
+ * Tipografía de los documentos (ADR 0017): Inter para el texto y las cifras (tabulares) y Source Serif 4 para
+ * títulos, marca y totales. Son los mismos archivos que usa la app (licencia OFL), copiados en
+ * apps/web/public/fonts para que sobrevivan al build standalone y los encuentre también el worker.
  */
-export function geistFontPath(): string | null {
+export type DocFont = "sans" | "serif";
+
+const FILES: Record<DocFont, string> = { sans: "Inter-Variable.woff2", serif: "SourceSerif4-Variable.woff2" };
+
+export { FAMILY };
+
+/** Ruta del archivo: se prueba desde apps/web (Next), la raíz del monorepo (tests) y apps/worker. */
+export function docFontPath(font: DocFont): string | null {
   const cwd = process.cwd();
-  // Copia empaquetada en apps/web/public/fonts (sobrevive al build standalone de producción).
-  for (const p of [path.join(cwd, "public", "fonts", "Geist-Variable.woff2"), path.join(cwd, "apps", "web", "public", "fonts", "Geist-Variable.woff2")]) {
-    if (existsSync(/*turbopackIgnore: true*/ p)) return p;
-  }
-  const bases = [
-    path.join(cwd, "package.json"),
-    path.join(cwd, "apps", "web", "package.json"),
-    path.join(cwd, "..", "web", "package.json"),
-    path.join(cwd, "..", "..", "apps", "web", "package.json"),
+  const dirs = [
+    path.join(cwd, "public", "fonts"),
+    path.join(cwd, "apps", "web", "public", "fonts"),
+    path.join(cwd, "..", "web", "public", "fonts"),
+    path.join(cwd, "..", "..", "apps", "web", "public", "fonts"),
   ];
-  for (const base of bases) {
-    if (!existsSync(/*turbopackIgnore: true*/ base)) continue;
-    try {
-      const entry = createRequire(base).resolve("geist/font/sans"); // …/geist/dist/sans.js
-      const file = path.join(path.dirname(entry), REL);
-      if (existsSync(/*turbopackIgnore: true*/ file)) return file;
-    } catch {
-      // probar la siguiente base
-    }
+  for (const d of dirs) {
+    const p = path.join(d, FILES[font]);
+    if (existsSync(/*turbopackIgnore: true*/ p)) return p;
   }
   return null;
 }
 
-let fontCache: Buffer | null | undefined;
-export function geistFontBuffer(): Buffer | null {
-  if (fontCache === undefined) {
-    const p = geistFontPath();
-    fontCache = p ? readFileSync(/*turbopackIgnore: true*/ p) : null;
+const bufCache = new Map<DocFont, Buffer | null>();
+export function docFontBuffer(font: DocFont): Buffer | null {
+  if (!bufCache.has(font)) {
+    const p = docFontPath(font);
+    bufCache.set(font, p ? readFileSync(/*turbopackIgnore: true*/ p) : null);
   }
-  return fontCache;
+  return bufCache.get(font) ?? null;
 }
 
-const face = (src: string) => `@font-face{font-family:"Geist";src:${src} format("woff2");font-weight:100 900;font-style:normal;font-display:block;}`;
+const face = (font: DocFont, src: string) =>
+  `@font-face{font-family:"${FAMILY[font]}";src:${src} format("woff2");font-weight:${font === "sans" ? "100 900" : "200 900"};font-style:normal;font-display:block;}`;
 
 let dataCss: string | undefined;
-/** @font-face con el Geist embebido como data URL (para Chromium sin red). */
-export function geistFontCss(): string {
+/** @font-face de las dos fuentes embebidas como data URL (para Chromium sin red y páginas aisladas). */
+export function docFontCss(): string {
   if (dataCss === undefined) {
-    const buf = geistFontBuffer();
-    dataCss = buf ? face(`url(data:font/woff2;base64,${buf.toString("base64")})`) : "";
+    dataCss = (["sans", "serif"] as const)
+      .map((f) => {
+        const buf = docFontBuffer(f);
+        return buf ? face(f, `url(data:font/woff2;base64,${buf.toString("base64")})`) : "";
+      })
+      .join("");
   }
   return dataCss;
 }
 
-/** @font-face que apunta a una URL (vista previa en el navegador, se cachea). */
-export const geistFontCssFromUrl = (url: string) => face(`url(${JSON.stringify(url)})`);
+/** @font-face que apunta a URLs (vista previa en el navegador, se cachea): `${base}?f=sans` y `${base}?f=serif`. */
+export const docFontCssFromUrl = (base: string) => (["sans", "serif"] as const).map((f) => face(f, `url(${JSON.stringify(`${base}?f=${f}`)})`)).join("");

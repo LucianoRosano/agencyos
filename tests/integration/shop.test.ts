@@ -1,5 +1,6 @@
 import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
+import { shopDocument } from "@agencyos/modules/shop/documents";
 import { generateWeeklyReports, lastWeek, listReports, reportText } from "@agencyos/modules/shop/report";
 import {
   acceptShopInvitationNewUser,
@@ -18,9 +19,11 @@ import {
   setOrderStatus,
   setShopStatus,
   shopStats,
+  updateShopSettings,
 } from "@agencyos/modules/shop/service";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
+import { renderShopDocHtml } from "../../packages/pdf/src/shop-doc"; // @agencyos/pdf no es dependencia de la raíz
 import { makeWorkspace } from "./helpers";
 
 const tokenOf = (url: string) => url.split("/").pop() ?? "";
@@ -142,5 +145,45 @@ describe("SaaS para comercios", () => {
     const text = reportText(reps[0]?.data as never, start, end);
     expect(text).toMatch(/Almacén Norte/);
     expect(text).toMatch(/Stock bajo:\n- Yerba: quedan 1/);
+  });
+
+  it("comprobante de venta y remito (con y sin precios) con los datos del comercio; nunca de otro comercio", async () => {
+    const { sc } = await shopWithOwner("Almacén Doc");
+    await updateShopSettings(sc, {
+      allowNegativeStock: "",
+      weeklyReport: "on",
+      address: "Mitre 100, Rosario",
+      phone: "341 000",
+      taxId: "20-12345678-3",
+      ticketFooter: "Volvé pronto",
+    });
+    await expect(updateShopSettings(sc, { taxId: "abc" })).rejects.toThrow();
+    const settings = (await resolveShop({ id: sc.userId, name: sc.actorName })) as ShopCtx;
+    const p = await createProduct(settings, { name: "Yerba <1 kg>", price: "4500", stock: 10 });
+    const cli = await createCustomer(settings, { name: "Ana Pérez", doc: "30111222" });
+    const v = await createSale(settings, { items: [{ productId: p.id, qty: 2 }], customerId: cli?.id, paymentMethod: "cash" });
+    const sale = await shopDocument(settings, "sale", v.id);
+    expect(sale).toMatchObject({ kind: "sale", number: v.number, total: "9000.00", paymentLabel: "Efectivo", showPrices: true });
+    const html = renderShopDocHtml(sale as NonNullable<typeof sale>);
+    expect(html).toContain("Comprobante de venta");
+    expect(html).toContain(`0001-${String(v.number).padStart(8, "0")}`);
+    expect(html).toContain("Mitre 100, Rosario");
+    expect(html).toContain("CUIT 20-12345678-3");
+    expect(html).toContain("Yerba &lt;1 kg&gt;");
+    expect(html).toContain("Volvé pronto");
+    expect(html).toContain("no válido como factura");
+
+    const o = await createOrder(settings, { items: [{ productId: p.id, qty: 3 }], channel: "whatsapp", notes: "Timbre 2B" });
+    const remito = renderShopDocHtml((await shopDocument(settings, "remito", o.id)) as NonNullable<Awaited<ReturnType<typeof shopDocument>>>);
+    expect(remito).toContain("Remito");
+    expect(remito).toContain("Recibí conforme");
+    expect(remito).toContain("Timbre 2B");
+    expect(remito).not.toContain("data-total");
+    const valued = renderShopDocHtml((await shopDocument(settings, "remito-valorizado", o.id)) as NonNullable<Awaited<ReturnType<typeof shopDocument>>>);
+    expect(valued).toContain("data-total");
+
+    const other = await shopWithOwner("Otro comercio");
+    expect(await shopDocument(other.sc, "sale", v.id)).toBeNull();
+    expect(await shopDocument(other.sc, "remito", o.id)).toBeNull();
   });
 });

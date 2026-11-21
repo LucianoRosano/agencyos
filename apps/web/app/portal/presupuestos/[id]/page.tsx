@@ -1,6 +1,6 @@
 import { formatDate, formatMoney } from "@agencyos/core";
 import { portalQuote } from "@agencyos/modules/portal/service";
-import { geistFontCss } from "@agencyos/pdf/fonts";
+import { docFontCss } from "@agencyos/pdf/fonts";
 import { renderQuoteHtml } from "@agencyos/pdf/quote-html";
 import { Card, PageHeader } from "@agencyos/ui";
 import { Download } from "lucide-react";
@@ -19,7 +19,7 @@ export default async function PortalQuotePage({ params }: { params: Promise<{ id
   const data = await portalQuote(pc, id);
   if (!data) notFound();
   const { quote, doc, decision } = data;
-  const html = renderQuoteHtml(doc, { fontCss: geistFontCss(), preview: true });
+  const html = renderQuoteHtml(doc, { fontCss: docFontCss(), preview: true });
   const open = ["sent", "viewed"].includes(quote.status) && !decision;
   return (
     <div className="flex flex-col gap-5">

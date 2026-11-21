@@ -1,7 +1,7 @@
 import { formatDate, formatMoney } from "@agencyos/core";
 import { openPublicQuote } from "@agencyos/modules/quotes/public";
 import { clientIp, RATE_LIMIT_MESSAGE, RATE_RULES, rateLimit } from "@agencyos/modules/shared/rate-limit";
-import { geistFontCss } from "@agencyos/pdf/fonts";
+import { docFontCss } from "@agencyos/pdf/fonts";
 import { renderQuoteHtml } from "@agencyos/pdf/quote-html";
 import { Download } from "lucide-react";
 import type { Metadata } from "next";
@@ -35,7 +35,7 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
     );
   }
   const { quote, doc, decision } = data;
-  const html = renderQuoteHtml(doc, { fontCss: geistFontCss(), preview: true });
+  const html = renderQuoteHtml(doc, { fontCss: docFontCss(), preview: true });
   const open = ["sent", "viewed"].includes(quote.status) && !decision;
   return (
     <main className="min-h-dvh bg-bg px-4 py-6 md:py-10">

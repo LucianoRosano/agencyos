@@ -3,7 +3,7 @@ import { cn } from "./lib/cn";
 
 /**
  * Barras pareadas por período (p. ej. ingresos vs. gastos). HTML/CSS en vez de un SVG escalado: las etiquetas quedan
- * siempre en Geist Mono 11 px y las barras con ancho máximo fijo, sin importar el ancho del bloque.
+ * siempre en cifras tabulares de 11 px y las barras con ancho máximo fijo, sin importar el ancho del bloque.
  */
 export function BarPairs({
   data,

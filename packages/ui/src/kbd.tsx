@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "./lib/cn";
 
-/** Tecla o combinación en Geist Mono (ayuda de atajos, barra lateral, botones). Sin JS. */
+/** Tecla o combinación en la fuente de código (ayuda de atajos, barra lateral, botones). Sin JS. */
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <kbd

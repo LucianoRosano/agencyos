@@ -1,7 +1,7 @@
 import { formatDate, formatMoney } from "@agencyos/core";
 import { CHANNEL_LABEL, listOrders, ORDER_LABEL } from "@agencyos/modules/shop/service";
 import { Badge, Button, Card, EmptyState, PageHeader, SectionLabel } from "@agencyos/ui";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, FileText } from "lucide-react";
 import Link from "next/link";
 import { Pos } from "@/components/shop/pos";
 import { OrderActions } from "@/components/shop/shop-ui";
@@ -58,7 +58,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   ) : null}
                   <span className="ml-auto font-mono text-[15px] text-text">{formatMoney(o.total, sc.currency)}</span>
                 </span>
-                <OrderActions id={o.id} status={o.status} />
+                <span className="flex flex-wrap items-center gap-2">
+                  <OrderActions id={o.id} status={o.status} />
+                  <RemitoLinks id={o.id} number={o.number} />
+                </span>
               </Card>
             </li>
           ))}
@@ -79,6 +82,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <span className="min-w-0 flex-1 truncate">{customer ?? "Sin cliente"}</span>
                   <Badge tone={TONE[o.status] ?? "neutral"}>{ORDER_LABEL[o.status as keyof typeof ORDER_LABEL]}</Badge>
                   <span className="font-mono">{formatMoney(o.total, sc.currency)}</span>
+                  <RemitoLinks id={o.id} number={o.number} />
                 </li>
               ))}
             </ul>
@@ -86,5 +90,24 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         </>
       ) : null}
     </>
+  );
+}
+
+/** Remito del pedido en PDF, sin precios (para quien recibe) o valorizado. */
+function RemitoLinks({ id, number }: { id: string; number: number }) {
+  return (
+    <span className="flex items-center gap-1">
+      <Button asChild size="sm" variant="ghost" className="h-10">
+        <a href={`/comercio/pedidos/${id}/remito`} target="_blank" rel="noopener" aria-label={`Remito del pedido ${number}`}>
+          <FileText className="size-4" aria-hidden />
+          Remito
+        </a>
+      </Button>
+      <Button asChild size="sm" variant="ghost" className="h-10">
+        <a href={`/comercio/pedidos/${id}/remito?precios=1`} target="_blank" rel="noopener" aria-label={`Remito con precios del pedido ${number}`}>
+          Con precios
+        </a>
+      </Button>
+    </span>
   );
 }

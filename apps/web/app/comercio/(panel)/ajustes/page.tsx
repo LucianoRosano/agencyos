@@ -49,6 +49,19 @@ export default async function SettingsPage() {
             {sc.role === "owner" ? <TextField label="Nombre del comercio" name="name" defaultValue={sc.shopName} /> : null}
             <CheckField label="Permitir vender sin stock (queda negativo)" name="allowNegativeStock" defaultChecked={Boolean(sc.settings.allowNegativeStock)} />
             <CheckField label="Recibir el resumen semanal por email" name="weeklyReport" defaultChecked={sc.settings.weeklyReport !== false} />
+            <SectionLabel className="mt-2">Datos para comprobantes y remitos</SectionLabel>
+            <TextField label="Dirección" name="address" defaultValue={sc.settings.address ?? ""} placeholder="Calle y número, ciudad" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Teléfono" name="phone" defaultValue={sc.settings.phone ?? ""} inputMode="tel" />
+              <TextField label="CUIT" name="taxId" defaultValue={sc.settings.taxId ?? ""} inputMode="numeric" placeholder="20-12345678-3" />
+            </div>
+            <TextField
+              label="Mensaje al pie"
+              name="ticketFooter"
+              defaultValue={sc.settings.ticketFooter ?? ""}
+              placeholder="¡Gracias por tu compra!"
+              hint="Se imprime al final del comprobante y del remito."
+            />
             <div className="flex justify-end">
               <SubmitButton>Guardar</SubmitButton>
             </div>

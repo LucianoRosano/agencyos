@@ -1,7 +1,7 @@
 import "server-only";
 import type { schema } from "@agencyos/db";
 import type { QuoteDocData } from "@agencyos/modules/quotes/queries";
-import { geistFontCssFromUrl } from "@agencyos/pdf/fonts";
+import { docFontCssFromUrl } from "@agencyos/pdf/fonts";
 import { renderQuoteHtml } from "@agencyos/pdf/quote-html";
 import type { PreviewState, QuoteDraft } from "@/components/quotes/types";
 
@@ -9,7 +9,7 @@ const FONT_URL = "/presupuestos/fuente";
 
 /** HTML de la vista previa (mismo que el PDF, con la fuente servida por URL). */
 export function previewHtml(doc: QuoteDocData) {
-  return renderQuoteHtml(doc, { fontCss: geistFontCssFromUrl(FONT_URL), preview: true });
+  return renderQuoteHtml(doc, { fontCss: docFontCssFromUrl(FONT_URL), preview: true });
 }
 
 export function previewState(doc: QuoteDocData): PreviewState {

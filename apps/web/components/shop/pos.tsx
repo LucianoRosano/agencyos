@@ -94,9 +94,14 @@ export function Pos({ mode = "sale", currency = "ARS", canDiscount }: { mode?: "
         toast.error(r.error.message);
         return;
       }
-      toast.success(
-        mode === "sale" ? `Venta n.º ${(r.data as { number: number }).number} registrada` : `Pedido n.º ${(r.data as { number: number }).number} guardado`,
-      );
+      const saved = r.data as { id: string; number: number };
+      toast.success(mode === "sale" ? `Venta n.º ${saved.number} registrada` : `Pedido n.º ${saved.number} guardado`, {
+        action: {
+          label: mode === "sale" ? "Comprobante" : "Remito",
+          onClick: () =>
+            window.open(mode === "sale" ? `/comercio/ventas/${saved.id}/comprobante` : `/comercio/pedidos/${saved.id}/remito`, "_blank", "noopener"),
+        },
+      });
       setLines([]);
       setCustomer(null);
       setDiscount("");
