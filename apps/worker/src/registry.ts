@@ -7,6 +7,7 @@ import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs"
 import { issueDueRetainers } from "@agencyos/modules/retainers/service";
 import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
 import { purgeRateLimits } from "@agencyos/modules/shared/rate-limit";
+import { generateWeeklyReports } from "@agencyos/modules/shop/report";
 import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
 
 /**
@@ -25,6 +26,8 @@ export const JOBS: Job[] = [
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   { name: "rate-limit-purge", cron: "40 4 * * *", run: () => purgeRateLimits() },
   // — módulos de la segunda vuelta: agregar debajo —
+  // SaaS para comercios: reporte semanal de cada comercio (lunes 7:10).
+  { name: "shop-weekly-reports", cron: "10 7 * * 1", run: () => generateWeeklyReports() },
   { name: "retainers-issue", cron: "5 6 * * *", run: () => issueDueRetainers() },
   { name: "library-orphans", cron: "45 4 * * *", run: () => cleanupOrphanFiles() },
   { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },

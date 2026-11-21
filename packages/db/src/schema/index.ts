@@ -12,4 +12,5 @@ export * from "./projects";
 export * from "./quotes";
 export * from "./repos";
 export * from "./seo";
+export * from "./shop";
 export * from "./sites";
