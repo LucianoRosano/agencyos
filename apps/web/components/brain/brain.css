@@ -79,7 +79,6 @@
 .brain-range::-moz-range-thumb {
   width: 18px;
   height: 18px;
-  border: 0;
   border-radius: 9999px;
   background: var(--surface);
   border: 2px solid var(--accent);
