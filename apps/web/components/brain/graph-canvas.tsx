@@ -6,12 +6,14 @@ import FA2Layout from "graphology-layout-forceatlas2/worker";
 import { useEffect, useRef } from "react";
 import Sigma from "sigma";
 import { sdfCircle } from "sigma/rendering";
-import { type BrainGraph, type BrainNode, hash01, isPulsing, TYPE_COLOR } from "./model";
+import { type BrainGraph, type BrainNode, hash01, isPulsing } from "./model";
+import { type BrainTheme, brainPalette, mixHex, rgba } from "./palette";
 
 /**
  * Lienzo WebGL del Cerebro (Sigma.js v4 + graphology).
- * - Nodos: "orbes" luminosos dibujados por un programa de fragmentos propio (núcleo + halo; anillo para personas).
- * - Capa 2D detrás: constelaciones (halo difuso + nombre en mayúsculas mono) por cliente/espacio.
+ * Estética de atlas (ADR 0017): sobre papel en el tema claro y sobre tinta cálida en el oscuro.
+ * - Nodos: puntos planos con borde (programa de fragmentos propio; anillo para personas), sin resplandor.
+ * - Capa 2D detrás: territorios por cliente/espacio (tinte muy suave, borde punteado y nombre en serif).
  * - Capa 2D delante: pulso de actividad (últimos 7 días) y anillo punteado del seleccionado.
  * - Layout ForceAtlas2 en un Web Worker; posiciones guardadas para no recalcular.
  */
@@ -37,13 +39,15 @@ export type GraphCanvasProps = {
   onLayoutState?: (running: boolean) => void;
   compact?: boolean;
   className?: string;
+  theme?: BrainTheme;
 };
 
-const CORE = 0.4; // fracción del radio del sprite ocupada por el núcleo (el resto es halo)
+const CORE = 0.62; // fracción del radio del sprite ocupada por el punto (el resto, un aura mínima)
 const BASE: Record<string, number> = { client: 6.4, project: 5, course: 5, contact: 3.4, note: 2.8, task: 2.4, space: 1 };
-const DIM_MIX = 0.62;
+const DIM_MIX = 0.55;
 
-// Programa de fragmentos: núcleo brillante + halo radial; v_ring > 0.5 vacía el centro (anillo).
+// Programa de fragmentos: punto plano con borde más oscuro y un aura mínima del mismo color (v_glow);
+// v_ring > 0.5 vacía el centro (anillo, para personas).
 const orbLayer = {
   name: "orb",
   uniforms: [],
@@ -58,34 +62,19 @@ vec4 layer_orb(vec4 v_orbColor, float v_ring, float v_glow) {
   float core = ${CORE.toFixed(3)};
   float aa = max(context.aaWidth, 0.02) * 1.5;
   vec3 c = v_orbColor.rgb;
-  float halo = 1.0 - smoothstep(core * 0.6, 1.0, d);
-  halo = halo * halo * 0.42 * v_glow;
-  vec4 col = vec4(c, halo * v_orbColor.a);
+  float aura = (1.0 - smoothstep(core, core * 1.5, d)) * 0.16 * v_glow;
+  vec4 col = vec4(c, aura * v_orbColor.a);
   float disc = 1.0 - smoothstep(core - aa, core + aa, d);
   if (v_ring > 0.5) {
-    float inner = core * 0.58;
+    float inner = core * 0.6;
     disc *= smoothstep(inner - aa, inner + aa, d);
   }
-  vec3 hot = mix(c, vec3(1.0), 0.45 * (1.0 - smoothstep(0.0, core * 0.7, d)) * (1.0 - v_ring));
-  col = blendOver(col, vec4(hot, disc * v_orbColor.a));
+  float rim = smoothstep(core * 0.8 - aa, core * 0.8 + aa, d) * (1.0 - v_ring);
+  vec3 fill = mix(c, c * 0.68, rim);
+  col = blendOver(col, vec4(fill, disc * v_orbColor.a));
   return col;
 }
 `,
-};
-
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
-  return [Number.parseInt(h.slice(0, 2), 16), Number.parseInt(h.slice(2, 4), 16), Number.parseInt(h.slice(4, 6), 16)];
-}
-function mixHex(a: string, b: string, t: number) {
-  const x = hexToRgb(a);
-  const y = hexToRgb(b);
-  const m = x.map((v, i) => Math.round(v * (1 - t) + (y[i] ?? 0) * t));
-  return `#${m.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-}
-const rgba = (hex: string, a: number) => {
-  const [r, g, b] = hexToRgb(hex);
-  return `rgba(${r},${g},${b},${a})`;
 };
 
 type NodeAttrs = { x: number; y: number; size: number; label: string; color: string; coreR: number; fixed?: boolean };
@@ -101,6 +90,7 @@ export default function GraphCanvas({
   onLayoutState,
   compact,
   className,
+  theme = "light",
 }: GraphCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const state = useRef({ visible, selected, hover: null as string | null, onSelect, onLayout, onLayoutState });
@@ -119,6 +109,8 @@ export default function GraphCanvas({
     const now = Date.now();
     const m = new Map(data.nodes.map((n) => [n.key, n]));
     meta.current = m;
+    const pal = brainPalette(theme);
+    const TYPE_COLOR = pal.type;
 
     // --- Grafo ---
     const g = new Graph<NodeAttrs>({ type: "undirected", multi: false, allowSelfLoops: false });
@@ -160,14 +152,16 @@ export default function GraphCanvas({
     }
 
     // --- Sigma ---
-    const fontFamily = getComputedStyle(document.documentElement).getPropertyValue("--font-geist-sans").trim() || "system-ui, sans-serif";
+    const css = getComputedStyle(document.documentElement);
+    const fontFamily = css.getPropertyValue("--font-inter").trim() || "system-ui, sans-serif";
+    const serifFamily = css.getPropertyValue("--font-serif-display").trim() || "Georgia, serif";
     const sigma = new Sigma(g, container, {
       primitives: {
         nodes: {
           shapes: [sdfCircle()],
           layers: [orbLayer],
           variables: { ring: { type: "number", default: 0 }, glow: { type: "number", default: 1 } },
-          label: { font: { family: fontFamily, size: 12, weight: "500" }, color: "#AEB6C6", margin: -6 },
+          label: { font: { family: fontFamily, size: 12, weight: "500" }, color: pal.label, margin: 3 },
         },
       },
       settings: {
@@ -196,28 +190,28 @@ export default function GraphCanvas({
         const focus = st.hover ?? st.selected;
         const strong = Boolean(st.hover); // hover ilumina el vecindario; la selección atenúa más suave
         const near = focus ? key === focus || g.areNeighbors(key, focus) : true;
-        const base = n.dim ? mixHex(TYPE_COLOR[n.type], "#1B2030", DIM_MIX) : TYPE_COLOR[n.type];
+        const base = n.dim ? mixHex(TYPE_COLOR[n.type], pal.bg, DIM_MIX) : TYPE_COLOR[n.type];
         const big = attrs.coreR >= 6.5;
         const out: Record<string, unknown> = {
           color: base,
           ring: n.type === "contact" ? 1 : 0,
-          glow: n.dim ? 0.35 : 1,
-          labelColor: n.dim ? "#5D6576" : big ? "#EEE7DD" : "#AEB6C6",
+          glow: n.dim ? 0 : 1,
+          labelColor: n.dim ? pal.labelDim : big ? pal.labelStrong : pal.label,
           labelSize: big ? 13.5 : 12,
           labelPosition: "below",
           zIndex: big ? 2 : 1,
         };
         if (focus && !near) {
-          out.color = mixHex(base, "#1D1915", strong ? 0.78 : 0.35);
-          out.glow = strong ? 0.15 : 0.6;
+          out.color = mixHex(base, pal.bg, strong ? 0.8 : 0.45);
+          out.glow = 0;
           if (strong) out.labelVisibility = "hidden";
-          else out.labelColor = "#7C8496";
+          else out.labelColor = pal.labelDim;
           out.zIndex = 0;
         } else if (focus) {
           out.depth = "topNodes";
           out.zIndex = key === focus ? 5 : 3;
           if (key === focus) {
-            out.labelColor = "#FFFFFF";
+            out.labelColor = pal.labelStrong;
             out.labelVisibility = "visible";
           }
         }
@@ -233,11 +227,11 @@ export default function GraphCanvas({
         const dim = ns?.dim || nt?.dim;
         if (focus && (s === focus || t === focus)) {
           const other = s === focus ? nt : ns;
-          return { color: rgba(TYPE_COLOR[other?.type ?? "note"], 0.85), size: 1.6, depth: "topEdges", zIndex: 2 };
+          return { color: rgba(TYPE_COLOR[other?.type ?? "note"], 0.8), size: 1.5, depth: "topEdges", zIndex: 2 };
         }
-        if (focus && st.hover) return { color: "rgba(201,209,224,0.035)", size: 0.6 };
-        if (focus) return { color: "rgba(201,209,224,0.08)", size: 0.6 };
-        return { color: dim ? "rgba(201,209,224,0.06)" : "rgba(201,209,224,0.13)", size: attrs.kind === "belongs" ? 0.9 : 0.7 };
+        if (focus && st.hover) return { color: pal.edgeFaint, size: 0.6 };
+        if (focus) return { color: pal.edgeDim, size: 0.6 };
+        return { color: dim ? pal.edgeDim : pal.edge, size: attrs.kind === "belongs" ? 0.9 : 0.7 };
       },
     });
     sigmaRef.current = sigma;
@@ -259,7 +253,6 @@ export default function GraphCanvas({
       return ctx;
     };
     const clusterMeta = new Map(data.clusters.map((c) => [c.key, c]));
-    const monoFamily = getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() || "ui-monospace, monospace";
 
     // Zona ocupada por la barra superior y la inferior: ahí no se dibujan nombres de constelaciones.
     const insetTop = compact ? 4 : mobile ? 132 : 64;
@@ -297,29 +290,31 @@ export default function GraphCanvas({
         r = Math.min(Math.max(r * 1.05 + 46, 70), Math.max(width, height) * 0.6);
         if (cx + r < 0 || cy + r < 0 || cx - r > width || cy - r > height) continue;
         const faded = focus && focusCluster !== key;
-        const color = c.done ? "#5D6576" : c.color;
-        const alpha = (c.done ? 0.08 : 0.2) * (faded ? 0.35 : 1);
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        grad.addColorStop(0, rgba(color, alpha));
-        grad.addColorStop(0.55, rgba(color, alpha * 0.5));
-        grad.addColorStop(1, rgba(color, 0));
-        ctx.fillStyle = grad;
+        const color = c.done ? (theme === "dark" ? "#8a8075" : "#857b70") : theme === "dark" ? mixHex(c.color, "#ffffff", 0.3) : c.color;
+        // Territorio: tinte muy suave y borde punteado, como una región en un mapa.
+        ctx.fillStyle = rgba(color, (c.done ? 0.025 : theme === "dark" ? 0.06 : 0.045) * (faded ? 0.5 : 1));
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.fill();
-        // Nombre de la constelación
-        ctx.font = `500 ${compact ? 10 : 11.5}px ${monoFamily}`;
-        (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = compact ? "3px" : "4.5px";
+        ctx.save();
+        ctx.setLineDash([2, 5]);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = rgba(color, (c.done ? 0.2 : 0.38) * (faded ? 0.4 : 1));
+        ctx.stroke();
+        ctx.restore();
+        // Nombre del territorio
+        ctx.font = `600 ${compact ? 11.5 : 14}px ${serifFamily}`;
+        (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "0.3px";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = rgba(color, faded ? 0.3 : c.done ? 0.75 : 0.9);
-        const text = `${c.label.toUpperCase()}${c.done ? "  ·  TERMINADO" : ""}`;
-        const ty = cy - Math.min(r * 0.78, r - 18);
+        const text = `${c.label}${c.done ? " · terminado" : ""}`;
+        const ty = cy - Math.min(r * 0.8, r - 16);
         const tw = ctx.measureText(text).width;
         const box = { x0: cx - tw / 2 - 6, x1: cx + tw / 2 + 6, y0: ty - 10, y1: ty + 10 };
         if (box.y0 < insetTop || box.y1 > height - insetBottom || box.x0 < 4 || box.x1 > width - 4) continue;
         if (labelBoxes.some((b) => b.x0 < box.x1 && box.x0 < b.x1 && b.y0 < box.y1 && box.y0 < b.y1)) continue;
         labelBoxes.push(box);
+        ctx.fillStyle = rgba(color, faded ? 0.35 : c.done ? 0.7 : 0.95);
         ctx.fillText(text, cx, ty);
       }
     };
@@ -342,10 +337,10 @@ export default function GraphCanvas({
         const focus = st.hover ?? st.selected;
         const faded = focus && k !== focus && !g.areNeighbors(k, focus);
         const phase = reduced ? 0.25 : (t / 1800 + hash01(k)) % 1;
-        ctx.strokeStyle = rgba(color, (reduced ? 0.45 : 0.6 * (1 - phase)) * (faded ? 0.25 : 1));
+        ctx.strokeStyle = rgba(color, (reduced ? 0.5 : 0.7 * (1 - phase)) * (faded ? 0.25 : 1));
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, core * (1.55 + phase * 1.6), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, core * (1.3 + phase * 1.2), 0, Math.PI * 2);
         ctx.stroke();
       }
       if (st.selected && st.visible.has(st.selected)) {
@@ -354,12 +349,12 @@ export default function GraphCanvas({
           const p = sigma.graphToViewport(g.getNodeAttributes(st.selected));
           const core = sigma.scaleSize(d.size) * CORE;
           ctx.save();
-          ctx.strokeStyle = "rgba(255,255,255,0.9)";
-          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = rgba(pal.ring, 0.85);
+          ctx.lineWidth = 1.2;
           ctx.setLineDash([3, 3.5]);
           ctx.lineDashOffset = reduced ? 0 : -t / 90;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, core + 7, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, core + 6, 0, Math.PI * 2);
           ctx.stroke();
           ctx.restore();
         }
@@ -473,7 +468,7 @@ export default function GraphCanvas({
       sigma.kill();
       sigmaRef.current = null;
     };
-  }, [data]);
+  }, [data, theme]);
 
   // Filtros, línea de tiempo y selección: solo reevaluar reducers.
   useEffect(() => {

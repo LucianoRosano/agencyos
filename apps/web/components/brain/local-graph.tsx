@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { localGraphAction } from "@/app/(app)/cerebro/actions";
 import type { BrainGraph } from "./model";
+import { useBrainTheme } from "./palette";
 import "./brain.css";
 
 const GraphCanvas = dynamic(() => import("./graph-canvas"), { ssr: false, loading: () => <Skeleton className="absolute inset-0 rounded-none" /> });
@@ -18,6 +19,7 @@ type Data = { graph: BrainGraph & { center: string }; positions: Record<string, 
  */
 export function LocalGraph({ entityType, entityId, depth = 1, className }: { entityType: string; entityId: string; depth?: number; className?: string }) {
   const router = useRouter();
+  const theme = useBrainTheme();
   const box = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
   const [d, setD] = useState(Math.max(1, Math.min(3, depth)));
@@ -56,7 +58,7 @@ export function LocalGraph({ entityType, entityId, depth = 1, className }: { ent
   const real = data?.graph.nodes.filter((n) => n.type !== "space").length ?? 0;
 
   return (
-    <div ref={box} data-theme="dark" className={cn("brain-surface relative min-h-48 w-full overflow-hidden", className)} role="region" aria-label="Grafo local">
+    <div ref={box} className={cn("brain-surface relative min-h-48 w-full overflow-hidden", className)} role="region" aria-label="Grafo local">
       <div className="absolute top-2 right-2 z-10 flex rounded-md border border-border bg-bg/80 p-0.5 backdrop-blur" role="radiogroup" aria-label="Profundidad">
         {[1, 2, 3].map((k) => (
           <button
@@ -81,6 +83,7 @@ export function LocalGraph({ entityType, entityId, depth = 1, className }: { ent
         </p>
       ) : (
         <GraphCanvas
+          theme={theme}
           graph={data.graph}
           positions={data.positions}
           visible={visible}

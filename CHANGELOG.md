@@ -42,3 +42,4 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · versione
   - Centro de control: skills (plantillas y exportación para Claude Code) y objetivos con agente supervisado por MCP (ADR 0015, migración 0012).
   - SaaS para comercios: punto de venta, ventas, pedidos, productos y stock, clientes, estadísticas, reporte semanal, usuarios por rol y panel de la agencia (ADR 0016, migración 0013).
 - Sexta vuelta: estética clásica y cálida (Inter + Source Serif 4, marfil/tinta/terracota, tema claro por defecto, sin neón ni degradados; ADR 0017, migración 0014).
+- Séptima vuelta: papelería clásica para presupuestos e informes (Inter + Source Serif 4, membrete con sello), comprobante de venta y remito en PDF para los comercios (con o sin precios) y Cerebro con estética de atlas que sigue el tema claro/oscuro.

@@ -37,13 +37,14 @@ import {
   TYPE_COLOR,
   TYPE_LABEL,
 } from "./model";
+import { useBrainTheme } from "./palette";
 import "./brain.css";
 
 const GraphCanvas = dynamic(() => import("./graph-canvas"), {
   ssr: false,
   loading: () => (
     <div role="status" className="absolute inset-0 grid place-items-center" aria-busy="true" aria-label="Cargando el grafo">
-      <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-faint">Cargando el Cerebro…</span>
+      <span className="font-serif text-[15px] text-text-muted">Cargando el Cerebro…</span>
     </div>
   ),
 });
@@ -52,7 +53,7 @@ const Graph3D = dynamic(() => import("./graph-3d"), {
   ssr: false,
   loading: () => (
     <div role="status" className="absolute inset-0 grid place-items-center" aria-busy="true" aria-label="Cargando el modo 3D">
-      <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-faint">Cargando el modo 3D…</span>
+      <span className="font-serif text-[15px] text-text-muted">Cargando el modo 3D…</span>
     </div>
   ),
 });
@@ -79,16 +80,13 @@ function Dot({ type, dim }: { type: BrainNodeType; dim?: boolean }) {
   return type === "contact" ? (
     <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full border-2" style={{ borderColor: c, opacity: dim ? 0.5 : 1 }} />
   ) : (
-    <span
-      aria-hidden
-      className="inline-block size-2.5 shrink-0 rounded-full"
-      style={{ background: c, boxShadow: dim ? "none" : `0 0 8px ${c}`, opacity: dim ? 0.5 : 1 }}
-    />
+    <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: c, opacity: dim ? 0.5 : 1 }} />
   );
 }
 
 export function BrainView({ graph, layout, includeTasks, initialNode, initialSpace, viewKey }: Props) {
   const router = useRouter();
+  const theme = useBrainTheme();
   const now = graph.generatedAt;
   const real = useMemo(() => graph.nodes.filter((n) => n.type !== "space"), [graph]);
   const byKey = useMemo(() => new Map(graph.nodes.map((n) => [n.key, n])), [graph]);
@@ -230,13 +228,11 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
   );
 
   return (
-    <div
-      data-theme="dark"
-      className="brain-surface relative -mx-4 -mt-5 -mb-28 h-[calc(100dvh-70px)] overflow-hidden md:-mx-8 md:-mt-8 md:-mb-12 md:h-[calc(100dvh-72px)]"
-    >
+    <div className="brain-surface relative -mx-4 -mt-5 -mb-28 h-[calc(100dvh-70px)] overflow-hidden md:-mx-8 md:-mt-8 md:-mb-12 md:h-[calc(100dvh-72px)]">
       <h1 className="sr-only">Cerebro</h1>
       {view === "graph" && !empty && show3d ? (
         <Graph3D
+          theme={theme}
           graph={graph}
           visible={visible}
           selected={selected}
@@ -253,6 +249,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       ) : null}
       {view === "graph" && !empty && !show3d ? (
         <GraphCanvas
+          theme={theme}
           graph={graph}
           positions={layout?.positions ?? null}
           visible={visible}
@@ -342,7 +339,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
                 onClick={() => changeDim(three)}
                 className={cn(
                   "flex h-9 min-w-11 items-center justify-center rounded-[8px] px-3 font-mono text-[13px]",
-                  dim3 === three ? "bg-white/10 text-text" : "text-text-muted hover:text-text",
+                  dim3 === three ? "bg-surface-2 text-text" : "text-text-muted hover:text-text",
                 )}
               >
                 {l}
@@ -365,7 +362,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
               onClick={() => changeView(k)}
               className={cn(
                 "flex h-9 items-center gap-2 rounded-[8px] px-3.5 text-[14px]",
-                view === k ? "bg-white/10 text-text" : "text-text-muted hover:text-text",
+                view === k ? "bg-surface-2 text-text" : "text-text-muted hover:text-text",
               )}
             >
               {icon}
@@ -390,7 +387,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
             type="button"
             onClick={() => setLocal(null)}
             aria-label="Salir del grafo local"
-            className="grid size-8 place-items-center rounded-full text-text-muted hover:bg-white/10 hover:text-text"
+            className="grid size-8 place-items-center rounded-full text-text-muted hover:bg-surface-2 hover:text-text"
           >
             <X className="size-4" />
           </button>
@@ -483,7 +480,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
           data-testid="brain-sheet"
           aria-label={`Nodo seleccionado: ${sel.label}`}
         >
-          <div className="mx-auto -mt-1.5 mb-3 h-1 w-10 rounded-full bg-white/15" aria-hidden />
+          <div className="mx-auto -mt-1.5 mb-3 h-1 w-10 rounded-full bg-surface-3" aria-hidden />
           <div className="flex items-center gap-3">
             <Dot type={sel.type} dim={sel.dim} />
             <div className="min-w-0 flex-1">
@@ -588,7 +585,7 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="grid size-11 place-items-center text-text-muted hover:text-text [&:not(:last-child)]:border-b [&:not(:last-child)]:border-white/10"
+      className="grid size-11 place-items-center text-text-muted hover:text-text [&:not(:last-child)]:border-b [&:not(:last-child)]:border-border"
     >
       {children}
     </button>
@@ -597,7 +594,7 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
 
 function DepthPicker({ value, onChange }: { value: number; onChange: (d: number) => void }) {
   return (
-    <span className="flex rounded-full border border-white/10 p-0.5" role="radiogroup" aria-label="Profundidad">
+    <span className="flex rounded-full border border-border p-0.5" role="radiogroup" aria-label="Profundidad">
       {[1, 2, 3].map((d) => (
         <button
           key={d}
@@ -605,7 +602,7 @@ function DepthPicker({ value, onChange }: { value: number; onChange: (d: number)
           role="radio"
           aria-checked={value === d}
           onClick={() => onChange(d)}
-          className={cn("h-7 min-w-7 rounded-full px-2 font-mono text-[12px]", value === d ? "bg-white/15 text-text" : "text-text-muted hover:text-text")}
+          className={cn("h-7 min-w-7 rounded-full px-2 font-mono text-[12px]", value === d ? "bg-surface-3 text-text" : "text-text-muted hover:text-text")}
         >
           {d}
         </button>
@@ -682,7 +679,7 @@ function SearchFly({ nodes, onPick, inputRef }: { nodes: BrainNode[]; onPick: (k
           aria-activedescendant={open && results[active] ? `brain-opt-${active}` : undefined}
           className="h-full min-w-0 flex-1 bg-transparent text-base text-text outline-none placeholder:text-text-muted md:text-[15px]"
         />
-        <kbd className="hidden rounded-md border border-white/15 px-1.5 font-mono text-[12px] text-text-muted md:inline">/</kbd>
+        <kbd className="hidden rounded-md border border-border-strong px-1.5 font-mono text-[12px] text-text-muted md:inline">/</kbd>
       </div>
       {open && results.length ? (
         <div
@@ -705,7 +702,7 @@ function SearchFly({ nodes, onPick, inputRef }: { nodes: BrainNode[]; onPick: (k
               onMouseEnter={() => setActive(i)}
               className={cn(
                 "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-[8px] px-2.5 text-[14px]",
-                i === active ? "bg-white/10 text-text" : "text-text-muted",
+                i === active ? "bg-surface-2 text-text" : "text-text-muted",
               )}
             >
               <Dot type={n.type} dim={n.dim} />
@@ -760,7 +757,7 @@ function NodePanel({
             {TYPE_LABEL[node.type].one}
             {node.statusLabel ? <span className="text-text-muted">· {node.statusLabel}</span> : null}
           </p>
-          <h2 className="mt-2 text-[22px] leading-tight font-semibold text-text">{node.label}</h2>
+          <h2 className="mt-2 font-serif text-[24px] leading-tight font-semibold text-text">{node.label}</h2>
           <p className="mt-1 text-[13px] text-text-muted">
             {[node.subtitle, `actualizado ${relTime(node.activeAt, now)}`].filter(Boolean).join(" · ")}
             {isPulsing(node, now) ? (
@@ -774,24 +771,24 @@ function NodePanel({
           type="button"
           onClick={onClose}
           aria-label="Cerrar panel"
-          className="grid size-9 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text"
+          className="grid size-9 shrink-0 place-items-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text"
         >
           <X className="size-4" />
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-5">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-[10px] border border-border bg-surface-2 p-3">
             <p className="text-[12px] text-text-muted">Conexiones</p>
-            <p className="mt-1 font-mono text-[22px] text-text">{neighbors.length}</p>
+            <p className="mt-1 font-serif text-[24px] leading-none font-semibold text-text tabular-nums">{neighbors.length}</p>
           </div>
-          <div className="rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-[10px] border border-border bg-surface-2 p-3">
             <p className="text-[12px] text-text-muted">{second.label}</p>
             <p
               className={cn(
-                "mt-1 font-mono text-[22px]",
-                second.accent ? "text-gradient" : "text-text",
-                second.value.length > 8 && "text-[15px] leading-[33px]",
+                "mt-1 font-serif text-[24px] leading-none font-semibold tabular-nums",
+                second.accent ? "text-accent-text" : "text-text",
+                second.value.length > 8 && "font-sans text-[15px] leading-[24px] font-medium",
               )}
             >
               {second.value}
@@ -801,7 +798,7 @@ function NodePanel({
         {node.nextAction ? (
           <>
             <p className="mt-5 mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Siguiente acción</p>
-            <p className="rounded-[10px] border border-white/10 bg-white/[0.03] p-3 text-[14px] leading-relaxed text-text">{node.nextAction}</p>
+            <p className="rounded-[10px] border border-border bg-surface-2 p-3 text-[14px] leading-relaxed text-text">{node.nextAction}</p>
           </>
         ) : null}
         <p className="mt-5 mb-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Vecinos directos</p>
@@ -812,7 +809,7 @@ function NodePanel({
                 <button
                   type="button"
                   onClick={() => onPick(n.key)}
-                  className="flex min-h-10 w-full items-center gap-2.5 rounded-md px-1 text-left text-[14px] text-text hover:bg-white/5"
+                  className="flex min-h-10 w-full items-center gap-2.5 rounded-md px-1 text-left text-[14px] text-text hover:bg-surface-2"
                 >
                   <Dot type={n.type} dim={n.dim} />
                   <span className="min-w-0 flex-1 truncate">{n.label}</span>
@@ -826,7 +823,7 @@ function NodePanel({
           <p className="pb-3 text-[13px] text-text-faint">Sin conexiones todavía.</p>
         )}
       </div>
-      <div className="flex items-center gap-2 border-t border-white/10 p-4">
+      <div className="flex items-center gap-2 border-t border-border p-4">
         {local ? (
           <span className="flex flex-1 items-center gap-2">
             <Button variant="secondary" className="h-10" onClick={() => onLocal(null)} aria-pressed>
@@ -948,7 +945,7 @@ function Legend({ plain }: { plain?: boolean }) {
         <span className="brain-pulse-icon" aria-hidden /> Pulso <span className="text-text-muted">= actividad reciente (7 días)</span>
       </span>
       <span className="flex items-center gap-2 text-text-muted">
-        <span aria-hidden className="inline-block size-2.5 rounded-full bg-[#3a4152]" /> apagado = frenado / terminado
+        <span aria-hidden className="inline-block size-2.5 rounded-full border border-border-strong bg-surface-3" /> apagado = frenado / terminado
       </span>
     </div>
   );
@@ -982,16 +979,17 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
         {groups.length ? (
           groups.map((g) => (
             <section key={g.type} aria-labelledby={`brain-list-${g.type}`}>
-              <h2 id={`brain-list-${g.type}`} className="mb-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
-                <Dot type={g.type} /> {TYPE_LABEL[g.type].many} <span className="text-text-faint">{g.items.length}</span>
+              <h2 id={`brain-list-${g.type}`} className="mb-2 flex items-baseline gap-2 font-serif text-[18px] font-semibold text-text">
+                <Dot type={g.type} /> {TYPE_LABEL[g.type].many}{" "}
+                <span className="font-sans text-[13px] font-normal text-text-faint tabular-nums">{g.items.length}</span>
               </h2>
               <ul className="brain-glass overflow-hidden rounded-[12px]">
                 {g.items.map((n) => (
-                  <li key={n.key} className="flex items-center gap-2 border-b border-white/5 last:border-0">
+                  <li key={n.key} className="flex items-center gap-2 border-b border-border last:border-0">
                     <Link
                       href={n.href}
                       data-row
-                      className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-2 hover:bg-white/5 focus-visible:bg-white/5"
+                      className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-4 py-2 hover:bg-surface-2 focus-visible:bg-surface-2"
                     >
                       <Dot type={n.type} dim={n.dim} />
                       <span className="min-w-0 flex-1">
@@ -1006,7 +1004,7 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
                       type="button"
                       onClick={() => onShow(n.key)}
                       aria-label={`Ver «${n.label}» en el grafo`}
-                      className="mr-2 grid size-11 shrink-0 place-items-center rounded-md text-text-muted hover:bg-white/10 hover:text-text"
+                      className="mr-2 grid size-11 shrink-0 place-items-center rounded-md text-text-muted hover:bg-surface-2 hover:text-text"
                     >
                       <Waypoints className="size-4" />
                     </button>

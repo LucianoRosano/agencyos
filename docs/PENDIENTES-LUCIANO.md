@@ -28,6 +28,11 @@
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 - **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
 
+### Para probar (séptima vuelta: documentos, remitos y Cerebro)
+- **Presupuesto**: abrí uno y mirá la vista previa y el PDF (membrete nuevo, total destacado). Si querés cambiar el nombre, las iniciales o el pie, está en Configuración → Agencia.
+- **Comprobante y remito**: en un comercio de prueba cargá dirección, teléfono y CUIT en Ajustes → «Datos para comprobantes y remitos», hacé una venta (en el aviso tocá «Comprobante») y un pedido (botones «Remito» y «Con precios»).
+- **Cerebro**: probalo en tema claro y oscuro (Configuración → Perfil → tema, o el botón de sol/luna abajo a la izquierda).
+
 ### Para probar (quinta vuelta: app, Cerebro, Centro de control y comercios)
 - **Instalar la app** en la PC y el celular: Configuración → «App y sin conexión» (botón «Instalar» o las instrucciones de tu equipo). En el iPhone: Safari → Compartir → «Agregar a inicio». Es gratis.
 - **Sin conexión**: con la app abierta una vez con internet, poné modo avión y abrila: completá una tarea, capturá algo, escribí una nota. Al volver la señal se sube solo.

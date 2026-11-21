@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { GraphApi, Insets } from "./graph-canvas";
-import { type BrainGraph, TYPE_COLOR } from "./model";
+import type { BrainGraph } from "./model";
+import { type BrainTheme, brainPalette } from "./palette";
 
 /**
  * Modo 3D del Cerebro (3d-force-graph + three), cargado en diferido SOLO al activarlo.
@@ -21,6 +22,7 @@ export type Graph3DProps = {
   selected: string | null;
   onSelect: (key: string | null) => void;
   onReady?: (api: GraphApi) => void;
+  theme?: BrainTheme;
 };
 
 const BASE: Record<string, number> = { client: 6, project: 4.5, course: 4.5, contact: 2.6, note: 2, task: 1.6 };
@@ -31,7 +33,8 @@ function hexA(hex: string, a: number) {
   return `rgba(${Number.parseInt(h.slice(0, 2), 16)},${Number.parseInt(h.slice(2, 4), 16)},${Number.parseInt(h.slice(4, 6), 16)},${a})`;
 }
 
-export default function Graph3D({ graph, visible, selected, onSelect, onReady }: Graph3DProps) {
+export default function Graph3D({ graph, visible, selected, onSelect, onReady, theme = "light" }: Graph3DProps) {
+  const pal = brainPalette(theme);
   const host = useRef<HTMLDivElement>(null);
   const fgRef = useRef<FG | null>(null);
   const nodes = useRef(new Map<string, Node3D>());
@@ -72,7 +75,7 @@ export default function Graph3D({ graph, visible, selected, onSelect, onReady }:
         .nodeResolution(14)
         .nodeOpacity(0.95)
         .nodeLabel((n) => `<span class="brain-3d-label">${esc(n.label)}</span>`)
-        .linkColor(() => "rgba(201,209,224,0.22)")
+        .linkColor(() => pal.edge)
         .linkWidth(0)
         .linkOpacity(0.5)
         .enableNodeDrag(!reduced)
@@ -116,14 +119,14 @@ export default function Graph3D({ graph, visible, selected, onSelect, onReady }:
       fgRef.current = null;
       el.replaceChildren();
     };
-  }, [graph]);
+  }, [graph, theme]);
 
   function applyStyle() {
     const fg = fgRef.current;
     if (!fg) return;
     const sel = state.current.selected;
     fg.nodeColor((n) => {
-      const c = TYPE_COLOR[n.type as keyof typeof TYPE_COLOR] ?? "#857B70";
+      const c = pal.type[n.type as keyof typeof pal.type] ?? "#857B70";
       if (sel && n.id !== sel) return hexA(c, n.dim ? 0.35 : 0.75);
       return n.dim ? hexA(c, 0.5) : c;
     }).nodeVal((n) => (n.id === sel ? n.val * 2.2 : n.val));
