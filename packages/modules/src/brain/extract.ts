@@ -29,7 +29,7 @@ export function htmlToText(html: string) {
 
 async function pdfText(buf: Buffer): Promise<string> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const task = pdfjs.getDocument({ data: new Uint8Array(buf), isEvalSupported: false, disableFontFace: true, useSystemFonts: false, verbosity: 0 });
+  const task = pdfjs.getDocument({ data: new Uint8Array(buf), disableFontFace: true, useSystemFonts: false, verbosity: 0 });
   const doc = await task.promise;
   const parts: string[] = [];
   let size = 0;
