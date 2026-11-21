@@ -20,6 +20,7 @@ const SCOPE_LABEL: Record<string, string> = {
   "write:finance": "Registrar movimientos (desactivado por defecto)",
   "propose:*": "Proponer cambios (aprobaciones)",
   "write:comments": "Comentarios internos en fichas",
+  "work:goals": "Ejecutar objetivos del Centro de control (plan, pasos y resultado)",
 };
 
 export function NewTokenForm({ base }: { base: string }) {

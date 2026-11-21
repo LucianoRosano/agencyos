@@ -5,6 +5,21 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { askBrain, type SourceType } from "../brain/knowledge";
+import {
+  addGoalNote,
+  claimGoal,
+  finishGoal,
+  GOAL_LABEL,
+  GOAL_STATUSES,
+  getGoal,
+  getSkill,
+  goalBriefing,
+  listGoals,
+  listSkills,
+  proposePlan,
+  STEP_KINDS,
+  updateStep,
+} from "../devos/service";
 import { capture } from "../inbox/service";
 import { getProject, listProjects } from "../projects/queries";
 import { addDecision } from "../projects/service";
@@ -87,6 +102,142 @@ export function buildMcpServer(ctx: Ctx) {
         respuesta_probable: a.lead ? { texto: a.lead.text, fuente: a.lead.hit.title, tipo: a.lead.hit.typeLabel, fecha: a.lead.hit.date } : null,
         fuentes: a.hits.map((h) => ({ tipo: h.typeLabel, titulo: h.title, fecha: h.date, enlace: h.href, pasajes: h.excerpts })),
       };
+    }),
+  );
+
+  // ---------- Centro de control: objetivos y skills (Claude Code como agente supervisado) ----------
+
+  server.registerTool(
+    "listar_objetivos",
+    {
+      title: "Objetivos del Centro de control",
+      description:
+        "Objetivos para ejecutar como agente, con su estado. Los «Listo para ejecutar» tienen el plan aprobado; los «Borrador» necesitan que propongas un plan.",
+      inputSchema: { estado: z.array(z.enum(GOAL_STATUSES)).optional() },
+    },
+    wrap("listar_objetivos", async ({ estado }: { estado?: string[] }) => {
+      const rows = await listGoals(ctx, { status: estado ?? ["draft", "approved", "running", "blocked"], limit: 50 });
+      return rows.map(({ g, projectName, steps, stepsDone }) => ({
+        id: g.id,
+        objetivo: g.title,
+        estado: GOAL_LABEL[g.status as keyof typeof GOAL_LABEL],
+        proyecto: projectName,
+        repositorio: g.repo,
+        pasos: `${stepsDone}/${steps}`,
+      }));
+    }),
+  );
+
+  server.registerTool(
+    "tomar_objetivo",
+    {
+      title: "Tomar un objetivo",
+      description:
+        "Devuelve todo para trabajar en un objetivo: descripción, criterios de aceptación, plan con estado de cada paso, skills con instrucciones, contexto del Cerebro y reglas. Si el plan está aprobado, lo marca en ejecución.",
+      inputSchema: { id: z.string().uuid() },
+    },
+    wrap("tomar_objetivo", async ({ id }: { id: string }) => {
+      const g = await getGoal(ctx, id);
+      if (g && ["approved", "running"].includes(g.g.status)) await claimGoal(ctx, id);
+      return goalBriefing(ctx, id);
+    }),
+  );
+
+  server.registerTool(
+    "proponer_plan",
+    {
+      title: "Proponer el plan de un objetivo",
+      description:
+        "Divide el objetivo en pasos (tipo: task, code, test, research, review, deploy, other). Marcá requiere_aprobacion en lo riesgoso (publicar, borrar, escribir a clientes). Luciano lo aprueba antes de ejecutar.",
+      inputSchema: {
+        id: z.string().uuid(),
+        pasos: z
+          .array(
+            z.object({
+              titulo: z.string().min(2).max(300),
+              tipo: z.enum(STEP_KINDS).optional(),
+              detalle: z.string().max(10_000).optional(),
+              requiere_aprobacion: z.boolean().optional(),
+            }),
+          )
+          .min(1)
+          .max(40),
+      },
+    },
+    wrap(
+      "proponer_plan",
+      async ({ id, pasos }: { id: string; pasos: { titulo: string; tipo?: string; detalle?: string; requiere_aprobacion?: boolean }[] }) => {
+        await proposePlan(ctx, id, {
+          steps: pasos.map((p) => ({ title: p.titulo, kind: p.tipo, detailMd: p.detalle, requiresApproval: p.requiere_aprobacion })),
+        });
+        return { ok: true, mensaje: "Plan enviado: esperá a que Luciano lo apruebe (estado «Listo para ejecutar»)." };
+      },
+    ),
+  );
+
+  server.registerTool(
+    "actualizar_paso",
+    {
+      title: "Avanzar un paso",
+      description:
+        "Estado de un paso: running al empezar, done al terminar (con el resultado), failed si falló (con el error: después corregí y volvé a intentar), skipped si no aplica. Un paso con aprobación pendiente queda bloqueado hasta el OK.",
+      inputSchema: {
+        id: z.string().uuid(),
+        paso: z.number().int().min(1),
+        estado: z.enum(["running", "done", "failed", "skipped"]),
+        resultado: z.string().max(20_000).optional(),
+      },
+    },
+    wrap(
+      "actualizar_paso",
+      async ({ id, paso, estado, resultado }: { id: string; paso: number; estado: "running" | "done" | "failed" | "skipped"; resultado?: string }) => {
+        const r = await updateStep(ctx, id, paso, { status: estado, resultMd: resultado });
+        return r.blocked
+          ? { ok: false, bloqueado: true, mensaje: "Este paso necesita la aprobación de Luciano. Esperá y volvé a consultar con tomar_objetivo." }
+          : { ok: true };
+      },
+    ),
+  );
+
+  server.registerTool(
+    "registrar_avance",
+    {
+      title: "Anotar en la bitácora",
+      description: "Nota de avance, pregunta para Luciano (le llega como notificación), error encontrado o corrección aplicada.",
+      inputSchema: { id: z.string().uuid(), tipo: z.enum(["note", "question", "fix", "error"]).optional(), mensaje: z.string().min(1).max(4000) },
+    },
+    wrap("registrar_avance", async ({ id, tipo, mensaje }: { id: string; tipo?: string; mensaje: string }) =>
+      addGoalNote(ctx, id, { kind: tipo, message: mensaje }),
+    ),
+  );
+
+  server.registerTool(
+    "terminar_objetivo",
+    {
+      title: "Terminar un objetivo",
+      description:
+        "Cierra la ejecución con el resumen y la evidencia (pruebas, PR, capturas). Queda «Para revisar». Con exito=false queda como fallido con el motivo.",
+      inputSchema: { id: z.string().uuid(), resumen: z.string().min(5).max(20_000), exito: z.boolean().optional() },
+    },
+    wrap("terminar_objetivo", async ({ id, resumen, exito }: { id: string; resumen: string; exito?: boolean }) => {
+      await finishGoal(ctx, id, { summaryMd: resumen, success: exito });
+      return { ok: true };
+    }),
+  );
+
+  server.registerTool(
+    "listar_skills",
+    { title: "Skills", description: "Procedimientos reutilizables de la agencia (activos).", inputSchema: {} },
+    wrap("listar_skills", async () => (await listSkills(ctx, { activeOnly: true })).map((s) => ({ slug: s.slug, nombre: s.name, descripcion: s.description }))),
+  );
+
+  server.registerTool(
+    "ver_skill",
+    { title: "Ver una skill", description: "Instrucciones completas de una skill (por slug o id).", inputSchema: { skill: z.string().min(1).max(80) } },
+    wrap("ver_skill", async ({ skill }: { skill: string }) => {
+      const s = await getSkill(ctx, skill);
+      if (!s) throw notFound("La skill");
+      return { nombre: s.name, descripcion: s.description, instrucciones: s.instructionsMd, herramientas: s.tools, version: s.version };
     }),
   );
 

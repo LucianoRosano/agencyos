@@ -2,6 +2,7 @@ export * from "./auth";
 export * from "./automation";
 export * from "./core";
 export * from "./crm";
+export * from "./devos";
 export * from "./extras";
 export * from "./finance";
 export * from "./knowledge";

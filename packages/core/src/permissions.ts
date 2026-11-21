@@ -28,7 +28,9 @@ export type Resource =
   /** Ficha del cliente de un proyecto (lectura desde la ficha del proyecto). */
   | "project_crm"
   /** Cargar la tarifa al registrar horas. */
-  | "time_rate";
+  | "time_rate"
+  /** Sistema operativo de desarrollo: skills y objetivos del agente (dueño y admin; el agente por MCP con «work:goals»). */
+  | "agent";
 export type Action = "read" | "create" | "update" | "delete" | "manage";
 
 /** Mapa de alcances MCP → permisos (docs/14 §3). */
@@ -63,6 +65,8 @@ const SCOPE_GRANTS: Record<string, [Resource, Action[]][]> = {
   "write:finance": [["finance", ["create"]]],
   "propose:*": [["approval", ["create"]]],
   "write:comments": [["comment", ["create"]]],
+  /** Ejecutar objetivos: leer, proponer el plan, avanzar pasos y terminar (aprobar y revisar es siempre humano). */
+  "work:goals": [["agent", ["read", "update"]]],
 };
 
 /**
@@ -101,7 +105,7 @@ function memberCan(ctx: Ctx, action: Action, resource: Resource): boolean {
 }
 
 export const MCP_SCOPES = Object.keys(SCOPE_GRANTS);
-export const DEFAULT_MCP_SCOPES = ["read:all", "write:inbox", "write:tasks", "write:notes", "write:decisions", "propose:*"];
+export const DEFAULT_MCP_SCOPES = ["read:all", "write:inbox", "write:tasks", "write:notes", "write:decisions", "propose:*", "work:goals"];
 
 export function can(ctx: Ctx, action: Action, resource: Resource): boolean {
   if (ctx.actor.type === "agent") {
