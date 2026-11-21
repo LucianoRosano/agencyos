@@ -31,6 +31,10 @@ El centro de mando de Luciano Rosano: agencia, proyectos, dinero, conocimiento y
 | Abonos mensuales con MRR, importación CSV, fechas en lenguaje natural, compartir desde el celular | ✅ |
 | Informe mensual por cliente (PDF), capacidad de las próximas semanas, presupuesto vs. real, encuesta NPS en el portal | ✅ |
 | Captura sin conexión y aviso de inicio de sesión desde un dispositivo nuevo | ✅ |
+| App instalable (PC, Android, iPhone) que funciona sin conexión y sincroniza sola | ✅ |
+| Cerebro inteligente: preguntas sobre notas, PDFs, decisiones y conversaciones | ✅ |
+| Centro de control: skills y objetivos con agente supervisado (Claude Code por MCP) | ✅ |
+| SaaS para comercios: punto de venta, stock, pedidos, clientes, estadísticas y reportes | ✅ |
 | Escalabilidad: índices medidos, paginación, S3, observabilidad, workers horizontales ([SCALING](docs/SCALING.md)) | ✅ |
 | Facultad y Calendario (con iCal) | ✅ |
 | Servidor MCP con tokens de alcance limitado | ✅ |

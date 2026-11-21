@@ -1,6 +1,6 @@
 # Estado de AGENCYOS
 
-**Actualizado:** 20/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
+**Actualizado:** 21/11/2026 · versión propuesta **v1.0.0-rc.1** · rama `claude/peaceful-faraday-j13pjv`
 
 Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o compra externa · ⬜ no hecho (fase posterior)
 
@@ -80,6 +80,12 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Finanzas: el **Resumen se filtra por etiqueta** (totales del mes y gráfico de 6 meses).
 - ✅ Portal: página propia (con cuánto esperar y volver) al pasar el límite de descargas de PDF.
 - ✅ Rendimiento y accesibilidad: la ficha de sitio carga cada pestaña aparte (vuelve a quedar < 170 KB); «Exportar notas» con nombre accesible en el celular.
+
+### Quinta vuelta · app sin conexión, Cerebro inteligente, Centro de control y SaaS para comercios (21/11/2026)
+- ✅ **App instalable y sin conexión** (ADR 0013): se instala gratis en PC, Mac, Android e iPhone (Configuración → «App y sin conexión»). El dispositivo guarda una copia de tareas, Bandeja, notas, proyectos y clientes; sin internet, la app abre su versión sin conexión (`/local`): ves tu día, completás y creás tareas (con fechas escritas), capturás y escribís notas. Al volver la conexión todo se sube solo, una sola vez, y si una nota cambió en otro dispositivo tu versión se guarda aparte (no se pisa nada). La copia se borra al cerrar sesión (migración 0010).
+- ✅ **Cerebro inteligente** (ADR 0014): lee notas, documentos de la Biblioteca (PDF, Word, texto), decisiones de proyectos, conversaciones con clientes, proyectos y clientes. **Preguntar** (`/cerebro/preguntar`) responde con lo más relevante y sus fuentes con fecha; cada nota muestra **«Relacionado en el Cerebro»**; Claude por MCP usa `preguntar_cerebro`. Sin APIs pagas: búsqueda de texto completo en español en PostgreSQL (migración 0011).
+- ✅ **Centro de control** (`/control`, ADR 0015): estado de objetivos, skills, tareas, proyectos, clientes, documentación, automatizaciones, repositorios, Claude Code y agentes. **Skills** con 6 plantillas para la agencia y exportación para Claude Code. **Objetivos con agente supervisado**: el agente (Claude Code en tu PC, con tu suscripción) propone el plan, vos lo aprobás, ejecuta paso a paso (código, pruebas, errores y correcciones en la bitácora), los pasos riesgosos esperan tu OK y al final lo revisás y aceptás o devolvés (migración 0012, alcance MCP `work:goals`).
+- ✅ **SaaS para comercios** (ADR 0016): desde **Comercios (SaaS)** das de alta el sistema de gestión de un cliente (vinculado a su ficha del CRM) y su dueño recibe un enlace para entrar en `/comercio`. Cada comercio tiene **usuarios** (dueño, administrador, vendedor), **punto de venta** (buscar o escanear con lector de códigos de barras, cliente, descuento, medio de pago), **ventas** (anular devuelve el stock), **pedidos** (WhatsApp, teléfono, redes; se cobran al entregar), **productos y stock** con movimientos y stock mínimo, **clientes**, **estadísticas** (día, mes, ticket promedio, ganancia, 30 días, más vendidos, mejores clientes, stock bajo) y **reporte semanal automático** (por email con Brevo). Comercios aislados entre sí; suspensión desde tu panel (migración 0013).
 
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.

@@ -36,3 +36,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · versione
   - Captura sin conexión con subida automática; Resumen de Finanzas filtrable por etiqueta; botón para volver a la probabilidad de la etapa; página propia al pasar el límite de descargas del portal.
   - Ajuste de abonos por inflación con vista previa y Deshacer; plantilla «presupuesto sin respuesta → seguimiento»; herramienta MCP `ver_capacidad`.
   - Ficha de sitio con pestañas cargadas aparte (JS < 170 KB) y correcciones de accesibilidad.
+- Quinta vuelta:
+  - App instalable y modo sin conexión con copia en el dispositivo, cola de cambios idempotente y conflictos sin pisar nada (ADR 0013, migración 0010).
+  - Cerebro inteligente: índice de notas, documentos (PDF, Word, texto), decisiones y conversaciones; Preguntar con fuentes, Relacionado y MCP `preguntar_cerebro` (ADR 0014, migración 0011).
+  - Centro de control: skills (plantillas y exportación para Claude Code) y objetivos con agente supervisado por MCP (ADR 0015, migración 0012).
+  - SaaS para comercios: punto de venta, ventas, pedidos, productos y stock, clientes, estadísticas, reporte semanal, usuarios por rol y panel de la agencia (ADR 0016, migración 0013).

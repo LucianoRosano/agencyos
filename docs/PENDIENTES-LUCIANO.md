@@ -1,6 +1,6 @@
 # Pendientes de Luciano
 
-**Actualizado:** 20/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
+**Actualizado:** 21/11/2026. Dos listas: lo que tenés que hacer vos (cuentas, compras, datos) y lo que falta del programa para una próxima pasada.
 
 ## A. Lo que tenés que hacer vos
 
@@ -28,7 +28,14 @@
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 - **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
 
-### Para probar cuando tengas un rato (nuevo)
+### Para probar (quinta vuelta: app, Cerebro, Centro de control y comercios)
+- **Instalar la app** en la PC y el celular: Configuración → «App y sin conexión» (botón «Instalar» o las instrucciones de tu equipo). En el iPhone: Safari → Compartir → «Agregar a inicio». Es gratis.
+- **Sin conexión**: con la app abierta una vez con internet, poné modo avión y abrila: completá una tarea, capturá algo, escribí una nota. Al volver la señal se sube solo.
+- **Preguntar al Cerebro** (Cerebro → «Preguntar»): subí un PDF a la Biblioteca o registrá decisiones en un proyecto y preguntá «¿qué decidimos sobre…?».
+- **Centro de control** (menú Sistema → «Centro de control»): agregá una plantilla de skill, creá un objetivo y copiá la instrucción para Claude Code. En tu PC conectá Claude Code a AGENCYOS por MCP (Configuración → Integraciones: creá un token nuevo, así incluye «Ejecutar objetivos») y pegale la instrucción. Vos aprobás el plan y los pasos riesgosos.
+- **SaaS para comercios** (menú «Comercios (SaaS)»): creá un comercio de prueba con tu otro email, entrá con el enlace, cargá productos y hacé una venta. Si tenés un lector de códigos de barras USB, funciona en «Vender».
+
+### Para probar cuando tengas un rato (cuarta vuelta)
 - **Abonos mensuales** (Finanzas → Abonos): cargá los mantenimientos/hostings/SEO que cobrás todos los meses. El cobro se genera solo el día de facturación y Negocio muestra tu ingreso recurrente.
 - **Importar CSV** (Configuración → Datos): subí tu planilla de clientes o el extracto del banco; primero ves la vista previa.
 - **Fechas escritas**: en `Ctrl+K` o al crear una tarea escribí «Llamar a Sofía mañana 10hs» o «Entregar el viernes».
@@ -75,6 +82,13 @@ Todo lo de las fases F1–F6 está construido y probado, más una tercera vuelta
 9. **Ajuste automático por IPC** (INDEC) cada N meses en los abonos que elijas, con aviso al cliente un mes antes (hoy el ajuste es manual y masivo).
 10. **Recordatorios fiscales**: recategorización de monotributo (enero y julio), vencimientos mensuales y el certificado de ARCA, como vencimientos recurrentes en Hoy y Calendario.
 11. **Búsqueda semántica** en notas y clientes («¿qué le prometí a la librería sobre envíos?») con embeddings en PostgreSQL (pgvector). Necesita API key o un modelo local.
+
+### Próximos pasos propuestos para lo nuevo (no hechos)
+- **Comercios:** cobro con **Mercado Pago** (link o QR en el punto de venta), **factura electrónica de ARCA** desde la venta, **tienda online** del comercio con su catálogo y stock, **importar productos por CSV/Excel**, **ticket imprimible** (impresora térmica de 58/80 mm), **cierre de caja diario**, **proveedores y órdenes de compra**, **precios por lista** (mayorista/minorista), **variantes** (talle, color), **dominio propio por comercio** y **planes/abonos del SaaS** facturados desde tus Abonos. La venta sin conexión en el comercio también se puede sumar con el mismo mecanismo de la cola.
+- **Agente:** ejecución automática en un servidor (con la API de Anthropic, paga) para objetivos que no necesitan tu PC; un **runner que corre las pruebas** del repo y adjunta el resultado; **PR automático** con la GitHub App al terminar.
+- **Cerebro:** búsqueda semántica con embeddings (modelo local o API) y OCR para PDFs escaneados (hoy se leen los que tienen texto).
+- **Sin conexión:** sumar Calendario y Facultad a la copia local; editar el título y la fecha de las tareas desde `/local`.
+- **App de escritorio con instalador** (.exe/.dmg con Tauri): gratis de armar, pero firmarla cuesta (certificado de Windows / cuenta de Apple); sin firma funciona con un aviso. La PWA instalada ya se comporta como app.
 
 ### Mejoras técnicas y de UX propuestas
 - **Next.js Cache Components / PPR** en Hoy y Negocio (cache por workspace con invalidación por etiqueta): baja el tiempo de servidor de cada pantalla. Pide una migración cuidadosa por la autenticación.
