@@ -1,5 +1,6 @@
 import { processAgentRuns } from "@agencyos/modules/ai/jobs";
 import { automationsTick } from "@agencyos/modules/automations/jobs";
+import { indexPending } from "@agencyos/modules/brain/knowledge";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
 import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";
@@ -33,6 +34,8 @@ export const JOBS: Job[] = [
   { name: "seo-audit", cron: "* * * * *", run: () => processQueuedAudits(), quiet: true },
   { name: "seo-schedules", cron: "20 3 * * *", run: () => dailySeoSchedules() },
   { name: "automations-tick", cron: "* * * * *", run: () => automationsTick(), quiet: true },
+  // Cerebro inteligente: indexa notas, documentos, decisiones y conversaciones nuevas o cambiadas.
+  { name: "brain-index", cron: "* * * * *", run: () => indexPending({ limit: 40 }), quiet: true, leaseMs: 2 * 60_000 },
   { name: "repos-execute-plans", cron: "* * * * *", run: () => reposExecutePlans(), quiet: true },
   { name: "repos-daily-sync", cron: "0 4 * * *", run: () => reposDailySync() },
   { name: "ai-agent-runs", cron: "* * * * *", run: () => processAgentRuns({ maxMs: 50_000, pollMs: 3_000 }), quiet: true, leaseMs: 2 * 60_000 },
