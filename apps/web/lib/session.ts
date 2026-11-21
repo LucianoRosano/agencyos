@@ -24,9 +24,12 @@ export const getMembership = cache(async (userId: string) => {
 });
 
 /** A dónde va cada rol al entrar. `null` = sin acceso activo. */
-export async function homeFor(userId: string): Promise<"/hoy" | "/portal" | null> {
+export async function homeFor(userId: string): Promise<"/hoy" | "/portal" | "/comercio" | null> {
   const m = await getMembership(userId);
-  if (!m) return null;
+  if (!m) {
+    const { shopMemberships } = await import("@agencyos/modules/shop/service");
+    return (await shopMemberships(userId)).length ? "/comercio" : null;
+  }
   return m.m.role === "client" ? "/portal" : "/hoy";
 }
 
@@ -51,7 +54,7 @@ export const requireCtx = cache(async (): Promise<AppCtx> => {
   const s = await getSession();
   if (!s) redirect("/login");
   const m = await getMembership(s.user.id);
-  if (!m) redirect("/login?error=sin-acceso");
+  if (!m) redirect((await homeFor(s.user.id)) === "/comercio" ? "/comercio" : "/login?error=sin-acceso");
   // Los clientes nunca entran a la app interna: solo al portal.
   if (m.m.role === "client") redirect("/portal");
   if (!s.user.twoFactorEnabled) redirect("/seguridad/2fa");
@@ -133,3 +136,15 @@ export async function requestIp(): Promise<string> {
 export function firstName(name: string) {
   return name.split(" ")[0] ?? name;
 }
+
+export const ACTIVE_SHOP_COOKIE = "ag-shop";
+
+/** Sesión del SaaS para comercios: usuario con acceso activo a un comercio activo (2FA opcional, como el portal). */
+export const requireShopCtx = cache(async () => {
+  const s = await getSession();
+  if (!s) redirect("/login");
+  const { resolveShop } = await import("@agencyos/modules/shop/service");
+  const sc = await resolveShop({ id: s.user.id, name: s.user.name }, (await cookies()).get(ACTIVE_SHOP_COOKIE)?.value ?? null);
+  if (!sc) redirect("/login?error=sin-acceso");
+  return { ...sc, user: { id: s.user.id, name: s.user.name, email: s.user.email } };
+});

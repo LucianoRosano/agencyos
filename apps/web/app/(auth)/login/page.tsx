@@ -19,6 +19,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     const home = await homeFor(s.user.id);
     if (next?.startsWith("/invitacion/")) redirect(next);
     if (home === "/portal") redirect(next ?? "/portal");
+    if (home === "/comercio") redirect(next?.startsWith("/comercio") ? next : "/comercio");
     if (home && s.user.twoFactorEnabled) redirect(next ?? "/hoy");
     if (home) redirect("/seguridad/2fa");
     error = "Tu cuenta no tiene acceso activo. Si creés que es un error, escribile a Luciano.";

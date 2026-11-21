@@ -1,11 +1,12 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "./lib/cn";
 
 const control =
   "w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:text-sm text-text placeholder:text-text-faint " +
   "transition-colors focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 disabled:opacity-60 aria-[invalid=true]:border-danger";
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+/** React 19: `ref` llega como prop y se pasa al input (foco desde el padre, p. ej. el punto de venta). */
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
   return <input className={cn(control, "h-10", className)} {...props} />;
 }
 

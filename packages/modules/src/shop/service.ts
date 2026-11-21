@@ -666,20 +666,18 @@ async function insertSale(t: Tx, sc: ShopCtx, input: z.infer<typeof saleInput>, 
     })
     .returning();
   if (!sale) throw new Error("No se pudo registrar la venta");
-  await t
-    .insert(schema.shopSaleItem)
-    .values(
-      lines.map((l) => ({
-        shopId: sc.shopId,
-        saleId: sale.id,
-        productId: l.p.id,
-        name: l.p.name,
-        qty: l.qty,
-        unitPrice: l.unitPrice,
-        unitCost: l.p.cost,
-        lineTotal: l.lineTotal,
-      })),
-    );
+  await t.insert(schema.shopSaleItem).values(
+    lines.map((l) => ({
+      shopId: sc.shopId,
+      saleId: sale.id,
+      productId: l.p.id,
+      name: l.p.name,
+      qty: l.qty,
+      unitPrice: l.unitPrice,
+      unitCost: l.p.cost,
+      lineTotal: l.lineTotal,
+    })),
+  );
   for (const [id, qty] of need) {
     const [u] = await t
       .update(schema.shopProduct)
@@ -920,4 +918,13 @@ export async function shopStats(sc: ShopCtx, today = todayAR()) {
     low,
     pendingOrders: pending[0]?.n ?? 0,
   };
+}
+
+export async function getProduct(sc: ShopCtx, id: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const [p] = await getDb()
+    .select()
+    .from(schema.shopProduct)
+    .where(and(eq(schema.shopProduct.id, id), eq(schema.shopProduct.shopId, sc.shopId)));
+  return p ?? null;
 }
