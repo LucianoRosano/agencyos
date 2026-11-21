@@ -134,3 +134,20 @@ describe("Centro de control: objetivo con agente supervisado", () => {
     expect((await getGoal(ws, g2.id))?.g.status).toBe("cancelled");
   });
 });
+
+describe("Centro de control: vista general y exportación", () => {
+  it("cuenta lo del sistema y exporta las skills activas como SKILL.md", async () => {
+    const { controlOverview, exportSkillsZip } = await import("@agencyos/modules/devos/service");
+    const JSZip = (await import("jszip")).default;
+    const ws = await makeWorkspace();
+    await createGoal(ws, { title: "Objetivo uno" });
+    const s = await createSkill(ws, { name: "Revisar PR", description: "Revisión", instructionsMd: "1. Leer el diff con atención" });
+    const o = await controlOverview(ws);
+    expect(o.skills).toBe(1);
+    expect(o.goals).toMatchObject({ active: 0, waiting: 0 });
+    expect(o.mcp.tokens).toBe(0);
+    const zip = await JSZip.loadAsync(await exportSkillsZip(ws));
+    expect(Object.keys(zip.files)).toContain(`.claude/skills/${s.slug}/SKILL.md`);
+    await expect(controlOverview({ ...ws, role: "member" })).rejects.toThrow();
+  });
+});

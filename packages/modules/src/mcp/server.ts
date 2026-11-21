@@ -1,4 +1,4 @@
-import { assertCan, type Ctx, DomainError, L, label, parseNaturalDate } from "@agencyos/core";
+import { assertCan, type Ctx, DomainError, L, label, notFound, parseNaturalDate } from "@agencyos/core";
 import { audit, recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

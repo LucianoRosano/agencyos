@@ -624,3 +624,113 @@ export async function addSkillFromTemplate(ctx: Ctx, key: string) {
   if (!t) throw notFound("La plantilla");
   return createSkill(ctx, { name: t.name, description: t.description, instructionsMd: t.instructionsMd, tools: t.tools, tags: t.tags });
 }
+
+/**
+ * Todo el sistema de un vistazo (Centro de control): objetivos, tareas, proyectos, clientes, documentación del
+ * Cerebro, automatizaciones, agentes y herramientas conectadas. Solo conteos: una consulta por tabla.
+ */
+export async function controlOverview(ctx: Ctx) {
+  assertCan(ctx, "read", "agent");
+  const db = getDb();
+  const ws = ctx.workspaceId;
+  const one = async <T>(q: Promise<T[]>) => (await q)[0] as T;
+  const [goals, tasks, projects, clients, brain, rules, runs, mcp, ai, repos, skills] = await Promise.all([
+    one(
+      db
+        .select({
+          active: sql<number>`count(*) filter (where ${schema.goal.status} in ('approved','running'))::int`,
+          waiting: sql<number>`count(*) filter (where ${schema.goal.status} in ('planned','blocked','review'))::int`,
+          done30: sql<number>`count(*) filter (where ${schema.goal.status} = 'done' and ${schema.goal.updatedAt} > now() - interval '30 days')::int`,
+        })
+        .from(schema.goal)
+        .where(scoped(schema.goal, ctx)),
+    ),
+    one(
+      db
+        .select({
+          open: sql<number>`count(*) filter (where ${schema.task.status} in ('todo','doing','waiting'))::int`,
+          overdue: sql<number>`count(*) filter (where ${schema.task.status} in ('todo','doing','waiting') and ${schema.task.dueDate} < ${todayAR()}::date)::int`,
+          agent: sql<number>`count(*) filter (where ${schema.task.status} in ('todo','doing','waiting') and ${schema.task.assigneeType} = 'agent')::int`,
+        })
+        .from(schema.task)
+        .where(scoped(schema.task, ctx)),
+    ),
+    one(
+      db
+        .select({
+          active: sql<number>`count(*) filter (where ${schema.project.status} = 'in_progress')::int`,
+          blocked: sql<number>`count(*) filter (where ${schema.project.status} = 'blocked')::int`,
+        })
+        .from(schema.project)
+        .where(scoped(schema.project, ctx)),
+    ),
+    one(
+      db
+        .select({ active: sql<number>`count(*) filter (where ${schema.client.status} = 'active')::int` })
+        .from(schema.client)
+        .where(scoped(schema.client, ctx)),
+    ),
+    one(
+      db
+        .select({ sources: sql<number>`count(*)::int`, docs: sql<number>`count(*) filter (where ${schema.knowledgeSource.sourceType} = 'file')::int` })
+        .from(schema.knowledgeSource)
+        .where(eq(schema.knowledgeSource.workspaceId, ws)),
+    ),
+    one(
+      db
+        .select({ active: sql<number>`count(*) filter (where ${schema.automationRule.active})::int` })
+        .from(schema.automationRule)
+        .where(scoped(schema.automationRule, ctx)),
+    ),
+    one(
+      db
+        .select({ failed: sql<number>`count(*) filter (where ${schema.automationRun.status} = 'failed')::int`, total: sql<number>`count(*)::int` })
+        .from(schema.automationRun)
+        .where(and(eq(schema.automationRun.workspaceId, ws), sql`${schema.automationRun.startedAt} > now() - interval '7 days'`)),
+    ),
+    one(
+      db
+        .select({ tokens: sql<number>`count(*)::int`, lastUsed: sql<Date | null>`max(${schema.mcpToken.lastUsedAt})` })
+        .from(schema.mcpToken)
+        .where(and(scoped(schema.mcpToken, ctx), sql`${schema.mcpToken.revokedAt} is null`)),
+    ),
+    one(
+      db
+        .select({ enabled: sql<boolean>`bool_or(${schema.aiProviderConfig.enabled})` })
+        .from(schema.aiProviderConfig)
+        .where(eq(schema.aiProviderConfig.workspaceId, ws)),
+    ),
+    one(
+      db
+        .select({ n: sql<number>`count(*)::int`, low: sql<number>`count(*) filter (where ${schema.repository.healthScore} < 60)::int` })
+        .from(schema.repository)
+        .where(eq(schema.repository.workspaceId, ws)),
+    ),
+    one(
+      db
+        .select({ n: sql<number>`count(*) filter (where ${schema.skill.active})::int` })
+        .from(schema.skill)
+        .where(scoped(schema.skill, ctx)),
+    ),
+  ]);
+  return {
+    goals: goals ?? { active: 0, waiting: 0, done30: 0 },
+    tasks: tasks ?? { open: 0, overdue: 0, agent: 0 },
+    projects: projects ?? { active: 0, blocked: 0 },
+    clients: clients?.active ?? 0,
+    brain: brain ?? { sources: 0, docs: 0 },
+    automations: { active: rules?.active ?? 0, failed7d: runs?.failed ?? 0, runs7d: runs?.total ?? 0 },
+    mcp: { tokens: mcp?.tokens ?? 0, lastUsed: mcp?.lastUsed ? new Date(mcp.lastUsed) : null },
+    aiEnabled: Boolean(ai?.enabled),
+    repos: { n: repos?.n ?? 0, low: repos?.low ?? 0 },
+    skills: skills?.n ?? 0,
+  };
+}
+
+/** ZIP con las skills activas en formato Claude Code (`.claude/skills/<slug>/SKILL.md`). */
+export async function exportSkillsZip(ctx: Ctx): Promise<Uint8Array> {
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+  for (const s of await listSkills(ctx, { activeOnly: true })) zip.file(`.claude/skills/${s.slug}/SKILL.md`, skillMarkdown(s));
+  return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+}
