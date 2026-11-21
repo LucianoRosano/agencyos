@@ -51,7 +51,7 @@ test("Centro de control: skill desde plantilla → objetivo → plan aprobado �
   await page.getByRole("button", { name: "Escribir el plan" }).click();
   await page.locator("#plan").fill("Reproducir el error\nCorregir el cálculo\nPublicar el arreglo (ok)");
   await page.getByRole("button", { name: "Guardar plan" }).click();
-  await expect(page.getByText("Plan para aprobar")).toBeVisible();
+  await expect(page.getByText("Plan para aprobar").first()).toBeVisible();
   await page.getByRole("button", { name: "Aprobar el plan" }).click();
   await expect(page.getByText("Listo para ejecutar").first()).toBeVisible();
 
@@ -93,7 +93,7 @@ test("Centro de control: skill desde plantilla → objetivo → plan aprobado �
   await call("terminar_objetivo", { id: goalId, resumen: "Envío corregido con prueba; PR mergeado." });
 
   await page.reload();
-  await expect(page.getByText("Listo para revisar")).toBeVisible();
+  await expect(page.getByText("Listo para revisar").first()).toBeVisible();
   await expect(page.getByTestId("goal-log")).toContainText("Corregido el import de la prueba");
   await expect(page.getByTestId("goal-steps")).toContainText("1 intento(s) fallido(s) corregido(s)");
   await expectNoHorizontalScroll(page);
