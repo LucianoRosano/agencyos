@@ -464,7 +464,14 @@ function NotesView({ data }: { data: Data }) {
               <li key={n.id} className="border-b border-border last:border-0">
                 <button type="button" onClick={() => setOpen(n.id)} className="flex min-h-12 w-full flex-col items-start px-2 py-2.5 text-left">
                   <span className="text-[15px] text-text">{n.title}</span>
-                  <span className="line-clamp-1 text-[13px] text-text-muted">{n.bodyMd.replace(/^---[\s\S]*?---/, "").slice(0, 140) || "Vacía"}</span>
+                  <span className="line-clamp-1 text-[13px] text-text-muted">
+                    {n.bodyMd
+                      .replace(/^---[\s\S]*?---/, "")
+                      .replace(/[#*_>`[\]]+|^\s*-\s/gm, " ")
+                      .replace(/\s+/g, " ")
+                      .trim()
+                      .slice(0, 140) || "Vacía"}
+                  </span>
                 </button>
               </li>
             ))}
