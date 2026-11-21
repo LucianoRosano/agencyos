@@ -6,7 +6,7 @@ export default function Loading() {
       aria-busy="true"
       aria-label="Cargando el Cerebro"
     >
-      <span className="flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.2em] text-[#857B70]">
+      <span className="flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.04em] text-[#857B70]">
         <span className="skeleton size-2 rounded-full bg-[#A9471F]" aria-hidden />
         Cargando el Cerebro…
       </span>

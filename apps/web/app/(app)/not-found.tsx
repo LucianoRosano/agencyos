@@ -7,7 +7,7 @@ export const metadata = { title: "No encontrado" };
 export default function NotFound() {
   return (
     <Card className="mx-auto mt-4 max-w-xl px-4">
-      <p className="pt-8 text-center font-mono text-[12px] uppercase tracking-[0.3em] text-text-muted">Error 404</p>
+      <p className="pt-8 text-center font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Error 404</p>
       <EmptyState
         className="pt-4"
         icon={<SearchX />}

@@ -59,7 +59,7 @@ export function Sidebar({ data }: { data: ShellData }) {
           if (!groupItems.length) return null;
           return (
             <div key={g ?? "principal"}>
-              {g ? <p className="mt-6 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">{NAV_GROUP_LABEL[g]}</p> : null}
+              {g ? <p className="mt-6 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{NAV_GROUP_LABEL[g]}</p> : null}
               <ul className="flex flex-col gap-0.5">
                 {groupItems.map((it) => (
                   <li key={it.key}>
@@ -77,7 +77,7 @@ export function Sidebar({ data }: { data: ShellData }) {
             </div>
           );
         })}
-        {data.spaces.length ? <p className="mt-7 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">Espacios</p> : null}
+        {data.spaces.length ? <p className="mt-7 mb-2 px-3 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Espacios</p> : null}
         <ul className="flex flex-col gap-0.5">
           {data.spaces.map((s) => (
             <li key={s.id}>

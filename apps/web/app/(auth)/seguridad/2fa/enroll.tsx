@@ -82,7 +82,7 @@ export function EnrollTwoFactor() {
         <p className="mt-2 text-[12px] text-text-muted">Guardalos en Bitwarden.</p>
       </div>
       <Field label="Código de 6 dígitos" name="code" error={error ?? undefined}>
-        <Input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required className="font-mono tracking-[0.3em]" />
+        <Input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required className="font-mono tracking-[0.04em]" />
       </Field>
       <Button type="submit" variant="primary" loading={pending} className="w-full">
         Activar 2FA

@@ -125,7 +125,7 @@ export function LoginForm({ next, initialError, magicLink, initialStep }: { next
             autoComplete="one-time-code"
             autoFocus
             required
-            className="font-mono tracking-[0.3em]"
+            className="font-mono tracking-[0.04em]"
             maxLength={step === "totp" ? 6 : 20}
           />
         </Field>

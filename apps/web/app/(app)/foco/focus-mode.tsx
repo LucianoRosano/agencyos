@@ -61,7 +61,7 @@ export function FocusMode({ tasks, initialTaskId, minutesToday }: { tasks: T[]; 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
       <div className="flex items-center justify-between">
-        <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">Modo foco · {minutesToday} min hoy</p>
+        <p className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Modo foco · {minutesToday} min hoy</p>
         <Link href="/hoy" className="text-[13px] text-text-muted hover:text-text">
           Salir
         </Link>

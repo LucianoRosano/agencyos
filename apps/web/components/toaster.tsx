@@ -5,8 +5,8 @@ import type { ToasterProps } from "sonner";
 import { markToasterReady } from "@/lib/toast";
 
 /**
- * Toasts (docs/07 §3): abajo a la derecha en desktop y arriba en el celular, para no tapar la barra inferior ni el
- * botón de captura. sonner se carga apenas hidrata la página, fuera del JS inicial (ver lib/toast.ts).
+ * Toasts (docs/07 §3): abajo al centro en desktop (no tapan los botones «Guardar», que van a la derecha) y arriba en el
+ * celular, para no tapar la barra inferior ni el botón de captura. sonner se carga apenas hidrata la página, fuera del JS inicial (ver lib/toast.ts).
  */
 export function Toaster({ theme }: { theme: "dark" | "light" }) {
   const [Sonner, setSonner] = useState<ComponentType<ToasterProps> | null>(null);
@@ -36,9 +36,9 @@ export function Toaster({ theme }: { theme: "dark" | "light" }) {
   return (
     <Sonner
       theme={theme}
-      position={mobile ? "top-center" : "bottom-right"}
+      position={mobile ? "top-center" : "bottom-center"}
       mobileOffset={{ top: "calc(env(safe-area-inset-top) + 12px)" }}
-      toastOptions={{ className: "!bg-surface !text-text !border-border", style: { fontFamily: "var(--font-sans)" } }}
+      toastOptions={{ className: "!bg-surface !text-text !border-border !shadow-[var(--shadow-pop)]", style: { fontFamily: "var(--font-sans)" } }}
     />
   );
 }

@@ -43,7 +43,7 @@ const GraphCanvas = dynamic(() => import("./graph-canvas"), {
   ssr: false,
   loading: () => (
     <div role="status" className="absolute inset-0 grid place-items-center" aria-busy="true" aria-label="Cargando el grafo">
-      <span className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-faint">Cargando el Cerebro…</span>
+      <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-faint">Cargando el Cerebro…</span>
     </div>
   ),
 });
@@ -52,7 +52,7 @@ const Graph3D = dynamic(() => import("./graph-3d"), {
   ssr: false,
   loading: () => (
     <div role="status" className="absolute inset-0 grid place-items-center" aria-busy="true" aria-label="Cargando el modo 3D">
-      <span className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-faint">Cargando el modo 3D…</span>
+      <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-faint">Cargando el modo 3D…</span>
     </div>
   ),
 });

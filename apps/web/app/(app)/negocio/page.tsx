@@ -355,8 +355,17 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
           )}
         </BlockCard>
       </div>
-      <BlockCard icon={<Activity />} title="Actividad reciente" className="mt-4">
-        <ActivityList rows={k.activity} />
+      <BlockCard
+        icon={<Activity />}
+        title="Actividad reciente"
+        className="mt-4"
+        action={
+          <Link href="/configuracion/actividad" className="text-[13px] text-text-muted hover:text-text">
+            ver toda →
+          </Link>
+        }
+      >
+        <ActivityList rows={k.activity.slice(0, 8)} />
       </BlockCard>
     </div>
   );

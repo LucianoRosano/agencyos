@@ -14,7 +14,7 @@ export default function NotFound() {
         <Link href="/hoy" aria-label="AGENCYOS · Hoy" className="mb-10">
           <Logo />
         </Link>
-        <p className="font-mono text-[12px] uppercase tracking-[0.3em] text-text-muted">Error 404</p>
+        <p className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Error 404</p>
         <h1 className="mt-3 text-[28px] font-semibold tracking-tight text-text md:text-[32px]">
           Esta página no <span className="text-gradient">existe</span>
         </h1>

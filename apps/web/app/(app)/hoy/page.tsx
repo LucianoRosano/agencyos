@@ -22,10 +22,10 @@ export default async function HoyPage() {
     return (
       <div className="mx-auto max-w-[1200px]">
         <header className="mb-6 md:mb-8">
-          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">
+          <p className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">
             {dowName(t)} · {Number(t.slice(8, 10))} {monthShort(Number(t.slice(5, 7)))} {t.slice(0, 4)}
           </p>
-          <h1 className="mt-2 text-[30px] font-semibold tracking-tight md:text-[40px]">
+          <h1 className="mt-2 font-serif text-[32px] leading-tight font-semibold md:text-[42px]">
             {greeting(now)}, {firstName(ctx.user.name)}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -69,10 +69,10 @@ export default async function HoyPage() {
     <div className="mx-auto max-w-[1560px]">
       <header className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">
+          <p className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">
             {dowName(today)} · {Number(d)} {monthShort(Number(m))} {y} <span className="hidden md:inline">· {formatTime(now)}</span>
           </p>
-          <h1 className="mt-2 text-[30px] font-semibold tracking-tight md:text-[40px]">
+          <h1 className="mt-2 font-serif text-[32px] leading-tight font-semibold md:text-[42px]">
             {greeting(now)}, {firstName(ctx.user.name)}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -98,7 +98,7 @@ export default async function HoyPage() {
         </div>
         <div className="flex items-end justify-between gap-4 md:flex-col md:items-end">
           <div className="text-left md:text-right">
-            <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-text-muted">Semana {week.number}</p>
+            <p className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Semana {week.number}</p>
             <p className="mt-1 font-mono text-[15px] text-text">
               {week.done} de {week.total} tareas · <span className="text-gradient">{pct}%</span>
             </p>

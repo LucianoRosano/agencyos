@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Logo />
         </div>
         <div className="rounded-[var(--radius-card)] border border-border bg-surface p-6 shadow-[var(--shadow-pop)] md:p-8">{children}</div>
-        <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">Digital Agency OS</p>
+        <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Digital Agency OS</p>
       </div>
     </main>
   );

@@ -46,8 +46,8 @@ body {
   min-height: 100dvh;
   background-color: var(--bg);
   font-family: var(--font-sans);
-  /* Inter: «cv11» a de un solo piso, «ss03» redondeado; cifras tabulares en toda la interfaz (las columnas no bailan). */
-  font-feature-settings: "cv11", "ss03", "tnum";
+  /* Inter: «cv11» a de un solo piso, «ss03» redondeado. Cifras tabulares solo en números y tablas (.font-mono, .tabular). */
+  font-feature-settings: "cv11", "ss03";
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

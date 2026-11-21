@@ -83,7 +83,7 @@ export default async function ConstanciaPage({ params }: { params: Promise<{ tra
             </p>
           </div>
           <div className="sm:text-right">
-            <p className="font-mono text-[12px] uppercase tracking-[0.2em]">Constancia de pago</p>
+            <p className="font-mono text-[12px] uppercase tracking-[0.04em]">Constancia de pago</p>
             <p className="mt-1 font-mono text-[20px] font-semibold">{number}</p>
             <p className="mt-1 text-[13px]">Fecha: {formatDate(tx.date)}</p>
           </div>
