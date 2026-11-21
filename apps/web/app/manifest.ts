@@ -2,13 +2,17 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/hoy",
     name: "AGENCYOS",
     short_name: "AGENCYOS",
     description: "Centro de mando de la agencia, los proyectos y el conocimiento.",
     start_url: "/hoy",
     scope: "/",
     display: "standalone",
-    orientation: "portrait-primary",
+    // En la PC: ventana propia como un programa; si ya está abierta, la reusa en vez de abrir otra.
+    display_override: ["standalone", "minimal-ui"],
+    launch_handler: { client_mode: ["focus-existing", "auto"] },
+    categories: ["business", "productivity"],
     background_color: "#06070A",
     theme_color: "#06070A",
     lang: "es-AR",
@@ -25,6 +29,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { name: "Bandeja", url: "/bandeja" },
       { name: "Nueva tarea", url: "/tareas?nueva=1" },
       { name: "Capturar", url: "/compartir" },
+      { name: "Sin conexión", short_name: "Offline", url: "/local" },
     ],
   };
 }

@@ -106,7 +106,8 @@ async function assertPhase(t: DbOrTx, ctx: Ctx, phaseId: string | null | undefin
   if (!ph || ph.projectId !== projectId) throw validation("La etapa no pertenece al proyecto de la tarea", { phaseId: "Etapa inválida" });
 }
 
-export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
+/** `opts.id`: id generado en el dispositivo (modo sin conexión), para referenciarla antes de sincronizar. */
+export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb(), opts: { id?: string } = {}) {
   assertCan(ctx, "create", "task");
   const input = taskInput.parse(raw);
   if (input.rrule && !input.dueDate) throw validation("Una tarea recurrente necesita fecha", { dueDate: "Elegí la primera fecha" });
@@ -126,6 +127,7 @@ export async function createTask(ctx: Ctx, raw: unknown, db: DbOrTx = getDb()) {
     const [row] = await t
       .insert(schema.task)
       .values({
+        ...(opts.id ? { id: opts.id } : {}),
         workspaceId: ctx.workspaceId,
         createdBy: ctx.userId,
         title: input.title,

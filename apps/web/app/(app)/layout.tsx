@@ -6,6 +6,7 @@ import { listSpacesWithCounts } from "@agencyos/modules/spaces/service";
 import { listMyWorkspaces } from "@agencyos/modules/workspaces/service";
 import { and, count, inArray, notInArray } from "drizzle-orm";
 import { cookies } from "next/headers";
+import { OfflineSync } from "@/components/offline/offline-sync";
 import { LazyOverlays } from "@/components/shell/lazy-overlays";
 import { BottomNav, MobileHeader } from "@/components/shell/mobile";
 import { RouteTransition } from "@/components/shell/route-transition";
@@ -64,6 +65,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav data={data} />
       <LazyOverlays enabledModules={data.enabledModules} role={ctx.role} capture={!limited} />
       <Shortcuts limited={limited} enabledModules={data.enabledModules} role={ctx.role} />
+      <OfflineSync userId={ctx.userId ?? ""} workspaceId={ctx.workspaceId} />
     </div>
   );
 }

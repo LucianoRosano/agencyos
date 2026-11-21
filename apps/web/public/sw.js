@@ -1,12 +1,21 @@
-/* AGENCYOS · service worker: estáticos cacheados y página offline. Datos siempre desde la red. */
-const VERSION = "agencyos-v4";
+/*
+ * AGENCYOS · service worker: estáticos cacheados, modo sin conexión (/local) y página offline.
+ * Los datos van siempre por la red; sin conexión, las pantallas de la app abren /local (la copia del dispositivo).
+ */
+const VERSION = "agencyos-v5";
+const LOCAL_CACHE = "agencyos-local";
 const OFFLINE = "/offline.html";
+const LOCAL = "/local";
+// Pantallas que sin conexión van al modo local (no: login, portal, enlaces públicos, invitaciones, legales).
+const PUBLIC_PREFIXES = ["/login", "/setup", "/seguridad", "/portal", "/p/", "/invitacion", "/legal", "/api", "/mcp", "/recuperar"];
+let lastRefresh = 0;
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches
       .open(VERSION)
       .then((c) => c.addAll([OFFLINE, "/icons/icon.svg", "/fonts/Geist-Variable.woff2"]))
+      .then(() => refreshLocal(true))
       .then(() => self.skipWaiting()),
   );
 });
@@ -15,10 +24,55 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== LOCAL_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
+
+/**
+ * Guarda /local y todos sus archivos (JS y CSS) para abrirla sin internet. Se llama al instalar, cuando la app
+ * avisa (versión nueva, sesión iniciada) y como mucho cada 30 minutos al navegar con conexión.
+ */
+async function refreshLocal(force) {
+  if (!force && Date.now() - lastRefresh < 30 * 60 * 1000) return;
+  lastRefresh = Date.now();
+  try {
+    const res = await fetch(LOCAL, { credentials: "same-origin", cache: "no-store" });
+    if (!res.ok || res.redirected) return;
+    const html = await res.clone().text();
+    // <script src> / <link href> y los chunks que el árbol de componentes pide después (aparecen en el payload).
+    const assets = [
+      ...[...html.matchAll(/(?:src|href)="(\/_next\/static\/[^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&")),
+      ...[...html.matchAll(/static\/(?:chunks|css|media)\/[A-Za-z0-9._~-]+\.(?:js|css|woff2)/g)].map((m) => `/_next/${m[0]}`),
+    ];
+    const cache = await caches.open(LOCAL_CACHE);
+    await Promise.all(
+      [...new Set(assets)].map((a) =>
+        caches.match(a).then((hit) => hit || fetch(a).then((r) => (r.ok ? caches.open(VERSION).then((c) => c.put(a, r)) : undefined))),
+      ),
+    ).catch(() => undefined);
+    await cache.put(LOCAL, res);
+  } catch {
+    /* sin conexión: queda la copia anterior */
+  }
+}
+
+self.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "refresh-local") e.waitUntil(refreshLocal(true));
+});
+
+const isAppPage = (path) => !PUBLIC_PREFIXES.some((p) => path === p || path.startsWith(p.endsWith("/") ? p : `${p}/`) || path === p);
+
+async function offlineNavigation(url) {
+  const local = await caches.match(LOCAL, { cacheName: LOCAL_CACHE });
+  if (url.pathname === LOCAL) return local || caches.match(OFFLINE);
+  if (local && isAppPage(url.pathname)) {
+    const sec = { "/tareas": "tareas", "/bandeja": "bandeja", "/notas": "notas", "/proyectos": "proyectos", "/crm": "clientes" };
+    const hit = Object.keys(sec).find((k) => url.pathname.startsWith(k));
+    return Response.redirect(`${LOCAL}${hit ? `?ver=${sec[hit]}` : ""}`, 302);
+  }
+  return caches.match(OFFLINE);
+}
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
@@ -40,7 +94,19 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).catch(() => caches.match(OFFLINE)));
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          // Servidor caído (502/503/504 del proxy): igual que sin conexión.
+          if (res.status >= 502 && res.status <= 504) return offlineNavigation(url);
+          if (res.ok && url.pathname === LOCAL) {
+            const copy = res.clone();
+            caches.open(LOCAL_CACHE).then((c) => c.put(LOCAL, copy));
+          } else if (res.ok && isAppPage(url.pathname)) e.waitUntil(refreshLocal(false));
+          return res;
+        })
+        .catch(() => offlineNavigation(url)),
+    );
   }
 });
 

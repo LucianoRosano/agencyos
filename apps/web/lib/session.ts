@@ -42,7 +42,7 @@ const MEMBER_ALLOWED = [
   /^\/tareas(\/.*)?$/,
   /^\/sitios(\/(?!nuevo)[^/]+(\/.*)?)?$/,
   /^\/notificaciones$/,
-  /^\/configuracion(\/(seguridad|notificaciones))?$/,
+  /^\/configuracion(\/(seguridad|notificaciones|app))?$/,
 ];
 export const memberCanOpen = (path: string) => MEMBER_ALLOWED.some((re) => re.test(path));
 
@@ -70,6 +70,29 @@ export const requireCtx = cache(async (): Promise<AppCtx> => {
     workspace: m.w,
   };
 });
+
+/**
+ * Contexto para Route Handlers de la app interna (p. ej. /api/sync): mismas reglas que requireCtx pero sin
+ * redirecciones; `null` si no hay sesión válida (el handler responde 401).
+ */
+export async function apiCtx(): Promise<AppCtx | null> {
+  const s = await getSession();
+  if (!s?.user.twoFactorEnabled) return null;
+  const m = await getMembership(s.user.id);
+  if (!m || m.m.role === "client") return null;
+  const h = await headers();
+  return {
+    workspaceId: m.w.id,
+    userId: s.user.id,
+    role: m.m.role as Role,
+    actor: { type: "user", id: s.user.id, name: s.user.name },
+    grants: await loadGrants(m.w.id, s.user.id, m.m.role as Role),
+    ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+    userAgent: h.get("user-agent"),
+    user: { id: s.user.id, name: s.user.name, email: s.user.email, image: s.user.image ?? null },
+    workspace: m.w,
+  };
+}
 
 export type PortalCtx = AppCtx & { clientId: string | null };
 

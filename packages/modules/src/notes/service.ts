@@ -265,7 +265,7 @@ function derived(bodyMd: string, extraAliases: string[] = []) {
   };
 }
 
-async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>) {
+async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>, id?: string) {
   await assertOwned(t, ctx, schema.space, input.spaceId, "El espacio");
   await assertUniqueTitle(t, ctx, input.title);
   await assertEntity(t, ctx, input.entityType, input.entityId);
@@ -279,6 +279,7 @@ async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>) {
   const [row] = await t
     .insert(schema.note)
     .values({
+      ...(id ? { id } : {}),
       workspaceId: ctx.workspaceId,
       createdBy: ctx.userId ?? ctx.actor.id,
       title: input.title,
@@ -305,10 +306,10 @@ async function insertNote(t: Tx, ctx: Ctx, input: z.infer<typeof noteInput>) {
   return row;
 }
 
-export async function createNote(ctx: Ctx, raw: unknown) {
+export async function createNote(ctx: Ctx, raw: unknown, opts: { id?: string } = {}) {
   assertCan(ctx, "create", "note");
   const input = noteInput.parse(raw);
-  return getDb().transaction((t) => insertNote(t, ctx, input));
+  return getDb().transaction((t) => insertNote(t, ctx, input, opts.id));
 }
 
 export type SaveResult = { note: NoteRow; versioned: boolean; links: { wikilinks: number; resolved: number; mentions: number } | null };

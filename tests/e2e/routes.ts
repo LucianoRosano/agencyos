@@ -30,7 +30,17 @@ export const MENU_ROUTES = [
   "/ia",
 ] as const;
 
-export const SYSTEM_ROUTES = ["/configuracion", "/configuracion/seguridad", "/notificaciones", "/papelera", "/aprobaciones", "/espacios", "/foco"] as const;
+export const SYSTEM_ROUTES = [
+  "/configuracion",
+  "/configuracion/seguridad",
+  "/configuracion/app",
+  "/local",
+  "/notificaciones",
+  "/papelera",
+  "/aprobaciones",
+  "/espacios",
+  "/foco",
+] as const;
 
 /** Pantallas de alta y editores (las más pesadas en JS: formularios, editor de notas, constructor de reglas). */
 export const EDITOR_ROUTES = [

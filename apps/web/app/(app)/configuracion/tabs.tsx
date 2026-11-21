@@ -8,6 +8,7 @@ const ITEMS: Item[] = [
   { key: "perfil", label: "Perfil", href: "/configuracion" },
   { key: "seguridad", label: "Seguridad", href: "/configuracion/seguridad" },
   { key: "notificaciones", label: "Notificaciones", href: "/configuracion/notificaciones" },
+  { key: "app", label: "App y sin conexión", href: "/configuracion/app" },
   { key: "usuarios", label: "Usuarios", href: "/configuracion/usuarios", admin: true },
   { key: "workspace", label: "Agencia", href: "/configuracion/workspace", admin: true },
   { key: "modulos", label: "Módulos", href: "/configuracion/modulos", admin: true },

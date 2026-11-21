@@ -40,6 +40,8 @@ export const RATE_RULES = {
   portalCapture: { name: "portal.capture", windowSec: 10 * 60, max: 30 },
   /** PDF de presupuesto en el portal (Chromium: caro), por usuario. */
   portalPdf: { name: "portal.pdf", windowSec: 10 * 60, max: 20 },
+  /** Sincronización del modo sin conexión (copia y cola de cambios), por usuario. */
+  sync: { name: "sync", windowSec: 60, max: 60 },
   /** Abrir una invitación, por IP. */
   invitationView: { name: "inv.view", windowSec: 15 * 60, max: 30 },
   /** Aceptar una invitación (crear cuenta), por IP. */

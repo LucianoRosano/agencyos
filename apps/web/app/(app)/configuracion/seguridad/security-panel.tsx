@@ -78,6 +78,7 @@ export function SecurityPanel() {
             onClick={async () => {
               await (await getAuthClient()).signOut();
               clearPendingCaptures();
+              await import("@/lib/offline/engine").then((e) => e.wipe()).catch(() => undefined);
               window.location.href = "/login";
             }}
           >
