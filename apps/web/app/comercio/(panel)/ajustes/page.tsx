@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   const { members, invitations } = await listMembers(sc);
   return (
     <>
-      <PageHeader title="Ajustes" accent="#34D399" />
+      <PageHeader title="Ajustes" accent="#4F7A52" />
       <div className="flex flex-col gap-5">
         <Card className="p-5">
           <SectionLabel className="mb-3">Usuarios</SectionLabel>

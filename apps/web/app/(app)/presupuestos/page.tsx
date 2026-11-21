@@ -37,7 +37,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
       <PageHeader
         eyebrow="Presupuestos y servicios"
         title="Presupuestos"
-        accent="#A78BFA"
+        accent="#9C6B5A"
         actions={
           <>
             <Button asChild variant="ghost">
@@ -74,7 +74,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
       </form>
       {rows.length ? (
         <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
-          <div className="hidden grid-cols-[150px_minmax(0,1fr)_120px_150px_120px] gap-4 border-b border-border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint md:grid">
+          <div className="hidden grid-cols-[150px_minmax(0,1fr)_120px_150px_120px] gap-4 border-b border-border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint md:grid">
             <span>Número</span>
             <span>Presupuesto</span>
             <span>Estado</span>

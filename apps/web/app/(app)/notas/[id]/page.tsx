@@ -45,7 +45,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted">
+      <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">
         <Link
           href={n.folderPath ? `/notas?carpeta=${encodeURIComponent(n.folderPath)}` : "/notas"}
           className="-ml-1 flex h-10 items-center gap-1 rounded-md px-1 hover:text-text md:h-8"
@@ -108,7 +108,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <dt className="text-text-muted">Espacio</dt>
               <dd className="min-w-0">
                 {data.spaceName ? (
-                  <EntityChip color={data.spaceColor ?? "#8A93A6"}>{data.spaceName}</EntityChip>
+                  <EntityChip color={data.spaceColor ?? "#857B70"}>{data.spaceName}</EntityChip>
                 ) : (
                   <span className="text-text-faint">Sin espacio</span>
                 )}
@@ -117,7 +117,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
               <dd className="min-w-0">
                 {data.entity ? (
                   <Link href={data.entity.href} className="hover:underline">
-                    <EntityChip color={ENTITY_COLORS[data.entity.type] ?? "#8A93A6"}>
+                    <EntityChip color={ENTITY_COLORS[data.entity.type] ?? "#857B70"}>
                       {label(L.entityType, data.entity.type)} · {data.entity.title}
                     </EntityChip>
                   </Link>

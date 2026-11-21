@@ -123,7 +123,7 @@ export default function Graph3D({ graph, visible, selected, onSelect, onReady }:
     if (!fg) return;
     const sel = state.current.selected;
     fg.nodeColor((n) => {
-      const c = TYPE_COLOR[n.type as keyof typeof TYPE_COLOR] ?? "#8A93A6";
+      const c = TYPE_COLOR[n.type as keyof typeof TYPE_COLOR] ?? "#857B70";
       if (sel && n.id !== sel) return hexA(c, n.dim ? 0.35 : 0.75);
       return n.dim ? hexA(c, 0.5) : c;
     }).nodeVal((n) => (n.id === sel ? n.val * 2.2 : n.val));

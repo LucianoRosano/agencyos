@@ -36,7 +36,7 @@ export function StagesEditor({ stages }: { stages: EditableStage[] }) {
               <ActionForm action={updateStageAction.bind(null, s.key)} successMessage="Etapa guardada" className="gap-3">
                 <div className="flex items-center gap-2">
                   <Dot color={stageColor(s.key, stages)} />
-                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                     {closed ? (s.kind === "won" ? "Cierre · ganada" : "Cierre · perdida") : `Etapa ${i + 1}`}
                   </span>
                   {s.system ? (

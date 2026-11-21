@@ -31,7 +31,7 @@ export default async function AgentPage({ params }: { params: Promise<{ key: str
     <div className="mx-auto max-w-6xl">
       <Link
         href="/ia"
-        className="-ml-1 mb-3 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text"
+        className="-ml-1 mb-3 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted hover:text-text"
       >
         <ChevronLeft className="size-4" /> IA
       </Link>

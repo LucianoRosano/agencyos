@@ -21,7 +21,7 @@ export default async function WeeklyReviewPage() {
         eyebrow={`Semana ${d.weekNumber}`}
         title="Revisión semanal"
         description="Cinco pasos para cerrar la semana con la cabeza liviana. Genera una nota que queda en el Cerebro."
-        accent="#7C5CFF"
+        accent="#A9471F"
       />
       <ReviewWizard
         inbox={d.inbox}

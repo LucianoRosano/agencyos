@@ -46,7 +46,7 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">{label}</dt>
+      <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">{label}</dt>
       <dd className="mt-1 truncate font-mono text-[18px] text-text">{value}</dd>
       {sub ? <dd className="text-[12px] text-text-faint">{sub}</dd> : null}
     </div>
@@ -235,7 +235,7 @@ export async function IssuesPanel({ ctx, data, sp }: { ctx: AppCtx; data: AuditD
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge severity={g.severity} label={SEV[g.severity] ?? g.severity} />
-                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">{CAT[g.category]}</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">{CAT[g.category]}</span>
                   {g.withTask ? (
                     <Badge tone="success">
                       <ListTodo className="size-3" /> {g.withTask === g.count ? "Con tarea" : `${g.withTask} con tarea`}
@@ -385,7 +385,7 @@ export async function PagesPanel({ ctx, auditId, sp }: { ctx: AppCtx; auditId: s
           <Card className="hidden overflow-hidden md:block">
             <table className="w-full table-fixed text-[13px]">
               <thead>
-                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">
+                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
                   <th className="w-[38%] px-4 py-3 font-normal">URL</th>
                   <th className="w-[8%] px-2 py-3 font-normal">Estado</th>
                   <th className="px-2 py-3 font-normal">Título / destino</th>
@@ -677,22 +677,22 @@ export async function ComparePanel({
           <Card className="p-5">
             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">Puntaje</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Puntaje</p>
                 <p className="mt-1 font-mono text-[22px] text-text">
                   {cmp.base.score ?? "—"} → {cmp.target.score ?? "—"}
                 </p>
                 <Delta value={cmp.scoreDelta} suffix=" pts" />
               </div>
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">Nuevos</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Nuevos</p>
                 <p className="mt-1 font-mono text-[22px] text-danger">{cmp.counts.added}</p>
               </div>
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">Resueltos</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Resueltos</p>
                 <p className="mt-1 font-mono text-[22px] text-success">{cmp.counts.resolved}</p>
               </div>
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">Persistentes</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Persistentes</p>
                 <p className="mt-1 font-mono text-[22px] text-text">{cmp.counts.persistent}</p>
               </div>
             </div>

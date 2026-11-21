@@ -104,7 +104,7 @@ export function OpportunityServices({
           <ul className="flex flex-wrap gap-1.5" aria-label="Servicios de interés">
             {selected.map((s) => (
               <li key={s.id}>
-                <EntityChip color="#A78BFA">{s.name}</EntityChip>
+                <EntityChip color="#9C6B5A">{s.name}</EntityChip>
               </li>
             ))}
           </ul>

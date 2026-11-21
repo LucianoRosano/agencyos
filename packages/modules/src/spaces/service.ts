@@ -5,14 +5,14 @@ import { and, asc, count, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, scoped } from "../shared/db";
 
-export const SPACE_COLORS = ["#22D3EE", "#7C5CFF", "#FBBF24", "#34D399", "#F472B6", "#60A5FA", "#FB923C", "#A78BFA"];
+export const SPACE_COLORS = ["#7A4E7E", "#A9471F", "#B7791F", "#4F7A52", "#B4637A", "#8C6A4F", "#C2703D", "#9C6B5A"];
 
 export const spaceInput = z.object({
   name: zRequired(40, "El nombre"),
   color: z
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/)
-    .default("#7C5CFF"),
+    .default("#A9471F"),
 });
 
 export async function listSpaces(ctx: Ctx) {

@@ -31,7 +31,7 @@ export default async function PortalQuotePage({ params }: { params: Promise<{ id
         }
         title={quote.title}
         description={`${quote.number} · válido hasta ${formatDate(doc.validUntil)}`}
-        accent="#22D3EE"
+        accent="#7A4E7E"
         actions={
           <a
             href={`/portal/presupuestos/${quote.id}/pdf`}

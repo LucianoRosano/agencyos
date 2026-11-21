@@ -8,7 +8,7 @@ export const metadata = { title: "Perfil · Configuración" };
 
 export default async function ProfilePage() {
   const ctx = await requireCtx();
-  const theme = (await cookies()).get("ag-theme")?.value ?? "dark";
+  const theme = (await cookies()).get("ag-theme")?.value ?? "light";
   return (
     <div className="flex flex-col gap-5">
       <Card className="p-5">

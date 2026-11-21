@@ -62,10 +62,10 @@ export function htmlPage(title: string, body: string, opts: { formAction?: strin
   ].join("; ");
   return new Response(
     `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${escapeHtml(title)}</title>
-<style>body{font-family:system-ui,sans-serif;background:#06070a;color:#e8ebf2;max-width:720px;margin:0 auto;padding:32px 20px;line-height:1.5}
-a,button{color:#fff;background:#7c5cff;border:0;border-radius:8px;padding:12px 16px;font-size:16px;text-decoration:none;display:inline-block;cursor:pointer}
-pre{background:#11141b;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;font-size:13px}
-p,li{color:#c9d1e0}.warn{color:#fbbf24}</style></head><body>${body}</body></html>`,
+<style>body{font-family:system-ui,sans-serif;background:#171411;color:#EEE7DD;max-width:720px;margin:0 auto;padding:32px 20px;line-height:1.5}
+a,button{color:#fff;background:#A9471F;border:0;border-radius:8px;padding:12px 16px;font-size:16px;text-decoration:none;display:inline-block;cursor:pointer}
+pre{background:#221D18;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;font-size:13px}
+p,li{color:#c9d1e0}.warn{color:#B7791F}</style></head><body>${body}</body></html>`,
     {
       headers: {
         "content-type": "text/html; charset=utf-8",

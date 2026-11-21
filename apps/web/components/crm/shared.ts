@@ -1,7 +1,7 @@
 import { addMoney, diffDays, formatDayMonth, L, percentOf, todayAR } from "@agencyos/core";
 
 /** Acento del módulo CRM (docs/07 §2). */
-export const CRM_ACCENT = "#22D3EE";
+export const CRM_ACCENT = "#7A4E7E";
 
 export const VAT_LABELS: Record<string, string> = {
   responsable_inscripto: "Responsable inscripto",
@@ -17,13 +17,13 @@ export const OPEN_STAGES: readonly string[] = STAGE_ORDER.slice(0, 5);
 
 /** Color del punto de etapa (siempre acompañado del texto). */
 export const STAGE_COLOR: Record<string, string> = {
-  new: "#8A93A6",
-  contacted: "#60A5FA",
-  meeting: "#22D3EE",
-  proposal_sent: "#A78BFA",
-  negotiation: "#FBBF24",
-  won: "#34D399",
-  lost: "#F43F5E",
+  new: "#857B70",
+  contacted: "#8C6A4F",
+  meeting: "#7A4E7E",
+  proposal_sent: "#9C6B5A",
+  negotiation: "#B7791F",
+  won: "#4F7A52",
+  lost: "#A8321F",
 };
 
 export const CLIENT_STATUS_TONE: Record<string, "neutral" | "accent" | "info" | "success" | "warning" | "danger"> = {
@@ -46,7 +46,7 @@ export const DEFAULT_STAGES: StageDef[] = STAGE_ORDER.map((k) => ({
 
 /** Color de una etapa: el de su clave de sistema o, si es propia, el de su etapa base. */
 export const stageColor = (key: string, stages: StageDef[] = DEFAULT_STAGES) =>
-  STAGE_COLOR[key] ?? STAGE_COLOR[stages.find((s) => s.key === key)?.base ?? ""] ?? "#8A93A6";
+  STAGE_COLOR[key] ?? STAGE_COLOR[stages.find((s) => s.key === key)?.base ?? ""] ?? "#857B70";
 export const stageName = (key: string, stages: StageDef[] = DEFAULT_STAGES) => stages.find((s) => s.key === key)?.name ?? L.stage[key as StageKey] ?? key;
 export const isOpenKey = (key: string, stages: StageDef[] = DEFAULT_STAGES) => stages.find((s) => s.key === key)?.kind === "open";
 

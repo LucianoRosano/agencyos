@@ -22,7 +22,7 @@ export function SiteGrid({ rows }: { rows: Row[] }) {
               <Badge tone={PUB_TONE[s.publicationStatus]}>{label(L.publicationStatus, s.publicationStatus)}</Badge>
             </div>
             <p className="mt-1 flex min-w-0 items-center gap-2 text-[13px] text-text-muted">
-              <Dot color={clientName ? "#22D3EE" : SITES_ACCENT} />
+              <Dot color={clientName ? "#7A4E7E" : SITES_ACCENT} />
               <span className="truncate">
                 {clientName ?? "Sin cliente"} · {label(L.siteKind, s.kind)}
               </span>

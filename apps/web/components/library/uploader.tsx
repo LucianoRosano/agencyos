@@ -115,13 +115,13 @@ export function UploadZone({
           void upload(e.dataTransfer.files);
         }}
         className={cn(
-          "flex cursor-pointer items-center gap-3 rounded-[var(--radius-card)] border border-dashed border-border-strong bg-bg-elevated text-text-muted transition-colors hover:border-[#FB923C]/60 hover:text-text",
+          "flex cursor-pointer items-center gap-3 rounded-[var(--radius-card)] border border-dashed border-border-strong bg-bg-elevated text-text-muted transition-colors hover:border-[#C2703D]/60 hover:text-text",
           "focus-within:ring-2 focus-within:ring-accent/40",
           compact ? "min-h-11 px-3 py-2 text-[13px]" : "min-h-24 flex-col justify-center px-4 py-5 text-center text-[14px]",
-          over && "border-[#FB923C] bg-[#FB923C]/5 text-text",
+          over && "border-[#C2703D] bg-[#C2703D]/5 text-text",
         )}
       >
-        <Upload className={cn("shrink-0 text-[#FB923C]", compact ? "size-4" : "size-5")} aria-hidden />
+        <Upload className={cn("shrink-0 text-[#C2703D]", compact ? "size-4" : "size-5")} aria-hidden />
         <span>
           <span className="font-medium text-text">{label ?? (multiple ? "Subir archivos" : "Subir archivo")}</span>
           <span className="text-text-muted"> · arrastrá o tocá para elegir</span>
@@ -149,7 +149,7 @@ export function UploadZone({
                 ) : it.status === "error" ? (
                   <CircleAlert className="size-4 shrink-0 text-danger" aria-label="Error" />
                 ) : (
-                  <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-[#FB923C] border-t-transparent" aria-hidden />
+                  <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-[#C2703D] border-t-transparent" aria-hidden />
                 )}
                 <span className="min-w-0 flex-1 truncate text-text">{it.name}</span>
                 {it.status === "uploading" ? <span className="font-mono text-[12px] text-text-muted">{Math.round(it.progress)}%</span> : null}

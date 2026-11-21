@@ -16,11 +16,11 @@ export default async function NotificationsPage() {
   const today = todayAR();
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader eyebrow="Sistema" title="Notificaciones" accent="#22D3EE" actions={items.some((n) => !n.readAt) ? <MarkAllRead /> : null} />
+      <PageHeader eyebrow="Sistema" title="Notificaciones" accent="#7A4E7E" actions={items.some((n) => !n.readAt) ? <MarkAllRead /> : null} />
       {items.length ? (
         days.map((d) => (
           <section key={d} className="mb-5">
-            <h2 className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">{d === today ? "Hoy" : formatDate(d)}</h2>
+            <h2 className="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">{d === today ? "Hoy" : formatDate(d)}</h2>
             <Card className="divide-y divide-border">
               {items
                 .filter((n) => toISODateAR(n.createdAt) === d)

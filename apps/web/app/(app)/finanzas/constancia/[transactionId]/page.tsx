@@ -89,23 +89,23 @@ export default async function ConstanciaPage({ params }: { params: Promise<{ tra
           </div>
         </div>
 
-        <p className="mt-6 border-2 border-black px-4 py-2.5 text-center font-mono text-[13px] font-semibold uppercase tracking-[0.18em]">
+        <p className="mt-6 border-2 border-black px-4 py-2.5 text-center font-mono text-[13px] font-semibold uppercase tracking-[0.04em]">
           Documento no válido como factura
         </p>
 
         <dl className="mt-8 grid gap-x-6 gap-y-5 text-[14px] sm:grid-cols-[160px_1fr]">
-          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Recibí de</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-black/70">Recibí de</dt>
           <dd className="text-[16px] font-medium">{client?.name ?? tx.clientName ?? "—"}</dd>
-          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Concepto</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-black/70">Concepto</dt>
           <dd>
             {receivable?.concept ?? tx.description}
             {tx.projectName ? <span className="block text-[13px]">Proyecto: {tx.projectName}</span> : null}
           </dd>
-          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Fecha de pago</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-black/70">Fecha de pago</dt>
           <dd>{formatDate(tx.date)}</dd>
-          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Medio</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-black/70">Medio</dt>
           <dd>{tx.accountName ?? "—"}</dd>
-          <dt className="font-mono text-[11px] uppercase tracking-[0.16em] text-black/70">Importe recibido</dt>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-black/70">Importe recibido</dt>
           <dd className="font-mono text-[26px] font-semibold tabular-nums">{formatMoney(tx.amount, tx.currency, { decimals: true })}</dd>
         </dl>
 

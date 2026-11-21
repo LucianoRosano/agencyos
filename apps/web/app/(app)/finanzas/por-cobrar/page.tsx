@@ -87,8 +87,8 @@ export default async function PorCobrarPage({ searchParams }: { searchParams: Pr
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-5">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <EntityChip color="#22D3EE">{clientName ?? "Cliente"}</EntityChip>
-                            {projectName ? <EntityChip color="#7C5CFF">{projectName}</EntityChip> : null}
+                            <EntityChip color="#7A4E7E">{clientName ?? "Cliente"}</EntityChip>
+                            {projectName ? <EntityChip color="#A9471F">{projectName}</EntityChip> : null}
                             <DebtStatus status={r.status} kind="receivable" />
                           </div>
                           <h3 className="mt-2 text-[15px] font-medium text-text">{r.concept}</h3>

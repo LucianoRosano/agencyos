@@ -1,5 +1,5 @@
 /** Constantes de UI del módulo Sitios (seguras para el cliente). */
-export const SITES_ACCENT = "#F472B6";
+export const SITES_ACCENT = "#B4637A";
 
 type Tone = "neutral" | "accent" | "info" | "success" | "warning" | "danger";
 
@@ -8,7 +8,7 @@ export const SLOT_TONE: Record<string, Tone> = { pending: "neutral", draft: "inf
 /** Color del estado de contenido (siempre acompañado de texto o ícono). */
 export const SLOT_COLOR: Record<string, string> = {
   pending: "var(--text-faint)",
-  draft: "#60A5FA",
+  draft: "#8C6A4F",
   review: "var(--warning)",
   approved: "var(--success)",
   published: "var(--accent)",

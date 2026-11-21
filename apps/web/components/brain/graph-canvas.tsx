@@ -202,13 +202,13 @@ export default function GraphCanvas({
           color: base,
           ring: n.type === "contact" ? 1 : 0,
           glow: n.dim ? 0.35 : 1,
-          labelColor: n.dim ? "#5D6576" : big ? "#E8EBF2" : "#AEB6C6",
+          labelColor: n.dim ? "#5D6576" : big ? "#EEE7DD" : "#AEB6C6",
           labelSize: big ? 13.5 : 12,
           labelPosition: "below",
           zIndex: big ? 2 : 1,
         };
         if (focus && !near) {
-          out.color = mixHex(base, "#0B0D12", strong ? 0.78 : 0.35);
+          out.color = mixHex(base, "#1D1915", strong ? 0.78 : 0.35);
           out.glow = strong ? 0.15 : 0.6;
           if (strong) out.labelVisibility = "hidden";
           else out.labelColor = "#7C8496";

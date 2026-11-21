@@ -2,11 +2,11 @@
 
 La identidad base está definida en `contexto/AGENCYOS-CONTEXTO-DEFINITIVO.md` (Parte C) y en las vistas de referencia `contexto/referencias/*.png`, aprobadas por Luciano. Este documento agrega los patrones de UI, la identidad por módulo y las reglas de calidad.
 
-## 1. Concepto: "Centro de mando"
-Futurista y sobrio, al nivel de Linear, Vercel y Raycast. Oscuro por defecto, con modo claro completo. Luz de neón contenida (Plasma `#7C5CFF` → Ion `#22D3EE`) solo en lo activo.
+## 1. Concepto: «Escritorio» (ADR 0017, reemplaza «Centro de mando»)
+Clásico, cálido y fácil de leer: papel marfil, tinta marrón oscura y un solo acento terracota para lo interactivo. Claro por defecto, con modo oscuro completo en los mismos tonos. Sin degradados, brillos ni neón.
 
-**Tokens:** usar exactamente los del contexto (C1).
-**Tipografía:** Geist Sans para la UI; Geist Mono para números, fechas, códigos y etiquetas de sección en mayúsculas espaciadas.
+**Tokens:** `packages/ui/src/tokens.css` (todos los pares de texto ≥ 4,5:1).
+**Tipografía:** Inter para toda la interfaz y los números (cifras tabulares); Source Serif 4 solo para los títulos de página; monoespaciada del sistema únicamente para código. Etiquetas de sección en seminegrita, sin mayúsculas espaciadas.
 **Iconos:** Lucide, 16 px en la UI y 20–22 px en la navegación del celular, trazo 1,75.
 
 ## 2. Identidad visual por módulo
@@ -15,19 +15,18 @@ Cada módulo tiene un **acento** propio dentro de la paleta. Se usa en el icono 
 
 | Módulo | Acento | Icono (Lucide) |
 |---|---|---|
-| Hoy / Negocio | Gradiente de firma | `sun` / `chart-no-axes-combined` |
-| CRM | Ion `#22D3EE` | `briefcase` |
-| Proyectos y tareas | Plasma `#7C5CFF` | `folder-kanban` |
-| Presupuestos | `#A78BFA` (Plasma claro) | `file-signature` |
-| Finanzas | `#34D399` | `wallet` |
-| Sitios (Website Factory) | `#F472B6` | `layout-template` |
-| SEO | `#60A5FA` | `radar` |
-| Repositorios | `#E8EBF2` (blanco) | `git-branch` |
-| Biblioteca | `#FB923C` | `library` |
-| Notas / Cerebro | `#C9D1E0` / gradiente | `file-text` / `brain-circuit` |
-| Facultad | `#FBBF24` | `graduation-cap` |
-| Automatizaciones | `#2DD4BF` | `workflow` |
-| IA | Gradiente de firma | `sparkles` |
+| Hoy / Negocio | Terracota `#A9471F` | `sun` / `chart-no-axes-combined` |
+| CRM | Ciruela `#7A4E7E` | `briefcase` |
+| Proyectos y tareas | Terracota `#A9471F` | `folder-kanban` |
+| Presupuestos | Madera rosada `#9C6B5A` | `file-signature` |
+| Finanzas / Comercios | Salvia `#4F7A52` | `wallet` / `store` |
+| Sitios (Website Factory) | Rosa viejo `#B4637A` | `layout-template` |
+| SEO | Nogal `#8C6A4F` | `radar` |
+| Biblioteca | Arcilla `#C2703D` | `library` |
+| Facultad | Ocre `#B7791F` | `graduation-cap` |
+| Otros | Gris cálido `#857B70` | — |
+
+(El acento del módulo se usa en chips y nodos del Cerebro; los encabezados ya no llevan línea de color.)
 
 ## 3. Patrones de componentes (todos en `packages/ui`)
 
@@ -56,7 +55,7 @@ Cada módulo tiene un **acento** propio dentro de la paleta. Se usa en el icono 
 - **Notificaciones:** campana con lista agrupada por día; marcar leída; enlace a la entidad.
 - **Aprobaciones (agentes y planes):** tarjeta con quién propone, qué cambia (diff legible), riesgo, y botones **Aprobar / Rechazar / Editar y aprobar**.
 - **Paleta de comandos:** resultados agrupados, previsualización a la derecha en desktop, acciones con atajos visibles.
-- **Gráficos:** SVG propios; ejes y leyendas en Geist Mono; tooltips accesibles; siempre con tabla alternativa ("Ver datos").
+- **Gráficos:** SVG propios; ejes y leyendas en Inter con cifras tabulares; tooltips accesibles; siempre con tabla alternativa ("Ver datos").
 
 ## 4. Pantallas clave (dirección)
 
@@ -78,7 +77,7 @@ Cada módulo tiene un **acento** propio dentro de la paleta. Se usa en el icono 
 
 ## 6. Accesibilidad y calidad visual (obligatorio)
 
-- WCAG 2.2 AA: contraste, foco visible (anillo Plasma de 2 px), navegación completa por teclado, roles ARIA en componentes complejos (kanban, grafo con lista alternativa) y textos alternativos.
+- WCAG 2.2 AA: contraste, foco visible (anillo terracota de 2 px), navegación completa por teclado, roles ARIA en componentes complejos (kanban, grafo con lista alternativa) y textos alternativos.
 - Zonas táctiles de 44 px o más; **sin scroll horizontal** en 360–430 px; sin zoom al enfocar inputs.
 - `prefers-reduced-motion` y `prefers-color-scheme` respetados.
 - Cada pantalla se verifica con capturas de Playwright en **390 px y 1440 px, modo oscuro y claro**, antes de darla por terminada.

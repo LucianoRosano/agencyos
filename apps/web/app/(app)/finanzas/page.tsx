@@ -11,9 +11,9 @@ import { MoneyLines } from "@/components/finance/shared";
 export const metadata = { title: "Finanzas" };
 
 const KIND_COLOR = {
-  subscription: "#34D399",
-  payable: "#FBBF24",
-  receivable: "#22D3EE",
+  subscription: "#4F7A52",
+  payable: "#B7791F",
+  receivable: "#7A4E7E",
 } as const;
 const KIND_LABEL = {
   subscription: "Suscripción",
@@ -24,7 +24,7 @@ const KIND_LABEL = {
 function Stat({ title, children, hint }: { title: string; children: React.ReactNode; hint?: React.ReactNode }) {
   return (
     <Card className="flex flex-col gap-2 p-4 md:p-5">
-      <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">{title}</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">{title}</p>
       <div className="text-[20px] font-semibold md:text-[24px]">{children}</div>
       {hint ? <p className="text-[12px] text-text-faint">{hint}</p> : null}
     </Card>
@@ -148,7 +148,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
                     ))}
                   </ul>
                   <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-border pt-3">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Total</span>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Total</span>
                     <MoneyLines items={o.balances} className="items-end text-[15px] font-semibold text-text" />
                   </div>
                 </>

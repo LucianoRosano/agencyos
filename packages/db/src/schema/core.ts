@@ -46,7 +46,7 @@ export const space = pgTable(
   {
     ...baseColumns(),
     name: text("name").notNull(),
-    color: text("color").notNull().default("#7C5CFF"),
+    color: text("color").notNull().default("#A9471F"),
     icon: text("icon"),
     kind: text("kind").notNull().default("custom"),
     sort: integer("sort").notNull().default(0),
@@ -59,7 +59,7 @@ export const tag = pgTable(
   {
     ...baseColumns(),
     name: text("name").notNull(),
-    color: text("color").notNull().default("#8A93A6"),
+    color: text("color").notNull().default("#857B70"),
   },
   (t) => [uniqueIndex("tag_ws_name").on(t.workspaceId, t.name)],
 );

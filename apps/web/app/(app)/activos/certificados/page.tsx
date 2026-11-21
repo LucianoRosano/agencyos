@@ -54,8 +54,8 @@ export default async function CertificadosPage({ searchParams }: { searchParams:
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone={c.kind === "arca" ? "warning" : c.kind === "ssl" ? "success" : "neutral"}>{CERT_KIND[c.kind] ?? c.kind}</Badge>
                         <h3 className="min-w-0 truncate text-[15px] font-medium text-text">{c.subject}</h3>
-                        {clientName ? <EntityChip color="#22D3EE">{clientName}</EntityChip> : null}
-                        {siteName ? <EntityChip color="#F472B6">{siteName}</EntityChip> : null}
+                        {clientName ? <EntityChip color="#7A4E7E">{clientName}</EntityChip> : null}
+                        {siteName ? <EntityChip color="#B4637A">{siteName}</EntityChip> : null}
                       </div>
                       {c.notes ? <p className="mt-1 line-clamp-2 text-[13px] text-text-muted">{c.notes}</p> : null}
                     </div>

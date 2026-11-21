@@ -2,13 +2,13 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "./lib/cn";
 
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-[var(--radius-card)] border border-border bg-surface", className)} {...props} />;
+  return <div className={cn("rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
 }
 
-/** Encabezado de bloque al estilo de las vistas de referencia: ícono + etiqueta mono en mayúsculas espaciadas. */
+/** Encabezado de bloque: ícono + título corto en Inter seminegrita (sin mayúsculas espaciadas). */
 export function SectionLabel({ icon, children, className }: { icon?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-text-muted", className)}>
+    <div className={cn("flex items-center gap-2 text-[13px] font-semibold text-text", className)}>
       {icon ? <span className="text-text-muted [&>svg]:size-4">{icon}</span> : null}
       <span>{children}</span>
     </div>

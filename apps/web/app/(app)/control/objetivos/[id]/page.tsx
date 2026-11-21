@@ -42,7 +42,7 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2 border-l-2 pl-4" style={{ borderColor: CONTROL_ACCENT }}>
-        <Link href="/control/objetivos" className="font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text">
+        <Link href="/control/objetivos" className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted hover:text-text">
           Objetivos
         </Link>
         <h1 className="text-[26px] leading-tight font-semibold">{g.title}</h1>

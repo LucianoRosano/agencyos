@@ -23,7 +23,7 @@ export default async function SalePage({ params }: { params: Promise<{ id: strin
         }
         title={`Venta n.º ${v.s.number}`}
         description={`${formatDateTime(v.s.soldAt)} · ${v.customer ?? "Consumidor final"} · ${PAYMENT_LABEL[v.s.paymentMethod as keyof typeof PAYMENT_LABEL]}`}
-        accent="#34D399"
+        accent="#4F7A52"
         actions={
           v.s.status === "completed" && sc.role !== "seller" ? (
             <CancelSaleButton id={v.s.id} number={v.s.number} />
@@ -35,7 +35,7 @@ export default async function SalePage({ params }: { params: Promise<{ id: strin
       <Card className="p-5">
         <table className="w-full text-[14px]">
           <thead>
-            <tr className="text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted">
+            <tr className="text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
               <th className="pb-2 font-normal">Producto</th>
               <th className="pb-2 text-right font-normal">Cant.</th>
               <th className="hidden pb-2 text-right font-normal sm:table-cell">Precio</th>

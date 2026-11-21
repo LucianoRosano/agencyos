@@ -29,11 +29,11 @@ export default async function HoyPage() {
             {greeting(now)}, {firstName(ctx.user.name)}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Pill color="#7C5CFF" href="/tareas?ver=hoy">
+            <Pill color="#A9471F" href="/tareas?ver=hoy">
               {data.forToday.length} para hoy
             </Pill>
             {data.overdue.length ? (
-              <Pill color="#F43F5E" href="/tareas?ver=hoy">
+              <Pill color="#A8321F" href="/tareas?ver=hoy">
                 {data.overdue.length} {data.overdue.length === 1 ? "vencida" : "vencidas"}
               </Pill>
             ) : null}
@@ -76,21 +76,21 @@ export default async function HoyPage() {
             {greeting(now)}, {firstName(ctx.user.name)}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Pill color="#7C5CFF" href="/tareas?ver=hoy">
+            <Pill color="#A9471F" href="/tareas?ver=hoy">
               {counts.forToday} para hoy
             </Pill>
             {counts.overdue ? (
-              <Pill color="#F43F5E" href="/tareas?ver=hoy">
+              <Pill color="#A8321F" href="/tareas?ver=hoy">
                 {counts.overdue} {counts.overdue === 1 ? "vencida" : "vencidas"}
               </Pill>
             ) : null}
             {counts.paymentsSoon ? (
-              <Pill color="#FBBF24" href="/finanzas">
+              <Pill color="#B7791F" href="/finanzas">
                 {counts.paymentsSoon} {counts.paymentsSoon === 1 ? "pago por vencer" : "pagos por vencer"}
               </Pill>
             ) : null}
             {counts.inbox ? (
-              <Pill color="#22D3EE" href="/bandeja">
+              <Pill color="#7A4E7E" href="/bandeja">
                 {counts.inbox} en la bandeja
               </Pill>
             ) : null}

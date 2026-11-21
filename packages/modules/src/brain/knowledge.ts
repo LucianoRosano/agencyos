@@ -402,10 +402,23 @@ export async function relatedTo(ctx: Ctx, type: SourceType, id: string, limit = 
   const freq = new Map<string, number>();
   const text = normText(`${own[0]?.title ?? ""} ${own[0]?.title ?? ""} ${own.map((o) => o.content).join(" ")}`);
   for (const w of text.match(/[a-z0-9ñ]{4,}/g) ?? []) if (!STOP.has(w)) freq.set(w, (freq.get(w) ?? 0) + 1);
-  const terms = [...freq.entries()]
+  // Términos característicos: frecuencia en la fuente × rareza en el resto del Cerebro (IDF). Así «envíos», que aparece
+  // en todos lados, pesa menos que «Andreani».
+  const candidates = [...freq.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([w]) => w);
+    .slice(0, 25)
+    .map(([w]) => w.replace(/[^a-z0-9ñ]/g, ""))
+    .filter((w) => w.length >= 4);
+  if (!candidates.length) return [];
+  const dfRows = await db.execute<{ t: string; df: number; n: number }>(sql`
+    select t, (select count(*)::int from knowledge_chunk c where c.workspace_id = ${ctx.workspaceId} and c.tsv @@ to_tsquery('spanish', t || ':*')) as df,
+           (select count(*)::int from knowledge_chunk c where c.workspace_id = ${ctx.workspaceId}) as n
+    from unnest(${`{${candidates.join(",")}}`}::text[]) as t`);
+  const terms = dfRows.rows
+    .map((r) => ({ t: r.t, score: (freq.get(r.t) ?? 1) * Math.log(1 + (r.n || 1) / (1 + r.df)) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map((x) => x.t);
   if (!terms.length) return [];
   const orQ = tsOr(terms);
   const rows = await db

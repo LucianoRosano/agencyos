@@ -70,7 +70,7 @@ export default async function ReposPage({ searchParams }: { searchParams: Promis
           <div className="hidden overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface md:block">
             <table className="w-full text-[14px]">
               <thead>
-                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                   <th className="w-16 px-4 py-3 font-normal">Salud</th>
                   <th className="px-3 py-3 font-normal">Repositorio</th>
                   <th className="px-3 py-3 font-normal">Alcance</th>

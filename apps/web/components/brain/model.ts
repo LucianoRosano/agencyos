@@ -4,13 +4,13 @@ export type { BrainEdge, BrainGraph, BrainNode, BrainNodeType };
 
 /** Colores por tipo (contexto C1). Siempre acompañados de forma: persona = anillo; el resto, punto luminoso. */
 export const TYPE_COLOR: Record<BrainNodeType, string> = {
-  project: "#7C5CFF",
-  client: "#22D3EE",
+  project: "#A9471F",
+  client: "#7A4E7E",
   note: "#C9D1E0",
-  contact: "#34D399",
-  course: "#FBBF24",
-  task: "#60A5FA",
-  space: "#8A93A6",
+  contact: "#4F7A52",
+  course: "#B7791F",
+  task: "#8C6A4F",
+  space: "#857B70",
 };
 
 export const TYPE_LABEL: Record<BrainNodeType, { one: string; many: string }> = {

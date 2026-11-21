@@ -27,8 +27,13 @@
   --color-success-soft: var(--success-soft);
   --color-warning-soft: var(--warning-soft);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-on-accent: var(--on-accent);
+  --color-accent-hover: var(--accent-hover);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* «font-mono» en la interfaz = números y etiquetas: Inter con cifras tabulares (no una monoespaciada). */
+  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-display), Georgia, "Times New Roman", serif;
+  --font-code: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 html {
@@ -41,16 +46,37 @@ body {
   min-height: 100dvh;
   background-color: var(--bg);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
+  /* Inter: «cv11» a de un solo piso, «ss03» redondeado; cifras tabulares en toda la interfaz (las columnas no bailan). */
+  font-feature-settings: "cv11", "ss03", "tnum";
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+/* Fondo liso (antes, grilla de puntos). */
 .bg-grid {
-  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-image: none;
 }
 .font-mono,
 .tabular {
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+code,
+kbd,
+pre,
+samp,
+.font-code {
+  font-family: var(--font-code);
+  font-size: 0.92em;
 }
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -64,13 +90,10 @@ body {
   display: none;
 }
 .select-chevron {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A93A6' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23857B70' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 .text-gradient {
-  background: var(--gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent-text);
 }
 .skeleton {
   animation: shimmer 1.6s ease-in-out infinite;

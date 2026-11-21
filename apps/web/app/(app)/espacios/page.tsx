@@ -16,7 +16,7 @@ export default async function SpacesPage() {
         eyebrow="Organización"
         title="Espacios"
         description="Todo pertenece a un espacio. El selector de la barra superior filtra Hoy, proyectos y tareas."
-        accent="#22D3EE"
+        accent="#7A4E7E"
       />
       <Card className="mb-5 divide-y divide-border">
         {spaces.map((s, i) => (

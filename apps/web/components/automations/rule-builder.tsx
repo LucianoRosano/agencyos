@@ -329,7 +329,7 @@ export function RuleBuilder({
                 />
               </Labeled>
             </div>
-            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] text-teal-700 dark:text-[#2DD4BF]">
+            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em] text-teal-700 dark:text-[#2DD4BF]">
               <CalendarClock className="size-4" /> {describeSchedule(s.schedule, meta.weekdays)}
             </p>
             <Err path="schedule" />
@@ -388,7 +388,7 @@ export function RuleBuilder({
                 // biome-ignore lint/suspicious/noArrayIndexKey: filas editables sin id propio
                 <li key={i} className="rounded-[var(--radius-control)] border border-border bg-bg-elevated/60 p-3">
                   {i > 0 ? (
-                    <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">{s.conditions.match === "all" ? "y" : "o"}</p>
+                    <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{s.conditions.match === "all" ? "y" : "o"}</p>
                   ) : null}
                   <div className="grid gap-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] md:items-end">
                     <Labeled label="Campo" htmlFor={`${id}-field`}>

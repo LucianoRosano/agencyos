@@ -20,7 +20,7 @@ export default async function SkillPage({ params }: { params: Promise<{ id: stri
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/control/skills" className="font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text">
+          <Link href="/control/skills" className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted hover:text-text">
             Skills
           </Link>
           <h1 className="text-[26px] font-semibold">{s.name}</h1>

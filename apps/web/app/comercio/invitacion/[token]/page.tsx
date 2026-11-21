@@ -24,7 +24,7 @@ export default async function ShopInvitationPage({ params }: { params: Promise<{
         ) : (
           <div className="flex flex-col gap-4">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted">Gestión · por Luciano Rosano</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Gestión · por Luciano Rosano</p>
               <h1 className="mt-1 text-[22px] font-semibold">{inv.shopName}</h1>
               <p className="text-[14px] text-text-muted">
                 Te invitaron como {SHOP_ROLE_LABEL[inv.role].toLowerCase()} ({inv.email}).

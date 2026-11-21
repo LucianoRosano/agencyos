@@ -1,7 +1,7 @@
 import { Badge, cn } from "@agencyos/ui";
 import { CircleCheck, CircleDashed, CircleMinus, CircleX } from "lucide-react";
 
-export const REPOS_ACCENT = "#E8EBF2";
+export const REPOS_ACCENT = "#EEE7DD";
 
 export const SCOPE_LABEL: Record<string, string> = {
   prod: "Producto",

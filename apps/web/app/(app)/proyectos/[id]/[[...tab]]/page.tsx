@@ -128,7 +128,7 @@ export default async function ProjectPage({
         }
         title={p.name}
         description={p.goal ?? undefined}
-        accent="#7C5CFF"
+        accent="#A9471F"
         actions={
           <>
             {ai.has(ENTRY_POINTS.project.agentKey) ? <AgentEntryButton entityType="project" entityId={p.id} label={ENTRY_POINTS.project.label} /> : null}
@@ -278,7 +278,7 @@ export default async function ProjectPage({
               spaces={spaces}
               defaults={{ projectId: p.id, spaceId: p.spaceId, dueDate: today }}
               trigger={
-                <button type="button" className="h-10 rounded-[var(--radius-control)] bg-[image:var(--gradient)] px-4 text-sm font-medium text-white">
+                <button type="button" className="h-10 rounded-[var(--radius-control)] bg-[image:var(--gradient)] px-4 text-sm font-medium text-on-accent">
                   + Nueva tarea
                 </button>
               }
@@ -297,7 +297,7 @@ export default async function ProjectPage({
                 if (!list.length) return null;
                 return (
                   <section key={ph.id || "none"}>
-                    <h3 className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">{ph.name}</h3>
+                    <h3 className="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">{ph.name}</h3>
                     <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">
                       {list.map((t) => (
                         <TaskRow key={t.id} task={t} showProject={false} />
@@ -308,7 +308,7 @@ export default async function ProjectPage({
               })}
               {doneTasks.length ? (
                 <details className="mt-2">
-                  <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
+                  <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                     Completadas ({doneTasks.length})
                   </summary>
                   <ul className="mt-2 overflow-hidden rounded-[var(--radius-card)] border border-border">
@@ -388,7 +388,7 @@ export default async function ProjectPage({
             {data.decisions.length ? (
               data.decisions.map((d) => (
                 <Card key={d.id} className="p-4">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                     {formatDate(d.decidedOn)} · aprobó {d.approvedBy ?? "—"}
                   </p>
                   <p className="mt-1 text-[15px] font-medium text-text">{d.title}</p>

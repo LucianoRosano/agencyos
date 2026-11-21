@@ -290,7 +290,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                         ) : null}
                         {r.spaceName ? (
                           <span className="flex items-center gap-1.5">
-                            <span aria-hidden className="size-1.5 rounded-full" style={{ background: r.spaceColor ?? "#8A93A6" }} />
+                            <span aria-hidden className="size-1.5 rounded-full" style={{ background: r.spaceColor ?? "#857B70" }} />
                             {r.spaceName}
                           </span>
                         ) : null}

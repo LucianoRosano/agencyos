@@ -50,7 +50,7 @@ export async function EntitySide({
             items={connections.map((c) => ({
               ...c,
               typeLabel: label(L.entityType, c.type),
-              color: ENTITY_COLORS[c.type] ?? "#8A93A6",
+              color: ENTITY_COLORS[c.type] ?? "#857B70",
             }))}
           />
         </Card>

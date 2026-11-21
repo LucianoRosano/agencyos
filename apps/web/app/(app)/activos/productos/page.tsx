@@ -29,7 +29,7 @@ export default async function ProductosPage() {
                 <Card className="flex h-full flex-col gap-3 p-4 transition-colors group-hover:border-border-strong md:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{PRODUCT_KIND[p.kind] ?? p.kind}</p>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{PRODUCT_KIND[p.kind] ?? p.kind}</p>
                       <h3 className="mt-1 truncate text-[16px] font-medium text-text">{p.name}</h3>
                     </div>
                     <ChevronRight className="mt-1 size-4 shrink-0 text-text-faint" />

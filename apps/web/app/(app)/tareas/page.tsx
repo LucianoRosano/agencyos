@@ -57,7 +57,7 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
       <PageHeader
         eyebrow="Proyectos y tareas"
         title="Tareas"
-        accent="#7C5CFF"
+        accent="#A9471F"
         actions={
           <>
             <Button asChild variant="ghost" size="sm" aria-label={board ? "Ver como lista" : "Ver como kanban"}>

@@ -105,7 +105,7 @@ export function PreferencesTable({
   }
   return (
     <div className="overflow-hidden rounded-[10px] border border-border">
-      <div className="grid grid-cols-[1fr_repeat(3,56px)] gap-2 border-b border-border bg-surface-2 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted">
+      <div className="grid grid-cols-[1fr_repeat(3,56px)] gap-2 border-b border-border bg-surface-2 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
         <span>Evento</span>
         <span className="text-center">App</span>
         <span className="text-center">Push</span>

@@ -71,7 +71,7 @@ function DayHeader({ date, today }: { date: string; today: string }) {
   const isToday = date === today;
   return (
     <div className="flex items-center justify-between gap-3 border-b border-border pb-1.5">
-      <p className={cn("font-mono text-[12px] uppercase tracking-[0.16em]", isToday ? "text-text" : "text-text-muted")}>
+      <p className={cn("font-mono text-[12px] uppercase tracking-[0.04em]", isToday ? "text-text" : "text-text-muted")}>
         {dowShort(date)} {Number(date.slice(8, 10))} {monthName(Number(date.slice(5, 7))).slice(0, 3)}
         {isToday ? <span className="ml-2 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">HOY</span> : null}
       </p>
@@ -141,7 +141,7 @@ export function MonthGrid({
     <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
       <div className="grid grid-cols-7 border-b border-border">
         {WEEK_HEAD.map((d) => (
-          <div key={d} className="px-2.5 py-2 font-mono text-[11px] tracking-[0.16em] text-text-muted">
+          <div key={d} className="px-2.5 py-2 font-mono text-[11px] tracking-[0.04em] text-text-muted">
             {d}
           </div>
         ))}
@@ -166,7 +166,7 @@ export function MonthGrid({
                   href={dayHref(d)}
                   className={cn(
                     "grid h-7 min-w-7 place-items-center rounded-md px-1 font-mono text-[12px] hover:bg-surface-2",
-                    isToday ? "bg-[image:var(--gradient)] text-white" : out ? "text-text-faint" : "text-text-muted",
+                    isToday ? "bg-[image:var(--gradient)] text-on-accent" : out ? "text-text-faint" : "text-text-muted",
                   )}
                 >
                   {Number(d.slice(8, 10))}
@@ -220,8 +220,9 @@ export function TimeGrid({ dates, items, today, dayHref }: { dates: string[]; it
         <div />
         {dates.map((d) => (
           <div key={d} className="flex items-center justify-between gap-1 border-l border-border px-2 py-1.5">
-            <Link href={dayHref(d)} className={cn("font-mono text-[12px] tracking-[0.12em]", d === today ? "text-text" : "text-text-muted")}>
-              {dowShort(d)} <span className={cn("ml-1 rounded px-1", d === today && "bg-[image:var(--gradient)] text-white")}>{Number(d.slice(8, 10))}</span>
+            <Link href={dayHref(d)} className={cn("font-mono text-[12px] tracking-[0.04em]", d === today ? "text-text" : "text-text-muted")}>
+              {dowShort(d)}{" "}
+              <span className={cn("ml-1 rounded px-1", d === today && "bg-[image:var(--gradient)] text-on-accent")}>{Number(d.slice(8, 10))}</span>
             </Link>
             <AddOnDayButton date={d} className="size-7" />
           </div>

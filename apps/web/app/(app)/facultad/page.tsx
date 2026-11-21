@@ -17,7 +17,7 @@ const FILTERS = [
   { key: "todas", label: "Todas" },
 ];
 
-const ACCENT = "#FBBF24";
+const ACCENT = "#B7791F";
 
 export default async function FacultadPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;

@@ -64,5 +64,5 @@ export function RadixMenuItem({
 
 export const RadixMenuSeparator = () => <M.Separator className="my-1 h-px bg-border" />;
 export const RadixMenuLabel = ({ children }: { children: ReactNode }) => (
-  <M.Label className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-text-faint">{children}</M.Label>
+  <M.Label className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.04em] text-text-faint">{children}</M.Label>
 );

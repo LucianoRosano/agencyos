@@ -22,7 +22,7 @@ export function NewClientForm({ spaces }: { spaces: Opt[] }) {
     <ActionForm action={createClientAction} successMessage="Cliente creado" redirectTo={(c) => `/crm/clientes/${(c as { id: string }).id}`}>
       <ClientFields spaces={spaces} />
       <fieldset className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
-        <legend className="px-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Contacto principal (opcional)</legend>
+        <legend className="px-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Contacto principal (opcional)</legend>
         <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Nombre del contacto" name="contactName" placeholder="Ej.: Sofía" />
           <TextField label="Rol" name="contactRole" placeholder="Dueña, encargado…" />

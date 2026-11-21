@@ -84,7 +84,7 @@ export default async function AskBrainPage({ searchParams }: { searchParams: Pro
         }
         title="Preguntar"
         description="Buscá en todo lo que escribiste y subiste: notas, documentos, decisiones de proyectos y conversaciones con clientes."
-        accent="#7C5CFF"
+        accent="#A9471F"
         actions={
           <Button asChild variant="ghost">
             <Link href="/cerebro">

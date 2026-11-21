@@ -3,7 +3,7 @@ import { Badge, cn } from "@agencyos/ui";
 
 /** Piezas de presentación de Activos técnicos sin estado (server y client components). */
 
-export const ASSETS_ACCENT = "#F472B6";
+export const ASSETS_ACCENT = "#B4637A";
 
 export type Opt = { value: string; label: string };
 
@@ -45,7 +45,7 @@ export function StatusBadge({ status }: { status: string | null }) {
 export function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{label}</dt>
+      <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{label}</dt>
       <dd className="mt-0.5 truncate text-[13px] text-text">{children}</dd>
     </div>
   );

@@ -45,7 +45,7 @@ export default async function ActivosPage() {
           { k: "Caídos ahora", v: down, tone: down ? "text-danger" : "text-text" },
         ].map((x) => (
           <div key={x.k} className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{x.k}</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{x.k}</p>
             <p className={cn("mt-1 font-mono text-[26px] font-semibold tabular-nums", x.v ? x.tone : "text-text")}>{x.v}</p>
           </div>
         ))}

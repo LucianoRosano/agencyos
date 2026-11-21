@@ -81,7 +81,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
             <p className="text-sm text-text-muted">Ya tenés una cuenta con ese email. Iniciá sesión para aceptar.</p>
             <Link
               href={`/login?next=${encodeURIComponent(`/invitacion/${token}`)}`}
-              className="inline-flex h-10 items-center justify-center rounded-[8px] bg-[image:var(--gradient)] px-4 text-sm font-medium text-white"
+              className="inline-flex h-10 items-center justify-center rounded-[8px] bg-[image:var(--gradient)] px-4 text-sm font-medium text-on-accent"
             >
               Iniciar sesión
             </Link>

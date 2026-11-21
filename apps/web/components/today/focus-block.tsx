@@ -99,7 +99,7 @@ export function FocusBlock({ items, candidates }: { items: Item[]; candidates: F
                 key={it.task.id}
                 className={cn(
                   "flex items-center gap-4 rounded-[12px] border p-4 transition-colors",
-                  i === 0 && !done ? "border-accent/60 bg-accent-soft/40 glow-active" : "border-border bg-bg-elevated",
+                  i === 0 && !done ? "border-accent/60 bg-accent-soft/40 ring-2 ring-accent/40" : "border-border bg-bg-elevated",
                 )}
               >
                 <span className={cn("font-mono text-[22px] tabular-nums", i === 0 && !done ? "text-accent" : "text-text-faint")}>
@@ -111,7 +111,7 @@ export function FocusBlock({ items, candidates }: { items: Item[]; candidates: F
                   </Link>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-text-muted">
                     {it.task.projectName || it.task.clientName ? (
-                      <EntityChip color={it.task.clientName ? "#22D3EE" : "#7C5CFF"}>{it.task.clientName ?? it.task.projectName}</EntityChip>
+                      <EntityChip color={it.task.clientName ? "#7A4E7E" : "#A9471F"}>{it.task.clientName ?? it.task.projectName}</EntityChip>
                     ) : null}
                     {it.task.estimateMinutes ? (
                       <span>~{it.task.estimateMinutes >= 60 ? `${Math.round(it.task.estimateMinutes / 60)} h` : `${it.task.estimateMinutes} min`}</span>

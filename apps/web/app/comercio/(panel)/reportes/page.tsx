@@ -64,7 +64,7 @@ export default async function ReportsPage() {
       <PageHeader
         title="Reportes"
         description="Cada lunes se arma solo el resumen de la semana anterior (y llega por email al dueño si está configurado)."
-        accent="#34D399"
+        accent="#4F7A52"
       />
       <Card className="mb-5 p-5" data-testid="report-current">
         <SectionLabel className="mb-3">Esta semana (hasta hoy)</SectionLabel>

@@ -7,23 +7,23 @@ export function PageHeader({
   title,
   description,
   actions,
-  accent,
+  accent: _accent,
   className,
 }: {
   eyebrow?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
+  /** Color del módulo (se conserva por compatibilidad; el diseño clásico no muestra la barra). */
   accent?: string;
   className?: string;
 }) {
   return (
     <header className={cn("relative mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between", className)}>
-      {accent ? <span aria-hidden className="absolute -top-4 left-0 h-0.5 w-12 rounded-full md:-top-6" style={{ background: accent }} /> : null}
       <div className="min-w-0">
-        {eyebrow ? <p className="mb-2 font-mono text-[12px] uppercase tracking-[0.18em] text-text-muted">{eyebrow}</p> : null}
-        <h1 className="text-[26px] font-semibold tracking-tight text-text md:text-[32px]">{title}</h1>
-        {description ? <p className="mt-1.5 max-w-2xl text-[14px] text-text-muted">{description}</p> : null}
+        {eyebrow ? <p className="mb-1.5 text-[13px] font-medium text-text-muted">{eyebrow}</p> : null}
+        <h1 className="font-serif text-[28px] leading-tight font-semibold text-text md:text-[34px]">{title}</h1>
+        {description ? <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </header>

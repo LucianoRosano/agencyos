@@ -84,7 +84,7 @@ function whenText(offsetDays: number) {
 }
 
 const CSS = `
-:root { --ink:#111114; --muted:#55565e; --faint:#8a8b93; --rule:#d9d9de; --soft:#f4f4f6; --accent:#7C5CFF; }
+:root { --ink:#111114; --muted:#55565e; --faint:#8a8b93; --rule:#d9d9de; --soft:#f4f4f6; --accent:#A9471F; }
 * { box-sizing:border-box; }
 html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 body { margin:0; color:var(--ink); font-family:"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size:10.5pt; line-height:1.5; font-feature-settings:"tnum" 1, "ss01" 1; }

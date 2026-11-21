@@ -57,7 +57,7 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
         eyebrow="Presupuestos · nuevo"
         title="Nuevo presupuesto"
         description="Editor a la izquierda, vista previa del PDF a la derecha. Los totales los calcula el servidor."
-        accent="#A78BFA"
+        accent="#9C6B5A"
       />
       {opts.clients.length ? (
         <QuoteEditor initial={initial} options={opts} initialPreview={previewState(doc)} />

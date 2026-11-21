@@ -43,7 +43,7 @@ export function ReviewWizard(p: {
         {STEPS.map((s, i) => (
           <li key={s} className="flex flex-1 flex-col gap-1.5" aria-current={i === step ? "step" : undefined}>
             <span className={cn("h-1 rounded-full", i <= step ? "bg-[image:var(--gradient)]" : "bg-surface-3")} />
-            <span className={cn("hidden font-mono text-[10px] uppercase tracking-[0.14em] md:block", i === step ? "text-text" : "text-text-faint")}>{s}</span>
+            <span className={cn("hidden font-mono text-[10px] uppercase tracking-[0.04em] md:block", i === step ? "text-text" : "text-text-faint")}>{s}</span>
           </li>
         ))}
       </ol>

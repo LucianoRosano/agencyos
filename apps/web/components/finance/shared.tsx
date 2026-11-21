@@ -3,7 +3,7 @@ import { Badge, cn } from "@agencyos/ui";
 
 /** Piezas de presentación de Finanzas sin estado (usables desde server y client components). */
 
-export const FIN_ACCENT = "#34D399";
+export const FIN_ACCENT = "#4F7A52";
 
 export type Opt = { value: string; label: string };
 export type AccountOpt = {

@@ -8,7 +8,7 @@ export default async function SellPage() {
   const sc = await requireShopCtx();
   return (
     <>
-      <PageHeader title="Vender" description="Buscá o escaneá los productos, elegí el medio de pago y cobrá." accent="#34D399" />
+      <PageHeader title="Vender" description="Buscá o escaneá los productos, elegí el medio de pago y cobrá." accent="#4F7A52" />
       <Pos mode="sale" currency={sc.currency} canDiscount={sc.role !== "seller"} />
     </>
   );

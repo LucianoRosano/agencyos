@@ -146,7 +146,7 @@ export function BrandKitEditor({
               ))}
           </div>
         ) : null}
-        <Button type="button" variant="secondary" onClick={() => setColors((p) => [...p, { name: "", hex: "#FB923C" }])} disabled={colors.length >= 24}>
+        <Button type="button" variant="secondary" onClick={() => setColors((p) => [...p, { name: "", hex: "#C2703D" }])} disabled={colors.length >= 24}>
           <Plus className="size-4" /> Agregar color
         </Button>
       </Card>

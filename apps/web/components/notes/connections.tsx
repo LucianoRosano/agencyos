@@ -22,7 +22,7 @@ export function Connections({ groups, empty = "Sin conexiones todavía. Escribí
     <div className="flex flex-col gap-4" data-testid="connections">
       {groups.map((g) => (
         <section key={g.type}>
-          <h3 className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
+          <h3 className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
             {g.label} · {g.items.length}
           </h3>
           <ul className="flex flex-col">
@@ -32,7 +32,7 @@ export function Connections({ groups, empty = "Sin conexiones todavía. Escribí
                   <span
                     aria-hidden
                     className="size-2 shrink-0 rounded-full"
-                    style={{ background: ENTITY_COLORS[it.type] ?? "#8A93A6", boxShadow: `0 0 8px ${ENTITY_COLORS[it.type] ?? "#8A93A6"}` }}
+                    style={{ background: ENTITY_COLORS[it.type] ?? "#857B70", boxShadow: `0 0 8px ${ENTITY_COLORS[it.type] ?? "#857B70"}` }}
                   />
                   <span className="min-w-0 flex-1 truncate">{it.title}</span>
                   <span className="font-mono text-[11px] text-text-faint">{it.kinds.map((k) => KIND[k] ?? k).join(" · ")}</span>

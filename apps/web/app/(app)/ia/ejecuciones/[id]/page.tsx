@@ -52,7 +52,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       <AutoRefresh active={live} />
       <Link
         href="/ia/ejecuciones"
-        className="-ml-1 mb-3 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text"
+        className="-ml-1 mb-3 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted hover:text-text"
       >
         <ChevronLeft className="size-4" /> Ejecuciones
       </Link>
@@ -80,7 +80,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           ["Modelo", run.modelUsed ?? "—"],
         ].map(([k, v]) => (
           <Card key={k} className="p-3.5">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{k}</dt>
+            <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{k}</dt>
             <dd className="mt-1 truncate font-mono text-[14px] tabular-nums text-text">{v}</dd>
           </Card>
         ))}
@@ -178,9 +178,9 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                     ) : null}
                     {s.kind !== "model" ? (
                       <>
-                        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Entrada</p>
+                        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Entrada</p>
                         <Json value={s.input} />
-                        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Resultado (resumido)</p>
+                        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Resultado (resumido)</p>
                         <Json value={out.resultado ?? s.output} />
                       </>
                     ) : null}

@@ -2,7 +2,7 @@ import { Badge, cn } from "@agencyos/ui";
 
 /** Piezas visuales del SEO Auditor (sin estado; sirven en servidor y cliente). */
 
-export const SEO_ACCENT = "#60A5FA";
+export const SEO_ACCENT = "#8C6A4F";
 
 const SEV_TONE: Record<string, "danger" | "warning" | "neutral"> = { critical: "danger", high: "warning", medium: "neutral", low: "neutral" };
 
@@ -38,7 +38,7 @@ export function ScoreRing({ score, size = 148, label = "de 100" }: { score: numb
           <div className="font-mono font-semibold tracking-tight text-text" style={{ fontSize: size * 0.3, lineHeight: 1 }}>
             {score ?? "—"}
           </div>
-          <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{label}</div>
+          <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.04em] text-text-muted">{label}</div>
         </div>
       </div>
     </div>

@@ -426,7 +426,7 @@ export async function setFileShared(ctx: Ctx, fileId: string, shared: boolean) {
     if (!tagId && shared) {
       const [tg] = await t
         .insert(schema.tag)
-        .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: SHARED_TAG, color: "#34D399" })
+        .values({ workspaceId: ctx.workspaceId, createdBy: ctx.userId, name: SHARED_TAG, color: "#4F7A52" })
         .onConflictDoNothing()
         .returning();
       tagId = tg?.id ?? (await sharedTagId(ctx.workspaceId));

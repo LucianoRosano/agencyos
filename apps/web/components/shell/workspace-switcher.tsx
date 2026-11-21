@@ -43,7 +43,7 @@ export function WorkspaceSwitcher({
             ) : (
               <>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-text-faint">Espacio de trabajo</span>
+                  <span className="block font-mono text-[10px] uppercase tracking-[0.04em] text-text-faint">Espacio de trabajo</span>
                   <span className="block truncate text-[14px] text-text">{current.name}</span>
                 </span>
                 <span className="sr-only"> (cambiar)</span>

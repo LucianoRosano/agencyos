@@ -39,7 +39,7 @@ export function ProjectCard({ p }: { p: ProjectCardData }) {
         ) : null}
       </div>
       <p className="mt-1 flex items-center gap-2 text-[13px] text-text-muted">
-        <Dot color={p.clientName ? "#22D3EE" : (p.spaceColor ?? "#7C5CFF")} />
+        <Dot color={p.clientName ? "#7A4E7E" : (p.spaceColor ?? "#A9471F")} />
         {p.clientName ?? p.spaceName ?? "—"}
       </p>
       {p.tags?.length ? (

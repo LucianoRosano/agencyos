@@ -129,7 +129,7 @@ export function FocusMode({ tasks, initialTaskId, minutesToday }: { tasks: T[]; 
           </div>
         </Card>
         <Card className="flex flex-col p-5">
-          <label htmlFor="focus-notes" className="mb-2 font-mono text-[12px] uppercase tracking-[0.18em] text-text-muted">
+          <label htmlFor="focus-notes" className="mb-2 font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">
             Notas de la sesión
           </label>
           <Textarea

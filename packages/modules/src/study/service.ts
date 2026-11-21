@@ -26,7 +26,7 @@ import { createTask } from "../tasks/service";
 export const COURSE_STATUSES = ["cursando", "regular", "aprobada", "final_pendiente", "abandonada"] as const;
 export const ASSESSMENT_KINDS = ["parcial", "tp", "final", "recuperatorio", "otro"] as const;
 /** Paleta sugerida para materias (siempre acompañada del nombre, nunca solo color). */
-export const COURSE_COLORS = ["#FBBF24", "#22D3EE", "#7C5CFF", "#34D399", "#F472B6", "#60A5FA", "#FB923C", "#A78BFA"] as const;
+export const COURSE_COLORS = ["#B7791F", "#7A4E7E", "#A9471F", "#4F7A52", "#B4637A", "#8C6A4F", "#C2703D", "#9C6B5A"] as const;
 
 const emptyToUndef = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 

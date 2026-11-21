@@ -34,7 +34,7 @@ export default async function ShopHome() {
   const change = prev > 0 ? Math.round(((Number(st.month.total) - prev) / prev) * 100) : null;
   return (
     <>
-      <PageHeader eyebrow={formatDate(todayAR())} title={`Hola, ${sc.user.name.split(" ")[0]}`} accent="#34D399" />
+      <PageHeader eyebrow={formatDate(todayAR())} title={`Hola, ${sc.user.name.split(" ")[0]}`} accent="#4F7A52" />
       <section aria-label="Resumen" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi title="Ventas de hoy" value={formatMoney(st.today.total, cur)} detail={ops(st.today.count)} href="/comercio/ventas" />
         <Kpi

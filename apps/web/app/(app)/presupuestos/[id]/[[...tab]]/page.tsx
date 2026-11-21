@@ -75,7 +75,7 @@ export default async function QuotePage({
           </span>
         }
         title={q.title}
-        accent="#A78BFA"
+        accent="#9C6B5A"
         actions={
           <>
             <PdfButton id={id} />
@@ -187,7 +187,7 @@ export default async function QuotePage({
                 <SectionLabel className="mb-3">Conectado con</SectionLabel>
                 {q.projectId ? (
                   <Link href={`/proyectos/${q.projectId}`} className="mb-3 flex items-center gap-2 text-[14px] text-text hover:underline">
-                    <FolderKanban className="size-4 text-[#7C5CFF]" /> {data.projectName ?? "Proyecto"}
+                    <FolderKanban className="size-4 text-[#A9471F]" /> {data.projectName ?? "Proyecto"}
                   </Link>
                 ) : null}
                 {data.receivables.length ? (

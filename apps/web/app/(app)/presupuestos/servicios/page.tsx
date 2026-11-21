@@ -26,7 +26,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
         eyebrow="Presupuestos y servicios"
         title="Servicios"
         description="El catálogo que usás para armar presupuestos. Los precios son de referencia: se pueden ajustar en cada presupuesto."
-        accent="#A78BFA"
+        accent="#9C6B5A"
         actions={
           <>
             <Button asChild variant="ghost">
@@ -66,7 +66,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
               <Card className={`flex h-full flex-col gap-3 p-5 ${s.active ? "" : "opacity-70"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Por {label(L.serviceUnit, s.unit).toLowerCase()}</p>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Por {label(L.serviceUnit, s.unit).toLowerCase()}</p>
                     <h2 className="mt-1 text-[16px] font-medium text-text">{s.name}</h2>
                   </div>
                   <ServiceActions

@@ -18,7 +18,7 @@ export default async function PortalQuotesPage() {
         eyebrow="Portal"
         title="Presupuestos"
         description="Los presupuestos que te mandó Luciano. Podés verlos, descargarlos y responder."
-        accent="#22D3EE"
+        accent="#7A4E7E"
       />
       <Card className="p-2">
         {quotes.length ? (

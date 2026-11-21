@@ -1,6 +1,6 @@
 /* Cerebro: fondo de espacio profundo con grilla de puntos sutil (siempre oscuro, como un mapa estelar). */
 .brain-surface {
-  background-color: #05060a;
+  background-color: #14110e;
   background-image:
     radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), radial-gradient(ellipse 70% 55% at 30% 20%, rgba(124, 92, 255, 0.07), transparent 70%),
     radial-gradient(ellipse 60% 50% at 75% 75%, rgba(34, 211, 238, 0.05), transparent 70%);
@@ -22,8 +22,8 @@
   width: 10px;
   height: 10px;
   border-radius: 9999px;
-  background: #7c5cff;
-  box-shadow: 0 0 8px #7c5cff;
+  background: #a9471f;
+  box-shadow: 0 0 8px #a9471f;
 }
 .brain-pulse-icon::after {
   content: "";
@@ -59,7 +59,7 @@
 .brain-range::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #7c5cff, #22d3ee var(--fill, 100%), rgba(255, 255, 255, 0.12) var(--fill, 100%));
+  background: linear-gradient(90deg, #a9471f, #7a4e7e var(--fill, 100%), rgba(255, 255, 255, 0.12) var(--fill, 100%));
 }
 .brain-range::-moz-range-track {
   height: 3px;
@@ -69,7 +69,7 @@
 .brain-range::-moz-range-progress {
   height: 3px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #7c5cff, #22d3ee);
+  background: linear-gradient(90deg, #a9471f, #7a4e7e);
 }
 .brain-range::-webkit-slider-thumb {
   -webkit-appearance: none;

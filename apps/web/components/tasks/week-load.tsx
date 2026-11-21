@@ -12,7 +12,7 @@ export function WeekLoad({ days }: { days: DayLoad[] }) {
   return (
     <section aria-label="Carga de la semana" className="mb-5 rounded-[var(--radius-card)] border border-border bg-surface p-3 md:p-4" data-testid="week-load">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">Carga de la semana</h2>
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Carga de la semana</h2>
         <p className="text-[12px] text-text-muted">
           {over ? `${over} día${over === 1 ? "" : "s"} por encima de tu capacidad` : "Dentro de tu capacidad"} ·{" "}
           <Link href="/configuracion/workspace" className="underline underline-offset-2 hover:text-text">

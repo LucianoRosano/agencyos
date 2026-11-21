@@ -66,9 +66,9 @@ test("sin conexión: copia en el dispositivo → usar sin internet → al volver
   await expect(page.getByRole("listitem").filter({ hasText: `Comprar tóner ${tag}` })).toBeVisible();
   // Bandeja
   await page.getByRole("button", { name: "Bandeja" }).click();
-  await page.locator("#local-capture").fill(`Idea sin señal ${tag}`);
+  await page.locator("#local-capture").fill(`Captura en el subte ${tag}`);
   await page.getByRole("button", { name: "Guardar en la Bandeja" }).click();
-  await expect(page.getByText(`Idea sin señal ${tag}`)).toBeVisible();
+  await expect(page.getByText(`Captura en el subte ${tag}`)).toBeVisible();
   // Nota nueva
   await page.getByRole("button", { name: "Notas" }).click();
   await page.locator("#local-note-new").fill(`Apuntes offline ${tag}`);
@@ -90,7 +90,7 @@ test("sin conexión: copia en el dispositivo → usar sin internet → al volver
   await page.goto(`/tareas?ver=proximas&q=${encodeURIComponent(`Comprar tóner ${tag}`)}`);
   await expect(page.getByText(`Comprar tóner ${tag}`)).toBeVisible();
   await page.goto("/bandeja");
-  await expect(page.getByText(`Idea sin señal ${tag}`)).toBeVisible();
+  await expect(page.getByText(`Captura en el subte ${tag}`)).toBeVisible();
   await page.goto(`/notas?q=${encodeURIComponent(`Apuntes offline ${tag}`)}`);
   await expect(page.getByText(`Apuntes offline ${tag}`).first()).toBeVisible();
 });

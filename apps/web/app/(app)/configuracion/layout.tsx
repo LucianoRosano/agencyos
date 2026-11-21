@@ -8,7 +8,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   const ctx = await requireCtx();
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader eyebrow="Sistema" title="Configuración" accent="#8A93A6" />
+      <PageHeader eyebrow="Sistema" title="Configuración" accent="#857B70" />
       <SettingsTabs full={ctx.role === "owner" || ctx.role === "admin"} />
       {children}
     </div>

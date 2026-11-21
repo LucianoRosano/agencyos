@@ -458,7 +458,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
         time: t.dueTime,
         title: t.title + (projectName ? ` · ${projectName}` : ""),
         kind: "Tarea",
-        color: "#7C5CFF",
+        color: "#A9471F",
         href: `/tareas/${t.id}`,
       })),
       ...agAssess.map(({ a, courseName }) => ({
@@ -467,7 +467,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
         time: a.time,
         title: `${a.title ?? a.kind} · ${courseName}`,
         kind: "Evaluación",
-        color: "#FBBF24",
+        color: "#B7791F",
         href: `/facultad/${a.courseId}`,
       })),
       ...agDeliv.map(({ d, projectName }) => ({
@@ -476,7 +476,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
         title: `Entrega: ${d.title} · ${projectName}`,
         time: null,
         kind: "Entrega",
-        color: "#A78BFA",
+        color: "#9C6B5A",
         href: `/proyectos/${d.projectId}/entregas`,
       })),
       ...payables
@@ -486,7 +486,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
           date: p.dueDate ?? today,
           title: `Pago ${p.counterpart}`,
           kind: "Pago",
-          color: "#34D399",
+          color: "#4F7A52",
           href: `/finanzas/por-pagar?pagar=${p.id}`,
         })),
       ...subs
@@ -496,7 +496,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
           date: s.nextDue,
           title: `Pago ${s.vendor}`,
           kind: "Suscripción",
-          color: "#34D399",
+          color: "#4F7A52",
           href: `/finanzas/suscripciones?pagar=${s.id}`,
         })),
       ...receivables
@@ -506,12 +506,12 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
           date: r.dueDate ?? today,
           title: `Cobro ${clientName ?? ""}: ${r.concept}`,
           kind: "Cobro",
-          color: "#34D399",
+          color: "#4F7A52",
           href: `/finanzas/por-cobrar?cobrar=${r.id}`,
         })),
       ...reminders
         .filter((r) => r.dueDate >= today && r.dueDate <= end)
-        .map((r) => ({ key: `rm-${r.id}`, date: r.dueDate, title: r.title, kind: "Vencimiento", color: "#F472B6", href: "/hoy" })),
+        .map((r) => ({ key: `rm-${r.id}`, date: r.dueDate, title: r.title, kind: "Vencimiento", color: "#B4637A", href: "/hoy" })),
       ...assetDue
         .filter((a) => a.expiresOn >= today && a.expiresOn <= end)
         .map((a) => ({ key: `as-${a.kind}-${a.id}`, date: a.expiresOn, title: `Vence ${a.title}`, kind: assetKindLabel(a), color: "#E879F9", href: a.href })),
@@ -522,7 +522,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
           date: o.nextActionDue ?? today,
           title: `${o.nextAction ?? "Seguimiento"} · ${clientName ?? ""}`,
           kind: "CRM",
-          color: "#22D3EE",
+          color: "#7A4E7E",
           href: `/crm/oportunidades/${o.id}`,
         })),
     ] as AgendaItem[]

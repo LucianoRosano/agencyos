@@ -62,7 +62,7 @@ export function PipelineView({
         <div className="hidden overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface md:block">
           <table className="w-full text-[14px]">
             <thead>
-              <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+              <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                 <th className="px-4 py-3 font-normal">Oportunidad</th>
                 <th className="px-3 py-3 font-normal">Etapa</th>
                 <th className="px-3 py-3 text-right font-normal">Valor</th>
@@ -199,7 +199,7 @@ export function PipelineView({
               style={grid ? ({ gridColumn: `span ${closed ? openCount : 2} / span ${closed ? openCount : 2}` } as React.CSSProperties) : undefined}
             >
               <header className="px-1.5 pt-1 pb-1.5">
-                <h2 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] whitespace-nowrap text-text-muted">
+                <h2 className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.04em] whitespace-nowrap text-text-muted">
                   <Dot color={stageColor(stage, stages)} />
                   {name}
                   <span className="text-text-faint">{list.length}</span>

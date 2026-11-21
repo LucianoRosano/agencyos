@@ -1,7 +1,7 @@
 import { diffDays, todayAR } from "@agencyos/core";
 
 /** Paleta sugerida para materias (igual a la del servicio; siempre junto al nombre). */
-export const COURSE_COLORS = ["#FBBF24", "#22D3EE", "#7C5CFF", "#34D399", "#F472B6", "#60A5FA", "#FB923C", "#A78BFA"] as const;
+export const COURSE_COLORS = ["#B7791F", "#7A4E7E", "#A9471F", "#4F7A52", "#B4637A", "#8C6A4F", "#C2703D", "#9C6B5A"] as const;
 
 export type Slot = { day: number; from: string; to: string; room?: string };
 

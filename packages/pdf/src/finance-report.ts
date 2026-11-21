@@ -30,7 +30,7 @@ const esc = (s: string | number | null | undefined) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
 
 const CSS = `
-:root { --ink:#111114; --muted:#55565e; --faint:#8a8b93; --rule:#d9d9de; --soft:#f4f4f6; --accent:#34D399; }
+:root { --ink:#111114; --muted:#55565e; --faint:#8a8b93; --rule:#d9d9de; --soft:#f4f4f6; --accent:#4F7A52; }
 * { box-sizing:border-box; }
 html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 body { margin:0; color:var(--ink); font-family:"Geist", ui-sans-serif, system-ui, sans-serif; font-size:10pt; line-height:1.5; font-feature-settings:"tnum" 1; }

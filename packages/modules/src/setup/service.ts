@@ -34,9 +34,9 @@ export async function seedStructure(t: Tx, workspaceId: string, userId: string) 
   const spaces = await t
     .insert(schema.space)
     .values([
-      { workspaceId, name: "Agencia", kind: "agency", color: "#22D3EE", icon: "briefcase", sort: 0, createdBy: userId },
-      { workspaceId, name: "Personal", kind: "personal", color: "#7C5CFF", icon: "user", sort: 1, createdBy: userId },
-      { workspaceId, name: "Facultad", kind: "study", color: "#FBBF24", icon: "graduation-cap", sort: 2, createdBy: userId },
+      { workspaceId, name: "Agencia", kind: "agency", color: "#7A4E7E", icon: "briefcase", sort: 0, createdBy: userId },
+      { workspaceId, name: "Personal", kind: "personal", color: "#A9471F", icon: "user", sort: 1, createdBy: userId },
+      { workspaceId, name: "Facultad", kind: "study", color: "#B7791F", icon: "graduation-cap", sort: 2, createdBy: userId },
     ])
     .returning();
   const agency = spaces.find((s) => s.kind === "agency");

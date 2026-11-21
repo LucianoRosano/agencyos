@@ -25,7 +25,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const closed = orders.filter((o) => !["new", "preparing", "ready"].includes(o.o.status)).slice(0, 30);
   return (
     <>
-      <PageHeader title="Pedidos" description="Pedidos por WhatsApp, teléfono o redes: se cobran y descuentan stock al entregarlos." accent="#34D399" />
+      <PageHeader title="Pedidos" description="Pedidos por WhatsApp, teléfono o redes: se cobran y descuentan stock al entregarlos." accent="#4F7A52" />
       {sp.nuevo === "1" ? (
         <section className="mb-8" aria-label="Nuevo pedido">
           <SectionLabel className="mb-3">Nuevo pedido</SectionLabel>

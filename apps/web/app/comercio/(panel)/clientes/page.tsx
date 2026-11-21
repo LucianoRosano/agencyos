@@ -13,7 +13,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const rows = await listCustomers(sc, q);
   return (
     <>
-      <PageHeader title="Clientes" description="Quién te compra, cuánto y cuándo fue la última vez." accent="#34D399" actions={<NewCustomerSheet />} />
+      <PageHeader title="Clientes" description="Quién te compra, cuánto y cuándo fue la última vez." accent="#4F7A52" actions={<NewCustomerSheet />} />
       <form className="mb-4" role="search" action="/comercio/clientes">
         <label htmlFor="cust-q" className="sr-only">
           Buscar clientes

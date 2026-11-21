@@ -16,13 +16,13 @@ export default async function TemplatesPage() {
         eyebrow="Proyectos"
         title="Plantillas"
         description="Generan etapas, tareas fechadas, checklist, nota inicial y preguntas al cliente. Guardá cualquier proyecto como plantilla desde su menú."
-        accent="#7C5CFF"
+        accent="#A9471F"
       />
       <div className="grid gap-4 md:grid-cols-2">
         {templates.map((t) => (
           <Card key={t.id} className="flex flex-col gap-3 p-5">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{label(L.projectKind, t.kind)}</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{label(L.projectKind, t.kind)}</p>
               <h2 className="mt-1 text-[16px] font-medium">{t.name}</h2>
               <p className="mt-1 text-[13px] text-text-muted">{t.description}</p>
             </div>

@@ -158,7 +158,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
               },
             ].map((x) => (
               <Card key={x.t} className="p-3 md:p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted md:text-[11px]">
+                <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-text-muted md:text-[11px]">
                   {x.t} · {periodLabel}
                 </p>
                 <p className={cn("mt-1.5 font-mono text-[15px] font-semibold tabular-nums md:text-[24px]", x.cls)}>{money(x.v, currency)}</p>
@@ -170,7 +170,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
             <BlockCard icon={<CalendarRange />} title={`Mensual · ${year} · ${currency}`}>
               <table className="w-full font-mono text-[12px] tabular-nums md:text-[13px]">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-[0.12em] text-text-faint">
+                  <tr className="text-left text-[11px] uppercase tracking-[0.04em] text-text-faint">
                     <th className="py-2 font-normal">Mes</th>
                     <th className="py-2 text-right font-normal">Ingresos</th>
                     <th className="py-2 text-right font-normal">Gastos</th>
@@ -242,7 +242,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
                 {b.rows.length ? (
                   <table className="w-full table-fixed text-[12px] md:text-[13px]">
                     <thead>
-                      <tr className="text-left font-mono text-[11px] uppercase tracking-[0.12em] text-text-faint">
+                      <tr className="text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                         <th className="w-[34%] py-2 font-normal">{b.key === "clients" ? "Cliente" : "Proyecto"}</th>
                         <th className="py-2 text-right font-normal">Cobrado</th>
                         <th className="py-2 text-right font-normal">Gastos</th>

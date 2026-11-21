@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           .from(schema.client)
           .where(and(scoped(schema.client, ctx), inArray(schema.client.status, ["active", "prospect", "paused"]))),
     getSelectedSpace(),
-    cookies().then((c) => c.get("ag-theme")?.value ?? "dark"),
+    cookies().then((c) => c.get("ag-theme")?.value ?? "light"),
     unreadCount(ctx),
     listMyWorkspaces(ctx.userId ?? ""),
   ]);

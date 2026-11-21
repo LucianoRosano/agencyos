@@ -151,7 +151,7 @@ export function ApprovePlanSheet({ planId, actions }: { planId: string; actions:
         onSuccess={() => setOpen(false)}
       >
         <fieldset className="flex flex-col">
-          <legend className="mb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Acciones</legend>
+          <legend className="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Acciones</legend>
           {actions.map((a) => (
             <label key={a.id} className="flex min-h-11 cursor-pointer items-center gap-3 border-b border-border py-1.5 text-[14px] text-text last:border-0">
               <Checkbox name="actionIds" value={a.id} defaultChecked />

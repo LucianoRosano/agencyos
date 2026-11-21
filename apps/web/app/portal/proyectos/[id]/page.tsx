@@ -35,7 +35,7 @@ export default async function PortalProjectPage({ params }: { params: Promise<{ 
         }
         title={p.name}
         description={p.goal ?? undefined}
-        accent="#22D3EE"
+        accent="#7A4E7E"
       />
       <Card className="grid grid-cols-2 gap-4 p-5 md:grid-cols-4">
         <div>

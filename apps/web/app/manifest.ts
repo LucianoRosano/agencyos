@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display_override: ["standalone", "minimal-ui"],
     launch_handler: { client_mode: ["focus-existing", "auto"] },
     categories: ["business", "productivity"],
-    background_color: "#06070A",
-    theme_color: "#06070A",
+    background_color: "#F7F4EE",
+    theme_color: "#F7F4EE",
     lang: "es-AR",
     icons: [
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" },

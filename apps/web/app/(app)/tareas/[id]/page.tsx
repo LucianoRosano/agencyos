@@ -42,7 +42,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           </span>
         }
         title={t.title}
-        accent="#60A5FA"
+        accent="#8C6A4F"
         actions={<TaskActions id={t.id} status={t.status} title={t.title} />}
       />
       <div className="mb-6 flex flex-wrap gap-2">

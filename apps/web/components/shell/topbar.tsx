@@ -34,7 +34,7 @@ export function Topbar({ data }: { data: ShellData }) {
                 <span
                   aria-hidden
                   className="size-2.5 rounded-full"
-                  style={{ background: selected ? selected.color : "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+                  style={{ background: selected ? selected.color : "conic-gradient(#7A4E7E, #A9471F, #B7791F, #7A4E7E)" }}
                 />
                 {selected ? selected.name : "Todos los espacios"}
                 <ChevronDown className="size-4 text-text-muted" />
@@ -99,7 +99,7 @@ export function BellLink({ count, className }: { count: number; className?: stri
     >
       <Bell className="size-[18px]" />
       {count ? (
-        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#5B3DF5] px-1 font-mono text-[10px] font-semibold text-white">
+        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#9A3F1B] px-1 font-mono text-[10px] font-semibold text-white">
           {count > 99 ? "99+" : count}
         </span>
       ) : null}

@@ -21,7 +21,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
   const initial = [...new Set(parts)].join("\n").slice(0, 2000);
   return (
     <div className="mx-auto max-w-xl">
-      <PageHeader eyebrow="Bandeja" title="Compartir a AGENCYOS" description="Revisalo y guardalo: después lo ordenás desde la Bandeja." accent="#22D3EE" />
+      <PageHeader eyebrow="Bandeja" title="Compartir a AGENCYOS" description="Revisalo y guardalo: después lo ordenás desde la Bandeja." accent="#7A4E7E" />
       <Card className="p-5">
         <ShareForm initial={initial} />
       </Card>

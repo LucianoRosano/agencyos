@@ -24,7 +24,7 @@ export function EnrollTwoFactor() {
       setError("Contraseña incorrecta.");
       return;
     }
-    setQr(await QRCode.toDataURL(data.totpURI, { margin: 1, width: 220, color: { dark: "#0B0D12", light: "#FFFFFF" } }));
+    setQr(await QRCode.toDataURL(data.totpURI, { margin: 1, width: 220, color: { dark: "#1D1915", light: "#FFFFFF" } }));
     setSecret(new URL(data.totpURI).searchParams.get("secret") ?? "");
     setCodes(data.backupCodes);
     setStep("scan");

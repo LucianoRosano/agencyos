@@ -68,7 +68,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           { k: "Repositorio", v: data.repoName ?? "—", mono: true },
         ].map((x) => (
           <Card key={x.k} className="p-4">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{x.k}</dt>
+            <dt className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{x.k}</dt>
             <dd
               className={`mt-1 truncate text-[20px] font-semibold tabular-nums ${x.warn ? "text-warning" : "text-text"} ${x.mono ? "font-mono text-[14px] font-normal" : ""}`}
             >
@@ -99,7 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[15px] text-text">{name}</span>
-                        {siteName && clientName ? <EntityChip color="#F472B6">{siteName}</EntityChip> : null}
+                        {siteName && clientName ? <EntityChip color="#B4637A">{siteName}</EntityChip> : null}
                         <Badge tone={!version ? "neutral" : old ? "warning" : "success"}>{version ? `v${version}` : "versión sin registrar"}</Badge>
                         {old && data.latest ? <span className="text-[12px] text-warning">→ v{data.latest} disponible</span> : null}
                         {i.status !== "active" ? <Badge>{INSTALLATION_STATUS[i.status] ?? i.status}</Badge> : null}
@@ -148,7 +148,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-mono text-[15px] text-text">
-                          v{v.version} {idx === 0 ? <span className="ml-1 text-[11px] uppercase tracking-[0.14em] text-text-faint">última</span> : null}
+                          v{v.version} {idx === 0 ? <span className="ml-1 text-[11px] uppercase tracking-[0.04em] text-text-faint">última</span> : null}
                         </p>
                         <p className="font-mono text-[11px] text-text-faint" title={formatDateTime(v.releasedAt)}>
                           {formatDate(v.releasedAt)}

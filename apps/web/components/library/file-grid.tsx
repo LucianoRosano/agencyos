@@ -15,7 +15,7 @@ export function FileGrid({ files, folders = [], mode }: { files: FileListItem[];
         {folders.map((d) => (
           <li key={d.id}>
             <Link href={d.href} className="flex min-h-14 items-center gap-3 px-4 py-2.5 hover:bg-surface-2/50">
-              <Folder className="size-5 shrink-0 text-[#FB923C]" aria-hidden />
+              <Folder className="size-5 shrink-0 text-[#C2703D]" aria-hidden />
               <span className="min-w-0 flex-1 truncate text-[14px] text-text">{d.name}</span>
               <span className="font-mono text-[12px] text-text-muted">{d.sub ?? `${d.files} archivos`}</span>
             </Link>
@@ -51,7 +51,7 @@ export function FileGrid({ files, folders = [], mode }: { files: FileListItem[];
             href={d.href}
             className="flex h-full min-h-20 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 transition-colors hover:border-border-strong"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#FB923C]/10 text-[#FB923C]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#C2703D]/10 text-[#C2703D]">
               <Folder className="size-5" aria-hidden />
             </span>
             <span className="min-w-0">
@@ -78,7 +78,7 @@ export function FileGrid({ files, folders = [], mode }: { files: FileListItem[];
                 {f.currentVersion > 1 ? <span>v{f.currentVersion}</span> : null}
               </span>
               {clientName ? (
-                <EntityChip color="#22D3EE" className="mt-1 self-start">
+                <EntityChip color="#7A4E7E" className="mt-1 self-start">
                   {clientName}
                 </EntityChip>
               ) : null}

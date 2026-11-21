@@ -383,7 +383,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
 
       {local && sel ? (
         <div className="brain-glass absolute top-[124px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full py-1 pr-1 pl-4 text-[13px] md:top-[76px]">
-          <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Grafo local</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Grafo local</span>
           <span className="max-w-40 truncate text-text">{sel.label}</span>
           <DepthPicker value={local} onChange={setLocal} />
           <button
@@ -448,7 +448,7 @@ export function BrainView({ graph, layout, includeTasks, initialNode, initialSpa
       ) : null}
       {laying ? (
         <p
-          className="brain-glass absolute top-[124px] left-1/2 z-10 -translate-x-1/2 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted md:top-[76px]"
+          className="brain-glass absolute top-[124px] left-1/2 z-10 -translate-x-1/2 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted md:top-[76px]"
           aria-live="polite"
         >
           Ordenando el grafo…
@@ -755,7 +755,7 @@ function NodePanel({
     <>
       <div className="flex items-start justify-between gap-2 p-5 pb-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.18em]" style={{ color }}>
+          <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em]" style={{ color }}>
             <Dot type={node.type} dim={node.dim} />
             {TYPE_LABEL[node.type].one}
             {node.statusLabel ? <span className="text-text-muted">· {node.statusLabel}</span> : null}
@@ -800,11 +800,11 @@ function NodePanel({
         </div>
         {node.nextAction ? (
           <>
-            <p className="mt-5 mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted">Siguiente acción</p>
+            <p className="mt-5 mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Siguiente acción</p>
             <p className="rounded-[10px] border border-white/10 bg-white/[0.03] p-3 text-[14px] leading-relaxed text-text">{node.nextAction}</p>
           </>
         ) : null}
-        <p className="mt-5 mb-1 font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted">Vecinos directos</p>
+        <p className="mt-5 mb-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">Vecinos directos</p>
         {neighbors.length ? (
           <ul className="flex flex-col pb-3">
             {neighbors.slice(0, 12).map((n) => (
@@ -902,7 +902,7 @@ function SpaceSelect({ spaces, value, onChange }: { spaces: { id: string; name: 
       <span
         aria-hidden
         className="size-2.5 rounded-full"
-        style={{ background: spaces.find((s) => s.id === value)?.color ?? "conic-gradient(#22D3EE, #7C5CFF, #FBBF24, #22D3EE)" }}
+        style={{ background: spaces.find((s) => s.id === value)?.color ?? "conic-gradient(#7A4E7E, #A9471F, #B7791F, #7A4E7E)" }}
       />
       <select
         value={value}
@@ -924,7 +924,7 @@ function TagSelect({ tags, value, onChange }: { tags: { name: string; color: str
   return (
     <label className="brain-glass flex h-14 shrink-0 items-center gap-2 rounded-[12px] pr-1 pl-3.5">
       <span className="sr-only">Etiqueta</span>
-      <span aria-hidden className="size-2.5 rounded-full" style={{ background: tags.find((t) => t.name === value)?.color ?? "#8A93A6" }} />
+      <span aria-hidden className="size-2.5 rounded-full" style={{ background: tags.find((t) => t.name === value)?.color ?? "#857B70" }} />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -982,7 +982,7 @@ function BrainList({ nodes, adj, onShow }: { nodes: BrainNode[]; adj: Map<string
         {groups.length ? (
           groups.map((g) => (
             <section key={g.type} aria-labelledby={`brain-list-${g.type}`}>
-              <h2 id={`brain-list-${g.type}`} className="mb-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted">
+              <h2 id={`brain-list-${g.type}`} className="mb-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
                 <Dot type={g.type} /> {TYPE_LABEL[g.type].many} <span className="text-text-faint">{g.items.length}</span>
               </h2>
               <ul className="brain-glass overflow-hidden rounded-[12px]">

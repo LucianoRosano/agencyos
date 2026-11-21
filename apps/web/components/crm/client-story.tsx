@@ -155,7 +155,7 @@ export function ClientStory({
         key: `q-${q.id}`,
         at: q.sentAt ?? q.createdAt,
         icon: <FileSignature />,
-        tone: "text-[#A78BFA] border-[#A78BFA]/30 bg-[#A78BFA]/10",
+        tone: "text-[#9C6B5A] border-[#9C6B5A]/30 bg-[#9C6B5A]/10",
         title: (
           <>
             {q.sentAt ? "Envió" : "Armó"} el presupuesto{" "}

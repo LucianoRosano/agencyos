@@ -43,7 +43,7 @@ export function TaskBoard({ tasks }: { tasks: TaskRowData[] }) {
               over === col && "border-accent",
             )}
           >
-            <h3 className="flex items-center justify-between px-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">
+            <h3 className="flex items-center justify-between px-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
               {L.taskStatus[col]} <span className="text-text-faint">{list.length}</span>
             </h3>
             {list.map((t) => {

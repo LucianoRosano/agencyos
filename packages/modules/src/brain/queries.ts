@@ -5,7 +5,7 @@ import { getDb, scoped } from "../shared/db";
 import { entityHref } from "../shared/entities";
 import type { BrainCluster, BrainEdge, BrainGraph, BrainLayout, BrainNode, BrainNodeType } from "./types";
 
-const CLIENT_COLOR = "#22D3EE";
+const CLIENT_COLOR = "#7A4E7E";
 const ms = (d: Date | null | undefined) => (d ? d.getTime() : 0);
 
 /** Vecindario (BFS) de profundidad 1–3 alrededor de un nodo. */

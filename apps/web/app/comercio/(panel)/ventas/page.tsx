@@ -14,7 +14,7 @@ export default async function SalesPage() {
     <>
       <PageHeader
         title="Ventas"
-        accent="#34D399"
+        accent="#4F7A52"
         actions={
           <Button asChild variant="primary">
             <Link href="/comercio/vender">Nueva venta</Link>

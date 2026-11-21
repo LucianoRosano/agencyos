@@ -20,7 +20,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         eyebrow="Capturar · aclarar · decidir"
         title="Bandeja"
         description="Todo lo que capturaste con C, el botón + o desde Claude. Procesalo uno por uno: convertilo, programalo o descartalo."
-        accent="#22D3EE"
+        accent="#7A4E7E"
         actions={
           items.length && !processing ? (
             <Button asChild variant="primary">

@@ -34,8 +34,8 @@ export default async function DominiosPage({ searchParams }: { searchParams: Pro
                       <Globe className="size-4 shrink-0 text-text-muted" aria-hidden />
                       <h3 className="truncate font-mono text-[15px] text-text">{d.name}</h3>
                     </span>
-                    {clientName ? <EntityChip color="#22D3EE">{clientName}</EntityChip> : null}
-                    {siteName ? <EntityChip color="#F472B6">{siteName}</EntityChip> : null}
+                    {clientName ? <EntityChip color="#7A4E7E">{clientName}</EntityChip> : null}
+                    {siteName ? <EntityChip color="#B4637A">{siteName}</EntityChip> : null}
                   </div>
                   <p className="mt-1 truncate text-[13px] text-text-muted">
                     {[d.registrar, d.holder ? `titular ${d.holder}` : null, d.dnsRef ? `DNS ${d.dnsRef}` : null].filter(Boolean).join(" · ") ||

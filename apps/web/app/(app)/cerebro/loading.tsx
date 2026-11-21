@@ -2,12 +2,12 @@ export default function Loading() {
   return (
     <div
       role="status"
-      className="relative -mx-4 -mt-5 -mb-28 grid h-[calc(100dvh-70px)] place-items-center bg-[#05060a] md:-mx-8 md:-mt-8 md:-mb-12 md:h-[calc(100dvh-72px)]"
+      className="relative -mx-4 -mt-5 -mb-28 grid h-[calc(100dvh-70px)] place-items-center bg-[#14110E] md:-mx-8 md:-mt-8 md:-mb-12 md:h-[calc(100dvh-72px)]"
       aria-busy="true"
       aria-label="Cargando el Cerebro"
     >
-      <span className="flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.2em] text-[#8a93a6]">
-        <span className="skeleton size-2 rounded-full bg-[#7c5cff]" aria-hidden />
+      <span className="flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.2em] text-[#857B70]">
+        <span className="skeleton size-2 rounded-full bg-[#A9471F]" aria-hidden />
         Cargando el Cerebro…
       </span>
     </div>

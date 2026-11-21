@@ -71,7 +71,7 @@ export function TransactionList({
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface">
         <table className="hidden w-full table-fixed text-[14px] xl:table">
           <thead>
-            <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+            <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
               <th className="w-28 px-4 py-3 font-normal">Fecha</th>
               <th className="px-4 py-3 font-normal">Detalle</th>
               <th className="w-40 px-4 py-3 font-normal 2xl:w-48">Categoría</th>
@@ -94,8 +94,8 @@ export function TransactionList({
                       {t.counterpart && t.description && !t.kind.startsWith("transfer") ? (
                         <span className="truncate text-[12px] text-text-faint">{t.counterpart}</span>
                       ) : null}
-                      {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
-                      {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
+                      {t.clientName ? <EntityChip color="#7A4E7E">{t.clientName}</EntityChip> : null}
+                      {t.projectName ? <EntityChip color="#A9471F">{t.projectName}</EntityChip> : null}
                       <TxTags tags={t.tags} />
                     </div>
                   ) : null}
@@ -139,8 +139,8 @@ export function TransactionList({
                 </div>
                 {t.clientName || t.projectName || t.tags?.length ? (
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {t.clientName ? <EntityChip color="#22D3EE">{t.clientName}</EntityChip> : null}
-                    {t.projectName ? <EntityChip color="#7C5CFF">{t.projectName}</EntityChip> : null}
+                    {t.clientName ? <EntityChip color="#7A4E7E">{t.clientName}</EntityChip> : null}
+                    {t.projectName ? <EntityChip color="#A9471F">{t.projectName}</EntityChip> : null}
                     <TxTags tags={t.tags} />
                   </div>
                 ) : null}

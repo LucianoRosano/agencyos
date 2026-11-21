@@ -71,7 +71,7 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
       "Cliente",
       f.clientId && d.clientName ? (
         <Link key="client" href={`/crm/clientes/${f.clientId}`} className="hover:underline">
-          <EntityChip color={ENTITY_COLORS.client ?? "#22D3EE"}>{d.clientName}</EntityChip>
+          <EntityChip color={ENTITY_COLORS.client ?? "#7A4E7E"}>{d.clientName}</EntityChip>
         </Link>
       ) : (
         <span key="client-none" className="text-text-faint">
@@ -83,7 +83,7 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
       "Proyecto",
       f.projectId && d.projectName ? (
         <Link key="project" href={`/proyectos/${f.projectId}`} className="hover:underline">
-          <EntityChip color={ENTITY_COLORS.project ?? "#7C5CFF"}>{d.projectName}</EntityChip>
+          <EntityChip color={ENTITY_COLORS.project ?? "#A9471F"}>{d.projectName}</EntityChip>
         </Link>
       ) : (
         <span key="project-none" className="text-text-faint">
@@ -133,7 +133,7 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
     <div className="mx-auto max-w-6xl">
       <Link
         href="/biblioteca"
-        className="-ml-1 mb-6 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted hover:text-text md:mb-9 md:h-8"
+        className="-ml-1 mb-6 flex h-10 w-fit items-center gap-1 rounded-md px-1 font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted hover:text-text md:mb-9 md:h-8"
       >
         <ChevronLeft className="size-4" /> Biblioteca
       </Link>
@@ -254,7 +254,7 @@ export default async function FilePage({ params }: { params: Promise<{ id: strin
                 {d.attachments.map((a) => (
                   <li key={a.id}>
                     <Link href={a.href} className="flex min-h-10 items-center gap-2 text-[14px] text-text hover:underline">
-                      <EntityChip color={ENTITY_COLORS[a.entityType] ?? "#8A93A6"}>{label(L.entityType, a.entityType)}</EntityChip>
+                      <EntityChip color={ENTITY_COLORS[a.entityType] ?? "#857B70"}>{label(L.entityType, a.entityType)}</EntityChip>
                       <span className="min-w-0 truncate">{a.title || "Sin título"}</span>
                     </Link>
                   </li>

@@ -2,7 +2,7 @@
  * AGENCYOS · service worker: estáticos cacheados, modo sin conexión (/local) y página offline.
  * Los datos van siempre por la red; sin conexión, las pantallas de la app abren /local (la copia del dispositivo).
  */
-const VERSION = "agencyos-v5";
+const VERSION = "agencyos-v6";
 const LOCAL_CACHE = "agencyos-local";
 const OFFLINE = "/offline.html";
 const LOCAL = "/local";
@@ -14,7 +14,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches
       .open(VERSION)
-      .then((c) => c.addAll([OFFLINE, "/icons/icon.svg", "/fonts/Geist-Variable.woff2"]))
+      .then((c) => c.addAll([OFFLINE, "/icons/icon.svg", "/fonts/Inter-Variable.woff2"]))
       .then(() => refreshLocal(true))
       .then(() => self.skipWaiting()),
   );

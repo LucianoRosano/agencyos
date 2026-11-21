@@ -120,7 +120,7 @@ export function LocalApp() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pt-4 pb-28 md:px-6 md:pt-8">
       <header className="mb-4 flex flex-wrap items-center gap-3">
-        <p className="font-mono text-[13px] font-semibold tracking-[0.32em]">
+        <p className="font-mono text-[13px] font-semibold tracking-[0.04em]">
           AGENCY<span className="bg-[image:var(--gradient)] bg-clip-text text-transparent">OS</span>
         </p>
         <span
@@ -294,7 +294,7 @@ function TaskList({ title, tasks, projects }: { title: string; tasks: OTask[]; p
   if (!tasks.length) return null;
   return (
     <section className="mb-5">
-      <h2 className="mb-1 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">
+      <h2 className="mb-1 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
         {title} · {tasks.length}
       </h2>
       <Card className="px-4">

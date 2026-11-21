@@ -12,7 +12,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
   const [templates, clients, spaces] = await Promise.all([listTemplates(ctx), clientOpts(ctx), spaceOpts(ctx)]);
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow="Asistente de arranque · 5 pasos" title="Nuevo proyecto" accent="#7C5CFF" />
+      <PageHeader eyebrow="Asistente de arranque · 5 pasos" title="Nuevo proyecto" accent="#A9471F" />
       <Wizard
         templates={templates.map((t) => ({
           id: t.id,

@@ -298,7 +298,7 @@ export async function StructureTab({ ctx, site, page, editing }: P & { page?: st
         ) : null}
       </div>
       <details className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
-        <summary className="cursor-pointer font-mono text-[12px] uppercase tracking-[0.16em] text-text-muted">Versiones ({bp.versions.length})</summary>
+        <summary className="cursor-pointer font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Versiones ({bp.versions.length})</summary>
         <ol className="mt-3 flex flex-col divide-y divide-border">
           {bp.versions.map((v) => (
             <li key={v.id} className="flex items-center gap-3 py-1.5 text-[13px]">

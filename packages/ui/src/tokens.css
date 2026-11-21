@@ -1,63 +1,75 @@
-/* AGENCYOS · tokens "Centro de mando" (contexto C1). Oscuro es el principal. */
+/*
+ * AGENCYOS · tokens «Escritorio» (ADR 0017): clásico y cálido. Papel marfil, tinta marrón oscura y un solo acento
+ * terracota para lo interactivo. Estados apagados (salvia, ocre, ladrillo). Todos los pares de texto cumplen AA
+ * (≥ 4,5:1) sobre fondo, superficie y superficie-2; verificado con el cálculo de luminancia de WCAG.
+ * Claro es el principal; el oscuro usa los mismos tonos, más luminosos.
+ */
 :root,
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #06070a;
-  --bg-elevated: #0b0d12;
-  --surface: #11141b;
-  --surface-2: #171b24;
-  --surface-3: #1e2330;
-  --border: rgba(255, 255, 255, 0.075);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text: #e8ebf2;
-  --text-muted: #8a93a6;
-  --text-faint: #7a8396;
-  --accent: #7c5cff;
-  --accent-2: #22d3ee;
-  --accent-text: #9b85ff;
-  --info-text: #22d3ee;
-  --accent-soft: rgba(124, 92, 255, 0.14);
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #f43f5e;
-  --success-soft: rgba(52, 211, 153, 0.12);
-  --warning-soft: rgba(251, 191, 36, 0.12);
-  --danger-soft: rgba(244, 63, 94, 0.12);
-  --grid-dot: rgba(255, 255, 255, 0.045);
-  --glow: 0 0 0 1px rgba(124, 92, 255, 0.45), 0 0 24px -4px rgba(124, 92, 255, 0.45);
-  --shadow-pop: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
-}
-
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f7f9;
+  --bg: #f7f4ee;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --surface-3: #e6e9ee;
-  --border: rgba(10, 12, 18, 0.1);
-  --border-strong: rgba(10, 12, 18, 0.18);
-  --text: #0b0d12;
-  --text-muted: #5a6275;
-  --text-faint: #636b7d;
-  --accent: #5b3df5;
-  --accent-2: #0891b2;
-  --accent-text: #5b3df5;
-  --info-text: #0e7490;
-  --accent-soft: rgba(91, 61, 245, 0.1);
-  --success: #047857;
-  --warning: #9a4508;
-  --danger: #be123c;
-  --success-soft: rgba(5, 150, 105, 0.1);
-  --warning-soft: rgba(180, 83, 9, 0.1);
-  --danger-soft: rgba(225, 29, 72, 0.08);
-  --grid-dot: rgba(10, 12, 18, 0.06);
-  --glow: 0 0 0 1px rgba(91, 61, 245, 0.35), 0 0 20px -6px rgba(91, 61, 245, 0.35);
-  --shadow-pop: 0 12px 40px -16px rgba(10, 12, 18, 0.25);
+  --surface-2: #f2eee6;
+  --surface-3: #e9e3d8;
+  --border: rgba(41, 32, 22, 0.12);
+  --border-strong: rgba(41, 32, 22, 0.24);
+  --text: #1f1a15;
+  --text-muted: #5f574d;
+  --text-faint: #6b6258;
+  --accent: #a9471f;
+  --accent-hover: #933c19;
+  --on-accent: #ffffff;
+  --accent-2: #7a6a55;
+  --accent-text: #9a3f1b;
+  --info-text: #5b5146;
+  --accent-soft: rgba(169, 71, 31, 0.09);
+  --success: #3f6b45;
+  --warning: #85570c;
+  --danger: #a8321f;
+  --success-soft: rgba(63, 107, 69, 0.1);
+  --warning-soft: rgba(133, 87, 12, 0.1);
+  --danger-soft: rgba(168, 50, 31, 0.08);
+  --grid-dot: transparent;
+  --glow: 0 0 0 2px rgba(169, 71, 31, 0.28);
+  --shadow-card: 0 1px 2px rgba(41, 32, 22, 0.05);
+  --shadow-pop: 0 12px 32px -14px rgba(41, 32, 22, 0.28);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171411;
+  --bg-elevated: #1d1915;
+  --surface: #221d18;
+  --surface-2: #2a241e;
+  --surface-3: #342d26;
+  --border: rgba(255, 240, 220, 0.09);
+  --border-strong: rgba(255, 240, 220, 0.18);
+  --text: #eee7dd;
+  --text-muted: #aba194;
+  --text-faint: #a0968a;
+  --accent: #d9784f;
+  --accent-hover: #e28a63;
+  --on-accent: #1a120d;
+  --accent-2: #b9a68c;
+  --accent-text: #e89470;
+  --info-text: #c9bcaa;
+  --accent-soft: rgba(217, 120, 79, 0.15);
+  --success: #8fb98a;
+  --warning: #e2b159;
+  --danger: #ee7b66;
+  --success-soft: rgba(143, 185, 138, 0.13);
+  --warning-soft: rgba(226, 177, 89, 0.13);
+  --danger-soft: rgba(238, 123, 102, 0.13);
+  --grid-dot: transparent;
+  --glow: 0 0 0 2px rgba(217, 120, 79, 0.35);
+  --shadow-card: none;
+  --shadow-pop: 0 12px 32px -12px rgba(0, 0, 0, 0.6);
 }
 
 :root {
-  --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+  /* Sin degradados: el «gradiente» es el acento plano (los componentes que lo usan quedan sobrios). */
+  --gradient: linear-gradient(var(--accent), var(--accent));
   --radius-control: 8px;
   --radius-card: 12px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);

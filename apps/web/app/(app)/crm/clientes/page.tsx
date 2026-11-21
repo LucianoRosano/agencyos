@@ -63,7 +63,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           <div className="hidden overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface md:block">
             <table className="w-full text-[14px]">
               <thead>
-                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                <tr className="border-b border-border text-left font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                   <th className="px-4 py-3 font-normal">Cliente</th>
                   <th className="px-3 py-3 font-normal">Estado</th>
                   <th className="px-3 py-3 font-normal">Contacto</th>

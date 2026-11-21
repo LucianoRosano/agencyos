@@ -16,7 +16,7 @@ export default async function PortalLayout({ children }: { children: React.React
             <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-border-strong font-semibold">LR</span>
             <span className="hidden min-w-0 sm:block">
               <span className="block text-[15px] font-medium leading-tight">Luciano Rosano</span>
-              <span className="block font-mono text-[11px] uppercase tracking-[0.18em] text-text-faint">Portal de clientes</span>
+              <span className="block font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Portal de clientes</span>
             </span>
           </Link>
           <PortalNav />
@@ -27,7 +27,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-16 md:px-6 md:pt-10">
         {children}
       </main>
-      <footer className="border-t border-border py-6 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-text-faint">
+      <footer className="border-t border-border py-6 text-center font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
         Luciano Rosano · Desarrollo web
       </footer>
     </div>

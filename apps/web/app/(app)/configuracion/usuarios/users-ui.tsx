@@ -264,7 +264,7 @@ export function GrantSwitches({ membershipId, name, grants }: { membershipId: st
   const [on, setOn] = useState<string[]>(grants);
   return (
     <fieldset className="mt-2 flex flex-col gap-0.5 rounded-[10px] border border-border px-3 py-1.5" data-testid="member-grants">
-      <legend className="px-1 font-mono text-[11px] tracking-[0.14em] text-text-faint uppercase">Permisos extra</legend>
+      <legend className="px-1 font-mono text-[11px] tracking-[0.04em] text-text-faint uppercase">Permisos extra</legend>
       {MEMBER_GRANT_KEYS.map((g) => {
         const checked = on.includes(g);
         return (

@@ -42,7 +42,7 @@ export default async function CuentasPage({ searchParams }: { searchParams: Prom
             groups.map((g) => (
               <Card key={g} className="p-4 md:p-5">
                 <div className="mb-3 flex items-baseline justify-between gap-3">
-                  <h2 className="font-mono text-[12px] uppercase tracking-[0.18em] text-text-muted">Libro {g}</h2>
+                  <h2 className="font-mono text-[12px] uppercase tracking-[0.04em] text-text-muted">Libro {g}</h2>
                   <MoneyLines items={totals.get(g) ?? []} className="items-end text-[13px] text-text-muted" />
                 </div>
                 <ul className="divide-y divide-border">

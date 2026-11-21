@@ -1,7 +1,7 @@
 import { PageHeader, Tabs } from "@agencyos/ui";
 import type { ReactNode } from "react";
 
-export const CONTROL_ACCENT = "#22D3EE";
+export const CONTROL_ACCENT = "#7A4E7E";
 
 export function ControlHeader({ active, title, description, actions }: { active: string; title: string; description?: string; actions?: ReactNode }) {
   return (

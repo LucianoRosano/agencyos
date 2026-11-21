@@ -94,7 +94,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         eyebrow={`${formatDate(r.start)} → ${formatDate(r.end)}`}
         title="Negocio"
         description="Indicadores calculados solo con tus datos reales."
-        accent="#7C5CFF"
+        accent="#A9471F"
       />
       <Tabs
         active={range}

@@ -13,7 +13,7 @@ export default async function TrashPage() {
   const today = todayAR();
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader eyebrow="Sistema" title="Papelera" description="Lo eliminado se guarda 30 días y después se purga automáticamente." accent="#F43F5E" />
+      <PageHeader eyebrow="Sistema" title="Papelera" description="Lo eliminado se guarda 30 días y después se purga automáticamente." accent="#A8321F" />
       {items.length ? (
         <Card className="divide-y divide-border">
           {items.map((it) => (

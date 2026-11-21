@@ -25,7 +25,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
             </span>
             <span className="min-w-0">
               <span className="block truncate text-[15px] font-medium leading-tight">{sc.shopName}</span>
-              <span className="block font-mono text-[11px] uppercase tracking-[0.18em] text-text-faint">Gestión · por Luciano Rosano</span>
+              <span className="block font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Gestión · por Luciano Rosano</span>
             </span>
           </Link>
           <span className="ml-auto flex items-center gap-2">

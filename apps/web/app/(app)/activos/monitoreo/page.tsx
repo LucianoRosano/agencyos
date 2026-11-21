@@ -41,7 +41,7 @@ export default async function MonitoreoPage() {
                         <h3 className="truncate text-[16px] font-medium text-text">{e.siteName}</h3>
                         <Badge>{ENV_KIND[e.kind] ?? e.kind}</Badge>
                         {!e.monitorEnabled ? <Badge tone="warning">En pausa</Badge> : null}
-                        {e.clientName ? <EntityChip color="#22D3EE">{e.clientName}</EntityChip> : null}
+                        {e.clientName ? <EntityChip color="#7A4E7E">{e.clientName}</EntityChip> : null}
                       </div>
                       <a
                         href={e.url}
@@ -68,14 +68,14 @@ export default async function MonitoreoPage() {
                   </div>
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div>
-                      <div className="mb-1.5 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                      <div className="mb-1.5 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                         <span>Últimas 24 h</span>
                         <span>{e.lastCheckedAt ? `último chequeo ${relativeFromDate(e.lastCheckedAt)}` : "sin chequeos todavía"}</span>
                       </div>
                       <UptimeBars hours={e.hours} />
                     </div>
                     <div className="hidden w-40 md:block">
-                      <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Latencia</p>
+                      <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Latencia</p>
                       {series.length >= 2 ? (
                         <Sparkline values={series} color="var(--accent-2)" />
                       ) : (

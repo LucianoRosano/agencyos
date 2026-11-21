@@ -9,7 +9,7 @@ import { ENTITIES, type EntityType, entityHref, isEntityType } from "../shared/e
 
 /** Etiquetas (N6), comentarios (N10), enlaces universales "Conectado con" (N5) y vistas guardadas (N11). */
 
-export const TAG_COLORS = ["#8A93A6", "#7C5CFF", "#22D3EE", "#34D399", "#FBBF24", "#F472B6", "#60A5FA", "#FB923C", "#F43F5E"];
+export const TAG_COLORS = ["#857B70", "#A9471F", "#7A4E7E", "#4F7A52", "#B7791F", "#B4637A", "#8C6A4F", "#C2703D", "#A8321F"];
 
 // biome-ignore lint/suspicious/noExplicitAny: tabla genérica del registro de entidades
 type AnyTable = PgTable & Record<string, any>;
@@ -47,7 +47,7 @@ export async function tagsUsedOn(ctx: Ctx, entityType: EntityType) {
 export async function createTag(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "tag");
   const input = z
-    .object({ name: zRequired(40, "El nombre").transform((s) => s.replace(/^#/, "")), color: z.enum(TAG_COLORS as [string, ...string[]]).default("#8A93A6") })
+    .object({ name: zRequired(40, "El nombre").transform((s) => s.replace(/^#/, "")), color: z.enum(TAG_COLORS as [string, ...string[]]).default("#857B70") })
     .parse(raw);
   const existing = (await listTags(ctx)).find((t) => t.name.toLowerCase() === input.name.toLowerCase());
   if (existing) return existing;

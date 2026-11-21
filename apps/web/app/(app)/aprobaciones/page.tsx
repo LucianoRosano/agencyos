@@ -12,13 +12,13 @@ export default async function ApprovalsPage() {
   const items = await listApprovals(ctx);
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader eyebrow="Humano en el bucle" title="Aprobaciones" description="Lo que Claude propone y no tiene permiso para hacer solo." accent="#7C5CFF" />
+      <PageHeader eyebrow="Humano en el bucle" title="Aprobaciones" description="Lo que Claude propone y no tiene permiso para hacer solo." accent="#A9471F" />
       {items.length ? (
         <div className="flex flex-col gap-3">
           {items.map((a) => (
             <Card key={a.id} className="p-5">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                   {a.requestedByType === "agent" ? "Claude (MCP)" : "Sistema"} · {formatDateTime(a.createdAt)}
                 </p>
                 <Badge tone={a.status === "pending" ? "warning" : a.status === "approved" ? "success" : "neutral"}>

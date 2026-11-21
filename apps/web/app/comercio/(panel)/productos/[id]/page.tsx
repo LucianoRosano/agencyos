@@ -34,7 +34,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         }
         title={p.name}
         description={`Stock actual: ${p.stock} · mínimo ${p.minStock}${p.active ? "" : " · dado de baja"}`}
-        accent="#34D399"
+        accent="#4F7A52"
         actions={admin ? <ProductActiveButton id={p.id} active={p.active} /> : undefined}
       />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">

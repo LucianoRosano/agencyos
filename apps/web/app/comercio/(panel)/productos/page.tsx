@@ -16,7 +16,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const admin = sc.role !== "seller";
   return (
     <>
-      <PageHeader title="Productos" description="Catálogo, precios y stock." accent="#34D399" actions={admin ? <NewProductSheet /> : undefined} />
+      <PageHeader title="Productos" description="Catálogo, precios y stock." accent="#4F7A52" actions={admin ? <NewProductSheet /> : undefined} />
       <form className="mb-4 flex flex-wrap gap-2" role="search" action="/comercio/productos">
         <label htmlFor="prod-q" className="sr-only">
           Buscar productos

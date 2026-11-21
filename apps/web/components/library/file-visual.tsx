@@ -1,7 +1,7 @@
 import { cn } from "@agencyos/ui";
 import { File, FileArchive, FileImage, FileSpreadsheet, FileText, FileType, FileVideo, Shapes } from "lucide-react";
 
-export const LIBRARY_ACCENT = "#FB923C";
+export const LIBRARY_ACCENT = "#C2703D";
 
 /** Tamaño legible en es-AR: "1,2 MB". */
 export function formatBytes(n: number | null | undefined) {
@@ -66,7 +66,7 @@ export function FileThumb({ thumbUrl, kind, name, className }: { thumbUrl: strin
       ) : (
         <div className="flex flex-col items-center gap-1.5">
           <KindIcon kind={kind} name={name} className="size-7" />
-          <span className="font-mono text-[11px] tracking-[0.12em] text-text-faint">{extLabel(name)}</span>
+          <span className="font-mono text-[11px] tracking-[0.04em] text-text-faint">{extLabel(name)}</span>
         </div>
       )}
     </div>

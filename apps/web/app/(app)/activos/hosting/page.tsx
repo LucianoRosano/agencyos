@@ -37,7 +37,7 @@ export default async function HostingPage({ searchParams }: { searchParams: Prom
                         {h.plan ? <span className="font-normal text-text-muted"> · {h.plan}</span> : null}
                       </h3>
                     </span>
-                    {clientName ? <EntityChip color="#22D3EE">{clientName}</EntityChip> : null}
+                    {clientName ? <EntityChip color="#7A4E7E">{clientName}</EntityChip> : null}
                   </div>
                   <p className="mt-1 truncate text-[13px] text-text-muted">{h.location ?? "Sin ubicación cargada"}</p>
                 </div>

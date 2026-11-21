@@ -631,7 +631,7 @@ export function QuoteEditor({
       </div>
       <SaveBar>
         <div className="min-w-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Total</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Total</p>
           <p className="truncate font-mono text-[17px] font-semibold text-text" data-testid="savebar-total">
             {m(preview.totals.total)}
           </p>

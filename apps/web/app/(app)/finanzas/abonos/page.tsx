@@ -51,7 +51,7 @@ export default async function AbonosPage({ searchParams }: { searchParams: Promi
               {mrr.byCurrency.length ? (
                 mrr.byCurrency.map((c) => (
                   <div key={c.currency} className="md:text-right">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">{c.currency} / mes</p>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">{c.currency} / mes</p>
                     <p className="font-mono text-[26px] font-semibold tabular-nums text-text">{formatMoney(c.total, c.currency)}</p>
                   </div>
                 ))

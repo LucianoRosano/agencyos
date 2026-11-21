@@ -102,7 +102,7 @@ export function RequirementList({ items }: { items: Req[] }) {
               </div>
               {r.html ? (
                 <div className="mt-2 border-l-2 border-border pl-3">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-faint">Criterio de aceptación</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">Criterio de aceptación</p>
                   <MarkdownView html={r.html} className="mt-1 text-[14px] text-text-muted" />
                 </div>
               ) : (

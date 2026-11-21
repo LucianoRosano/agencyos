@@ -1,9 +1,8 @@
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { Toaster } from "@/components/toaster";
+import { inter, serif } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,17 +19,17 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#06070A" },
-    { media: "(prefers-color-scheme: light)", color: "#F6F7F9" },
+    { media: "(prefers-color-scheme: dark)", color: "#171411" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F4EE" },
   ],
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const pref = (await cookies()).get("ag-theme")?.value ?? "dark";
+  const pref = (await cookies()).get("ag-theme")?.value ?? "light";
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  const theme = pref === "light" ? "light" : "dark";
+  const theme = pref === "dark" ? "dark" : "light";
   return (
-    <html lang="es-AR" data-theme={theme} data-theme-pref={pref} className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html lang="es-AR" data-theme={theme} data-theme-pref={pref} className={`${inter.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
         {pref === "system" ? (
           <script

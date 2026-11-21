@@ -105,7 +105,7 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
               <span className={cn("inline-block h-1.5 w-1.5 rounded-full", PRIO[task.priority])} title={`Prioridad P${task.priority}`} />
             ) : null}
             {showProject && (task.projectName || task.clientName) ? (
-              <EntityChip color={task.clientName ? "#22D3EE" : (task.spaceColor ?? "#7C5CFF")}>{task.projectName ?? task.clientName}</EntityChip>
+              <EntityChip color={task.clientName ? "#7A4E7E" : (task.spaceColor ?? "#A9471F")}>{task.projectName ?? task.clientName}</EntityChip>
             ) : null}
             {task.tags?.map((t) => (
               <span key={t.id} className="inline-flex items-center gap-1 text-text-muted">

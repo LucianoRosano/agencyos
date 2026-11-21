@@ -112,7 +112,7 @@ export function PdfPreview({ url, openHref, name }: { url: string; openHref: str
         {state === "loading" ? (
           <div role="status" aria-label="Cargando la vista previa" className="flex flex-col items-center gap-2 text-text-faint">
             <FileText className="size-8 animate-pulse motion-reduce:animate-none" aria-hidden />
-            <span className="font-mono text-[11px] uppercase tracking-[0.16em]">Cargando el PDF…</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.04em]">Cargando el PDF…</span>
           </div>
         ) : null}
         {state === "error" ? (

@@ -44,7 +44,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <PageHeader
         eyebrow="Proyectos y tareas"
         title="Proyectos"
-        accent="#7C5CFF"
+        accent="#A9471F"
         actions={
           ctx.role === "member" ? undefined : (
             <>

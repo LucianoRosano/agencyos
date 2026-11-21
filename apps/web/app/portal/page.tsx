@@ -7,7 +7,7 @@ import { firstName, requirePortalCtx } from "@/lib/session";
 import { SurveyCard } from "./survey-card";
 
 export const metadata = { title: "Inicio" };
-const PORTAL_ACCENT = "#22D3EE";
+const PORTAL_ACCENT = "#7A4E7E";
 
 const DELIVERABLE_TONE = { pending: "neutral", delivered: "accent", approved: "success", changes_requested: "warning" } as const;
 

@@ -16,7 +16,7 @@ import { TaskRow } from "@/components/tasks/task-row";
 import { renderMarkdown } from "@/lib/markdown";
 import { requireCtx } from "@/lib/session";
 
-const ACCENT = "#FBBF24";
+const ACCENT = "#B7791F";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireCtx();
@@ -177,7 +177,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                       </div>
                       {a.topicsMd ? (
                         <details className="mt-2">
-                          <summary className="flex min-h-9 cursor-pointer items-center font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
+                          <summary className="flex min-h-9 cursor-pointer items-center font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                             Temas
                           </summary>
                           <MarkdownView html={renderMarkdown(a.topicsMd)} className="mt-1 text-[14px]" />
@@ -185,7 +185,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                       ) : null}
                       {plan.length ? (
                         <details className="mt-2" open={a.date >= today && planDone < plan.length}>
-                          <summary className="flex min-h-9 cursor-pointer items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
+                          <summary className="flex min-h-9 cursor-pointer items-center gap-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-faint">
                             Plan de estudio · {planDone}/{plan.length}
                           </summary>
                           <ul className="mt-1 overflow-hidden rounded-[var(--radius-card)] border border-border">

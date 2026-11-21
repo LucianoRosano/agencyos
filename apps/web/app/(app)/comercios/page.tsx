@@ -21,7 +21,7 @@ export default async function ShopsAdminPage() {
         eyebrow="SaaS de gestión"
         title="Comercios"
         description="Sistema de gestión para tus clientes con comercio: ventas, stock, pedidos, clientes, estadísticas y reportes automáticos. Cada comercio entra en /comercio con sus usuarios."
-        accent="#34D399"
+        accent="#4F7A52"
         actions={<NewShopSheet clients={clients} />}
       />
       {shops.length ? (

@@ -1,15 +1,15 @@
 /** Fuentes del calendario (M12b). Seguro para el cliente: sin imports de servidor. */
 export const CALENDAR_SOURCES = [
-  { key: "task", label: "Tareas", color: "#60A5FA" },
-  { key: "phase", label: "Etapas", color: "#7C5CFF" },
-  { key: "deliverable", label: "Entregas", color: "#A78BFA" },
-  { key: "assessment", label: "Evaluaciones", color: "#FBBF24" },
-  { key: "receivable", label: "Cobros", color: "#34D399" },
-  { key: "payable", label: "Pagos", color: "#F43F5E" },
+  { key: "task", label: "Tareas", color: "#8C6A4F" },
+  { key: "phase", label: "Etapas", color: "#A9471F" },
+  { key: "deliverable", label: "Entregas", color: "#9C6B5A" },
+  { key: "assessment", label: "Evaluaciones", color: "#B7791F" },
+  { key: "receivable", label: "Cobros", color: "#4F7A52" },
+  { key: "payable", label: "Pagos", color: "#A8321F" },
   { key: "subscription", label: "Suscripciones", color: "#2DD4BF" },
-  { key: "reminder", label: "Vencimientos", color: "#F472B6" },
+  { key: "reminder", label: "Vencimientos", color: "#B4637A" },
   { key: "asset", label: "Activos técnicos", color: "#E879F9" },
-  { key: "crm", label: "CRM", color: "#22D3EE" },
+  { key: "crm", label: "CRM", color: "#7A4E7E" },
 ] as const;
 
 export type CalendarSource = (typeof CALENDAR_SOURCES)[number]["key"];
