@@ -365,6 +365,9 @@ describe("SaaS para comercios", () => {
     expect(st?.rows[1]?.detail).toBe("Efectivo · a cuenta");
     const listed = (await listCustomers(sc)).find((r) => r.c.id === id);
     expect(listed?.owed).toBe("0.00");
+    // Regresión: compras y gastado del cliente (antes las subconsultas comparaban contra su propio id y daban 0)
+    expect(listed).toMatchObject({ purchases: 1, spent: "2000.00" });
+    expect(listed?.lastPurchase).toBe(todayAR());
 
     const c = await cashClose(sc);
     expect(c.onAccount).toBe("2000.00"); // la de 3.000 se anuló

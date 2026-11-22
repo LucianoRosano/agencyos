@@ -600,13 +600,14 @@ export async function updateCustomer(sc: ShopCtx, id: string, raw: unknown) {
 
 export async function listCustomers(sc: ShopCtx, q?: string) {
   const term = q?.trim();
+  // Columnas calificadas a mano: dentro de sql`` Drizzle no antepone la tabla y «id» se resolvería contra la subconsulta.
   return getDb()
     .select({
       c: schema.shopCustomer,
-      spent: sql<string>`(select coalesce(sum(total),0)::text from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
-      purchases: sql<number>`(select count(*)::int from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
-      lastPurchase: sql<string | null>`(select max(day)::text from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
-      owed: sql<string>`((select coalesce(sum(total),0) from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed' and v.payment_method = 'account') - (select coalesce(sum(amount),0) from shop_customer_payment p where p.customer_id = ${schema.shopCustomer.id}))::numeric(14,2)::text`,
+      spent: sql<string>`(select coalesce(sum(total),0)::text from shop_sale v where v.customer_id = shop_customer.id and v.status = 'completed')`,
+      purchases: sql<number>`(select count(*)::int from shop_sale v where v.customer_id = shop_customer.id and v.status = 'completed')`,
+      lastPurchase: sql<string | null>`(select max(day)::text from shop_sale v where v.customer_id = shop_customer.id and v.status = 'completed')`,
+      owed: sql<string>`((select coalesce(sum(total),0) from shop_sale v where v.customer_id = shop_customer.id and v.status = 'completed' and v.payment_method = 'account') - (select coalesce(sum(amount),0) from shop_customer_payment p where p.customer_id = shop_customer.id))::numeric(14,2)::text`,
     })
     .from(schema.shopCustomer)
     .where(
