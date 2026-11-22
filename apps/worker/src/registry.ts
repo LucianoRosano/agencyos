@@ -1,7 +1,7 @@
 import { processAgentRuns } from "@agencyos/modules/ai/jobs";
 import { automationsTick } from "@agencyos/modules/automations/jobs";
-import { refreshFxRates } from "@agencyos/modules/fx/service";
 import { indexPending } from "@agencyos/modules/brain/knowledge";
+import { refreshFxRates } from "@agencyos/modules/fx/service";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
 import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";

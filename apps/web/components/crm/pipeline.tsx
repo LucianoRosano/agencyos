@@ -156,7 +156,7 @@ export function PipelineView({
               {inner}
             </a>
           ) : (
-            <span key={stage} className={cn(cls, "opacity-60")}>
+            <span key={stage} className={cn(cls, "border-dashed bg-transparent")}>
               {inner}
             </span>
           );
