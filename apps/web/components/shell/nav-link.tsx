@@ -32,8 +32,12 @@ export function NavLink({
         active ? "bg-surface-2 text-text" : "text-text-muted hover:bg-surface hover:text-text",
       )}
     >
-      {active ? <span aria-hidden className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full bg-[image:var(--gradient)]" /> : null}
-      <span className={cn("[&>svg]:size-[18px] [&>svg]:stroke-[1.75]", active ? "text-accent" : "")}>{icon}</span>
+      {active ? <span aria-hidden className="grow-y absolute top-2 bottom-2 left-0 w-0.5 rounded-full bg-[image:var(--gradient)]" /> : null}
+      <span
+        className={cn("[&>svg]:size-[18px] [&>svg]:stroke-[1.75] transition-transform duration-200 group-hover:translate-x-px", active ? "text-accent" : "")}
+      >
+        {icon}
+      </span>
       <span className="flex-1 truncate">{label}</span>
       {count ? <span className={cn("font-mono text-[12px] text-text-faint", go && "group-hover:hidden group-focus-visible:hidden")}>{count}</span> : null}
       {go ? <ShortcutHint keys={["G", go]} /> : null}
@@ -48,9 +52,20 @@ export function BottomLink({ href, icon, label, match }: { href: string; icon: R
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px]", active ? "text-text" : "text-text-muted")}
+      className={cn(
+        "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] transition-transform active:scale-95",
+        active ? "font-medium text-text" : "text-text-muted",
+      )}
     >
-      <span className={cn("[&>svg]:size-[22px] [&>svg]:stroke-[1.75]", active ? "text-accent" : "")}>{icon}</span>
+      <span
+        key={active ? "on" : "off"}
+        className={cn(
+          "grid h-7 w-12 place-items-center rounded-full transition-colors duration-300 [&>svg]:size-[22px] [&>svg]:stroke-[1.75]",
+          active ? "tab-pop bg-accent-soft text-accent" : "",
+        )}
+      >
+        {icon}
+      </span>
       {label}
     </Link>
   );

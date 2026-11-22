@@ -47,7 +47,7 @@ export async function ProjectNotesTab({ ctx, projectId, full, noteId }: P & { no
         <li key={n.id}>
           <Link
             href={full ? `/notas/${n.id}` : `/proyectos/${projectId}/notas/${n.id}`}
-            className="flex min-h-11 flex-col gap-1.5 rounded-[12px] border border-border bg-surface p-4 transition-colors hover:border-border-strong"
+            className="lift flex min-h-11 flex-col gap-1.5 rounded-[12px] border border-border bg-surface p-4 hover:border-border-strong"
           >
             <span className="flex items-center gap-2 text-[15px] font-medium text-text">
               <FileText className="size-4 shrink-0 text-text-muted" />

@@ -8,8 +8,9 @@
 [data-theme="light"] {
   color-scheme: light;
   --bg: #f7f4ee;
-  --bg-elevated: #ffffff;
-  --surface: #ffffff;
+  /* Superficies apenas cálidas (no blanco puro): menos brillo sobre el marfil, más descanso para la vista. */
+  --bg-elevated: #fffdf9;
+  --surface: #fffdf9;
   --surface-2: #f2eee6;
   --surface-3: #e9e3d8;
   --border: rgba(41, 32, 22, 0.12);
@@ -33,7 +34,9 @@
   --grid-dot: transparent;
   --glow: 0 0 0 2px rgba(169, 71, 31, 0.28);
   --shadow-card: 0 1px 2px rgba(41, 32, 22, 0.05);
+  --shadow-lift: 0 1px 2px rgba(41, 32, 22, 0.05), 0 8px 20px -12px rgba(41, 32, 22, 0.22);
   --shadow-pop: 0 12px 32px -14px rgba(41, 32, 22, 0.28);
+  --overlay: rgba(31, 26, 21, 0.32);
 }
 
 [data-theme="dark"] {
@@ -45,7 +48,7 @@
   --surface-3: #342d26;
   --border: rgba(255, 240, 220, 0.09);
   --border-strong: rgba(255, 240, 220, 0.18);
-  --text: #eee7dd;
+  --text: #e6ded2; /* un punto menos que el blanco cálido: lectura larga sin encandilar (13,8:1) */
   --text-muted: #aba194;
   --text-faint: #a0968a;
   --accent: #d9784f;
@@ -64,7 +67,9 @@
   --grid-dot: transparent;
   --glow: 0 0 0 2px rgba(217, 120, 79, 0.35);
   --shadow-card: none;
+  --shadow-lift: 0 8px 22px -14px rgba(0, 0, 0, 0.7);
   --shadow-pop: 0 12px 32px -12px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(8, 6, 4, 0.55);
 }
 
 :root {
@@ -73,4 +78,12 @@
   --radius-control: 8px;
   --radius-card: 12px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Movimiento (docs/07 §3): salidas rápidas, entradas suaves, nada rebota de más. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
 }

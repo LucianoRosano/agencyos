@@ -1,6 +1,7 @@
 import { shopMemberships } from "@agencyos/modules/shop/service";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NavProgress } from "@/components/shell/nav-progress";
 import { ShopNav, ShopSignOut, ShopSwitcher } from "@/components/shop/shop-ui";
 import { requireShopCtx } from "@/lib/session";
 
@@ -38,6 +39,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
           </div>
         </div>
       </header>
+      <NavProgress />
       <main id="contenido" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-16 md:px-6 md:pt-8">
         {children}
       </main>

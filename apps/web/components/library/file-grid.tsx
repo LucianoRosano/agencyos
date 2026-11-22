@@ -49,7 +49,7 @@ export function FileGrid({ files, folders = [], mode }: { files: FileListItem[];
         <li key={d.id}>
           <Link
             href={d.href}
-            className="flex h-full min-h-20 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 transition-colors hover:border-border-strong"
+            className="lift flex h-full min-h-20 items-center gap-3 rounded-[var(--radius-card)] border border-border bg-surface p-3 hover:border-border-strong"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#C2703D]/10 text-[#C2703D]">
               <Folder className="size-5" aria-hidden />
@@ -66,7 +66,7 @@ export function FileGrid({ files, folders = [], mode }: { files: FileListItem[];
           <Link
             href={`/biblioteca/archivo/${f.id}`}
             data-file={f.name}
-            className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition-colors hover:border-border-strong"
+            className="lift group flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface hover:border-border-strong"
           >
             <FileThumb thumbUrl={thumbUrl} kind={f.kind} name={f.name} className="aspect-[4/3] w-full border-b border-border p-2" />
             <span className="flex min-w-0 flex-1 flex-col gap-1 p-3">

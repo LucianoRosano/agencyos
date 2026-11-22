@@ -4,6 +4,18 @@ import { Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { setThemeAction } from "@/app/actions/shell";
 
+/** Cambia el tema con un fundido corto de toda la pantalla (View Transitions); sin soporte o con movimiento reducido, al instante. */
+export function switchTheme(next: "light" | "dark") {
+  const root = document.documentElement;
+  const apply = () => {
+    root.dataset.theme = next;
+  };
+  const vt = (document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } }).startViewTransition;
+  if (!vt || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return apply();
+  root.classList.add("theme-fade");
+  vt.call(document, apply).finished.finally(() => root.classList.remove("theme-fade"));
+}
+
 export function ThemeToggle({ current }: { current: string }) {
   const router = useRouter();
   const isDark = current !== "light";
@@ -14,7 +26,7 @@ export function ThemeToggle({ current }: { current: string }) {
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       onClick={async () => {
         const next = isDark ? "light" : "dark";
-        document.documentElement.dataset.theme = next;
+        switchTheme(next);
         await setThemeAction(next);
         router.refresh();
       }}

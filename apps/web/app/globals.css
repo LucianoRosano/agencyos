@@ -41,6 +41,14 @@ html {
   color: var(--text);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  /* Barras de scroll finas en tonos de la paleta; sin saltos de ancho al abrir modales. */
+  scrollbar-color: var(--surface-3) transparent;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+::selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text);
 }
 body {
   min-height: 100dvh;
@@ -96,16 +104,17 @@ samp,
   color: var(--accent-text);
 }
 .skeleton {
-  animation: shimmer 1.6s ease-in-out infinite;
+  /* Pulso lento y de poca amplitud: indica carga sin parpadear. */
+  animation: shimmer 2.2s var(--ease-in-out) infinite;
   animation-delay: 150ms;
 }
 @keyframes shimmer {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.6;
   }
   50% {
-    opacity: 1;
+    opacity: 0.95;
   }
 }
 .glow-active {
@@ -198,28 +207,6 @@ samp,
     opacity: 1;
   }
 }
-@keyframes sheetIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@media (min-width: 768px) {
-  @keyframes sheetIn {
-    from {
-      opacity: 0;
-      transform: translate(-50%, 8px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-  }
-}
 .prose-ag li:has(> input[type="checkbox"]) {
   list-style: none;
   margin-left: -1.3em;
@@ -248,10 +235,10 @@ samp,
   animation: none;
 }
 ::view-transition-old(.ag-page-exit) {
-  animation: 90ms ease-in both fadeOut;
+  animation: 110ms var(--ease-in) both fadeOut;
 }
 ::view-transition-new(.ag-page-enter) {
-  animation: 180ms var(--ease) 40ms both pageIn;
+  animation: 280ms var(--ease-out) 30ms both pageIn;
 }
 @keyframes fadeOut {
   to {
@@ -261,7 +248,7 @@ samp,
 @keyframes pageIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -273,5 +260,348 @@ samp,
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+/* ───────────────────────── Movimiento (novena vuelta) ─────────────────────────
+ * Todo lo interactivo cambia de color, borde y sombra con suavidad por defecto (las utilidades de Tailwind lo pisan
+ * cuando hace falta). Entradas con --ease-out, salidas más cortas. Con prefers-reduced-motion todo queda instantáneo.
+ */
+@layer base {
+  a,
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="radio"],
+  [role="menuitem"],
+  [role="option"],
+  summary,
+  label,
+  input,
+  select,
+  textarea {
+    transition-property: color, background-color, border-color, box-shadow, opacity, text-decoration-color, outline-color;
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-out);
+  }
+  :focus-visible {
+    transition: outline-offset 120ms var(--ease-out);
+  }
+}
+
+/* Tarjetas que se pueden abrir: se levantan apenas al pasar el mouse (solo con puntero fino). */
+@media (hover: hover) and (pointer: fine) {
+  .lift {
+    transition:
+      transform 220ms var(--ease-out),
+      box-shadow 220ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out);
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+  .lift:active {
+    transform: translateY(0);
+    transition-duration: 80ms;
+  }
+}
+
+/* Aparición escalonada de listas y grillas: cada elemento sube 6 px y aparece; los primeros 10 en cascada. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stagger > * {
+  animation: rise 360ms var(--ease-out) both;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 30ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 60ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 90ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 150ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 170ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 190ms;
+}
+.stagger > *:nth-child(9) {
+  animation-delay: 210ms;
+}
+.stagger > *:nth-child(n + 10) {
+  animation-delay: 230ms;
+}
+.rise {
+  animation: rise 360ms var(--ease-out) both;
+}
+
+/* Hojas y modales (Radix): entran y salen. Celular: sube desde abajo. Desktop: aparece con un leve zoom. */
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheetDown {
+  from {
+    transform: translateY(var(--drag, 0px));
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+/* El centrado horizontal lo hace la propiedad `translate` (Tailwind 4); acá solo se anima `transform`. */
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dialogOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+.ag-overlay[data-state="open"] {
+  animation: overlayIn 240ms var(--ease-out);
+}
+.ag-overlay[data-state="closed"] {
+  animation: overlayOut 180ms var(--ease-in) forwards;
+}
+.ag-sheet[data-state="open"] {
+  animation: sheetUp 380ms var(--ease-out);
+}
+.ag-sheet[data-state="closed"] {
+  animation: sheetDown 220ms var(--ease-in) forwards;
+}
+@media (min-width: 768px) {
+  .ag-sheet[data-state="open"] {
+    animation: dialogIn 260ms var(--ease-out);
+  }
+  .ag-sheet[data-state="closed"] {
+    animation: dialogOut 150ms var(--ease-in) forwards;
+  }
+}
+
+/* Paleta Ctrl+K: aparece desde arriba con un leve zoom (en el celular ocupa la pantalla y solo se funde). */
+.ag-palette {
+  animation: overlayIn 200ms var(--ease-out);
+}
+@media (min-width: 768px) {
+  .ag-palette {
+    animation: dialogIn 240ms var(--ease-out);
+  }
+}
+
+/* Menús desplegables: crecen desde su botón. */
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes menuOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+.ag-menu {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, top);
+}
+.ag-menu[data-state="open"] {
+  animation: menuIn 180ms var(--ease-out);
+}
+.ag-menu[data-state="closed"] {
+  animation: menuOut 120ms var(--ease-in) forwards;
+}
+
+/* Barra de progreso al navegar (components/shell/nav-progress.tsx). */
+.ag-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 70;
+  pointer-events: none;
+  transform-origin: left;
+  background: var(--accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.ag-progress[data-state="loading"] {
+  animation: progressGrow 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+}
+.ag-progress[data-state="done"] {
+  transform: scaleX(1);
+  opacity: 0;
+  transition:
+    transform 160ms var(--ease-out),
+    opacity 320ms var(--ease-out) 140ms;
+}
+@keyframes progressGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}
+
+/* Completar algo: el tilde «salta» y el texto se tacha de izquierda a derecha. */
+@keyframes checkPop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.check-pop {
+  animation: checkPop 320ms var(--ease-spring);
+}
+.strike-anim {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 100% 1px;
+  animation: strike 360ms var(--ease-out) both;
+}
+@keyframes strike {
+  from {
+    background-size: 0 1px;
+  }
+  to {
+    background-size: 100% 1px;
+  }
+}
+
+/* Barras de avance: se llenan desde la izquierda al aparecer. */
+@keyframes barIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.bar-in {
+  transform-origin: left;
+  animation: barIn 800ms var(--ease-out) 120ms both;
+}
+
+@keyframes barUp {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.bar-up {
+  transform-origin: bottom;
+  animation: barUp 700ms var(--ease-out) 100ms both;
+}
+
+/* Anillo que se expande al completar una tarea. */
+@keyframes checkRing {
+  from {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+.check-ring {
+  animation: checkRing 520ms var(--ease-out) forwards;
+}
+
+/* Indicador del ítem activo del menú lateral: crece al aparecer. */
+@keyframes growY {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.grow-y {
+  animation: growY 260ms var(--ease-out) both;
+}
+/* Ícono activo de la barra inferior: un pequeño salto. */
+.tab-pop {
+  animation: checkPop 300ms var(--ease-spring);
+}
+
+/* Cambio de tema: fundido corto de toda la página (solo en el momento del cambio). */
+html.theme-fade::view-transition-old(root) {
+  animation: 260ms var(--ease-in-out) both fadeOut;
+}
+html.theme-fade::view-transition-new(root) {
+  animation: 260ms var(--ease-in-out) both overlayIn;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lift:hover {
+    transform: none;
+  }
+  .ag-progress {
+    display: none;
   }
 }

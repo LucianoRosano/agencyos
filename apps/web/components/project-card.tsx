@@ -24,7 +24,7 @@ export function ProjectCard({ p }: { p: ProjectCardData }) {
     <Link
       href={`/proyectos/${p.id}`}
       className={cn(
-        "group flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5",
+        "lift group flex min-h-40 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 hover:border-border-strong md:p-5",
         dim && "border-dashed bg-transparent [&_h3]:text-text-muted",
       )}
     >

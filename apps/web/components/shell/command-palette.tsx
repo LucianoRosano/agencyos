@@ -74,11 +74,17 @@ export function CommandPalette({ enabledModules, role, initialOpen = false }: { 
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Paleta de comandos">
-      <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+      <button
+        type="button"
+        aria-label="Cerrar"
+        data-state="open"
+        className="ag-overlay absolute inset-0 bg-[var(--overlay)] backdrop-blur-[3px]"
+        onClick={() => setOpen(false)}
+      />
       <Command
         label="Paleta de comandos"
         shouldFilter={false}
-        className="absolute inset-x-0 top-0 flex h-dvh flex-col overflow-hidden border-border bg-surface md:inset-x-auto md:top-[12vh] md:left-1/2 md:h-auto md:max-h-[70vh] md:w-full md:max-w-2xl md:-translate-x-1/2 md:rounded-[var(--radius-card)] md:border md:shadow-[var(--shadow-pop)]"
+        className="ag-palette absolute inset-x-0 top-0 flex h-dvh flex-col overflow-hidden border-border bg-surface md:inset-x-auto md:top-[12vh] md:left-1/2 md:h-auto md:max-h-[70vh] md:w-full md:max-w-2xl md:-translate-x-1/2 md:rounded-[var(--radius-card)] md:border md:shadow-[var(--shadow-pop)]"
         onKeyDown={(e) => {
           if (e.key === "Escape") setOpen(false);
         }}

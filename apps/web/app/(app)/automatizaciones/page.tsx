@@ -107,7 +107,7 @@ export default async function AutomationsPage() {
             <li key={t.key}>
               <Link
                 href={`/automatizaciones/nueva?plantilla=${t.key}`}
-                className="flex h-full flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-2"
+                className="lift flex h-full flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-4 hover:border-border-strong hover:bg-surface-2"
               >
                 <span className="flex items-start justify-between gap-2">
                   <span className="text-[14px] font-medium text-text">{t.name}</span>

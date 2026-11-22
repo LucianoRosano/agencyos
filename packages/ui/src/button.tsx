@@ -6,7 +6,7 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-on-accent hover:bg-accent-hover shadow-[var(--shadow-card)]",
+  primary: "bg-accent text-on-accent hover:bg-accent-hover shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-lift)]",
   secondary: "bg-surface-2 text-text border border-border hover:bg-surface-3",
   outline: "bg-transparent text-text border border-border hover:bg-surface-2",
   ghost: "bg-transparent text-text-muted hover:text-text hover:bg-surface-2",
@@ -29,7 +29,8 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function buttonClass(variant: Variant = "secondary", size: Size = "md", extra?: string) {
   return cn(
     "inline-flex items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] font-medium select-none",
-    "transition-[background-color,filter,opacity,transform] duration-150 active:scale-[0.98]",
+    // Color y borde con suavidad; al presionar se hunde apenas y vuelve con un rebote mínimo.
+    "transition-[background-color,border-color,color,box-shadow,opacity,transform] duration-200 ease-[var(--ease-out)] active:scale-[0.97] active:duration-75",
     "disabled:opacity-50 disabled:pointer-events-none",
     variants[variant],
     sizes[size],

@@ -27,8 +27,8 @@ export function BarPairs({
         {data.map((d) => (
           <div key={d.label} className="flex min-w-0 flex-col items-center gap-2">
             <div className="flex h-24 w-full items-end justify-center gap-[3px] border-b border-border md:h-28">
-              <span className="block w-full max-w-4 rounded-t-[3px] bg-success/85" style={{ height: pct(d.a) }} />
-              <span className="block w-full max-w-4 rounded-t-[3px] bg-accent/75" style={{ height: pct(d.b) }} />
+              <span className="bar-up block w-full max-w-4 rounded-t-[3px] bg-success/85" style={{ height: pct(d.a) }} />
+              <span className="bar-up block w-full max-w-4 rounded-t-[3px] bg-accent/75" style={{ height: pct(d.b) }} />
             </div>
             <span className="truncate font-mono text-[11px] uppercase tracking-[0.08em] text-text-faint">{d.label}</span>
           </div>
@@ -69,7 +69,7 @@ export function HBars({
         <li key={d.label} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 text-[13px]">
           <span className="truncate text-text-muted">{d.label}</span>
           <span className="h-2 overflow-hidden rounded-full bg-surface-3">
-            <span className="block h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: color }} />
+            <span className="bar-in block h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: color }} />
           </span>
           <span className="font-mono tabular-nums text-text">{d.display}</span>
         </li>

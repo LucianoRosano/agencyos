@@ -15,7 +15,7 @@ export function SiteGrid({ rows }: { rows: Row[] }) {
         <li key={s.id}>
           <Link
             href={`/sitios/${s.id}`}
-            className="group flex h-full min-h-44 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 transition-colors hover:border-border-strong md:p-5"
+            className="lift group flex h-full min-h-44 flex-col rounded-[var(--radius-card)] border border-border bg-bg-elevated p-4 hover:border-border-strong md:p-5"
           >
             <div className="flex items-start justify-between gap-2">
               <h2 className="min-w-0 text-[16px] font-medium text-text">{s.name}</h2>

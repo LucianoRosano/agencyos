@@ -18,7 +18,7 @@ export function EmptyState({
   compact?: boolean;
 }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center text-center", compact ? "gap-2 py-6" : "gap-3 py-12", className)}>
+    <div className={cn("rise flex flex-col items-center justify-center text-center", compact ? "gap-2 py-6" : "gap-3 py-12", className)}>
       {icon ? (
         <div
           className={cn("grid place-items-center rounded-xl border border-border bg-surface-2 text-text-muted [&>svg]:size-5", compact ? "size-10" : "size-12")}

@@ -22,11 +22,7 @@ export function RadixMenu({
     <M.Root open={open} onOpenChange={onOpenChange}>
       <M.Trigger asChild>{trigger}</M.Trigger>
       <M.Portal>
-        <M.Content
-          align={align}
-          sideOffset={6}
-          className="z-50 min-w-48 rounded-[10px] border border-border bg-surface p-1 shadow-[var(--shadow-pop)] data-[state=open]:animate-[fadeIn_120ms_ease-out]"
-        >
+        <M.Content align={align} sideOffset={6} className="ag-menu z-50 min-w-48 rounded-[10px] border border-border bg-surface p-1 shadow-[var(--shadow-pop)]">
           {children}
         </M.Content>
       </M.Portal>

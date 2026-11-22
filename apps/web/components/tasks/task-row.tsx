@@ -69,7 +69,9 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
         {dx > 0 ? "Completar" : dx < 0 ? "Posponer" : ""}
       </div>
       <div
-        className={cn("relative flex min-h-14 items-center gap-3 border-b border-border bg-surface px-3 py-2.5 transition-transform")}
+        className={cn(
+          "relative flex min-h-14 items-center gap-3 border-b border-border bg-surface px-3 py-2.5 transition-transform duration-300 ease-[var(--ease-out)]",
+        )}
         style={{ transform: `translateX(${dx}px)`, transition: start.current ? "none" : undefined, touchAction: "pan-y" }}
         onPointerDown={(e) => {
           if (e.pointerType !== "touch") return;
@@ -99,7 +101,14 @@ export function TaskRow({ task, showProject = true }: { task: TaskRowData; showP
       >
         <TaskCheck done={done} onToggle={complete} label={done ? `Reabrir «${task.title}»` : `Completar «${task.title}»`} />
         <Link href={`/tareas/${task.id}`} className="min-w-0 flex-1">
-          <span className={cn("block truncate text-[15px]", done ? "text-text-faint line-through" : "text-text")}>{task.title}</span>
+          <span
+            className={cn(
+              "block truncate text-[15px] decoration-text-faint/70 transition-[color,text-decoration-color] duration-300",
+              done ? "text-text-faint line-through" : "text-text",
+            )}
+          >
+            {task.title}
+          </span>
           <span className="mt-1 flex flex-wrap items-center gap-2 text-[12px]">
             {task.priority <= 2 ? (
               <span className={cn("inline-block h-1.5 w-1.5 rounded-full", PRIO[task.priority])} title={`Prioridad P${task.priority}`} />

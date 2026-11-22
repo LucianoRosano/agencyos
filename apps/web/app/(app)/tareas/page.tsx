@@ -96,7 +96,7 @@ export default async function TareasPage({ searchParams }: { searchParams: Promi
         <TaskBoard tasks={tasks} />
       ) : tasks.length ? (
         <>
-          <ul className="overflow-hidden rounded-[var(--radius-card)] border border-border">
+          <ul className="stagger overflow-hidden rounded-[var(--radius-card)] border border-border">
             {tasks.map((t) => (
               <TaskRow key={t.id} task={t} />
             ))}

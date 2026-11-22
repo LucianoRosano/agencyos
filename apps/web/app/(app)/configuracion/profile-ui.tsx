@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { setThemeAction } from "@/app/actions/shell";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { TextField } from "@/components/fields";
+import { switchTheme } from "@/components/shell/theme-toggle";
 import { saveProfileAction } from "./actions";
 
 export function ProfileForm({ name, email }: { name: string; email: string }) {
@@ -34,6 +35,8 @@ export function ThemePicker({ current }: { current: string }) {
           role="radio"
           aria-checked={current === o.v}
           onClick={async () => {
+            const next = o.v === "system" ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : o.v;
+            if (document.documentElement.dataset.theme !== next) switchTheme(next);
             await setThemeAction(o.v);
             router.refresh();
           }}

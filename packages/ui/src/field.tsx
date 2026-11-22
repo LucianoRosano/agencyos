@@ -3,7 +3,8 @@ import { cn } from "./lib/cn";
 
 const control =
   "w-full rounded-[var(--radius-control)] border border-border bg-bg-elevated px-3 text-base md:text-sm text-text placeholder:text-text-faint " +
-  "transition-colors focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 disabled:opacity-60 aria-[invalid=true]:border-danger";
+  "transition-[border-color,box-shadow,background-color] duration-200 ease-[var(--ease-out)] hover:border-border-strong " +
+  "focus:outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/20 disabled:opacity-60 aria-[invalid=true]:border-danger";
 
 /** React 19: `ref` llega como prop y se pasa al input (foco desde el padre, p. ej. el punto de venta). */
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
@@ -47,7 +48,7 @@ export function Field({
       </label>
       {children}
       {error ? (
-        <p id={name ? `${name}-error` : undefined} className="text-[13px] text-danger" role="alert">
+        <p id={name ? `${name}-error` : undefined} className="rise text-[13px] text-danger" role="alert">
           {error}
         </p>
       ) : hint ? (

@@ -76,7 +76,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       </form>
       <ListToolbar ctx={ctx} module="proyectos" basePath="/proyectos" sp={sp} />
       {rows.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ p, clientName, spaceName, spaceColor }) => (
             <ProjectCard
               key={p.id}

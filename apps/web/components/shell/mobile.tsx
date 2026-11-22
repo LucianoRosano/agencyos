@@ -97,7 +97,7 @@ export function BottomNav({ data }: { data: ShellData }) {
             type="button"
             onClick={openCapture}
             aria-label="Capturar"
-            className="-mt-7 mb-2 grid size-16 place-items-center rounded-[20px] bg-[image:var(--gradient)] text-on-accent shadow-[var(--shadow-pop)] ring-4 ring-bg active:scale-95"
+            className="-mt-7 mb-2 grid size-16 place-items-center rounded-[20px] bg-[image:var(--gradient)] text-on-accent shadow-[var(--shadow-pop)] ring-4 ring-bg transition-transform duration-300 ease-[var(--ease-spring)] active:scale-90 active:duration-100 [&>svg]:transition-transform [&>svg]:duration-300 active:[&>svg]:rotate-90"
           >
             <Plus className="size-7" strokeWidth={2} />
           </button>
