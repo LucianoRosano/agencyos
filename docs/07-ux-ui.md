@@ -57,6 +57,11 @@ Cada módulo tiene un **acento** propio dentro de la paleta. Se usa en el icono 
 - **Paleta de comandos:** resultados agrupados, previsualización a la derecha en desktop, acciones con atajos visibles.
 - **Gráficos:** SVG propios; ejes y leyendas en Inter con cifras tabulares; tooltips accesibles; siempre con tabla alternativa ("Ver datos").
 
+### 3.1 Movimiento (ADR 0018)
+Entradas suaves y salidas rápidas con los tokens `--ease-*` y `--dur-*`; hojas que suben y se cierran arrastrando en el
+celular; menús desde su botón; barra de progreso al navegar; listas en cascada (`stagger`); tarjetas que se levantan
+(`lift`); completar una tarea con tilde que salta. Todo en CSS, sin librerías; con movimiento reducido, instantáneo.
+
 ## 4. Pantallas clave (dirección)
 
 - **Hoy:** idéntico en espíritu a `AGENCYOS-vista-hoy-desktop.png` y `-celular.png`.
