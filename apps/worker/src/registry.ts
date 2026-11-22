@@ -1,5 +1,6 @@
 import { processAgentRuns } from "@agencyos/modules/ai/jobs";
 import { automationsTick } from "@agencyos/modules/automations/jobs";
+import { refreshFxRates } from "@agencyos/modules/fx/service";
 import { indexPending } from "@agencyos/modules/brain/knowledge";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
@@ -29,6 +30,8 @@ export const JOBS: Job[] = [
   // SaaS para comercios: reporte semanal de cada comercio (lunes 7:10).
   { name: "shop-weekly-reports", cron: "10 7 * * 1", run: () => generateWeeklyReports() },
   { name: "retainers-issue", cron: "5 6 * * *", run: () => issueDueRetainers() },
+  // Cotización del dólar (DolarAPI, pública y gratis): durante el horario del mercado y una vez a la noche.
+  { name: "fx-rates", cron: "20 10,13,16,19,23 * * *", run: () => refreshFxRates() },
   { name: "library-orphans", cron: "45 4 * * *", run: () => cleanupOrphanFiles() },
   { name: "monitoring-uptime", cron: "*/5 * * * *", run: () => runUptimeChecks(), quiet: true },
   { name: "monitoring-daily", cron: "15 6 * * *", run: () => runDailyMonitoring() },

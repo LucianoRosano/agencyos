@@ -185,14 +185,7 @@ function IncomeExpenseForm({
         <SelectField label="Cliente" name="clientId" defaultValue={v(defaults?.clientId)} placeholder="Sin cliente" options={options.clients} />
         <SelectField label="Proyecto" name="projectId" defaultValue={v(defaults?.projectId)} placeholder="Sin proyecto" options={options.projects} />
         <TextField label={kind === "income" ? "Quién pagó" : "A quién"} name="counterpart" defaultValue={v(defaults?.counterpart)} maxLength={160} />
-        <TextField
-          label="Cotización (opcional)"
-          name="exchangeRate"
-          inputMode="decimal"
-          placeholder="ARS por US$ 1"
-          defaultValue={v(defaults?.exchangeRate)}
-          hint="Pesos por dólar. Solo se usa para convertir en reportes."
-        />
+        <RateField defaultValue={v(defaults?.exchangeRate)} fx={options.fx ?? []} />
       </div>
       <TextField
         label="Descripción"
@@ -282,5 +275,40 @@ function TransferForm({ options, defaultAccountId, onDone }: { options: FormOpti
         <SubmitButton>Registrar transferencia</SubmitButton>
       </div>
     </ActionForm>
+  );
+}
+
+/** Cotización del movimiento: se escribe o se elige la del día (oficial, MEP, blue) con un toque. */
+function RateField({ defaultValue, fx }: { defaultValue: string; fx: { label: string; sell: string }[] }) {
+  const [value, setValue] = useState(defaultValue);
+  return (
+    <TextField
+      label="Cotización (opcional)"
+      name="exchangeRate"
+      inputMode="decimal"
+      placeholder="ARS por US$ 1"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      hint={
+        fx.length ? (
+          <span className="flex flex-wrap items-center gap-1.5">
+            Usar la de hoy:
+            {fx.map((r) => (
+              <button
+                key={r.label}
+                type="button"
+                onClick={() => setValue(r.sell)}
+                aria-label={`Usar dólar ${r.label}: ${r.sell}`}
+                className="inline-flex min-h-8 items-center rounded-full border border-border px-2.5 text-[12px] text-text hover:bg-surface-2"
+              >
+                {r.label} {Number(r.sell).toLocaleString("es-AR")}
+              </button>
+            ))}
+          </span>
+        ) : (
+          "Pesos por dólar. Solo se usa para convertir en reportes."
+        )
+      }
+    />
   );
 }

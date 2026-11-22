@@ -273,7 +273,26 @@ export function QuoteEditor({
             label="Tipo de cambio de referencia (opcional)"
             name="exchangeRateRef"
             error={errors.exchangeRateRef}
-            hint="Pesos por dólar. Solo informativo."
+            hint={
+              options.fx?.length ? (
+                <span className="flex flex-wrap items-center gap-1.5">
+                  Pesos por dólar, solo informativo. Usar la de hoy:
+                  {options.fx.map((r) => (
+                    <button
+                      key={r.label}
+                      type="button"
+                      onClick={() => set("exchangeRateRef", r.sell)}
+                      aria-label={`Usar dólar ${r.label}: ${r.sell}`}
+                      className="inline-flex min-h-8 items-center rounded-full border border-border px-2.5 text-[12px] text-text hover:bg-surface-2"
+                    >
+                      {r.label} {Number(r.sell).toLocaleString("es-AR")}
+                    </button>
+                  ))}
+                </span>
+              ) : (
+                "Pesos por dólar. Solo informativo."
+              )
+            }
             className="sm:col-span-2"
           >
             <Input

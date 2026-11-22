@@ -1,10 +1,12 @@
 import { diffDays, dowShort, formatMoney, L, label, monthName } from "@agencyos/core";
 import { tagsUsedOn } from "@agencyos/modules/collab/service";
 import { financeOverview } from "@agencyos/modules/finance/queries";
+import { latestFxRates } from "@agencyos/modules/fx/service";
 import { BarPairs, BlockCard, Button, Card, cn, EmptyState, SectionLabel } from "@agencyos/ui";
 import { ArrowRight, CalendarClock, ChartColumn, HandCoins, Landmark, Repeat, Wallet } from "lucide-react";
 import Link from "next/link";
 import { FinanceHeader, NoFinanceAccess } from "@/components/finance/finance-header";
+import { FxStrip } from "@/components/finance/fx-strip";
 import { financePage, qs, type SP } from "@/components/finance/server";
 import { MoneyLines } from "@/components/finance/shared";
 
@@ -37,11 +39,14 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   if (!f.allowed) return <NoFinanceAccess />;
   const tags = await tagsUsedOn(f.ctx, "transaction");
   const tag = tags.find((t) => t.id === sp.etiqueta);
-  const o = await financeOverview(f.ctx, {
-    ledgerId: f.ledgerId,
-    includeReceivables: f.showReceivables,
-    tagId: tag?.id,
-  });
+  const [o, fx] = await Promise.all([
+    financeOverview(f.ctx, {
+      ledgerId: f.ledgerId,
+      includeReceivables: f.showReceivables,
+      tagId: tag?.id,
+    }),
+    latestFxRates().catch(() => []),
+  ]);
   const mes = monthName(Number(o.month.slice(5, 7)));
   const suffix = tag ? ` · #${tag.name}` : "";
   const empty = !o.accounts.length && !o.upcoming.length && !o.receivable.length && !o.payable.length && !o.chart.length && !o.monthlyCost.count;
@@ -49,6 +54,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-6xl">
       <FinanceHeader active="resumen" title="Resumen" ledgers={f.ledgers} ledgerId={f.ledgerId} />
+      <FxStrip rates={fx} />
       {empty ? (
         <Card>
           <EmptyState

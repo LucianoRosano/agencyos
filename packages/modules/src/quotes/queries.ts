@@ -2,6 +2,7 @@ import { addDays, type Ctx, can, formatDate, formatMoney, L, label, todayAR } fr
 import { schema } from "@agencyos/db";
 import type { WorkspaceSettings } from "@agencyos/db/schema";
 import { and, asc, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
+import { latestFxRates } from "../fx/service";
 import { getDb, scoped } from "../shared/db";
 import { calcQuote, discountAmount, type PaymentPlan, paymentSchedule } from "./calc";
 
@@ -148,7 +149,7 @@ export type QuoteDetail = NonNullable<Awaited<ReturnType<typeof getQuote>>>;
 /** Opciones del editor: clientes, contactos (con sus clientes), oportunidades abiertas, servicios activos y plantilla por defecto. */
 export async function editorOptions(ctx: Ctx) {
   const db = getDb();
-  const [clients, contacts, links, opportunities, services, templates] = await Promise.all([
+  const [clients, contacts, links, opportunities, services, templates, fx] = await Promise.all([
     db
       .select({ id: schema.client.id, name: schema.client.name })
       .from(schema.client)
@@ -174,6 +175,7 @@ export async function editorOptions(ctx: Ctx) {
       .from(schema.quoteTemplate)
       .where(scoped(schema.quoteTemplate, ctx))
       .orderBy(desc(schema.quoteTemplate.isDefault), asc(schema.quoteTemplate.createdAt)),
+    latestFxRates().catch(() => []),
   ]);
   return {
     clients,
@@ -181,6 +183,7 @@ export async function editorOptions(ctx: Ctx) {
     opportunities,
     services: services.map((s) => ({ id: s.id, name: s.name, unit: s.unit, priceArs: s.priceArs, priceUsd: s.priceUsd, descriptionMd: s.descriptionMd })),
     template: templates[0] ?? null,
+    fx: fx.filter((r) => r.sell).map((r) => ({ label: r.label, sell: Number(r.sell).toString() })),
   };
 }
 

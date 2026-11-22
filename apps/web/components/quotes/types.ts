@@ -40,6 +40,8 @@ export type EditorOptions = {
   contacts: { id: string; name: string; clientIds: string[] }[];
   opportunities: { id: string; title: string; clientId: string; stage: string }[];
   services: { id: string; name: string; unit: string; priceArs: string | null; priceUsd: string | null; descriptionMd: string | null }[];
+  /** Cotizaciones del día (venta) para completar el tipo de cambio de referencia. */
+  fx?: { label: string; sell: string }[];
 };
 
 export type PreviewTotals = { lines: string[]; subtotal: string; itemsDiscount: string; globalDiscount: string; total: string };

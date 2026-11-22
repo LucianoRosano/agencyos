@@ -25,6 +25,8 @@ export type FormOptions = {
   clients: Opt[];
   projects: Opt[];
   ledgers: Opt[];
+  /** Cotizaciones del día para completar la del movimiento con un toque (venta, ARS por US$ 1). */
+  fx?: { label: string; sell: string }[];
 };
 
 export const opts = (m: Record<string, string>) => Object.entries(m).map(([value, l]) => ({ value, label: l }));

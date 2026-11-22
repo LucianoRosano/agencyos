@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, date, index, integer, numeric, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { check, date, index, integer, numeric, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { baseColumns } from "./_common";
 
 const amount = (n: string) => numeric(n, { precision: 14, scale: 2 });
@@ -163,4 +163,22 @@ export const retainer = pgTable(
     check("retainer_status", sql`${t.status} in ('active','paused','cancelled')`),
     check("retainer_day", sql`${t.billingDay} between 1 and 28`),
   ],
+);
+
+/**
+ * Cotizaciones del dólar (datos públicos, no por workspace): una fila por día y tipo (oficial, blue, bolsa = MEP,
+ * contado con liquidación, tarjeta, mayorista, cripto). Las actualiza el worker desde DolarAPI; sirven de sugerencia
+ * para la cotización de cada movimiento o presupuesto en dólares (siempre editable).
+ */
+export const fxRate = pgTable(
+  "fx_rate",
+  {
+    day: date("day").notNull(),
+    source: text("source").notNull(),
+    buy: numeric("buy", { precision: 14, scale: 4 }),
+    sell: numeric("sell", { precision: 14, scale: 4 }),
+    quotedAt: timestamp("quoted_at", { withTimezone: true }),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.day, t.source] })],
 );

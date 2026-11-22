@@ -1,6 +1,7 @@
 import "server-only";
 import { can } from "@agencyos/core";
 import { agencyLedger, listAccounts, listCategories, listLedgers } from "@agencyos/modules/finance/queries";
+import { latestFxRates } from "@agencyos/modules/fx/service";
 import { clientOpts, projectOpts } from "@/lib/options";
 import { type AppCtx, requireCtx } from "@/lib/session";
 import type { FormOptions } from "./shared";
@@ -30,12 +31,13 @@ export async function financePage(sp: SP) {
 }
 
 export async function formOptions(ctx: AppCtx): Promise<FormOptions> {
-  const [accounts, categories, clients, projects, ledgers] = await Promise.all([
+  const [accounts, categories, clients, projects, ledgers, fx] = await Promise.all([
     listAccounts(ctx),
     listCategories(ctx),
     clientOpts(ctx),
     projectOpts(ctx),
     listLedgers(ctx),
+    latestFxRates().catch(() => []),
   ]);
   return {
     accounts: accounts.map((a) => ({
@@ -54,6 +56,7 @@ export async function formOptions(ctx: AppCtx): Promise<FormOptions> {
     clients,
     projects,
     ledgers: ledgers.map((l) => ({ value: l.id, label: l.name })),
+    fx: fx.filter((r) => r.sell).map((r) => ({ label: r.label, sell: Number(r.sell).toString() })),
   };
 }
 
