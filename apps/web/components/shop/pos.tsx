@@ -19,6 +19,7 @@ const PAYMENTS: [string, string][] = [
   ["transfer", "Transferencia"],
   ["mercadopago", "Mercado Pago"],
   ["other", "Otro"],
+  ["account", "Cuenta corriente (fiado)"],
 ];
 const CHANNELS: [string, string][] = [
   ["local", "Local"],

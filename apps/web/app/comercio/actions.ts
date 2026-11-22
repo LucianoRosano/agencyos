@@ -95,3 +95,7 @@ export const applyPriceRaiseAction = async (input: unknown) =>
   runShop(async (sc) => (await import("@agencyos/modules/shop/import")).applyPriceRaise(sc, input));
 export const revertPriceRaiseAction = async (changes: unknown) =>
   runShop(async (sc) => (await import("@agencyos/modules/shop/import")).revertPriceRaise(sc, changes));
+export const registerCustomerPaymentAction = async (_: S, fd: FormData) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/accounts")).registerCustomerPayment(sc, String(fd.get("customerId") ?? ""), obj(fd)));
+export const deleteCustomerPaymentAction = async (id: string) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/accounts")).deleteCustomerPayment(sc, id));

@@ -35,7 +35,9 @@ import { emailConfigured, sendEmail } from "../shared/email";
 export const SHOP_ROLES = ["owner", "admin", "seller"] as const;
 export type ShopRole = (typeof SHOP_ROLES)[number];
 export const SHOP_ROLE_LABEL: Record<ShopRole, string> = { owner: "Dueño", admin: "Administrador", seller: "Vendedor" };
-export const PAYMENT_METHODS = ["cash", "debit", "credit", "transfer", "mercadopago", "other"] as const;
+export const PAYMENT_METHODS = ["cash", "debit", "credit", "transfer", "mercadopago", "other", "account"] as const;
+/** Medios con los que se cobra de verdad (la «cuenta corriente» es fiado: se cobra después). */
+export const COLLECT_METHODS = ["cash", "debit", "credit", "transfer", "mercadopago", "other"] as const;
 export const PAYMENT_LABEL: Record<(typeof PAYMENT_METHODS)[number], string> = {
   cash: "Efectivo",
   debit: "Débito",
@@ -43,6 +45,7 @@ export const PAYMENT_LABEL: Record<(typeof PAYMENT_METHODS)[number], string> = {
   transfer: "Transferencia",
   mercadopago: "Mercado Pago",
   other: "Otro",
+  account: "Cuenta corriente",
 };
 export const ORDER_STATUSES = ["new", "preparing", "ready", "delivered", "cancelled"] as const;
 export const ORDER_LABEL: Record<(typeof ORDER_STATUSES)[number], string> = {
@@ -603,6 +606,7 @@ export async function listCustomers(sc: ShopCtx, q?: string) {
       spent: sql<string>`(select coalesce(sum(total),0)::text from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
       purchases: sql<number>`(select count(*)::int from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
       lastPurchase: sql<string | null>`(select max(day)::text from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed')`,
+      owed: sql<string>`((select coalesce(sum(total),0) from shop_sale v where v.customer_id = ${schema.shopCustomer.id} and v.status = 'completed' and v.payment_method = 'account') - (select coalesce(sum(amount),0) from shop_customer_payment p where p.customer_id = ${schema.shopCustomer.id}))::numeric(14,2)::text`,
     })
     .from(schema.shopCustomer)
     .where(
@@ -681,6 +685,8 @@ async function insertSale(t: Tx, sc: ShopCtx, input: z.infer<typeof saleInput>, 
     const p = lines.find((l) => l.p.id === id)?.p;
     if (p && p.stock - qty < 0 && !sc.settings.allowNegativeStock) throw validation(`No hay stock suficiente de «${p.name}» (quedan ${p.stock}).`);
   }
+  if (input.paymentMethod === "account" && !input.customerId)
+    throw validation("Para anotar en la cuenta corriente (fiado) elegí el cliente", { customerId: "Elegí el cliente" });
   const subtotal = addMoney(...lines.map((l) => l.lineTotal));
   if (cmpMoney(input.discount, subtotal) > 0) throw validation("El descuento supera el total", { discount: "Supera el total" });
   const number = await nextNumber(t, schema.shopSale, sc.shopId);

@@ -58,7 +58,7 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
           </Button>
         ) : null}
       </nav>
-      {c.count || c.cancelled.count ? (
+      {c.hasActivity ? (
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="cash-kpis">
             {[
@@ -77,6 +77,7 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
             {c.units} unidades · primera venta {time(c.first)} · última {time(c.last)}
             {Number(c.discount) > 0 ? ` · descuentos ${m(c.discount)}` : ""}
             {c.cancelled.count ? ` · ${c.cancelled.count} ${c.cancelled.count === 1 ? "anulada" : "anuladas"} (${m(c.cancelled.total)}, no suman)` : ""}
+            {Number(c.onAccount) > 0 ? ` · fiado del día ${m(c.onAccount)} (no entra a la caja)` : ""}
           </p>
           <div className="grid gap-5 md:grid-cols-2">
             <Card className="p-5">
@@ -91,6 +92,21 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
                   </li>
                 ))}
               </ul>
+              {c.collections.length ? (
+                <>
+                  <p className="mt-4 mb-1 text-[13px] text-text-muted">Cobros de cuentas corrientes (suman a la caja)</p>
+                  <ul className="divide-y divide-border text-[14px]" data-testid="cash-collections">
+                    {c.collections.map((p) => (
+                      <li key={p.method} className="flex items-center justify-between gap-3 py-2.5">
+                        <span>
+                          {p.label} <span className="text-text-muted">· {p.count}</span>
+                        </span>
+                        <span className="font-mono">{m(p.total)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
             </Card>
             <Card className="p-5">
               <SectionLabel className="mb-3">Por vendedor</SectionLabel>

@@ -1,5 +1,6 @@
 import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
+import { customerStatement, registerCustomerPayment } from "@agencyos/modules/shop/accounts";
 import { cashClose } from "@agencyos/modules/shop/cash";
 import { shopDocument } from "@agencyos/modules/shop/documents";
 import {
@@ -21,6 +22,7 @@ import {
   createSale,
   createShop,
   inviteMember,
+  listCustomers,
   listShops,
   openShopInvitation,
   resolveShop,
@@ -337,5 +339,42 @@ describe("SaaS para comercios", () => {
     // Otro comercio no puede deshacer ni tocar estos productos
     const other = await shopWithOwner("Otro almacén");
     expect((await revertPriceRaise(other.sc, [{ id: yerba.id, from: "1.00", to: "4530.00" }])).count).toBe(0);
+  });
+
+  it("cuenta corriente (fiado): venta a cuenta exige cliente, pagos parciales, no se paga de más y la caja lo refleja", async () => {
+    const { sc } = await shopWithOwner("Almacén Fiado");
+    const p = await createProduct(sc, { name: "Pan", price: "1000", stock: 100 });
+    const ana = await createCustomer(sc, { name: "Ana Fiado" });
+    await expect(createSale(sc, { items: [{ productId: p.id, qty: 1 }], paymentMethod: "account" })).rejects.toThrow(/elegí el cliente/);
+    const v1 = await createSale(sc, { items: [{ productId: p.id, qty: 3 }], customerId: ana?.id, paymentMethod: "account" });
+    await createSale(sc, { items: [{ productId: p.id, qty: 2 }], customerId: ana?.id, paymentMethod: "account" });
+    await createSale(sc, { items: [{ productId: p.id, qty: 1 }], paymentMethod: "cash" });
+    const id = ana?.id ?? "";
+
+    const pay = await registerCustomerPayment(sc, id, { amount: "1500", method: "cash", note: "a cuenta" });
+    expect(pay.owed).toBe("3500.00");
+    await registerCustomerPayment(sc, id, { amount: "500", method: "transfer" });
+    await expect(registerCustomerPayment(sc, id, { amount: "5000", method: "cash" })).rejects.toThrow(/supera/);
+    await expect(registerCustomerPayment(sc, id, { amount: "10", method: "account" })).rejects.toThrow();
+
+    // Anular una venta a cuenta baja la deuda
+    await cancelSale(sc, v1.id);
+    const st = await customerStatement(sc, id);
+    expect(st?.owed).toBe("0.00");
+    expect(st?.rows.map((r) => r.kind)).toEqual(["sale", "payment", "payment"]);
+    expect(st?.rows[1]?.detail).toBe("Efectivo · a cuenta");
+    const listed = (await listCustomers(sc)).find((r) => r.c.id === id);
+    expect(listed?.owed).toBe("0.00");
+
+    const c = await cashClose(sc);
+    expect(c.onAccount).toBe("2000.00"); // la de 3.000 se anuló
+    expect(c.cash).toBe("2500.00"); // 1.000 de venta + 1.500 de cobro
+    expect(c.nonCash).toBe("500.00"); // cobro por transferencia
+    expect(c.collected).toBe("2000.00");
+    expect(c.payments.find((x) => x.method === "account")?.label).toBe("Fiado (cuenta corriente)");
+
+    const other = await shopWithOwner("Otro almacén fiado");
+    expect(await customerStatement(other.sc, id)).toBeNull();
+    await expect(registerCustomerPayment(other.sc, id, { amount: "1", method: "cash" })).rejects.toThrow();
   });
 });

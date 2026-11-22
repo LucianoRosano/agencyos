@@ -239,6 +239,10 @@ export type CashCloseDoc = {
   discount: string;
   cash: string;
   nonCash: string;
+  /** Vendido a cuenta (fiado) en el día y cobros de cuentas corrientes. */
+  onAccount?: string;
+  collections?: { label: string; count: number; total: string }[];
+  collected?: string;
   cancelled: { count: number; total: string };
   units: number;
   payments: { label: string; count: number; total: string }[];
@@ -278,12 +282,18 @@ export function renderCashCloseHtml(doc: CashCloseDoc, format: "a4" | TicketWidt
 <div class="hero"><div class="rule"></div><p class="eyebrow">Cierre de caja · ${esc(doc.shopName)}</p><h1 class="num">${esc(doc.dayLabel)}</h1><p class="muted">Impreso el ${esc(doc.printedAt)}.</p></div>
 <div class="facts" style="--cols:4">
   <div class="hl"><div class="k">Total vendido</div><div class="v big num" data-total>${m(doc.total)}</div></div>
-  <div><div class="k">Efectivo</div><div class="v big num">${m(doc.cash)}</div></div>
+  <div><div class="k">Efectivo a contar</div><div class="v big num">${m(doc.cash)}</div></div>
   <div><div class="k">Otros medios</div><div class="v big num">${m(doc.nonCash)}</div></div>
   <div><div class="k">Ventas</div><div class="v big num">${doc.count}</div></div>
 </div>
-<p class="small muted" style="margin-top:8px">${doc.units} unidades vendidas${Number(doc.discount) > 0 ? ` · descuentos ${m(doc.discount)}` : ""}${doc.cancelled.count ? ` · ${doc.cancelled.count} ${doc.cancelled.count === 1 ? "venta anulada" : "ventas anuladas"} por ${m(doc.cancelled.total)} (no suman)` : ""}.</p>
-<div class="cols"><div><h2><span class="idx">01</span>Por medio de pago</h2>${pay}</div><div><h2><span class="idx">02</span>Por vendedor</h2>${sellers}</div></div>
+<p class="small muted" style="margin-top:8px">${doc.units} unidades vendidas${Number(doc.discount) > 0 ? ` · descuentos ${m(doc.discount)}` : ""}${doc.cancelled.count ? ` · ${doc.cancelled.count} ${doc.cancelled.count === 1 ? "venta anulada" : "ventas anuladas"} por ${m(doc.cancelled.total)} (no suman)` : ""}${doc.onAccount && Number(doc.onAccount) > 0 ? ` · fiado del día ${m(doc.onAccount)} (no entra a la caja)` : ""}${doc.collected && Number(doc.collected) > 0 ? ` · cobros de cuentas ${m(doc.collected)} (sumados por medio de pago)` : ""}.</p>
+<div class="cols"><div><h2><span class="idx">01</span>Por medio de pago</h2>${pay}${
+      doc.collections?.length
+        ? `<h3 style="margin-top:14px">Cobros de cuentas corrientes</h3><table class="t"><tbody>${doc.collections
+            .map((c) => `<tr><td>${esc(c.label)}</td><td class="r num">${c.count}</td><td class="r num">${m(c.total)}</td></tr>`)
+            .join("")}</tbody></table>`
+        : ""
+    }</div><div><h2><span class="idx">02</span>Por vendedor</h2>${sellers}</div></div>
 <h2><span class="idx">03</span>Productos vendidos</h2>${items}
 <div class="count-box"><p class="label" style="margin:0">Arqueo · efectivo contado en la caja</p><div class="sign"><div>Efectivo contado</div><div>Diferencia</div><div>Firma</div></div></div>
 </body></html>`;
@@ -296,7 +306,8 @@ export function renderCashCloseHtml(doc: CashCloseDoc, format: "a4" | TicketWidt
 <hr class="sep">
 ${doc.payments.map((p) => row(`${esc(p.label)} (${p.count})`, m(p.total))).join("") || '<div class="c small">Sin ventas en el día</div>'}
 <hr class="sep">
-${row("Efectivo", m(doc.cash))}${row("Otros medios", m(doc.nonCash))}
+${doc.collections?.length ? `<div class="small">Cobros de cuentas</div>${doc.collections.map((c) => row(`${esc(c.label)} (${c.count})`, m(c.total), "small")).join("")}<hr class="sep">` : ""}
+${row("Efectivo a contar", m(doc.cash))}${row("Otros medios", m(doc.nonCash))}${doc.onAccount && Number(doc.onAccount) > 0 ? row("Fiado del día", m(doc.onAccount)) : ""}
 ${row("TOTAL", `<span data-total>${m(doc.total)}</span>`, "total")}
 ${row(`${doc.count} ventas`, `${doc.units} unidades`, "small")}
 ${doc.cancelled.count ? row(`Anuladas (${doc.cancelled.count})`, m(doc.cancelled.total), "small") : ""}

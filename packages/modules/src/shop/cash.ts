@@ -1,7 +1,7 @@
 import { addDays, addMoney, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { PAYMENT_LABEL, PAYMENT_METHODS, type ShopCtx } from "./service";
+import { COLLECT_METHODS, PAYMENT_LABEL, PAYMENT_METHODS, type ShopCtx } from "./service";
 
 /**
  * Cierre de caja del día: lo cobrado por medio de pago, las anuladas, lo vendido y quién vendió.
@@ -15,7 +15,7 @@ export async function cashClose(sc: ShopCtx, rawDay?: string) {
   const db = getDb();
   const sid = sc.shopId;
   const onDay = and(eq(schema.shopSale.shopId, sid), sql`${schema.shopSale.day} = ${day}::date`);
-  const [byPayment, [totals], items, sellers] = await Promise.all([
+  const [byPayment, [totals], items, sellers, collectedBy] = await Promise.all([
     db
       .select({
         method: schema.shopSale.paymentMethod,
@@ -60,24 +60,53 @@ export async function cashClose(sc: ShopCtx, rawDay?: string) {
       .where(and(onDay, eq(schema.shopSale.status, "completed")))
       .groupBy(schema.user.name)
       .orderBy(desc(sql`sum(${schema.shopSale.total})`)),
+    db
+      .select({
+        method: schema.shopCustomerPayment.method,
+        count: sql<number>`count(*)::int`,
+        total: sql<string>`coalesce(sum(${schema.shopCustomerPayment.amount}), 0)::text`,
+      })
+      .from(schema.shopCustomerPayment)
+      .where(and(eq(schema.shopCustomerPayment.shopId, sid), sql`${schema.shopCustomerPayment.day} = ${day}::date`))
+      .groupBy(schema.shopCustomerPayment.method),
   ]);
   const map = new Map(byPayment.map((p) => [p.method, p]));
-  const payments = PAYMENT_METHODS.filter((m) => map.has(m)).map((m) => ({
+  const cmap = new Map(collectedBy.map((p) => [p.method, p]));
+  const collections = COLLECT_METHODS.filter((m) => cmap.has(m)).map((m) => ({
     method: m,
     label: PAYMENT_LABEL[m],
+    count: cmap.get(m)?.count ?? 0,
+    total: cmap.get(m)?.total ?? "0",
+  }));
+  const payments = PAYMENT_METHODS.filter((m) => map.has(m)).map((m) => ({
+    method: m,
+    label: m === "account" ? "Fiado (cuenta corriente)" : PAYMENT_LABEL[m],
     count: map.get(m)?.count ?? 0,
     total: map.get(m)?.total ?? "0",
   }));
+  const cashSales = map.get("cash")?.total ?? "0";
+  const cashCollected = cmap.get("cash")?.total ?? "0";
   return {
     day,
     isToday: day === today,
     prevDay: addDays(day, -1),
     nextDay: day < today ? addDays(day, 1) : null,
+    hasActivity: (totals?.count ?? 0) + (totals?.cancelledCount ?? 0) + collections.length > 0,
     count: totals?.count ?? 0,
     total: totals?.total ?? "0",
     discount: totals?.discount ?? "0",
-    cash: map.get("cash")?.total ?? "0",
-    nonCash: addMoney("0", ...payments.filter((p) => p.method !== "cash").map((p) => p.total)),
+    /** Efectivo a contar: ventas en efectivo + cobros de cuentas en efectivo. */
+    cash: addMoney(cashSales, cashCollected),
+    /** Otros medios: ventas y cobros con tarjeta, transferencia, Mercado Pago… (sin el fiado). */
+    nonCash: addMoney(
+      "0",
+      ...payments.filter((p) => p.method !== "cash" && p.method !== "account").map((p) => p.total),
+      ...collections.filter((p) => p.method !== "cash").map((p) => p.total),
+    ),
+    /** Vendido a cuenta (fiado) en el día: no entra a la caja hasta que lo paguen. */
+    onAccount: map.get("account")?.total ?? "0",
+    collections,
+    collected: addMoney("0", ...collections.map((c) => c.total)),
     cancelled: { count: totals?.cancelledCount ?? 0, total: totals?.cancelledTotal ?? "0" },
     first: totals?.first ?? null,
     last: totals?.last ?? null,

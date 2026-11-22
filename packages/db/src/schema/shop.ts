@@ -151,7 +151,7 @@ export const shopSale = pgTable(
     uniqueIndex("shop_sale_number").on(t.shopId, t.number),
     index("shop_sale_day").on(t.shopId, t.day),
     check("shop_sale_status", sql`${t.status} in ('completed','cancelled')`),
-    check("shop_sale_payment", sql`${t.paymentMethod} in ('cash','debit','credit','transfer','mercadopago','other')`),
+    check("shop_sale_payment", sql`${t.paymentMethod} in ('cash','debit','credit','transfer','mercadopago','other','account')`),
   ],
 );
 
@@ -205,6 +205,25 @@ export const shopOrderItem = pgTable(
     lineTotal: money("line_total").notNull(),
   },
   (t) => [index("shop_order_item_order").on(t.orderId)],
+);
+
+/** Pagos de clientes a su cuenta corriente (fiado): bajan la deuda; la venta «a cuenta» la sube. */
+export const shopCustomerPayment = pgTable(
+  "shop_customer_payment",
+  {
+    ...shopBase(),
+    customerId: uuid("customer_id").notNull(),
+    amount: money("amount").notNull(),
+    method: text("method").notNull(),
+    note: text("note"),
+    day: date("day").notNull(),
+  },
+  (t) => [
+    index("shop_customer_payment_customer").on(t.shopId, t.customerId),
+    index("shop_customer_payment_day").on(t.shopId, t.day),
+    check("shop_customer_payment_amount", sql`${t.amount} > 0`),
+    check("shop_customer_payment_method", sql`${t.method} in ('cash','debit','credit','transfer','mercadopago','other')`),
+  ],
 );
 
 /** Reportes automáticos (semanales) guardados: se ven en el panel y se mandan por email si hay Brevo. */

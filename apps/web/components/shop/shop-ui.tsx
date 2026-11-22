@@ -242,6 +242,7 @@ export function OrderActions({ id, status }: { id: string; status: string }) {
             <option value="transfer">Transferencia</option>
             <option value="mercadopago">Mercado Pago</option>
             <option value="other">Otro</option>
+            <option value="account">Cuenta corriente (fiado)</option>
           </Select>
           <Button
             size="sm"

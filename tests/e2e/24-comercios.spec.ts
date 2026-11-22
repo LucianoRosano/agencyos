@@ -85,9 +85,36 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   const ticket = await shop.request.get(`${(await comprobante.getAttribute("href")) ?? ""}?formato=ticket80`);
   expect(ticket.status()).toBe(200);
   expect(ticket.headers()["content-disposition"]).toContain("-ticket.pdf");
+  // Fiado: cliente nuevo → venta a cuenta corriente → pago parcial en su ficha
+  await shop.goto("/comercio/clientes");
+  await shop.getByRole("button", { name: "Nuevo cliente" }).click();
+  await shop.locator("#name").fill(`Vecina ${tag}`);
+  await shop.getByRole("button", { name: "Guardar" }).click();
+  await expect(shop.getByText("Cliente guardado")).toBeVisible();
+  await shop.goto("/comercio/vender");
+  await shop.waitForLoadState("networkidle");
+  await shop.locator("#pos-q").fill("Cuaderno");
+  await shop.getByRole("button", { name: new RegExp(`Cuaderno A4 ${tag}`) }).click();
+  await shop.locator("#pos-customer").fill(`Vecina ${tag}`);
+  await shop.getByRole("button", { name: `Vecina ${tag}` }).click();
+  await shop.locator("#pos-payment").selectOption("account");
+  await shop.getByRole("button", { name: "Cobrar" }).click();
+  await expect(shop.getByText("Venta n.º 2 registrada")).toBeVisible();
+  await shop.goto("/comercio/clientes?deuda=1");
+  await shop.getByRole("link", { name: `Vecina ${tag}` }).click();
+  await expect(shop.getByTestId("owed")).toHaveText("$ 3.500");
+  await expectNoHorizontalScroll(shop);
+  await expectAccessible(shop);
+  await shot(shop, "comercio-cuenta-corriente", info.project.name);
+  await shop.locator("#amount").fill("1500");
+  await shop.getByRole("button", { name: "Registrar pago" }).click();
+  await expect(shop.getByTestId("owed")).toHaveText("$ 2.000");
+
   // Cierre de caja del día
   await shop.goto("/comercio/caja");
-  await expect(shop.getByTestId("cash-kpis")).toContainText("$ 7.000");
+  await expect(shop.getByTestId("cash-kpis")).toContainText("$ 10.500");
+  await expect(shop.getByTestId("cash-kpis")).toContainText("$ 8.500");
+  await expect(shop.getByTestId("cash-collections")).toContainText("Efectivo");
   await expect(shop.getByTestId("cash-payments")).toContainText("Efectivo");
   await expectNoHorizontalScroll(shop);
   await expectAccessible(shop);
@@ -123,10 +150,10 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   const csvOut = await shop.request.get("/comercio/productos/exportar");
   expect(await csvOut.text()).toContain(`Goma de borrar ${tag}`);
   await shop.goto("/comercio/reportes");
-  await expect(shop.getByTestId("report-current")).toContainText("$ 7.000");
+  await expect(shop.getByTestId("report-current")).toContainText("$ 10.500");
   await ctx.close();
 
   // De vuelta en la agencia: la actividad del comercio
   await page.goto("/comercios");
-  await expect(page.getByTestId("shop-admin-list").getByRole("listitem").filter({ hasText: shopName })).toContainText("1 ventas este mes");
+  await expect(page.getByTestId("shop-admin-list").getByRole("listitem").filter({ hasText: shopName })).toContainText("2 ventas este mes");
 });
