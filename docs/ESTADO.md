@@ -100,12 +100,13 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Cotización del dólar automática** (oficial, MEP y blue de DolarAPI, gratis): franja en Finanzas → Resumen y botones para completar la cotización en movimientos y presupuestos. Job del worker 5 veces por día. Migración 0016.
 - ✅ **Vencimientos periódicos** (cada mes, 3 meses, 6 meses o año) y **vencimientos fiscales** en Calendario: pago del monotributo (día 20), recategorización (febrero y agosto) y certificado de ARCA. Migración 0015.
 - ✅ Restos de la paleta vieja (gris azulado, verde azulado, fucsia, brillos) y dos contrastes en oscuro (tarjetas frenadas, etapas vacías del pipeline).
+- ✅ **Bug corregido:** en Clientes del comercio, «compras», «gastado» y «última compra» salían siempre en cero (subconsulta mal calificada); test de regresión y revisión de las demás subconsultas.
 
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 
 ### Calidad (última corrida: 21/11/2026)
-- **Unit + integración (Vitest):** 490+ tests en verde (67 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad, y lo nuevo (capacidad, presupuesto vs. real, NPS, dispositivos nuevos, ajuste de abonos, filtro por etiqueta, automatización de presupuestos, `ver_capacidad`).
+- **Unit + integración (Vitest):** 484 tests en verde (67 archivos): servicios de todos los módulos, aislamiento multi-inquilino, permisos por rol (dueño, colaborador, cliente) y por alcance MCP, worker, seguridad, y lo nuevo (capacidad, presupuesto vs. real, NPS, dispositivos nuevos, ajuste de abonos, filtro por etiqueta, automatización de presupuestos, `ver_capacidad`).
 - **E2E (Playwright, build de producción):** 156 pruebas (23 archivos de flujos) en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones moderadas o más) y control de scroll horizontal. Última corrida completa: 152 en verde y 2 fallas del flujo de sitios por interactuar antes de que cargara la pestaña (test corregido y verificado en la corrida focalizada). JS inicial de todas las rutas < 170 KB.
 - **Lint (Biome) y typecheck:** en verde en los 7 paquetes.
 - **Revisión de seguridad:** hallazgos altos y medios corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.

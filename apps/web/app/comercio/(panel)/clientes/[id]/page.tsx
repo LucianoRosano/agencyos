@@ -79,7 +79,14 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               <SectionLabel className="mb-3">Registrar pago</SectionLabel>
               <ActionForm action={registerCustomerPaymentAction} successMessage="Pago registrado" resetOnSuccess>
                 <input type="hidden" name="customerId" value={c.id} />
-                <TextField label="Monto" name="amount" inputMode="decimal" required defaultValue={owed} hint="Puede ser un pago parcial." />
+                <TextField
+                  label="Monto"
+                  name="amount"
+                  inputMode="decimal"
+                  required
+                  defaultValue={owed.replace(/\.00$/, "").replace(".", ",")}
+                  hint="Puede ser un pago parcial."
+                />
                 <SelectField
                   label="Medio de pago"
                   name="method"
