@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NavProgress } from "@/components/shell/nav-progress";
+import { LazyNavProgress } from "@/components/shell/nav-progress-lazy";
 import { requirePortalCtx } from "@/lib/session";
 import { PortalNav, PortalSignOut } from "./portal-ui";
 
@@ -25,7 +25,7 @@ export default async function PortalLayout({ children }: { children: React.React
           <PortalSignOut />
         </div>
       </header>
-      <NavProgress />
+      <LazyNavProgress />
       <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-16 md:px-6 md:pt-10">
         {children}
       </main>

@@ -9,7 +9,7 @@ import { cookies } from "next/headers";
 import { OfflineSync } from "@/components/offline/offline-sync";
 import { LazyOverlays } from "@/components/shell/lazy-overlays";
 import { BottomNav, MobileHeader } from "@/components/shell/mobile";
-import { NavProgress } from "@/components/shell/nav-progress";
+import { LazyNavProgress } from "@/components/shell/nav-progress-lazy";
 import { RouteTransition } from "@/components/shell/route-transition";
 import { Shortcuts } from "@/components/shell/shortcuts";
 import { type ShellData, Sidebar } from "@/components/shell/sidebar";
@@ -60,7 +60,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <MobileHeader data={data} />
         <Topbar data={data} />
         <main id="contenido" className="bg-grid flex-1 px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">
-          <NavProgress />
+          <LazyNavProgress />
           <RouteTransition>{children}</RouteTransition>
         </main>
       </div>
