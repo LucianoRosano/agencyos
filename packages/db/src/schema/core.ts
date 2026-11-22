@@ -262,7 +262,9 @@ export const reminder = pgTable(
     clientId: uuid("client_id"),
     notesMd: text("notes_md"),
     doneAt: tz("done_at"),
+    /** Anual (compatibilidad). Si `recurMonths` está cargado, manda ese intervalo (1 = mensual, 6 = semestral, 12 = anual). */
     recurring: boolean("recurring").notNull().default(false),
+    recurMonths: integer("recur_months"),
   },
   (t) => [index("reminder_due").on(t.workspaceId, t.dueDate)],
 );

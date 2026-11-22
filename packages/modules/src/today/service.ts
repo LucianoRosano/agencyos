@@ -1,7 +1,7 @@
 import { addMonths, assertCan, type Ctx, notFound, todayAR, toISODateAR, validation, zDate, zInt, zRequired } from "@agencyos/core";
 import { recordEvent } from "@agencyos/core/events";
 import { schema } from "@agencyos/db";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, projectScope, scoped } from "../shared/db";
 import { recordFocusTimeInTx } from "../time/service";
@@ -57,7 +57,21 @@ export const reminderInput = z.object({
   notifyDaysBefore: zInt(0, 365).default(30),
   notesMd: z.string().max(5000).optional(),
   recurring: z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()).default(false),
+  /** Cada cuántos meses se repite (1, 3, 6 o 12); vacío = no se repite (o anual si viene `recurring`). */
+  recurMonths: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null || v === "0" ? undefined : Number(v)),
+    z
+      .number()
+      .int()
+      .refine((n) => [1, 2, 3, 6, 12].includes(n), "Elegí cada cuánto se repite")
+      .optional(),
+  ),
 });
+
+const withRecurrence = (input: z.infer<typeof reminderInput>) => {
+  const { recurMonths, ...rest } = input;
+  return recurMonths ? { ...rest, recurMonths, recurring: recurMonths === 12 } : { ...rest, recurMonths: rest.recurring ? 12 : null };
+};
 
 export async function createReminder(ctx: Ctx, raw: unknown) {
   assertCan(ctx, "create", "reminder");
@@ -65,7 +79,7 @@ export async function createReminder(ctx: Ctx, raw: unknown) {
   return getDb().transaction(async (t) => {
     const [row] = await t
       .insert(schema.reminder)
-      .values({ ...input, workspaceId: ctx.workspaceId, createdBy: ctx.userId })
+      .values({ ...withRecurrence(input), workspaceId: ctx.workspaceId, createdBy: ctx.userId })
       .returning();
     if (!row) throw new Error("No se pudo crear");
     await recordEvent(t, ctx, { type: "recordatorio.creado", entityType: "reminder", entityId: row.id, summary: `Agregó el vencimiento «${row.title}»` });
@@ -73,7 +87,7 @@ export async function createReminder(ctx: Ctx, raw: unknown) {
   });
 }
 
-/** Marca hecho; si es anual recurrente, crea el del año siguiente. */
+/** Marca hecho; si se repite, agenda el siguiente (mes, trimestre, semestre o año). */
 export async function completeReminder(ctx: Ctx, id: string) {
   assertCan(ctx, "update", "reminder");
   return getDb().transaction(async (t) => {
@@ -83,10 +97,11 @@ export async function completeReminder(ctx: Ctx, id: string) {
       .where(and(eq(schema.reminder.id, id), scoped(schema.reminder, ctx)))
       .returning();
     if (!r) throw notFound("El vencimiento");
-    if (r.recurring) {
+    const every = r.recurMonths ?? (r.recurring ? 12 : null);
+    if (every) {
       await t
         .insert(schema.reminder)
-        .values({ ...r, id: undefined, doneAt: null, dueDate: addMonths(r.dueDate, 12), createdAt: undefined, updatedAt: undefined });
+        .values({ ...r, id: undefined, doneAt: null, dueDate: addMonths(r.dueDate, every), createdAt: undefined, updatedAt: undefined });
     }
     await recordEvent(t, ctx, { type: "recordatorio.hecho", entityType: "reminder", entityId: id, summary: `Resolvió «${r.title}»` });
     return r;
@@ -184,4 +199,84 @@ export async function focusMinutesToday(ctx: Ctx) {
     .where(and(eq(schema.focusSession.userId, ctx.userId), eq(schema.focusSession.workspaceId, ctx.workspaceId)));
   const today = todayAR();
   return rows.filter((r) => toISODateAR(r.s) === today).reduce((a, r) => a + (r.m ?? 0), 0);
+}
+
+// --- Vencimientos fiscales (monotributo / ARCA) ---
+
+/** Próxima fecha (hoy o después) que cae en el día `day` de alguno de los meses `months` (1–12). */
+export function nextDateOn(day: number, months: number[], from = todayAR()): string {
+  const [y, m] = from.split("-").map(Number) as [number, number];
+  for (let i = 0; i < 24; i++) {
+    const mm = ((m - 1 + i) % 12) + 1;
+    const yy = y + Math.floor((m - 1 + i) / 12);
+    if (!months.includes(mm)) continue;
+    const iso = `${yy}-${String(mm).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    if (iso >= from) return iso;
+  }
+  return from;
+}
+
+export const fiscalInput = z.object({
+  monotributo: z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()).default(false),
+  recategorizacion: z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()).default(false),
+  certificado: z.preprocess((v) => (v === "" ? undefined : v), zDate.optional()),
+});
+
+const FISCAL = {
+  monotributo: {
+    title: "Pagar el monotributo del mes",
+    notesMd: "Vence el día 20 de cada mes (si es feriado o fin de semana, pasa al hábil siguiente). Se paga desde ARCA o el home banking (VEP).",
+  },
+  recategorizacion: {
+    title: "Recategorización del monotributo",
+    notesMd:
+      "Dos veces por año (enero y julio): revisá la facturación de los últimos 12 meses en ARCA y recategorizate si corresponde. Confirmá la fecha exacta en ARCA.",
+  },
+  certificado: {
+    title: "Renovar el certificado digital de ARCA",
+    notesMd:
+      "Sin el certificado vigente no se puede facturar electrónicamente ni usar los servicios web. Se genera de nuevo desde «Administración de certificados digitales».",
+  },
+} as const;
+
+/** Agenda los vencimientos fiscales elegidos (sin duplicar los que ya están pendientes con el mismo título). */
+export async function addFiscalReminders(ctx: Ctx, raw: unknown) {
+  assertCan(ctx, "create", "reminder");
+  const input = fiscalInput.parse(raw);
+  const wanted: { key: keyof typeof FISCAL; dueDate: string; recurMonths: number | null; notifyDaysBefore: number }[] = [];
+  if (input.monotributo)
+    wanted.push({ key: "monotributo", dueDate: nextDateOn(20, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]), recurMonths: 1, notifyDaysBefore: 3 });
+  if (input.recategorizacion) wanted.push({ key: "recategorizacion", dueDate: nextDateOn(5, [2, 8]), recurMonths: 6, notifyDaysBefore: 20 });
+  if (input.certificado) wanted.push({ key: "certificado", dueDate: input.certificado, recurMonths: null, notifyDaysBefore: 30 });
+  if (!wanted.length) throw validation("Elegí al menos un vencimiento");
+  return getDb().transaction(async (t) => {
+    const open = await t
+      .select({ title: schema.reminder.title })
+      .from(schema.reminder)
+      .where(and(scoped(schema.reminder, ctx), isNull(schema.reminder.doneAt)));
+    const have = new Set(open.map((r) => r.title));
+    const created: string[] = [];
+    for (const w of wanted) {
+      const f = FISCAL[w.key];
+      if (have.has(f.title)) continue;
+      const [row] = await t
+        .insert(schema.reminder)
+        .values({
+          workspaceId: ctx.workspaceId,
+          createdBy: ctx.userId,
+          title: f.title,
+          kind: w.key === "certificado" ? "certificate" : "deadline",
+          dueDate: w.dueDate,
+          notifyDaysBefore: w.notifyDaysBefore,
+          notesMd: f.notesMd,
+          recurMonths: w.recurMonths,
+          recurring: w.recurMonths === 12,
+        })
+        .returning();
+      if (!row) continue;
+      created.push(row.title);
+      await recordEvent(t, ctx, { type: "recordatorio.creado", entityType: "reminder", entityId: row.id, summary: `Agregó el vencimiento «${row.title}»` });
+    }
+    return { created, skipped: wanted.length - created.length };
+  });
 }

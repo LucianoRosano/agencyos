@@ -72,7 +72,19 @@ export function CalendarCreateProvider({ children, projects, spaces, today }: { 
                 hint="Aparece en «Ponerse al día» de Hoy."
               />
             </div>
-            <CheckField label="Se repite cada año" name="recurring" hint="Al marcarlo hecho, se agenda el del año siguiente." />
+            <SelectField
+              label="Se repite"
+              name="recurMonths"
+              defaultValue=""
+              options={[
+                { value: "", label: "No se repite" },
+                { value: "1", label: "Cada mes" },
+                { value: "3", label: "Cada 3 meses" },
+                { value: "6", label: "Cada 6 meses" },
+                { value: "12", label: "Cada año" },
+              ]}
+              hint="Al marcarlo hecho, se agenda el siguiente."
+            />
             <TextAreaField label="Notas (opcional)" name="notesMd" rows={3} />
             <div className="flex justify-end">
               <SubmitButton>Agendar</SubmitButton>

@@ -5,6 +5,7 @@ import { Button, cn, PageHeader } from "@agencyos/ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { CalendarCreateProvider, NewEventButton } from "@/components/calendar/create";
+import { FiscalReminders } from "@/components/calendar/fiscal";
 import { IcalSubscribe } from "@/components/calendar/ical";
 import { type CalParams, calHref, days, isISODate, isView, rangeFor, rangeTitle, shift, VIEWS } from "@/components/calendar/range";
 import { DayList, type Item, MonthGrid, TimeGrid } from "@/components/calendar/views";
@@ -50,6 +51,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           actions={
             <>
               <IcalSubscribe active={ical.active} createdAt={ical.createdAt} />
+              <FiscalReminders />
               <NewEventButton date={p.fecha < today && p.vista !== "dia" ? today : p.fecha} />
             </>
           }
