@@ -14,7 +14,7 @@
     la hoja sube desde abajo y se cierra arrastrándola hacia abajo; en desktop aparece con un zoom leve.
   - `ag-menu`: menús que crecen desde su botón; `ag-palette`: paleta Ctrl+K.
   - `ag-progress`: barra fina al navegar, solo si la pantalla tarda más de 120 ms (`components/shell/nav-progress.tsx`).
-  - `stagger` (listas y grillas: los primeros 10 en cascada), `rise` (un elemento), `lift` (tarjetas que se pueden abrir,
+  - `stagger` (listas y grillas: los primeros 8 en cascada), `rise` (un elemento), `lift` (tarjetas que se pueden abrir,
     solo con mouse), `bar-in` / `bar-up` (barras y gráficos), `check-pop` / `check-ring` (completar), `grow-y`, `tab-pop`.
   - Cambio de tema con fundido de la página (`switchTheme`, View Transitions).
 - **Descanso visual:** superficies apenas cálidas en el tema claro (`#fffdf9`, no blanco puro), texto del tema oscuro un
@@ -27,4 +27,4 @@
 - Usar las clases y tokens de arriba; no inventar duraciones sueltas. Nada que se mueva más de ~8 px ni dure más de
   ~400 ms (salvo barras que crecen). Nada que rebote en elementos grandes.
 - Animar `opacity` y `transform` (no `width`/`height`/`top`): no reacomodan la página.
-- Las listas largas no se animan enteras: `stagger` solo escalona los primeros 10.
+- Las listas largas no se animan enteras: `stagger` solo escalona los primeros 8.

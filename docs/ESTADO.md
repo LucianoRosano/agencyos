@@ -102,6 +102,12 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ Restos de la paleta vieja (gris azulado, verde azulado, fucsia, brillos) y dos contrastes en oscuro (tarjetas frenadas, etapas vacías del pipeline).
 - ✅ **Bug corregido:** en Clientes del comercio, «compras», «gastado» y «última compra» salían siempre en cero (subconsulta mal calificada); test de regresión y revisión de las demás subconsultas.
 
+### Novena vuelta · interfaz fluida y cómoda (22/11/2026)
+- ✅ **Sistema de movimiento** (ADR 0018), todo en CSS y sin sumar JS inicial: hojas y modales que entran y salen (en el celular suben desde abajo y se cierran arrastrando hacia abajo), menús que crecen desde su botón, paleta Ctrl+K animada, barra de progreso fina al navegar (solo si tarda), transición suave entre pantallas, listas y bloques que aparecen en cascada, tarjetas que se levantan apenas con el mouse, barras y gráficos que crecen, botones que se hunden al presionar, campos con foco suave.
+- ✅ **Completar una tarea** se siente: el tilde salta, sale un anillo y el celular vibra cortito; el tachado aparece con fundido.
+- ✅ **Descanso visual:** superficies apenas cálidas en claro (no blanco puro), texto del oscuro un punto menos brillante, fondo de los modales más liviano, pulso de carga lento, barras de scroll finas, cambio de tema con fundido, barra inferior del celular con indicador activo.
+- ✅ Con «reducir movimiento» del sistema todo queda instantáneo.
+
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 
@@ -110,7 +116,7 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - **E2E (Playwright, build de producción):** 156 pruebas (23 archivos de flujos) en mobile-390 y desktop-1440, oscuro y claro, con axe (sin violaciones moderadas o más) y control de scroll horizontal. Última corrida completa: 152 en verde y 2 fallas del flujo de sitios por interactuar antes de que cargara la pestaña (test corregido y verificado en la corrida focalizada). JS inicial de todas las rutas < 170 KB.
 - **Lint (Biome) y typecheck:** en verde en los 7 paquetes.
 - **Revisión de seguridad:** hallazgos altos y medios corregidos con tests de regresión (`tests/integration/security.test.ts`). Checklist: `docs/SECURITY-CHECKLIST.md`.
-- **Suite e2e completa (22/11/2026):** 169 en verde, 2 omitidas y 1 falla de contraste (etapas vacías del pipeline en el celular) ya corregida y verificada.
+- **Suite e2e completa (22/11/2026, con el sistema de movimiento):** 168 en verde, 1 omitida y 2 fallas ya corregidas y verificadas (JS de 3 pantallas 0,7 KB arriba del límite → barra de progreso diferida; contraste medido en plena animación → cascada más corta y espera de animaciones en las pruebas). Corrida focalizada posterior: 19/19.
 - **Séptima vuelta (21/11/2026):** e2e focalizadas en verde (Cerebro, accesibilidad en todas las rutas, rendimiento, presupuestos y comercios con comprobante PDF) en mobile-390 y desktop-1440, oscuro y claro; build de producción sin avisos.
 - Capturas: `docs/capturas/<proyecto>/*.png`.
 

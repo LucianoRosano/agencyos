@@ -308,7 +308,7 @@ samp,
   }
 }
 
-/* Aparición escalonada de listas y grillas: cada elemento sube 6 px y aparece; los primeros 10 en cascada. */
+/* Aparición escalonada de listas y grillas: cada elemento sube 6 px y aparece; solo los primeros 8 en cascada. */
 @keyframes rise {
   from {
     opacity: 0;
@@ -319,8 +319,8 @@ samp,
     transform: none;
   }
 }
-.stagger > * {
-  animation: rise 360ms var(--ease-out) both;
+.stagger > *:nth-child(-n + 8) {
+  animation: rise 320ms var(--ease-out) both;
 }
 .stagger > *:nth-child(2) {
   animation-delay: 30ms;
@@ -332,23 +332,18 @@ samp,
   animation-delay: 90ms;
 }
 .stagger > *:nth-child(5) {
-  animation-delay: 120ms;
+  animation-delay: 115ms;
 }
 .stagger > *:nth-child(6) {
-  animation-delay: 150ms;
+  animation-delay: 140ms;
 }
 .stagger > *:nth-child(7) {
-  animation-delay: 170ms;
+  animation-delay: 160ms;
 }
 .stagger > *:nth-child(8) {
-  animation-delay: 190ms;
+  animation-delay: 180ms;
 }
-.stagger > *:nth-child(9) {
-  animation-delay: 210ms;
-}
-.stagger > *:nth-child(n + 10) {
-  animation-delay: 230ms;
-}
+/* Del noveno en adelante aparecen ya quietos: las listas largas no se sienten lentas. */
 .rise {
   animation: rise 360ms var(--ease-out) both;
 }

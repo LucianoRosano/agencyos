@@ -66,17 +66,22 @@ export async function expectNoHorizontalScroll(page: Page) {
 
 /** Espera a que terminen las animaciones finitas (transición entre pantallas, aparición de skeletons) antes de medir contraste. */
 export async function settleAnimations(page: Page) {
-  await page.evaluate(() =>
-    Promise.race([
-      Promise.all(
-        document
-          .getAnimations()
-          .filter((a) => a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY)
-          .map((a) => a.finished.catch(() => undefined)),
-      ),
-      new Promise((r) => setTimeout(r, 1500)),
-    ]),
-  );
+  // Espera las animaciones finitas, incluidas las que arrancan después (contenido que llega por streaming),
+  // hasta que no quede ninguna corriendo o pasen 2 s.
+  await page.evaluate(async () => {
+    const until = Date.now() + 2000;
+    while (Date.now() < until) {
+      const running = document
+        .getAnimations()
+        .filter((a) => a.playState === "running" && a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY);
+      if (!running.length) {
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        if (!document.getAnimations().some((a) => a.playState === "running" && a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY)) return;
+        continue;
+      }
+      await Promise.race([Promise.all(running.map((a) => a.finished.catch(() => undefined))), new Promise((r) => setTimeout(r, until - Date.now()))]);
+    }
+  });
 }
 
 export async function shot(page: Page, name: string, project: string) {

@@ -28,6 +28,11 @@
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 - **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
 
+### Para probar (novena vuelta: fluidez)
+- En el **celular**: abrí «Capturar» y cerrá la hoja arrastrándola hacia abajo; completá una tarea (mirá el tilde y sentí la vibración); cambiá de pantalla desde la barra inferior.
+- En la **PC**: pasá el mouse por las tarjetas de proyectos, abrí menús y la paleta (Ctrl+K), cambiá el tema claro/oscuro (botón sol/luna).
+- Si algo te resulta lento, mareante o «de más», decime cuál y lo ajusto (o activá «reducir movimiento» en el sistema y todo queda quieto).
+
 ### Para probar (octava vuelta: comercios, dólar y vencimientos)
 - **Comercio de prueba:** Ajustes → «Formato de impresión» (A4 o ticket 80/58 mm); vendé y tocá «Comprobante»; mirá **Caja** al final del día e imprimí el cierre.
 - **Importar productos:** Productos → «Importar» (bajá la plantilla o exportá tus productos, cambiá precios en Excel y volvé a subirlo). **Aumentar precios:** Productos → «Aumentar precios» (probá 10 % con redondeo a $ 10 y después «Deshacer»).
