@@ -1,9 +1,9 @@
-import { listMembers, SHOP_ROLE_LABEL, type ShopRole } from "@agencyos/modules/shop/service";
+import { listMembers, PRINT_FORMAT_LABEL, PRINT_FORMATS, SHOP_ROLE_LABEL, type ShopRole } from "@agencyos/modules/shop/service";
 import { Badge, Card, PageHeader, SectionLabel } from "@agencyos/ui";
 import { redirect } from "next/navigation";
 import { updateSettingsAction } from "@/app/comercio/actions";
 import { ActionForm, SubmitButton } from "@/components/action-form";
-import { CheckField, TextField } from "@/components/fields";
+import { CheckField, SelectField, TextField } from "@/components/fields";
 import { InviteMemberForm, MemberToggle } from "@/components/shop/shop-ui";
 import { requireShopCtx } from "@/lib/session";
 
@@ -55,6 +55,13 @@ export default async function SettingsPage() {
               <TextField label="Teléfono" name="phone" defaultValue={sc.settings.phone ?? ""} inputMode="tel" />
               <TextField label="CUIT" name="taxId" defaultValue={sc.settings.taxId ?? ""} inputMode="numeric" placeholder="20-12345678-3" />
             </div>
+            <SelectField
+              label="Formato de impresión"
+              name="printFormat"
+              defaultValue={sc.settings.printFormat ?? "a4"}
+              options={PRINT_FORMATS.map((f) => ({ value: f, label: PRINT_FORMAT_LABEL[f] }))}
+              hint="Ticket: para impresoras térmicas de mostrador. Siempre podés elegir el otro desde la venta."
+            />
             <TextField
               label="Mensaje al pie"
               name="ticketFooter"

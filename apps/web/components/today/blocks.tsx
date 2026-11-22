@@ -190,7 +190,7 @@ export function NotesBlock({ notes }: { notes: { id: string; title: string; upda
             {notes.map((n) => (
               <li key={n.id} className="border-b border-border last:border-0">
                 <Link href={`/notas/${n.id}`} className="flex items-center gap-3 py-2.5 text-[14px] hover:underline">
-                  <span aria-hidden className="size-2 rounded-full bg-[#C9D1E0]" />
+                  <span aria-hidden className="size-2 rounded-full bg-[#7D7368]" />
                   <span className="flex-1 truncate text-text">{n.title}</span>
                   <span className="font-mono text-[12px] text-text-muted">{n.links ? `${n.links} enlaces` : ""}</span>
                 </Link>
@@ -226,7 +226,7 @@ function MiniBrain({ notes }: { notes: { id: string; title: string; links: numbe
           <line key={p.id} x1={pts[i]?.x} y1={pts[i]?.y} x2={p.x} y2={p.y} stroke="var(--border-strong)" strokeWidth={1} />
         ))}
         {pts.map((p, i) => (
-          <circle key={p.id} cx={p.x} cy={p.y} r={4 + Math.min(6, p.links)} fill="#C9D1E0" opacity={0.5 + Math.min(0.5, p.links / 10)} />
+          <circle key={p.id} cx={p.x} cy={p.y} r={4 + Math.min(6, p.links)} fill="#7D7368" opacity={0.5 + Math.min(0.5, p.links / 10)} />
         ))}
       </svg>
     </Link>

@@ -159,7 +159,7 @@ function Step({ n, title, icon, children, aside }: { n: string; title: string; i
     <Card className="p-4 md:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <SectionLabel icon={icon}>
-          <span className="text-teal-700 dark:text-[#2DD4BF]">{n}</span> · {title}
+          <span className="text-[#6b5c48] dark:text-[#c9b79e]">{n}</span> · {title}
         </SectionLabel>
         {aside}
       </div>
@@ -329,7 +329,7 @@ export function RuleBuilder({
                 />
               </Labeled>
             </div>
-            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em] text-teal-700 dark:text-[#2DD4BF]">
+            <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em] text-[#6b5c48] dark:text-[#c9b79e]">
               <CalendarClock className="size-4" /> {describeSchedule(s.schedule, meta.weekdays)}
             </p>
             <Err path="schedule" />
@@ -481,7 +481,7 @@ export function RuleBuilder({
               // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad de la acción
               <li key={i} className="rounded-[var(--radius-control)] border border-border bg-bg-elevated/60 p-3 md:p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[12px] text-teal-700 dark:text-[#2DD4BF]">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-md bg-[#7A6A55]/15 font-mono text-[12px] text-[#6b5c48] dark:text-[#c9b79e]">
                     {i + 1}
                   </span>
                   <p className="flex-1 truncate text-[14px] font-medium text-text">{meta.actions.find((x) => x.key === a.type)?.label ?? a.type}</p>

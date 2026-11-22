@@ -101,7 +101,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
   if (!tree.total) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader eyebrow="Conocimiento" title="Notas" accent="#C9D1E0" />
+        <PageHeader eyebrow="Conocimiento" title="Notas" accent="#7D7368" />
         <Card className="p-2">
           <EmptyState
             icon={<FileText />}
@@ -137,7 +137,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
       <PageHeader
         eyebrow="Conocimiento"
         title="Notas"
-        accent="#C9D1E0"
+        accent="#7D7368"
         description={`${tree.total.toLocaleString("es-AR")} notas · Markdown con [[enlaces]], backlinks e historial.`}
         actions={actions}
       />

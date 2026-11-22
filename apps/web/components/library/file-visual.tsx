@@ -47,7 +47,7 @@ function PdfSheet() {
         <div className="h-[3%] min-h-px w-3/5 rounded-full bg-text-faint/40" />
       </div>
       <div className="absolute top-0 right-0 h-[22%] w-[30%] rounded-bl-[3px] border-b border-l border-border-strong bg-surface [clip-path:polygon(0_0,100%_100%,0_100%)]" />
-      <span className="absolute bottom-[12%] -left-[10%] rounded-[3px] bg-[#BE123C] px-1.5 py-px font-mono text-[10px] leading-4 font-semibold tracking-[0.08em] text-white">
+      <span className="absolute bottom-[12%] -left-[10%] rounded-[3px] bg-[#A8321F] px-1.5 py-px font-mono text-[10px] leading-4 font-semibold tracking-[0.08em] text-white">
         PDF
       </span>
     </div>

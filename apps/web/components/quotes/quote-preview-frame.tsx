@@ -11,7 +11,7 @@ export function QuotePreviewFrame({ html, className, title = "Vista previa del p
       srcDoc={html}
       sandbox="allow-same-origin"
       referrerPolicy="no-referrer"
-      className={cn("block w-full rounded-[var(--radius-card)] border border-border bg-[#e7e7ec]", className)}
+      className={cn("block w-full rounded-[var(--radius-card)] border border-border bg-[#e9e4db]", className)}
     />
   );
 }

@@ -29,11 +29,7 @@ export function Connections({ groups, empty = "Sin conexiones todavía. Escribí
             {g.items.map((it) => (
               <li key={`${it.type}:${it.id}`}>
                 <Link href={it.href} className="group flex min-h-10 items-center gap-2.5 rounded-md px-1.5 text-[14px] text-text hover:bg-surface-2">
-                  <span
-                    aria-hidden
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ background: ENTITY_COLORS[it.type] ?? "#857B70", boxShadow: `0 0 8px ${ENTITY_COLORS[it.type] ?? "#857B70"}` }}
-                  />
+                  <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: ENTITY_COLORS[it.type] ?? "#857B70" }} />
                   <span className="min-w-0 flex-1 truncate">{it.title}</span>
                   <span className="font-mono text-[11px] text-text-faint">{it.kinds.map((k) => KIND[k] ?? k).join(" · ")}</span>
                   <span className="text-text-faint" title={DIR[it.direction].label}>

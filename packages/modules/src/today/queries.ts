@@ -514,7 +514,7 @@ export async function getToday(ctx: Ctx, opts: { spaceId?: string; userId: strin
         .map((r) => ({ key: `rm-${r.id}`, date: r.dueDate, title: r.title, kind: "Vencimiento", color: "#B4637A", href: "/hoy" })),
       ...assetDue
         .filter((a) => a.expiresOn >= today && a.expiresOn <= end)
-        .map((a) => ({ key: `as-${a.kind}-${a.id}`, date: a.expiresOn, title: `Vence ${a.title}`, kind: assetKindLabel(a), color: "#E879F9", href: a.href })),
+        .map((a) => ({ key: `as-${a.kind}-${a.id}`, date: a.expiresOn, title: `Vence ${a.title}`, kind: assetKindLabel(a), color: "#C2703D", href: a.href })),
       ...opps
         .filter(({ o }) => o.nextActionDue && o.nextActionDue >= today && o.nextActionDue <= end)
         .map(({ o, clientName }) => ({

@@ -27,6 +27,7 @@ const NAV: { href: string; label: string; admin?: boolean }[] = [
   { href: "/comercio", label: "Inicio" },
   { href: "/comercio/vender", label: "Vender" },
   { href: "/comercio/ventas", label: "Ventas" },
+  { href: "/comercio/caja", label: "Caja" },
   { href: "/comercio/pedidos", label: "Pedidos" },
   { href: "/comercio/productos", label: "Productos" },
   { href: "/comercio/clientes", label: "Clientes" },

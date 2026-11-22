@@ -5,7 +5,7 @@
  */
 import { formatMoney } from "@agencyos/core";
 import { docFontCss } from "./fonts";
-import { esc, PAPER_CSS, pageChrome } from "./paper";
+import { esc, PAPER_CSS, pageChrome, SANS, SERIF } from "./paper";
 import { htmlToPdf } from "./render";
 
 export type ShopDoc = {
@@ -150,6 +150,180 @@ export async function renderShopDocPdf(doc: ShopDoc): Promise<Buffer> {
     fontCss,
     right: `${type} ${docNumber(doc.number)}`,
     footerLeft: `${esc(doc.shop.name)} · ${esc(doc.issuedAt)}`,
+  });
+  return htmlToPdf(html, { headerTemplate: header, footerTemplate: footer });
+}
+
+// ---------- Ticket para impresora térmica (80 o 58 mm) ----------
+
+export type TicketWidth = 80 | 58;
+
+const TICKET_CSS = `
+@page { margin:0; }
+* { box-sizing:border-box; }
+html, body { margin:0; background:#fff; color:#000; }
+body { font-family:var(--sans); font-size:var(--fs); line-height:1.4; padding:4mm var(--pad) 6mm; font-variant-numeric:tabular-nums lining-nums; -webkit-print-color-adjust:exact; }
+.c { text-align:center; }
+.name { font-family:var(--serif); font-weight:700; font-size:calc(var(--fs) * 1.6); line-height:1.15; margin-bottom:2px; }
+.small { font-size:calc(var(--fs) * 0.86); }
+.sep { border:0; border-top:1px dashed #000; margin:6px 0; }
+.type { font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-top:2px; }
+.row { display:flex; justify-content:space-between; gap:8px; }
+.row span:last-child { text-align:right; white-space:nowrap; }
+.item { margin:3px 0; }
+.item .d { word-break:break-word; }
+.item .q { color:#222; }
+.total { font-family:var(--serif); font-weight:700; font-size:calc(var(--fs) * 1.55); margin-top:2px; }
+.void { border:1.5px solid #000; text-align:center; font-weight:700; letter-spacing:0.2em; padding:2px 0; margin:6px 0; }
+.sign { margin-top:22px; border-top:1px solid #000; padding-top:2px; text-align:center; }
+`;
+
+/** Ticket angosto: mismo contenido que el comprobante, apilado para una impresora térmica. */
+export function renderShopTicketHtml(doc: ShopDoc, width: TicketWidth, opts: { fontCss?: string } = {}): string {
+  const money = (v: string) => esc(formatMoney(v, doc.currency));
+  const isSale = doc.kind === "sale";
+  const type = isSale ? "Comprobante de venta" : "Remito";
+  const c = doc.customer;
+  const vars = width === 58 ? "--fs:8pt;--pad:2.5mm" : "--fs:9pt;--pad:4mm";
+  const items = doc.items
+    .map((i) =>
+      doc.showPrices
+        ? `<div class="item"><div class="d">${esc(i.name)}</div><div class="row q"><span>${i.qty} × ${money(i.unitPrice)}</span><span>${money(i.lineTotal)}</span></div></div>`
+        : `<div class="item row"><span class="d">${esc(i.name)}</span><span>× ${i.qty}</span></div>`,
+    )
+    .join("");
+  const units = doc.items.reduce((a, i) => a + i.qty, 0);
+  const shopLines = [doc.shop.address, doc.shop.phone ? `Tel. ${doc.shop.phone}` : null, doc.shop.taxId ? `CUIT ${doc.shop.taxId}` : null].filter(
+    Boolean,
+  ) as string[];
+  return `<!doctype html><html lang="es-AR"><head><meta charset="utf-8"><title>${type} ${docNumber(doc.number)}</title>
+<style>${opts.fontCss ?? ""}:root{--sans:${SANS};--serif:${SERIF};${vars}}${TICKET_CSS}</style></head><body>
+<div class="c"><div class="name">${esc(doc.shop.name)}</div>${shopLines.map((l) => `<div class="small">${esc(l)}</div>`).join("")}</div>
+<hr class="sep">
+<div class="c"><div class="type">${type}</div><div>N.º ${docNumber(doc.number)}</div><div class="small">${esc(doc.issuedAt)}</div><div class="small">Documento no válido como factura</div></div>
+${doc.cancelled ? `<div class="void">${isSale ? "ANULADA" : "CANCELADO"}</div>` : ""}
+<hr class="sep">
+<div class="small">${isSale ? "Cliente" : "Para"}: ${esc(c?.name ?? "Consumidor final")}${c?.doc ? ` · ${esc(c.doc)}` : ""}</div>
+${doc.delivery ? `<div class="small">Entrega: ${esc(doc.delivery.date ?? "a coordinar")} · ${esc(doc.delivery.channel)}</div>${doc.delivery.notes ? `<div class="small">Obs.: ${esc(doc.delivery.notes)}</div>` : ""}` : ""}
+<hr class="sep">
+${items}
+<hr class="sep">
+<div class="row small"><span>${doc.items.length} ${doc.items.length === 1 ? "artículo" : "artículos"}</span><span>${units} ${units === 1 ? "unidad" : "unidades"}</span></div>
+${
+  doc.showPrices
+    ? `${Number(doc.discount) > 0 ? `<div class="row"><span>Subtotal</span><span>${money(doc.subtotal)}</span></div><div class="row"><span>Descuento</span><span>−${money(doc.discount)}</span></div>` : ""}
+<div class="row total"><span>TOTAL</span><span data-total>${money(doc.total)}</span></div>
+${doc.paymentLabel ? `<div class="row small"><span>Pago</span><span>${esc(doc.paymentLabel)}</span></div>` : ""}`
+    : ""
+}
+${isSale ? "" : '<div class="sign small">Recibí conforme · firma y aclaración</div>'}
+<hr class="sep">
+<div class="c small">${esc(doc.shop.footer || (isSale ? "¡Gracias por tu compra!" : ""))}</div>
+</body></html>`;
+}
+
+export async function renderShopTicketPdf(doc: ShopDoc, width: TicketWidth): Promise<Buffer> {
+  return htmlToPdf(renderShopTicketHtml(doc, width, { fontCss: docFontCss() }), { rollWidthMm: width });
+}
+
+// ---------- Cierre de caja ----------
+
+export type CashCloseDoc = {
+  shopName: string;
+  currency: string;
+  /** Día ya formateado (dd/mm/aaaa) y hora de impresión. */
+  dayLabel: string;
+  printedAt: string;
+  count: number;
+  total: string;
+  discount: string;
+  cash: string;
+  nonCash: string;
+  cancelled: { count: number; total: string };
+  units: number;
+  payments: { label: string; count: number; total: string }[];
+  items: { name: string; qty: number; total: string }[];
+  sellers: { name: string; count: number; total: string }[];
+};
+
+const CASH_A4_CSS = `
+.hero { margin:32px 0 0; }
+.hero .rule { height:2pt; width:46px; background:var(--accent); margin:0 0 14px; }
+.cols { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+.count-box { margin-top:28px; border:0.6pt solid var(--ink); border-radius:4px; padding:14px 16px; break-inside:avoid; }
+.count-box .sign { grid-template-columns:repeat(3, 1fr); margin-top:34px; }
+`;
+
+/** Cierre de caja: hoja A4 o ticket térmico (mismo contenido). */
+export function renderCashCloseHtml(doc: CashCloseDoc, format: "a4" | TicketWidth, opts: { fontCss?: string } = {}): string {
+  const m = (v: string) => esc(formatMoney(v, doc.currency));
+  if (format === "a4") {
+    const pay = doc.payments.length
+      ? `<table class="t"><thead><tr><th>Medio de pago</th><th class="r">Ventas</th><th class="r">Total</th></tr></thead><tbody>${doc.payments
+          .map((p) => `<tr><td>${esc(p.label)}</td><td class="r num">${p.count}</td><td class="r num">${m(p.total)}</td></tr>`)
+          .join("")}<tr class="total"><td>Total</td><td class="r num">${doc.count}</td><td class="r num">${m(doc.total)}</td></tr></tbody></table>`
+      : '<p class="muted">Sin ventas en el día.</p>';
+    const sellers = doc.sellers.length
+      ? `<table class="t"><thead><tr><th>Vendedor</th><th class="r">Ventas</th><th class="r">Total</th></tr></thead><tbody>${doc.sellers
+          .map((s) => `<tr><td>${esc(s.name)}</td><td class="r num">${s.count}</td><td class="r num">${m(s.total)}</td></tr>`)
+          .join("")}</tbody></table>`
+      : '<p class="muted">—</p>';
+    const items = doc.items.length
+      ? `<table class="t"><thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Total</th></tr></thead><tbody>${doc.items
+          .map((i) => `<tr><td>${esc(i.name)}</td><td class="r num">${i.qty}</td><td class="r num">${m(i.total)}</td></tr>`)
+          .join("")}</tbody></table>`
+      : '<p class="muted">Sin productos vendidos.</p>';
+    return `<!doctype html><html lang="es-AR"><head><meta charset="utf-8"><title>Cierre de caja ${esc(doc.dayLabel)} · ${esc(doc.shopName)}</title>
+<style>${opts.fontCss ?? ""}${PAPER_CSS}${CASH_A4_CSS}</style></head><body>
+<div class="hero"><div class="rule"></div><p class="eyebrow">Cierre de caja · ${esc(doc.shopName)}</p><h1 class="num">${esc(doc.dayLabel)}</h1><p class="muted">Impreso el ${esc(doc.printedAt)}.</p></div>
+<div class="facts" style="--cols:4">
+  <div class="hl"><div class="k">Total vendido</div><div class="v big num" data-total>${m(doc.total)}</div></div>
+  <div><div class="k">Efectivo</div><div class="v big num">${m(doc.cash)}</div></div>
+  <div><div class="k">Otros medios</div><div class="v big num">${m(doc.nonCash)}</div></div>
+  <div><div class="k">Ventas</div><div class="v big num">${doc.count}</div></div>
+</div>
+<p class="small muted" style="margin-top:8px">${doc.units} unidades vendidas${Number(doc.discount) > 0 ? ` · descuentos ${m(doc.discount)}` : ""}${doc.cancelled.count ? ` · ${doc.cancelled.count} ${doc.cancelled.count === 1 ? "venta anulada" : "ventas anuladas"} por ${m(doc.cancelled.total)} (no suman)` : ""}.</p>
+<div class="cols"><div><h2><span class="idx">01</span>Por medio de pago</h2>${pay}</div><div><h2><span class="idx">02</span>Por vendedor</h2>${sellers}</div></div>
+<h2><span class="idx">03</span>Productos vendidos</h2>${items}
+<div class="count-box"><p class="label" style="margin:0">Arqueo · efectivo contado en la caja</p><div class="sign"><div>Efectivo contado</div><div>Diferencia</div><div>Firma</div></div></div>
+</body></html>`;
+  }
+  const vars = format === 58 ? "--fs:8pt;--pad:2.5mm" : "--fs:9pt;--pad:4mm";
+  const row = (a: string, b: string, cls = "") => `<div class="row ${cls}"><span>${a}</span><span>${b}</span></div>`;
+  return `<!doctype html><html lang="es-AR"><head><meta charset="utf-8"><title>Cierre de caja ${esc(doc.dayLabel)}</title>
+<style>${opts.fontCss ?? ""}:root{--sans:${SANS};--serif:${SERIF};${vars}}${TICKET_CSS}</style></head><body>
+<div class="c"><div class="name">${esc(doc.shopName)}</div><div class="type">Cierre de caja</div><div>${esc(doc.dayLabel)}</div><div class="small">Impreso ${esc(doc.printedAt)}</div></div>
+<hr class="sep">
+${doc.payments.map((p) => row(`${esc(p.label)} (${p.count})`, m(p.total))).join("") || '<div class="c small">Sin ventas en el día</div>'}
+<hr class="sep">
+${row("Efectivo", m(doc.cash))}${row("Otros medios", m(doc.nonCash))}
+${row("TOTAL", `<span data-total>${m(doc.total)}</span>`, "total")}
+${row(`${doc.count} ventas`, `${doc.units} unidades`, "small")}
+${doc.cancelled.count ? row(`Anuladas (${doc.cancelled.count})`, m(doc.cancelled.total), "small") : ""}
+${Number(doc.discount) > 0 ? row("Descuentos", m(doc.discount), "small") : ""}
+${doc.sellers.length > 1 ? `<hr class="sep">${doc.sellers.map((s) => row(`${esc(s.name)} (${s.count})`, m(s.total), "small")).join("")}` : ""}
+<hr class="sep">
+<div class="sign small">Efectivo contado</div>
+<div class="sign small">Firma</div>
+</body></html>`;
+}
+
+export async function renderCashClosePdf(doc: CashCloseDoc, format: "a4" | TicketWidth): Promise<Buffer> {
+  const fontCss = docFontCss();
+  const html = renderCashCloseHtml(doc, format, { fontCss });
+  if (format !== "a4") return htmlToPdf(html, { rollWidthMm: format });
+  const initials =
+    doc.shopName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "·";
+  const { header, footer } = pageChrome({
+    brand: { name: doc.shopName, initials },
+    fontCss,
+    right: `Cierre de caja · ${esc(doc.dayLabel)}`,
+    footerLeft: `${esc(doc.shopName)} · impreso ${esc(doc.printedAt)}`,
   });
   return htmlToPdf(html, { headerTemplate: header, footerTemplate: footer });
 }

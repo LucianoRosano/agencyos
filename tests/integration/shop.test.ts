@@ -1,5 +1,6 @@
 import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
+import { cashClose } from "@agencyos/modules/shop/cash";
 import { shopDocument } from "@agencyos/modules/shop/documents";
 import { generateWeeklyReports, lastWeek, listReports, reportText } from "@agencyos/modules/shop/report";
 import {
@@ -23,7 +24,7 @@ import {
 } from "@agencyos/modules/shop/service";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { renderShopDocHtml } from "../../packages/pdf/src/shop-doc"; // @agencyos/pdf no es dependencia de la raíz
+import { renderCashCloseHtml, renderShopDocHtml, renderShopTicketHtml } from "../../packages/pdf/src/shop-doc"; // @agencyos/pdf no es dependencia de la raíz
 import { makeWorkspace } from "./helpers";
 
 const tokenOf = (url: string) => url.split("/").pop() ?? "";
@@ -182,8 +183,77 @@ describe("SaaS para comercios", () => {
     const valued = renderShopDocHtml((await shopDocument(settings, "remito-valorizado", o.id)) as NonNullable<Awaited<ReturnType<typeof shopDocument>>>);
     expect(valued).toContain("data-total");
 
+    // Ticket térmico y formato preferido en los ajustes
+    const ticket = renderShopTicketHtml(sale as NonNullable<typeof sale>, 58);
+    expect(ticket).toContain("--fs:8pt");
+    expect(ticket).toContain("TOTAL");
+    expect(ticket).toContain("Yerba &lt;1 kg&gt;");
+    expect(ticket).toContain("Documento no válido como factura");
+    await updateShopSettings(settings, { weeklyReport: "on", printFormat: "ticket80" });
+    expect(((await resolveShop({ id: sc.userId, name: sc.actorName })) as ShopCtx).settings.printFormat).toBe("ticket80");
+    await expect(updateShopSettings(settings, { printFormat: "a3" })).rejects.toThrow();
+
     const other = await shopWithOwner("Otro comercio");
     expect(await shopDocument(other.sc, "sale", v.id)).toBeNull();
     expect(await shopDocument(other.sc, "remito", o.id)).toBeNull();
+  });
+
+  it("cierre de caja del día: por medio de pago, efectivo, anuladas, vendedores y productos; solo del comercio", async () => {
+    const { sc } = await shopWithOwner("Kiosco Caja");
+    const p = await createProduct(sc, { name: "Alfajor", price: "1000", stock: 50 });
+    const q = await createProduct(sc, { name: "Gaseosa", price: "2500", stock: 50 });
+    await createSale(sc, { items: [{ productId: p.id, qty: 3 }], paymentMethod: "cash" });
+    await createSale(sc, {
+      items: [
+        { productId: q.id, qty: 2 },
+        { productId: p.id, qty: 1 },
+      ],
+      discount: "500",
+      paymentMethod: "mercadopago",
+    });
+    const anulada = await createSale(sc, { items: [{ productId: q.id, qty: 1 }], paymentMethod: "cash" });
+    await cancelSale(sc, anulada.id);
+
+    const c = await cashClose(sc);
+    expect(c.isToday).toBe(true);
+    expect(c.count).toBe(2);
+    expect(c.total).toBe("8500.00");
+    expect(c.cash).toBe("3000.00");
+    expect(c.nonCash).toBe("5500.00");
+    expect(c.discount).toBe("500.00");
+    expect(c.cancelled).toEqual({ count: 1, total: "2500.00" });
+    expect(c.units).toBe(6);
+    expect(c.payments.map((x) => [x.label, x.count])).toEqual([
+      ["Efectivo", 1],
+      ["Mercado Pago", 1],
+    ]);
+    expect(c.items[0]).toMatchObject({ name: "Gaseosa", qty: 2 });
+    expect(c.sellers).toHaveLength(1);
+    expect(c.nextDay).toBeNull();
+
+    // Un día sin ventas, fechas futuras o inválidas → hoy
+    const ayer = await cashClose(sc, addDays(todayAR(), -1));
+    expect(ayer.count).toBe(0);
+    expect(ayer.nextDay).toBe(todayAR());
+    expect((await cashClose(sc, "2999-01-01")).day).toBe(todayAR());
+    expect((await cashClose(sc, "x")).day).toBe(todayAR());
+
+    const doc = {
+      shopName: "Kiosco <Caja>",
+      currency: "ARS",
+      dayLabel: "21/11/2026",
+      printedAt: "21/11/2026 20:00",
+      ...c,
+    };
+    for (const f of ["a4", 80] as const) {
+      const html = renderCashCloseHtml(doc, f);
+      expect(html).toContain("Cierre de caja");
+      expect(html).toContain("Kiosco &lt;Caja&gt;");
+      expect(html).toContain("Mercado Pago");
+      expect(html).toMatch(/\$\s?8\.500/);
+    }
+
+    const other = await shopWithOwner("Otro kiosco");
+    expect((await cashClose(other.sc)).count).toBe(0);
   });
 });

@@ -6,9 +6,9 @@ export const CALENDAR_SOURCES = [
   { key: "assessment", label: "Evaluaciones", color: "#B7791F" },
   { key: "receivable", label: "Cobros", color: "#4F7A52" },
   { key: "payable", label: "Pagos", color: "#A8321F" },
-  { key: "subscription", label: "Suscripciones", color: "#2DD4BF" },
+  { key: "subscription", label: "Suscripciones", color: "#7A6A55" },
   { key: "reminder", label: "Vencimientos", color: "#B4637A" },
-  { key: "asset", label: "Activos técnicos", color: "#E879F9" },
+  { key: "asset", label: "Activos técnicos", color: "#C2703D" },
   { key: "crm", label: "CRM", color: "#7A4E7E" },
 ] as const;
 

@@ -25,7 +25,7 @@ export default async function NewNotePage({ searchParams }: { searchParams: Prom
       <PageHeader
         eyebrow="Notas"
         title="Nueva nota"
-        accent="#C9D1E0"
+        accent="#7D7368"
         description="En blanco o desde una plantilla. Después escribís en Markdown con autoguardado."
       />
       <Card className="p-5">

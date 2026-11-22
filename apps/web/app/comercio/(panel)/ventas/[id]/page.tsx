@@ -14,6 +14,8 @@ export default async function SalePage({ params }: { params: Promise<{ id: strin
   const v = await getSale(sc, (await params).id);
   if (!v) notFound();
   const cur = sc.currency;
+  // El otro formato de impresión (el habitual está en Ajustes).
+  const alt = (sc.settings.printFormat ?? "a4") === "a4" ? "ticket80" : "a4";
   return (
     <>
       <PageHeader
@@ -31,6 +33,11 @@ export default async function SalePage({ params }: { params: Promise<{ id: strin
               <a href={`/comercio/ventas/${v.s.id}/comprobante`} target="_blank" rel="noopener">
                 <FileText className="size-4" aria-hidden />
                 Comprobante
+              </a>
+            </Button>
+            <Button asChild variant="ghost">
+              <a href={`/comercio/ventas/${v.s.id}/comprobante?formato=${alt}`} target="_blank" rel="noopener">
+                {alt === "a4" ? "En hoja A4" : "Ticket"}
               </a>
             </Button>
             {v.s.status === "completed" && sc.role !== "seller" ? (

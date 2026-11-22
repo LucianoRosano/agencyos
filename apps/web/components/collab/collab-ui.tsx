@@ -185,7 +185,7 @@ export function ConnectionsEditor({ type, id, items }: { type: string; id: strin
           {items.map((c) => (
             <li key={`${c.type}:${c.id}`} className="group flex items-center gap-1">
               <Link href={c.href} className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-md px-1.5 text-[14px] text-text hover:bg-surface-2">
-                <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
+                <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: c.color }} />
                 <span className="min-w-0 flex-1 truncate">{c.title || "(sin título)"}</span>
                 <span className="font-mono text-[11px] text-text-faint">{c.typeLabel}</span>
                 {c.direction === "in" ? <ArrowLeft className="size-3.5 text-text-faint" aria-label="Entrante" /> : null}

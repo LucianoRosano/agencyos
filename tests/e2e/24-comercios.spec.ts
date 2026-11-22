@@ -82,6 +82,18 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()["content-type"]).toContain("application/pdf");
   expect((await pdf.body()).subarray(0, 4).toString()).toBe("%PDF");
+  const ticket = await shop.request.get(`${(await comprobante.getAttribute("href")) ?? ""}?formato=ticket80`);
+  expect(ticket.status()).toBe(200);
+  expect(ticket.headers()["content-disposition"]).toContain("-ticket.pdf");
+  // Cierre de caja del día
+  await shop.goto("/comercio/caja");
+  await expect(shop.getByTestId("cash-kpis")).toContainText("$ 7.000");
+  await expect(shop.getByTestId("cash-payments")).toContainText("Efectivo");
+  await expectNoHorizontalScroll(shop);
+  await expectAccessible(shop);
+  await shot(shop, "comercio-caja", info.project.name);
+  const cierre = await shop.request.get((await shop.getByRole("link", { name: "Imprimir cierre" }).getAttribute("href")) ?? "");
+  expect(cierre.headers()["content-type"]).toContain("application/pdf");
   await shop.goto("/comercio/reportes");
   await expect(shop.getByTestId("report-current")).toContainText("$ 7.000");
   await ctx.close();

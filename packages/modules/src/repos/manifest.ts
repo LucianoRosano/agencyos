@@ -65,7 +65,7 @@ export function htmlPage(title: string, body: string, opts: { formAction?: strin
 <style>body{font-family:system-ui,sans-serif;background:#171411;color:#EEE7DD;max-width:720px;margin:0 auto;padding:32px 20px;line-height:1.5}
 a,button{color:#fff;background:#A9471F;border:0;border-radius:8px;padding:12px 16px;font-size:16px;text-decoration:none;display:inline-block;cursor:pointer}
 pre{background:#221D18;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;font-size:13px}
-p,li{color:#c9d1e0}.warn{color:#B7791F}</style></head><body>${body}</body></html>`,
+p,li{color:#d6cdc1}.warn{color:#B7791F}</style></head><body>${body}</body></html>`,
     {
       headers: {
         "content-type": "text/html; charset=utf-8",

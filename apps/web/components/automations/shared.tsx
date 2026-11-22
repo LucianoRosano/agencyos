@@ -1,9 +1,9 @@
 import { Badge } from "@agencyos/ui";
 
 /** Acento del módulo (docs/07 §2). */
-export const AUTO_ACCENT = "#2DD4BF";
-/** Texto con el acento, legible en claro (teal-700) y oscuro (AA). */
-export const AUTO_TEXT = "text-teal-700 dark:text-[#2DD4BF]";
+export const AUTO_ACCENT = "#7A6A55";
+/** Texto con el acento (taupe), legible en claro y oscuro (AA). */
+export const AUTO_TEXT = "text-[#6b5c48] dark:text-[#c9b79e]";
 
 const RUN_STATUS: Record<string, { label: string; tone: "neutral" | "success" | "danger" | "warning" | "info" }> = {
   running: { label: "En curso", tone: "neutral" },

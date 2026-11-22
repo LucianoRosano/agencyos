@@ -72,7 +72,12 @@ export type ShopSettings = {
   phone?: string;
   taxId?: string;
   ticketFooter?: string;
+  /** Formato con el que se imprimen comprobantes y remitos: hoja A4 o ticket térmico. */
+  printFormat?: PrintFormat;
 };
+export const PRINT_FORMATS = ["a4", "ticket80", "ticket58"] as const;
+export type PrintFormat = (typeof PRINT_FORMATS)[number];
+export const PRINT_FORMAT_LABEL: Record<PrintFormat, string> = { a4: "Hoja A4", ticket80: "Ticket 80 mm", ticket58: "Ticket 58 mm" };
 
 const INVITE_DAYS = 7;
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -391,6 +396,7 @@ export const settingsInput = z.object({
       .refine((v) => !v || /^[\d-]{8,13}$/.test(v), "Escribí el CUIT con números (ej. 20-12345678-3)"),
   ),
   ticketFooter: z.preprocess((v) => v ?? "", z.string().trim().max(200)),
+  printFormat: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.enum(PRINT_FORMATS).default("a4")),
 });
 
 export async function updateShopSettings(sc: ShopCtx, raw: unknown) {
@@ -407,6 +413,7 @@ export async function updateShopSettings(sc: ShopCtx, raw: unknown) {
         phone: input.phone,
         taxId: input.taxId,
         ticketFooter: input.ticketFooter,
+        printFormat: input.printFormat,
       })}::jsonb`,
     })
     .where(eq(schema.shop.id, sc.shopId))

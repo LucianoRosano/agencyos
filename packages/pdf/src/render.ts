@@ -52,7 +52,12 @@ export async function closeBrowser() {
   if (p) await p.then((b) => b.close()).catch(() => undefined);
 }
 
-export type PdfOptions = { headerTemplate?: string; footerTemplate?: string };
+export type PdfOptions = {
+  headerTemplate?: string;
+  footerTemplate?: string;
+  /** Papel angosto (ticket térmico): ancho en mm; el alto se ajusta al contenido y sin márgenes de página. */
+  rollWidthMm?: number;
+};
 
 /** HTML → PDF A4 con márgenes de 18 mm, fondo impreso y JavaScript desactivado. */
 export async function htmlToPdf(html: string, opts: PdfOptions = {}): Promise<Buffer> {
@@ -62,8 +67,20 @@ export async function htmlToPdf(html: string, opts: PdfOptions = {}): Promise<Bu
     const context = await browser.newContext({ javaScriptEnabled: false, offline: true });
     try {
       const page = await context.newPage();
+      // En papel angosto el diseño se mide al ancho real del rollo (96 px por pulgada).
+      if (opts.rollWidthMm) await page.setViewportSize({ width: Math.round(opts.rollWidthMm * 3.7795), height: 200 });
       await page.setContent(html, { waitUntil: "load" });
       await page.evaluate(() => document.fonts.ready).catch(() => undefined);
+      if (opts.rollWidthMm) {
+        const px = await page.evaluate(() => Math.ceil(document.body.getBoundingClientRect().bottom));
+        const heightMm = Math.max(40, Math.ceil(px * 0.264583) + 2);
+        return await page.pdf({
+          width: `${opts.rollWidthMm}mm`,
+          height: `${heightMm}mm`,
+          printBackground: true,
+          margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        });
+      }
       const withHF = Boolean(opts.headerTemplate || opts.footerTemplate);
       const pdf = await page.pdf({
         format: "A4",

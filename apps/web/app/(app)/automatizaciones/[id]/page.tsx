@@ -132,7 +132,7 @@ export default async function RulePage({ params }: { params: Promise<{ id: strin
               {actions.map((a, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: el orden es la identidad
                 <li key={i} className="flex items-start gap-3">
-                  <span className={`grid size-6 shrink-0 place-items-center rounded-md bg-[#2DD4BF]/15 font-mono text-[11px] ${AUTO_TEXT}`}>{i + 1}</span>
+                  <span className={`grid size-6 shrink-0 place-items-center rounded-md bg-[#7A6A55]/15 font-mono text-[11px] ${AUTO_TEXT}`}>{i + 1}</span>
                   <span className="min-w-0 text-[14px]">
                     <span className="font-medium text-text">{actionLabel(a.type)}</span> <span className="break-words text-text-muted">{actionDetail(a)}</span>
                   </span>

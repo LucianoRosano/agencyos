@@ -30,7 +30,7 @@ export default async function NoteTemplatesPage() {
           </Link>
         }
         title="Plantillas"
-        accent="#C9D1E0"
+        accent="#7D7368"
         description="Estructuras para arrancar notas rápido. Variables: {{fecha}}, {{titulo}} y {{cliente}}."
         actions={<NewTemplateButton />}
       />
