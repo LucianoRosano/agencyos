@@ -94,6 +94,24 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   await shot(shop, "comercio-caja", info.project.name);
   const cierre = await shop.request.get((await shop.getByRole("link", { name: "Imprimir cierre" }).getAttribute("href")) ?? "");
   expect(cierre.headers()["content-type"]).toContain("application/pdf");
+  // Importar productos por CSV (vista previa → importar) y exportarlos
+  await shop.goto("/comercio/productos/importar");
+  await shop
+    .getByTestId("product-import")
+    .locator('input[type="file"]')
+    .setInputFiles({
+      name: "lista.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(`Nombre;Código;Precio;Stock\nGoma de borrar ${tag};GOM-${tag};$ 900;12\n`),
+    });
+  await expect(shop.getByText(/1\s*nuevos/)).toBeVisible();
+  await expectNoHorizontalScroll(shop);
+  await expectAccessible(shop);
+  await shot(shop, "comercio-importar", info.project.name);
+  await shop.getByRole("button", { name: "Importar 1" }).click();
+  await expect(shop.getByText(/1 productos nuevos/)).toBeVisible();
+  const csvOut = await shop.request.get("/comercio/productos/exportar");
+  expect(await csvOut.text()).toContain(`Goma de borrar ${tag}`);
   await shop.goto("/comercio/reportes");
   await expect(shop.getByTestId("report-current")).toContainText("$ 7.000");
   await ctx.close();

@@ -83,11 +83,11 @@ const INVITE_DAYS = 7;
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 const appUrl = () => (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-function assertRole(sc: ShopCtx, roles: ShopRole[], what = "Esto") {
+export function assertRole(sc: ShopCtx, roles: ShopRole[], what = "Esto") {
   if (!roles.includes(sc.role)) throw forbidden(`${what} lo hace el dueño o un administrador del comercio.`);
 }
 
-async function touch(t: Tx, shopId: string) {
+export async function touch(t: Tx, shopId: string) {
   await t.update(schema.shop).set({ lastActivityAt: new Date() }).where(eq(schema.shop.id, shopId));
 }
 
@@ -524,7 +524,7 @@ export async function adjustStock(sc: ShopCtx, productId: string, raw: unknown) 
   });
 }
 
-export async function listProducts(sc: ShopCtx, f: { q?: string; low?: boolean; inactive?: boolean } = {}) {
+export async function listProducts(sc: ShopCtx, f: { q?: string; low?: boolean; inactive?: boolean; limit?: number } = {}) {
   const q = f.q?.trim();
   return getDb()
     .select()
@@ -545,7 +545,7 @@ export async function listProducts(sc: ShopCtx, f: { q?: string; low?: boolean; 
       ),
     )
     .orderBy(asc(schema.shopProduct.name))
-    .limit(q ? 50 : 1000);
+    .limit(f.limit ?? (q ? 50 : 1000));
 }
 
 export async function productMoves(sc: ShopCtx, productId: string) {

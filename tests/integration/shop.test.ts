@@ -2,6 +2,7 @@ import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { cashClose } from "@agencyos/modules/shop/cash";
 import { shopDocument } from "@agencyos/modules/shop/documents";
+import { applyProductImport, previewProductImport } from "@agencyos/modules/shop/import";
 import { generateWeeklyReports, lastWeek, listReports, reportText } from "@agencyos/modules/shop/report";
 import {
   acceptShopInvitationNewUser,
@@ -255,5 +256,48 @@ describe("SaaS para comercios", () => {
 
     const other = await shopWithOwner("Otro kiosco");
     expect((await cashClose(other.sc)).count).toBe(0);
+  });
+
+  it("importar productos por CSV: crea nuevos con stock inicial, actualiza precios de existentes, valida y no mezcla comercios", async () => {
+    const { sc } = await shopWithOwner("Ferretería CSV");
+    const old = await createProduct(sc, { name: "Martillo", sku: "MAR-1", price: "8000", cost: "5000", stock: 4 });
+    const csv = [
+      "Producto;Código;Categoría;Precio;Costo;Stock",
+      "Martillo carpintero;MAR-1;Herramientas;$ 9.500,00;5.800;99",
+      "Tornillos x100;TOR-100;Fijaciones;1.250,50;;30",
+      "Clavos;;Fijaciones;abc;;",
+      ";SIN-NOMBRE;;100;;",
+      "Tornillos x100 bis;TOR-100;;10;;",
+      "Destornillador;;Herramientas;3500;;0",
+    ].join("\n");
+    const pv = await previewProductImport(sc, csv);
+    expect(pv).toMatchObject({ create: 2, update: 1, same: 0, errors: 3 });
+    expect(pv.rows.find((r) => r.line === 2)).toMatchObject({ status: "update", summary: "Martillo" });
+    expect(pv.rows.find((r) => r.line === 2)?.message).toMatch(/precio \$\s?8\.000 → \$\s?9\.500/);
+    expect(pv.rows.find((r) => r.line === 4)?.message).toMatch(/Precio inválido/);
+    expect(pv.rows.find((r) => r.line === 6)?.message).toBe("Repetido en el archivo");
+
+    const done = await applyProductImport(sc, csv);
+    expect(done.create).toBe(2);
+    const all = await getDb().select().from(schema.shopProduct).where(eq(schema.shopProduct.shopId, sc.shopId));
+    const martillo = all.find((p) => p.id === old.id);
+    expect(martillo).toMatchObject({ price: "9500.00", cost: "5800.00", stock: 4, name: "Martillo" });
+    expect(all.find((p) => p.sku === "TOR-100")).toMatchObject({ price: "1250.50", stock: 30, category: "Fijaciones" });
+    const moves = await getDb().select().from(schema.shopStockMove).where(eq(schema.shopStockMove.shopId, sc.shopId));
+    expect(
+      moves
+        .filter((m) => m.reason === "initial")
+        .map((m) => m.qty)
+        .sort(),
+    ).toEqual([30, 4]);
+
+    // Reimportar lo mismo: sin cambios
+    const again = await previewProductImport(sc, csv);
+    expect(again).toMatchObject({ create: 0, update: 0, same: 3 });
+    await expect(previewProductImport(sc, "Nombre;Stock\nA;1")).rejects.toThrow(/Precio/);
+
+    // Otro comercio no ve ni actualiza estos productos
+    const other = await shopWithOwner("Otra ferretería");
+    expect((await previewProductImport(other.sc, csv)).create).toBe(3);
   });
 });

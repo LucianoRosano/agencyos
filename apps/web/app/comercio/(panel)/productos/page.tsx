@@ -1,7 +1,7 @@
 import { formatMoney } from "@agencyos/core";
 import { listProducts } from "@agencyos/modules/shop/service";
-import { Card, cn, EmptyState, PageHeader } from "@agencyos/ui";
-import { Package, Search } from "lucide-react";
+import { Button, Card, cn, EmptyState, PageHeader } from "@agencyos/ui";
+import { FileUp, Package, Search } from "lucide-react";
 import Link from "next/link";
 import { NewProductSheet } from "@/components/shop/shop-ui";
 import { requireShopCtx } from "@/lib/session";
@@ -16,7 +16,23 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const admin = sc.role !== "seller";
   return (
     <>
-      <PageHeader title="Productos" description="Catálogo, precios y stock." accent="#4F7A52" actions={admin ? <NewProductSheet /> : undefined} />
+      <PageHeader
+        title="Productos"
+        description="Catálogo, precios y stock."
+        accent="#4F7A52"
+        actions={
+          admin ? (
+            <>
+              <Button asChild variant="secondary">
+                <Link href="/comercio/productos/importar">
+                  <FileUp className="size-4" aria-hidden /> Importar
+                </Link>
+              </Button>
+              <NewProductSheet />
+            </>
+          ) : undefined
+        }
+      />
       <form className="mb-4 flex flex-wrap gap-2" role="search" action="/comercio/productos">
         <label htmlFor="prod-q" className="sr-only">
           Buscar productos

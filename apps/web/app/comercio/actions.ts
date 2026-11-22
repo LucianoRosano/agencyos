@@ -84,3 +84,8 @@ export const acceptShopInvitationAsUserAction = async (token: string) => {
     return toResultError(e);
   }
 };
+
+export const previewProductImportAction = async (csv: string) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/import")).previewProductImport(sc, csv), { revalidate: false });
+export const applyProductImportAction = async (csv: string) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/import")).applyProductImport(sc, csv));
