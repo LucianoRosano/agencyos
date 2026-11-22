@@ -28,6 +28,13 @@
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 - **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
 
+### Para probar (octava vuelta: comercios, dólar y vencimientos)
+- **Comercio de prueba:** Ajustes → «Formato de impresión» (A4 o ticket 80/58 mm); vendé y tocá «Comprobante»; mirá **Caja** al final del día e imprimí el cierre.
+- **Importar productos:** Productos → «Importar» (bajá la plantilla o exportá tus productos, cambiá precios en Excel y volvé a subirlo). **Aumentar precios:** Productos → «Aumentar precios» (probá 10 % con redondeo a $ 10 y después «Deshacer»).
+- **Fiado:** vendé eligiendo un cliente y el medio «Cuenta corriente (fiado)»; en Clientes → «Con deuda» entrá a su ficha y registrá un pago.
+- **Dólar:** Finanzas → Resumen muestra oficial, MEP y blue (se actualiza solo en el servidor); al cargar un movimiento en dólares tocá «Usar la de hoy».
+- **Vencimientos fiscales:** Calendario → «Vencimientos fiscales» (monotributo, recategorización y la fecha de tu certificado de ARCA: 27/10/2028).
+
 ### Para probar (séptima vuelta: documentos, remitos y Cerebro)
 - **Presupuesto**: abrí uno y mirá la vista previa y el PDF (membrete nuevo, total destacado). Si querés cambiar el nombre, las iniciales o el pie, está en Configuración → Agencia.
 - **Comprobante y remito**: en un comercio de prueba cargá dirección, teléfono y CUIT en Ajustes → «Datos para comprobantes y remitos», hacé una venta (en el aviso tocá «Comprobante») y un pedido (botones «Remito» y «Con precios»).
@@ -83,13 +90,13 @@ Todo lo de las fases F1–F6 está construido y probado, más una tercera vuelta
 5. **WhatsApp Business (Cloud API)**: recordatorios de cobro y avisos de entrega por WhatsApp en lugar de email. Necesita cuenta de Meta Business.
 6. **Google Calendar en las dos direcciones** y **Gmail → interacciones del CRM** (OAuth de Google).
 7. **Pedido de NPS por email** además del portal (falta Brevo) y recordatorio si no responde en una semana.
-8. **Cotización del dólar automática** (oficial, MEP y blue de una API pública como DolarAPI) para convertir abonos y presupuestos en USD y ver Negocio en una sola moneda. Hoy la cotización se carga a mano en cada movimiento.
+8. ✅ *Hecho (octava vuelta):* cotización del dólar automática para completar movimientos y presupuestos. Falta: ver Negocio en una sola moneda con esa cotización.
 9. **Ajuste automático por IPC** (INDEC) cada N meses en los abonos que elijas, con aviso al cliente un mes antes (hoy el ajuste es manual y masivo).
-10. **Recordatorios fiscales**: recategorización de monotributo (enero y julio), vencimientos mensuales y el certificado de ARCA, como vencimientos recurrentes en Hoy y Calendario.
+10. ✅ *Hecho (octava vuelta):* recordatorios fiscales (monotributo, recategorización y certificado de ARCA) como vencimientos periódicos.
 11. **Búsqueda semántica** en notas y clientes («¿qué le prometí a la librería sobre envíos?») con embeddings en PostgreSQL (pgvector). Necesita API key o un modelo local.
 
 ### Próximos pasos propuestos para lo nuevo (no hechos)
-- **Comercios:** cobro con **Mercado Pago** (link o QR en el punto de venta), **factura electrónica de ARCA** desde la venta, **tienda online** del comercio con su catálogo y stock, **importar productos por CSV/Excel**, **ticket imprimible** (impresora térmica de 58/80 mm), **cierre de caja diario**, **proveedores y órdenes de compra**, **precios por lista** (mayorista/minorista), **variantes** (talle, color), **dominio propio por comercio** y **planes/abonos del SaaS** facturados desde tus Abonos. La venta sin conexión en el comercio también se puede sumar con el mismo mecanismo de la cola.
+- **Comercios** (ya hechos: ticket térmico, cierre de caja, importar productos, aumento de precios y fiado): cobro con **Mercado Pago** (link o QR en el punto de venta), **factura electrónica de ARCA** desde la venta, **tienda online** del comercio con su catálogo y stock, **proveedores y órdenes de compra**, **precios por lista** (mayorista/minorista), **variantes** (talle, color), **dominio propio por comercio** y **planes/abonos del SaaS** facturados desde tus Abonos. La venta sin conexión en el comercio también se puede sumar con el mismo mecanismo de la cola.
 - **Agente:** ejecución automática en un servidor (con la API de Anthropic, paga) para objetivos que no necesitan tu PC; un **runner que corre las pruebas** del repo y adjunta el resultado; **PR automático** con la GitHub App al terminar.
 - **Cerebro:** búsqueda semántica con embeddings (modelo local o API) y OCR para PDFs escaneados (hoy se leen los que tienen texto).
 - **Sin conexión:** sumar Calendario y Facultad a la copia local; editar el título y la fecha de las tareas desde `/local`.

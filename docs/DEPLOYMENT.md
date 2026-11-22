@@ -136,6 +136,8 @@ grep -E '^(AUTH_SECRET|APP_ENCRYPTION_KEY)=' infra/.env.prod
 
 → Bitwarden: "AGENCYOS · APP_ENCRYPTION_KEY (prod)" y "AGENCYOS · AUTH_SECRET (prod)". Cerrá la terminal o limpiala (`clear`).
 
+**Cotización del dólar:** el worker la trae sola de `dolarapi.com` (gratis, sin clave) varias veces por día; necesita salida HTTPS a internet (la tiene por defecto). Para apagarla: `FX_DISABLED=1`.
+
 **Email (Brevo):** cuando tengas la API key, editá los dos archivos (`nano infra/.env.prod` y `nano infra/.env.staging`) y completá `BREVO_API_KEY` y `EMAIL_FROM`. Los cambios se aplican en el próximo deploy (o con `docker compose -f infra/docker-compose.yml --profile prod up -d web worker`).
 
 ## 6. Cargar los secrets en GitHub
