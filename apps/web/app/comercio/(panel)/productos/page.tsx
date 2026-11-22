@@ -1,8 +1,10 @@
 import { formatMoney } from "@agencyos/core";
+import { productCategories } from "@agencyos/modules/shop/import";
 import { listProducts } from "@agencyos/modules/shop/service";
 import { Button, Card, cn, EmptyState, PageHeader } from "@agencyos/ui";
 import { FileUp, Package, Search } from "lucide-react";
 import Link from "next/link";
+import { PriceRaiseSheet } from "@/components/shop/price-raise";
 import { NewProductSheet } from "@/components/shop/shop-ui";
 import { requireShopCtx } from "@/lib/session";
 
@@ -14,6 +16,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const low = sp.stock === "bajo";
   const products = await listProducts(sc, { q: sp.q, low, inactive: sp.bajas === "1" });
   const admin = sc.role !== "seller";
+  const categories = admin ? await productCategories(sc) : [];
   return (
     <>
       <PageHeader
@@ -28,6 +31,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                   <FileUp className="size-4" aria-hidden /> Importar
                 </Link>
               </Button>
+              {products.length ? <PriceRaiseSheet categories={categories} currency={sc.currency} /> : null}
               <NewProductSheet />
             </>
           ) : undefined

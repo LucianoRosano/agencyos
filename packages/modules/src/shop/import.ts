@@ -1,6 +1,7 @@
-import { cmpMoney, formatMoney, validation } from "@agencyos/core";
+import { adjustByPercent, cmpMoney, formatMoney, validation, zMoney } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
-import { eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import { columnIndex, parseAmount, parseCsv } from "../import/csv";
 import { assertRole, productInput, type ShopCtx, touch } from "./service";
 
@@ -184,4 +185,100 @@ export async function applyProductImport(sc: ShopCtx, csv: string) {
     await touch(t, sc.shopId);
   });
   return summarize(items.map((i) => i.row));
+}
+
+// ---------- Aumento de precios por porcentaje ----------
+
+const priceRaiseInput = z.object({
+  percent: z.preprocess(
+    (v) => (typeof v === "string" ? v.replace(",", ".").trim() : v),
+    z
+      .string()
+      .regex(/^-?\d{1,3}(\.\d{1,2})?$/, "Escribí un porcentaje (ej.: 8 o 12,5)")
+      .refine((p) => Number(p) !== 0 && Number(p) > -90 && Number(p) <= 500, "Entre −90 % y 500 %"),
+  ),
+  category: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.string().max(60).optional()),
+  roundTo: z.coerce
+    .number()
+    .int()
+    .refine((n) => [1, 10, 50, 100, 500, 1000].includes(n))
+    .default(1),
+});
+
+export type PriceChange = { id: string; name: string; from: string; to: string };
+
+async function raisePlan(sc: ShopCtx, raw: unknown) {
+  const input = priceRaiseInput.parse(raw);
+  const rows = await getDb()
+    .select({ id: schema.shopProduct.id, name: schema.shopProduct.name, price: schema.shopProduct.price, category: schema.shopProduct.category })
+    .from(schema.shopProduct)
+    .where(
+      and(
+        eq(schema.shopProduct.shopId, sc.shopId),
+        eq(schema.shopProduct.active, true),
+        input.category ? sql`f_search_norm(coalesce(${schema.shopProduct.category}, '')) = f_search_norm(${input.category})` : undefined,
+      ),
+    )
+    .orderBy(asc(schema.shopProduct.name));
+  const changes: PriceChange[] = [];
+  for (const r of rows) {
+    const to = adjustByPercent(r.price, input.percent, input.roundTo);
+    if (to === r.price || cmpMoney(to, "0") <= 0) continue;
+    changes.push({ id: r.id, name: r.name, from: r.price, to });
+  }
+  return { input, changes };
+}
+
+/** Vista previa: cuántos productos cambian y los primeros con su precio antes y después. */
+export async function previewPriceRaise(sc: ShopCtx, raw: unknown) {
+  assertRole(sc, ["owner", "admin"], "Cambiar precios");
+  const { changes } = await raisePlan(sc, raw);
+  return { count: changes.length, sample: changes.slice(0, 8) };
+}
+
+/** Aplica el aumento (o baja) y devuelve los cambios para poder deshacerlos. */
+export async function applyPriceRaise(sc: ShopCtx, raw: unknown) {
+  assertRole(sc, ["owner", "admin"], "Cambiar precios");
+  const { changes } = await raisePlan(sc, raw);
+  if (!changes.length) throw validation("Ningún producto cambia de precio con ese porcentaje y redondeo.");
+  await getDb().transaction(async (t) => {
+    for (const c of changes)
+      await t
+        .update(schema.shopProduct)
+        .set({ price: c.to })
+        .where(and(eq(schema.shopProduct.id, c.id), eq(schema.shopProduct.shopId, sc.shopId), eq(schema.shopProduct.price, c.from)));
+    await touch(t, sc.shopId);
+  });
+  return { count: changes.length, changes };
+}
+
+/** Deshacer: vuelve al precio anterior solo los que siguen con el precio nuevo (no pisa cambios posteriores). */
+export async function revertPriceRaise(sc: ShopCtx, raw: unknown) {
+  assertRole(sc, ["owner", "admin"], "Cambiar precios");
+  const list = z
+    .array(z.object({ id: z.string().uuid(), from: zMoney, to: zMoney }))
+    .max(MAX_ROWS * 4)
+    .parse(raw);
+  let n = 0;
+  await getDb().transaction(async (t) => {
+    for (const c of list) {
+      const r = await t
+        .update(schema.shopProduct)
+        .set({ price: c.from })
+        .where(and(eq(schema.shopProduct.id, c.id), eq(schema.shopProduct.shopId, sc.shopId), eq(schema.shopProduct.price, c.to)))
+        .returning({ id: schema.shopProduct.id });
+      n += r.length;
+    }
+  });
+  return { count: n };
+}
+
+/** Categorías usadas en el catálogo (para elegir a qué aplicar el aumento). */
+export async function productCategories(sc: ShopCtx) {
+  const rows = await getDb()
+    .selectDistinct({ category: schema.shopProduct.category })
+    .from(schema.shopProduct)
+    .where(and(eq(schema.shopProduct.shopId, sc.shopId), eq(schema.shopProduct.active, true), sql`${schema.shopProduct.category} is not null`))
+    .orderBy(asc(schema.shopProduct.category));
+  return rows.map((r) => r.category).filter((c): c is string => Boolean(c));
 }

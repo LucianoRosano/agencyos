@@ -89,3 +89,9 @@ export const previewProductImportAction = async (csv: string) =>
   runShop(async (sc) => (await import("@agencyos/modules/shop/import")).previewProductImport(sc, csv), { revalidate: false });
 export const applyProductImportAction = async (csv: string) =>
   runShop(async (sc) => (await import("@agencyos/modules/shop/import")).applyProductImport(sc, csv));
+export const previewPriceRaiseAction = async (input: unknown) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/import")).previewPriceRaise(sc, input), { revalidate: false });
+export const applyPriceRaiseAction = async (input: unknown) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/import")).applyPriceRaise(sc, input));
+export const revertPriceRaiseAction = async (changes: unknown) =>
+  runShop(async (sc) => (await import("@agencyos/modules/shop/import")).revertPriceRaise(sc, changes));

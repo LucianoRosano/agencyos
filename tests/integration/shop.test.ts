@@ -2,7 +2,14 @@ import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { cashClose } from "@agencyos/modules/shop/cash";
 import { shopDocument } from "@agencyos/modules/shop/documents";
-import { applyProductImport, previewProductImport } from "@agencyos/modules/shop/import";
+import {
+  applyPriceRaise,
+  applyProductImport,
+  previewPriceRaise,
+  previewProductImport,
+  productCategories,
+  revertPriceRaise,
+} from "@agencyos/modules/shop/import";
 import { generateWeeklyReports, lastWeek, listReports, reportText } from "@agencyos/modules/shop/report";
 import {
   acceptShopInvitationNewUser,
@@ -299,5 +306,36 @@ describe("SaaS para comercios", () => {
     // Otro comercio no ve ni actualiza estos productos
     const other = await shopWithOwner("Otra ferretería");
     expect((await previewProductImport(other.sc, csv)).create).toBe(3);
+  });
+
+  it("aumento de precios por porcentaje: por categoría, con redondeo, deshacer sin pisar cambios posteriores", async () => {
+    const { sc } = await shopWithOwner("Almacén Aumento");
+    const yerba = await createProduct(sc, { name: "Yerba", category: "Almacén", price: "4530", stock: 1 });
+    const azucar = await createProduct(sc, { name: "Azúcar", category: "almacen", price: "1000", stock: 1 });
+    const lavandina = await createProduct(sc, { name: "Lavandina", category: "Limpieza", price: "900", stock: 1 });
+    expect(await productCategories(sc)).toEqual(expect.arrayContaining(["Almacén", "Limpieza"]));
+
+    const pv = await previewPriceRaise(sc, { percent: "12,5", category: "Almacén", roundTo: "10" });
+    expect(pv.count).toBe(2); // la categoría se compara sin tildes ni mayúsculas
+    expect(pv.sample.find((c) => c.id === yerba.id)).toMatchObject({ from: "4530.00", to: "5100.00" });
+    const done = await applyPriceRaise(sc, { percent: "12,5", category: "Almacén", roundTo: "10" });
+    expect(done.count).toBe(2);
+    const price = async (id: string) => (await getDb().select().from(schema.shopProduct).where(eq(schema.shopProduct.id, id)))[0]?.price;
+    expect(await price(azucar.id)).toBe("1130.00");
+    expect(await price(lavandina.id)).toBe("900.00");
+
+    // Si alguien cambió un precio después, deshacer no lo pisa
+    await getDb().update(schema.shopProduct).set({ price: "9999.00" }).where(eq(schema.shopProduct.id, azucar.id));
+    expect((await revertPriceRaise(sc, done.changes)).count).toBe(1);
+    expect(await price(yerba.id)).toBe("4530.00");
+    expect(await price(azucar.id)).toBe("9999.00");
+
+    await expect(previewPriceRaise(sc, { percent: "0" })).rejects.toThrow();
+    await expect(previewPriceRaise(sc, { percent: "abc" })).rejects.toThrow();
+    // Bajar precios también se puede
+    expect((await previewPriceRaise(sc, { percent: "-10", roundTo: "1" })).sample.find((c) => c.id === lavandina.id)?.to).toBe("810.00");
+    // Otro comercio no puede deshacer ni tocar estos productos
+    const other = await shopWithOwner("Otro almacén");
+    expect((await revertPriceRaise(other.sc, [{ id: yerba.id, from: "1.00", to: "4530.00" }])).count).toBe(0);
   });
 });

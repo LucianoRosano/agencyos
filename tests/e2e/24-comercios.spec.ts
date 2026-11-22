@@ -110,6 +110,16 @@ test("SaaS para comercios: alta desde AGENCYOS → dueño crea su cuenta → pro
   await shot(shop, "comercio-importar", info.project.name);
   await shop.getByRole("button", { name: "Importar 1" }).click();
   await expect(shop.getByText(/1 productos nuevos/)).toBeVisible();
+  // Aumento de precios por porcentaje con vista previa y Deshacer
+  await shop.goto("/comercio/productos");
+  await shop.getByRole("button", { name: "Aumentar precios" }).click();
+  await shop.locator("#raise-percent").fill("10");
+  await expect(shop.getByTestId("raise-preview")).toContainText(`Goma de borrar ${tag}`);
+  await expectAccessible(shop);
+  await shop.getByRole("button", { name: /^Aplicar a \d+/ }).click();
+  await expect(shop.getByText(/precios? actualizados?/)).toBeVisible();
+  await shop.getByRole("button", { name: "Deshacer" }).click();
+  await expect(shop.getByText("Precios anteriores restaurados")).toBeVisible();
   const csvOut = await shop.request.get("/comercio/productos/exportar");
   expect(await csvOut.text()).toContain(`Goma de borrar ${tag}`);
   await shop.goto("/comercio/reportes");
