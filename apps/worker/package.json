@@ -17,6 +17,6 @@
     "tsx": "4.23.15"
   },
   "devDependencies": {
-    "@types/node": "^22"
+    "@types/node": "^26"
   }
 }
