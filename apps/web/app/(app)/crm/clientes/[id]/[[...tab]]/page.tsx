@@ -28,21 +28,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
-import { EditClientSheet } from "@/components/crm/client-form";
 import { ClientMenu, ClientStatusSelect } from "@/components/crm/client-menu";
 import { ClientStory } from "@/components/crm/client-story";
 import {
   LazyClientContactMenu as ClientContactMenu,
+  LazyEditClientSheet as EditClientSheet,
+  LazyFiscalCard as FiscalCard,
   LazyInteractionForm as InteractionForm,
+  LazyInteractionSheet as InteractionSheet,
   LazyLinkContactSheet as LinkContactSheet,
+  LazyNewContactSheet as NewContactSheet,
+  LazyNewOpportunitySheet as NewOpportunitySheet,
   LazyPipelineView as PipelineView,
   LazyWhatsappImportSheet as WhatsappImportSheet,
 } from "@/components/crm/client-tabs-lazy";
-import { NewContactSheet } from "@/components/crm/contact-forms";
 import { ContactLinks } from "@/components/crm/contact-links";
-import { FiscalCard } from "@/components/crm/fiscal-card";
-import { InteractionSheet, NextStepDone } from "@/components/crm/interaction-form";
-import { NewOpportunitySheet } from "@/components/crm/opportunity-form";
+import { NextStepDone } from "@/components/crm/interaction-form";
 import type { PipelineOpp } from "@/components/crm/pipeline";
 import { CLIENT_STATUS_TONE, CRM_ACCENT, dueTone, OPEN_STAGES, stageColor, stageName } from "@/components/crm/shared";
 import { ClientRetainers } from "@/components/finance/client-retainers";

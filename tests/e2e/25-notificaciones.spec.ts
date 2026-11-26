@@ -86,6 +86,23 @@ test("centro de avisos: sin leer, urgente, posponer, archivar, todo leído con d
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByText(`Aceptaron el presupuesto ${tag}`)).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("button", { name: "Ver" })).toBeVisible();
+
+  // Vista rápida desde la campana (solo en la PC): resolver sin salir de la pantalla
+  if (!info.project.name.startsWith("mobile")) {
+    await page
+      .locator("header")
+      .getByRole("link", { name: /^Notificaciones/ })
+      .click();
+    const panel = page.getByRole("dialog", { name: "Avisos sin leer" });
+    await expect(panel.getByText(`Aceptaron el presupuesto ${tag}`)).toBeVisible();
+    await expectAccessible(page);
+    await shot(page, "notificaciones-campana", info.project.name);
+    await panel.getByRole("button", { name: `Marcar leído: Aceptaron el presupuesto ${tag}` }).click();
+    await expect(panel.getByText(`Aceptaron el presupuesto ${tag}`)).toBeHidden();
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
+    await expect(page).toHaveURL(/\/hoy/);
+  }
 });
 
 test("configuración de avisos: horario de descanso, resúmenes y preferencias agrupadas @visual", async ({ page }, info) => {

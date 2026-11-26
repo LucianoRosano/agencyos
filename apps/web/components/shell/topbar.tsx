@@ -4,7 +4,7 @@ import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
 import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { type ComponentType, useCallback, useEffect, useState } from "react";
 import { setSpaceAction } from "@/app/actions/shell";
 import { ROUTE_TITLES } from "./nav-config";
 import { openCapture } from "./palette-trigger";
@@ -22,7 +22,7 @@ export function Topbar({ data }: { data: ShellData }) {
           {title}
         </Link>
       </nav>
-      <BellLink count={data.counts.notifications ?? 0} />
+      <BellLink count={data.counts.notifications ?? 0} panel />
       {data.limited ? null : (
         <>
           <Menu
@@ -89,7 +89,7 @@ function useAppBadge(count: number) {
   }, [count]);
 }
 
-export function BellLink({ count: initial, className }: { count: number; className?: string }) {
+export function BellLink({ count: initial, className, panel = false }: { count: number; className?: string; panel?: boolean }) {
   // El número se actualiza en vivo (components/shell/live-notifications.tsx emite «ag:unread»).
   const [live, setLive] = useState<number | null>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: al llegar un número nuevo del servidor, manda ese
@@ -101,21 +101,38 @@ export function BellLink({ count: initial, className }: { count: number; classNa
   }, []);
   const count = live ?? initial;
   useAppBadge(count);
+  // Desktop: la campana abre la vista rápida (se descarga al primer uso); celular o Ctrl/⌘+clic: va al centro.
+  const [Panel, setPanel] = useState<ComponentType<{ onClose: () => void }> | null>(null);
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
   return (
-    <Link
-      href="/notificaciones"
-      aria-label={count ? `Notificaciones: ${count} sin leer` : "Notificaciones"}
-      className={`relative grid size-10 place-items-center rounded-[9px] border border-border bg-surface text-text-muted hover:text-text ${className ?? ""}`}
-    >
-      <Bell className="size-[18px]" />
-      {count ? (
-        <span
-          key={count}
-          className="tab-pop absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#9A3F1B] px-1 font-mono text-[10px] font-semibold text-white"
-        >
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
-    </Link>
+    <span className="relative" data-bell>
+      <Link
+        href="/notificaciones"
+        aria-label={count ? `Notificaciones: ${count} sin leer` : "Notificaciones"}
+        aria-expanded={panel ? open : undefined}
+        onClick={(e) => {
+          if (!panel || e.metaKey || e.ctrlKey || e.shiftKey || !window.matchMedia("(min-width: 768px)").matches) return;
+          e.preventDefault();
+          if (open) return setOpen(false);
+          void import("@/components/notifications/bell-panel").then((m) => {
+            setPanel(() => m.BellPanel);
+            setOpen(true);
+          });
+        }}
+        className={`relative grid size-10 place-items-center rounded-[9px] border border-border bg-surface text-text-muted hover:text-text ${className ?? ""}`}
+      >
+        <Bell className="size-[18px]" />
+        {count ? (
+          <span
+            key={count}
+            className="tab-pop absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#9A3F1B] px-1 font-mono text-[10px] font-semibold text-white"
+          >
+            {count > 99 ? "99+" : count}
+          </span>
+        ) : null}
+      </Link>
+      {open && Panel ? <Panel onClose={close} /> : null}
+    </span>
   );
 }

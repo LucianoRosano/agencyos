@@ -115,7 +115,9 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Avisos nuevos**: el cliente abrió o rechazó un presupuesto, el agente pregunta / propone un plan / pide aprobación / terminó, vencimientos agendados (N días antes, mañana y hoy), tareas con hora (15 min antes), oportunidad ganada. Nunca te avisa de lo que hiciste vos.
 - ✅ **Resúmenes**: del día a la hora que elijas, cierre del día opcional (lo que hiciste y lo de mañana) y resumen de la semana los lunes (hecho, vencido, por cobrar, proyectos quietos).
 - ✅ Bug corregido: la precarga de enlaces de Next.js «abría» los avisos y los marcaba leídos sin tocarlos.
-- ✅ Atajos de teclado y avisos en vivo con carga diferida: la pantalla más pesada bajó a 166 KB de JS inicial.
+- ✅ **Vista rápida desde la campana** (PC): lo último sin leer con «Listo» y «Más tarde» sin salir de la pantalla.
+- ✅ **Mails con diseño** de la marca (marfil, serif, botón «Abrir»), automáticos para todos los avisos cuando se configure Brevo.
+- ✅ Atajos de teclado, avisos en vivo y hojas de las fichas de cliente y proyecto con carga diferida: la ficha de cliente bajó de 170 a 164 KB de JS inicial (todas las pantallas < 168 KB).
 
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
