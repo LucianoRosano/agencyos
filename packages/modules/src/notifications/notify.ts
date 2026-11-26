@@ -1,5 +1,5 @@
 import { getDb, schema, type Tx } from "@agencyos/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { channelsFor, sendPush } from "../push/service";
 import { sendEmail } from "../shared/email";
 import { entityHref } from "../shared/entities";
@@ -78,7 +78,20 @@ export async function notify(n: NotifyInput, db: Db = getDb()): Promise<number> 
       created++;
     }
     if (wantsPush && !quiet) {
+      const [unread] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(schema.notification)
+        .where(
+          and(
+            eq(schema.notification.userId, userId),
+            eq(schema.notification.workspaceId, n.workspaceId),
+            isNull(schema.notification.readAt),
+            isNull(schema.notification.archivedAt),
+            or(isNull(schema.notification.snoozedUntil), lte(schema.notification.snoozedUntil, sql`now()`)),
+          ),
+        );
       await sendPush(n.workspaceId, userId, {
+        badge: unread?.n ?? undefined,
         title: priority === "urgent" ? `⚠ ${title}` : title,
         body: n.body ?? undefined,
         url: id ? `/notificaciones/abrir/${id}` : url,

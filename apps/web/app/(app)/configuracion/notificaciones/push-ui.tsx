@@ -90,7 +90,7 @@ export function PreferencesTable({
   prefs,
   emailEnabled,
 }: {
-  events: { type: string; label: string }[];
+  events: { type: string; label: string; group?: string; low?: boolean }[];
   prefs: Record<string, Ch>;
   emailEnabled: boolean;
 }) {
@@ -103,28 +103,39 @@ export function PreferencesTable({
     setState({ ...state, [type]: next });
     exec(() => setPreferenceAction(type, next));
   }
+  const groups = [...new Set(events.map((e) => e.group ?? ""))];
   return (
     <div className="overflow-hidden rounded-[10px] border border-border">
-      <div className="grid grid-cols-[1fr_repeat(3,56px)] gap-2 border-b border-border bg-surface-2 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-text-muted">
-        <span>Evento</span>
+      <div className="grid grid-cols-[1fr_repeat(3,52px)] gap-2 border-b border-border bg-surface-2 px-3 py-2 text-[12px] font-medium text-text-muted">
+        <span>Aviso</span>
         <span className="text-center">App</span>
         <span className="text-center">Push</span>
         <span className="text-center">Mail</span>
       </div>
-      {events.map((e) => (
-        <div key={e.type} className="grid min-h-12 grid-cols-[1fr_repeat(3,56px)] items-center gap-2 border-b border-border px-3 last:border-0">
-          <span className="text-[14px]">{e.label}</span>
-          {(["inApp", "push", "email"] as const).map((k) => (
-            <span key={k} className="grid place-items-center">
-              <Checkbox
-                checked={state[e.type]?.[k] ?? false}
-                disabled={k === "email" && !emailEnabled}
-                onChange={() => toggle(e.type, k)}
-                aria-label={`${e.label}: ${k === "inApp" ? "en la app" : k}`}
-                className="size-5"
-              />
-            </span>
-          ))}
+      {groups.map((g) => (
+        <div key={g || "general"}>
+          {g ? <div className="border-b border-border bg-surface-2/50 px-3 py-1.5 font-serif text-[14px] font-semibold text-text">{g}</div> : null}
+          {events
+            .filter((e) => (e.group ?? "") === g)
+            .map((e) => (
+              <div key={e.type} className="grid min-h-12 grid-cols-[1fr_repeat(3,52px)] items-center gap-2 border-b border-border px-3 last:border-0">
+                <span className="py-2 text-[14px]">
+                  {e.label}
+                  {e.low ? <span className="block text-[12px] text-text-faint">solo en la app (no suena)</span> : null}
+                </span>
+                {(["inApp", "push", "email"] as const).map((k) => (
+                  <span key={k} className="grid place-items-center">
+                    <Checkbox
+                      checked={state[e.type]?.[k] ?? false}
+                      disabled={(k === "email" && !emailEnabled) || (k === "push" && e.low)}
+                      onChange={() => toggle(e.type, k)}
+                      aria-label={`${e.label}: ${k === "inApp" ? "en la app" : k === "push" ? "push" : "mail"}`}
+                      className="size-5"
+                    />
+                  </span>
+                ))}
+              </div>
+            ))}
         </div>
       ))}
     </div>

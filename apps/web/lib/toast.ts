@@ -27,4 +27,8 @@ export const toast = {
   error(message: Message, data?: ExternalToast) {
     void ready.then((m) => m.toast.error(message, data));
   },
+  /** Aviso neutro (sin tilde ni cruz): avisos que llegan con la app abierta. */
+  info(message: Message, data?: ExternalToast) {
+    void ready.then((m) => m.toast(message, data));
+  },
 };

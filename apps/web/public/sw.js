@@ -2,7 +2,7 @@
  * AGENCYOS · service worker: estáticos cacheados, modo sin conexión (/local) y página offline.
  * Los datos van siempre por la red; sin conexión, las pantallas de la app abren /local (la copia del dispositivo).
  */
-const VERSION = "agencyos-v6";
+const VERSION = "agencyos-v7";
 const LOCAL_CACHE = "agencyos-local";
 const OFFLINE = "/offline.html";
 const LOCAL = "/local";
@@ -110,7 +110,7 @@ self.addEventListener("fetch", (e) => {
   }
 });
 
-/* Web Push: muestra la notificación y al tocarla abre la entidad. */
+/* Web Push: muestra la notificación (con «Listo» y «Más tarde» si es un aviso) y al tocarla abre la entidad. */
 self.addEventListener("push", (e) => {
   let data = {};
   try {
@@ -118,20 +118,52 @@ self.addEventListener("push", (e) => {
   } catch {
     data = { title: e.data ? e.data.text() : "AGENCYOS" };
   }
-  e.waitUntil(
+  const actions = data.id
+    ? [
+        { action: "read", title: "Listo" },
+        { action: "snooze", title: "Más tarde" },
+      ]
+    : [];
+  const tasks = [
     self.registration.showNotification(data.title || "AGENCYOS", {
       body: data.body || "",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
       tag: data.tag || undefined,
-      data: { url: data.url || "/hoy" },
+      renotify: Boolean(data.tag && data.urgent),
+      requireInteraction: Boolean(data.urgent),
+      data: { url: data.url || "/hoy", id: data.id || null },
+      actions,
       lang: "es-AR",
     }),
-  );
+  ];
+  if (typeof data.badge === "number" && self.navigator && "setAppBadge" in self.navigator) tasks.push(self.navigator.setAppBadge(data.badge).catch(() => {}));
+  e.waitUntil(Promise.all(tasks));
 });
+
+async function notificationAction(id, action) {
+  try {
+    const r = await fetch(`/api/notificaciones/${id}/accion`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (typeof d.unread === "number" && "setAppBadge" in self.navigator)
+      await (d.unread ? self.navigator.setAppBadge(d.unread) : self.navigator.clearAppBadge()).catch(() => {});
+  } catch {
+    // sin conexión: queda como estaba
+  }
+}
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
+  const { id } = e.notification.data || {};
+  if (id && (e.action === "read" || e.action === "snooze")) {
+    e.waitUntil(notificationAction(id, e.action));
+    return;
+  }
   const url = new URL(e.notification.data?.url || "/hoy", self.location.origin);
   if (url.origin !== self.location.origin) return;
   e.waitUntil(

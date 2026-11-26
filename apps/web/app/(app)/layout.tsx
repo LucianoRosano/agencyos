@@ -60,7 +60,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <MobileHeader data={data} />
         <Topbar data={data} />
         <main id="contenido" className="bg-grid flex-1 px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">
-          <LazyNavProgress />
+          <LazyNavProgress live />
           <RouteTransition>{children}</RouteTransition>
         </main>
       </div>

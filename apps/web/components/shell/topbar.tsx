@@ -4,7 +4,7 @@ import { Button, Menu, MenuItem, MenuLabel, MenuSeparator } from "@agencyos/ui";
 import { Bell, ChevronDown, Crosshair, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { setSpaceAction } from "@/app/actions/shell";
 import { ROUTE_TITLES } from "./nav-config";
 import { openCapture } from "./palette-trigger";
@@ -89,7 +89,17 @@ function useAppBadge(count: number) {
   }, [count]);
 }
 
-export function BellLink({ count, className }: { count: number; className?: string }) {
+export function BellLink({ count: initial, className }: { count: number; className?: string }) {
+  // El número se actualiza en vivo (components/shell/live-notifications.tsx emite «ag:unread»).
+  const [live, setLive] = useState<number | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: al llegar un número nuevo del servidor, manda ese
+  useEffect(() => setLive(null), [initial]);
+  useEffect(() => {
+    const on = (e: Event) => setLive(Number((e as CustomEvent).detail ?? 0));
+    window.addEventListener("ag:unread", on);
+    return () => window.removeEventListener("ag:unread", on);
+  }, []);
+  const count = live ?? initial;
   useAppBadge(count);
   return (
     <Link
@@ -99,7 +109,10 @@ export function BellLink({ count, className }: { count: number; className?: stri
     >
       <Bell className="size-[18px]" />
       {count ? (
-        <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#9A3F1B] px-1 font-mono text-[10px] font-semibold text-white">
+        <span
+          key={count}
+          className="tab-pop absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#9A3F1B] px-1 font-mono text-[10px] font-semibold text-white"
+        >
           {count > 99 ? "99+" : count}
         </span>
       ) : null}
