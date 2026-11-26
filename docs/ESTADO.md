@@ -108,6 +108,15 @@ Leyenda: ✅ funcionando y probado · 🟡 parcial · ⏳ falta una credencial o
 - ✅ **Descanso visual:** superficies apenas cálidas en claro (no blanco puro), texto del oscuro un punto menos brillante, fondo de los modales más liviano, pulso de carga lento, barras de scroll finas, cambio de tema con fundido, barra inferior del celular con indicador activo.
 - ✅ Con «reducir movimiento» del sistema todo queda instantáneo.
 
+### Décima vuelta · avisos completos (26/11/2026)
+- ✅ **Motor único de avisos** (ADR 0019, migración 0018): preferencias por canal, prioridades (urgente / normal / tranquilo), deduplicación y **horario de descanso** (los avisos de la noche no suenan: llega uno solo al terminar; lo urgente puede pasar). Todos los módulos avisan por ahí: ahora un **sitio caído llega por push** (antes solo quedaba en la campana).
+- ✅ **Centro de avisos** nuevo: Sin leer / Todas / Pospuestas / Archivadas, lo urgente arriba, íconos por tema, **posponer** (1 h, 3 h, esta tarde, mañana o el lunes; vuelve solo), **archivar**, leído/no leído, «Todo leído» con Deshacer, avisos leídos del mismo tipo agrupados y teclado (J/K, Enter, E). Abrir un aviso lo marca leído.
+- ✅ **En vivo**: la campana y el ícono de la app se actualizan solos y lo nuevo aparece abajo con «Ver». **Push con botones** «Listo» y «Más tarde» y número de no leídas en el ícono.
+- ✅ **Avisos nuevos**: el cliente abrió o rechazó un presupuesto, el agente pregunta / propone un plan / pide aprobación / terminó, vencimientos agendados (N días antes, mañana y hoy), tareas con hora (15 min antes), oportunidad ganada. Nunca te avisa de lo que hiciste vos.
+- ✅ **Resúmenes**: del día a la hora que elijas, cierre del día opcional (lo que hiciste y lo de mañana) y resumen de la semana los lunes (hecho, vencido, por cobrar, proyectos quietos).
+- ✅ Bug corregido: la precarga de enlaces de Next.js «abría» los avisos y los marcaba leídos sin tocarlos.
+- ✅ Atajos de teclado y avisos en vivo con carga diferida: la pantalla más pesada bajó a 166 KB de JS inicial.
+
 ### Infraestructura (lista, falta el VPS)
 - ✅ Docker Compose (producción + staging), Caddy con HTTPS automático, imágenes web/worker sin root, CI (lint, typecheck, tests, e2e, gitleaks, auditoría de dependencias), deploy a staging por push y a producción por tag con aprobación, rollback, backups cifrados con rclone + prueba de restauración, hardening del VPS, runbooks. Probado localmente con Docker; ⏳ falta ejecutarlo en el VPS real.
 

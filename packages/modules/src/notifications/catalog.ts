@@ -11,7 +11,6 @@ export const NOTIFY_EVENTS: { type: string; label: string; group: NotifyGroup; p
   { type: "resumen.semanal", label: "Resumen de la semana (lunes)", group: "Día a día", priority: "normal" },
   { type: "tarea.recordatorio", label: "Tareas con hora (15 minutos antes)", group: "Día a día", priority: "normal" },
   { type: "recordatorio.vence", label: "Vencimientos agendados (días antes y el día)", group: "Día a día", priority: "normal" },
-  { type: "cobro.registrado", label: "Entró un cobro", group: "Dinero", priority: "low" },
   { type: "cobro.vencido", label: "Cobro vencido", group: "Dinero", priority: "normal" },
   { type: "pago.vencido", label: "Pago vencido", group: "Dinero", priority: "normal" },
   { type: "presupuesto.visto", label: "El cliente abrió un presupuesto", group: "Clientes", priority: "normal" },

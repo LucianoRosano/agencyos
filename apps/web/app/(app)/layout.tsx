@@ -11,7 +11,7 @@ import { LazyOverlays } from "@/components/shell/lazy-overlays";
 import { BottomNav, MobileHeader } from "@/components/shell/mobile";
 import { LazyNavProgress } from "@/components/shell/nav-progress-lazy";
 import { RouteTransition } from "@/components/shell/route-transition";
-import { Shortcuts } from "@/components/shell/shortcuts";
+import { LazyShortcuts } from "@/components/shell/shortcuts-lazy";
 import { type ShellData, Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { getSelectedSpace } from "@/lib/prefs";
@@ -66,7 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <BottomNav data={data} />
       <LazyOverlays enabledModules={data.enabledModules} role={ctx.role} capture={!limited} />
-      <Shortcuts limited={limited} enabledModules={data.enabledModules} role={ctx.role} />
+      <LazyShortcuts limited={limited} enabledModules={data.enabledModules} role={ctx.role} />
       <OfflineSync userId={ctx.userId ?? ""} workspaceId={ctx.workspaceId} />
     </div>
   );

@@ -41,7 +41,8 @@ test("centro de avisos: sin leer, urgente, posponer, archivar, todo leído con d
     { type: "cobro.vencido", title: `Cobro vencido ${tag}` },
   ]);
   await page.goto("/notificaciones");
-  await expect(page.getByRole("link", { name: "Sin leer" })).toHaveAttribute("aria-current", "page");
+  const views = page.getByRole("navigation", { name: "Vistas" });
+  await expect(views.getByRole("link", { name: /^Sin leer/ })).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("Urgente").first()).toBeVisible();
   await expect(page.getByText(`El cliente abrió el presupuesto P-${tag}`)).toBeVisible();
   await expectNoHorizontalScroll(page);
@@ -64,7 +65,8 @@ test("centro de avisos: sin leer, urgente, posponer, archivar, todo leído con d
   await expect(page.getByText("Archivado")).toBeVisible();
   await expect(page.getByText(`El agente pregunta algo ${tag}`)).toBeHidden();
 
-  // Todo leído → Deshacer
+  // Todo leído → Deshacer (con un solo aviso abajo para que el botón no se mueva)
+  await expect(page.getByText("Archivado")).toBeHidden({ timeout: 15_000 });
   await page.getByRole("button", { name: "Todo leído" }).click();
   await expect(page.getByText("Estás al día")).toBeVisible();
   await page.getByRole("button", { name: "Deshacer" }).click();
@@ -99,7 +101,7 @@ test("configuración de avisos: horario de descanso, resúmenes y preferencias a
   await expect(page.locator("#quietFrom")).toHaveValue("23:00");
   await expect(page.locator("#digestHour")).toHaveValue("9");
   await expect(page.getByText("El agente te hace una pregunta")).toBeVisible();
-  await expect(page.getByText("Sitio caído")).toBeVisible();
+  await expect(page.getByText("Sitio caído", { exact: true })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await expectAccessible(page);
   await shot(page, "configuracion-notificaciones", info.project.name);

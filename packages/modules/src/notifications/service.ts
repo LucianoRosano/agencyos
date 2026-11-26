@@ -33,7 +33,13 @@ export async function listNotifications(ctx: Ctx, view: NotificationView | numbe
     .select()
     .from(N)
     .where(where)
-    .orderBy(v === "pospuestas" ? N.snoozedUntil : desc(N.createdAt))
+    .orderBy(
+      ...(v === "pospuestas"
+        ? [N.snoozedUntil]
+        : v === "sin-leer"
+          ? [sql`case when ${N.priority} = 'urgent' then 0 else 1 end`, desc(N.createdAt)] // lo urgente, arriba
+          : [desc(N.createdAt)]),
+    )
     .limit(lim);
   return rows.map((r) => ({ ...r, href: notificationUrl(r) }));
 }

@@ -28,6 +28,12 @@
 - **Passkeys**: después del primer ingreso, agregá la huella o Face ID de tu celular y de tu PC en Configuración → Seguridad.
 - **Instalá AGENCYOS en el celular** (Chrome → "Agregar a pantalla principal"): así aparece en el menú **Compartir** de cualquier app (WhatsApp, Chrome, Instagram) y lo que compartís cae en la Bandeja. El ícono muestra cuántas notificaciones tenés sin leer.
 
+### Para probar (décima vuelta: avisos)
+- **Activá las notificaciones en el celular y en la PC** (Configuración → Notificaciones → «Activar en este dispositivo»). Probá el botón «Más tarde» de un aviso sin abrir la app.
+- **Elegí tu horario de descanso** y la hora del resumen del día (Configuración → Notificaciones → «Descanso y resúmenes»). Si querés, activá el «Cierre del día».
+- En **Notificaciones** probá posponer un aviso para «esta tarde» y archivar otro; con el teclado: J/K para moverte y E para las acciones.
+- Agendá una tarea con hora para dentro de 20 minutos: te avisa 15 minutos antes.
+
 ### Para probar (novena vuelta: fluidez)
 - En el **celular**: abrí «Capturar» y cerrá la hoja arrastrándola hacia abajo; completá una tarea (mirá el tilde y sentí la vibración); cambiá de pantalla desde la barra inferior.
 - En la **PC**: pasá el mouse por las tarjetas de proyectos, abrí menús y la paleta (Ctrl+K), cambiá el tema claro/oscuro (botón sol/luna).

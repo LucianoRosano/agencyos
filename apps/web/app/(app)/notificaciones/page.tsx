@@ -52,7 +52,12 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     const unread = !n.readAt && !n.archivedAt;
     return (
       <li key={n.id} className="group relative flex items-start gap-3 px-3 py-3 md:px-4" data-notification>
-        <Link href={`/notificaciones/abrir/${n.id}`} className="flex min-w-0 flex-1 items-start gap-3 rounded-md outline-offset-4" data-notification-link>
+        <Link
+          href={`/notificaciones/abrir/${n.id}`}
+          prefetch={false}
+          className="flex min-w-0 flex-1 items-start gap-3 rounded-md outline-offset-4"
+          data-notification-link
+        >
           <span className={cn("mt-0.5 grid size-9 shrink-0 place-items-center rounded-full [&>svg]:size-[17px]", kind.tone)} aria-hidden>
             {kind.icon}
           </span>
