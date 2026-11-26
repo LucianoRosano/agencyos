@@ -2,9 +2,10 @@ import { addDays, todayAR } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { capture } from "@agencyos/modules/inbox/service";
 import { createMcpToken, ctxFromToken } from "@agencyos/modules/mcp/tokens";
+import { digests } from "@agencyos/modules/notifications/jobs";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { dailyDueDates, dailySummary, dispatchOutbox } from "../../apps/worker/src/jobs";
+import { dailyDueDates, dispatchOutbox } from "../../apps/worker/src/jobs";
 import { makeWorkspace } from "./helpers";
 
 describe("worker", () => {
@@ -41,7 +42,10 @@ describe("worker", () => {
     await dailyDueDates();
     const [rec] = await getDb().select().from(schema.receivable).where(eq(schema.receivable.workspaceId, owner.workspaceId));
     expect(rec?.status).toBe("overdue");
-    await dailySummary();
+    // El resumen sale a la hora elegida (8:00 por defecto); a otra hora no.
+    await digests(new Date(`${todayAR()}T11:30:00-03:00`));
+    await digests(new Date(`${todayAR()}T08:30:00-03:00`));
+    await digests(new Date(`${todayAR()}T08:45:00-03:00`));
     const n = await getDb()
       .select()
       .from(schema.notification)

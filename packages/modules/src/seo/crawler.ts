@@ -14,6 +14,7 @@ import { parseSitemap, sitemapText } from "./sitemap";
 
 export { type AuditConfig, type AuditSummary, configFrom, DEFAULT_CONFIG, sameOrigin } from "./config";
 
+import { notify } from "../notifications/notify";
 import { getGoogleKeyForWorker, recordGoogleUsage } from "./google-key";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -776,24 +777,7 @@ function chunks<T>(arr: T[], n: number): T[][] {
   return out;
 }
 
-/** Notificación in-app (campana) para dueños y admins del workspace. Idempotente por dedupeKey. */
+/** Aviso para dueños y admins del workspace (motor de avisos). Idempotente por dedupeKey. */
 export async function notifyOwners(t: DbOrTx, workspaceId: string, n: { type: string; title: string; body?: string; entityId: string; dedupeKey: string }) {
-  const owners = await t
-    .select({ userId: schema.membership.userId })
-    .from(schema.membership)
-    .where(and(eq(schema.membership.workspaceId, workspaceId), inArray(schema.membership.role, ["owner", "admin"]), eq(schema.membership.status, "active")));
-  for (const o of owners)
-    await t
-      .insert(schema.notification)
-      .values({
-        workspaceId,
-        userId: o.userId,
-        type: n.type,
-        title: n.title.slice(0, 200),
-        body: n.body ?? null,
-        entityType: "seo_audit",
-        entityId: n.entityId,
-        dedupeKey: n.dedupeKey,
-      })
-      .onConflictDoNothing();
+  await notify({ workspaceId, type: n.type, title: n.title, body: n.body ?? null, entityType: "seo_audit", entityId: n.entityId, dedupeKey: n.dedupeKey }, t);
 }

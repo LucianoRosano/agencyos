@@ -89,7 +89,20 @@ export async function setPreference(ctx: Ctx, eventType: string, channels: { inA
 }
 
 /** Envía un push a todos los dispositivos del usuario; borra las suscripciones vencidas (404/410). */
-export async function sendPush(workspaceId: string, userId: string, payload: { title: string; body?: string; url?: string; tag?: string }) {
+export type PushPayload = {
+  title: string;
+  body?: string;
+  url?: string;
+  tag?: string;
+  /** Id del aviso: habilita los botones «Listo» y «Más tarde» en la notificación del sistema. */
+  id?: string;
+  /** Urgente: queda en pantalla hasta que la persona la toca. */
+  urgent?: boolean;
+  /** Número para el ícono de la app (no leídas). */
+  badge?: number;
+};
+
+export async function sendPush(workspaceId: string, userId: string, payload: PushPayload) {
   const subs = await getDb()
     .select()
     .from(schema.pushSubscription)

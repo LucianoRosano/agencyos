@@ -2,6 +2,7 @@ import { addDays, assertCan, type Ctx, DomainError, notFound, type Role, todayAR
 import { recordEvent } from "@agencyos/core/events";
 import { type DbOrTx, schema } from "@agencyos/db";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { notify } from "../notifications/notify";
 import { setProjectStatus } from "../projects/service";
 import { decryptSecret } from "../shared/crypto";
 import { getDb, scoped } from "../shared/db";
@@ -109,28 +110,19 @@ async function performAction(env: ExecEnv, index: number, raw: unknown): Promise
       const title = interpolate(a.params.title, data).trim().slice(0, 200) || "Automatización";
       const body = a.params.body ? interpolate(a.params.body, data).slice(0, 2000) : null;
       if (dryRun) return { ...base, summary: `Te notificaría: «${title}»`, detail: body ?? undefined };
-      const admins = await db
-        .select({ userId: schema.membership.userId })
-        .from(schema.membership)
-        .where(
-          and(eq(schema.membership.workspaceId, ctx.workspaceId), eq(schema.membership.status, "active"), sql`${schema.membership.role} in ('owner','admin')`),
-        );
       const ent = data.entidad as { id?: string; tipo?: string } | undefined;
-      for (const m of admins) {
-        await db
-          .insert(schema.notification)
-          .values({
-            workspaceId: ctx.workspaceId,
-            userId: m.userId,
-            type: "automatizacion.notificacion",
-            title,
-            body,
-            entityType: ent?.tipo ?? "automation_rule",
-            entityId: ent?.id ?? env.rule.id,
-            dedupeKey: `auto:${env.runId ?? "x"}:${index}`,
-          })
-          .onConflictDoNothing();
-      }
+      await notify(
+        {
+          workspaceId: ctx.workspaceId,
+          type: "automatizacion.notificacion",
+          title,
+          body,
+          entityType: ent?.tipo ?? "automation_rule",
+          entityId: ent?.id ?? env.rule.id,
+          dedupeKey: `auto:${env.runId ?? "x"}:${index}`,
+        },
+        db,
+      );
       return { ...base, summary: `Notificó: «${title}»` };
     }
     case "send_email": {

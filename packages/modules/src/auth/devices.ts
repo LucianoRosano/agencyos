@@ -1,6 +1,7 @@
 import { deviceLabel, formatDateTime } from "@agencyos/core";
 import { getDb, schema } from "@agencyos/db";
 import { and, eq, ne, sql } from "drizzle-orm";
+import { notify } from "../notifications/notify";
 import { sendEmail } from "../shared/email";
 
 /**
@@ -43,20 +44,17 @@ export async function recordLoginDevice(s: { userId: string; userAgent?: string 
   const when = formatDateTime(now);
   const title = `Nuevo inicio de sesión: ${label}`;
   const body = `${when}${s.ipAddress ? ` · IP ${s.ipAddress}` : ""}. Si no fuiste vos, cerrá esa sesión en Configuración → Seguridad y cambiá tu contraseña.`;
-  if (memberships.length)
-    await db
-      .insert(schema.notification)
-      .values(
-        memberships.map((m) => ({
-          workspaceId: m.workspaceId,
-          userId: s.userId,
-          type: "security.new_device",
-          title,
-          body,
-          dedupeKey: `device:${key}`,
-        })),
-      )
-      .onConflictDoNothing();
+  for (const m of memberships)
+    await notify({
+      workspaceId: m.workspaceId,
+      userIds: [s.userId],
+      type: "security.new_device",
+      title,
+      body,
+      url: "/configuracion/seguridad",
+      dedupeKey: `device:${key}`,
+      priority: "urgent",
+    });
   if (user && memberships.length)
     await sendEmail({
       to: user.email,

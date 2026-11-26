@@ -171,12 +171,23 @@ export const notification = pgTable(
     dedupeKey: text("dedupe_key"),
     readAt: tz("read_at"),
     createdAt: tz("created_at").notNull().defaultNow(),
+    /** urgent: pasa el horario de descanso · normal · low: solo en la app (sin push). */
+    priority: text("priority").notNull().default("normal"),
+    /** Enlace explícito (si no, se arma con entityType/entityId). */
+    url: text("url"),
+    /** Push: null = no correspondía · sent · deferred (llegó en horario de descanso; se manda junto al terminar). */
+    pushState: text("push_state"),
+    snoozedUntil: tz("snoozed_until"),
+    archivedAt: tz("archived_at"),
   },
   (t) => [
     index("notification_user").on(t.userId, t.createdAt),
+    index("notification_snoozed").on(t.snoozedUntil).where(sql`${t.snoozedUntil} is not null`),
+    index("notification_deferred").on(t.userId).where(sql`${t.pushState} = 'deferred'`),
     uniqueIndex("notification_dedupe").on(t.userId, t.dedupeKey),
     // Badge de no leídas: se consulta en cada página.
-    index("notification_unread").on(t.userId, t.workspaceId).where(sql`${t.readAt} is null`),
+    index("notification_unread").on(t.userId, t.workspaceId).where(sql`${t.readAt} is null and ${t.archivedAt} is null`),
+    check("notification_priority", sql`${t.priority} in ('urgent','normal','low')`),
   ],
 );
 

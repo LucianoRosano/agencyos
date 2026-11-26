@@ -3,6 +3,7 @@ import { recordEvent } from "@agencyos/core/events";
 import { type DbOrTx, schema } from "@agencyos/db";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, lt } from "drizzle-orm";
 import { assetDueDates, assetKindLabel } from "../assets/queries";
+import { notify } from "../notifications/notify";
 import { decryptSecret } from "../shared/crypto";
 import { getDb } from "../shared/db";
 import { type SafeResponse, safeFetch } from "../shared/safe-fetch";
@@ -50,34 +51,13 @@ function errorText(e: unknown): string {
   return m.slice(0, 200) || "Error de red";
 }
 
-/** Notifica a dueños y administradores, con deduplicación. Devuelve cuántas se crearon. */
+/** Notifica a dueños y administradores con el motor de avisos (push incluido; «sitio caído» es urgente). */
 async function notifyOwners(
   t: DbOrTx,
   workspaceId: string,
   n: { type: string; title: string; entityType: string; entityId: string; dedupeKey: string },
 ): Promise<number> {
-  const owners = await t
-    .select({ userId: schema.membership.userId })
-    .from(schema.membership)
-    .where(and(eq(schema.membership.workspaceId, workspaceId), inArray(schema.membership.role, ["owner", "admin"])));
-  let created = 0;
-  for (const o of owners) {
-    const r = await t
-      .insert(schema.notification)
-      .values({
-        workspaceId,
-        userId: o.userId,
-        type: n.type,
-        title: n.title.slice(0, 200),
-        entityType: n.entityType,
-        entityId: n.entityId,
-        dedupeKey: n.dedupeKey,
-      })
-      .onConflictDoNothing()
-      .returning({ id: schema.notification.id });
-    created += r.length;
-  }
-  return created;
+  return notify({ workspaceId, ...n }, t);
 }
 
 type EnvRow = typeof schema.siteEnvironment.$inferSelect & { siteName: string };

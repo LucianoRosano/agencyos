@@ -4,12 +4,14 @@ import { indexPending } from "@agencyos/modules/brain/knowledge";
 import { refreshFxRates } from "@agencyos/modules/fx/service";
 import { cleanupOrphanFiles } from "@agencyos/modules/library/jobs";
 import { purgeUptimeChecks, runDailyMonitoring, runUptimeChecks } from "@agencyos/modules/monitoring/jobs";
+import { digests, reminderAlerts, taskTimeReminders } from "@agencyos/modules/notifications/jobs";
+import { flushDeferred, purgeNotifications, wakeSnoozed } from "@agencyos/modules/notifications/service";
 import { reposDailySync, reposExecutePlans } from "@agencyos/modules/repos/jobs";
 import { issueDueRetainers } from "@agencyos/modules/retainers/service";
 import { dailySeoSchedules, processQueuedAudits } from "@agencyos/modules/seo/jobs";
 import { purgeRateLimits } from "@agencyos/modules/shared/rate-limit";
 import { generateWeeklyReports } from "@agencyos/modules/shop/report";
-import { dailyDueDates, dailySummary, dispatchOutbox, purge } from "./jobs";
+import { dailyDueDates, dispatchOutbox, purge } from "./jobs";
 
 /**
  * Registro de trabajos del worker. Cada módulo agrega los suyos acá (una línea por job).
@@ -23,7 +25,13 @@ export const JOBS: Job[] = [
   { name: "outbox-dispatch", cron: "* * * * *", run: () => dispatchOutbox(), quiet: true, leaseMs: 2 * 60_000 },
   { name: "heartbeat", cron: "*/5 * * * *", run: async () => true, quiet: true, exclusive: false },
   { name: "daily-due-dates", cron: "5 6 * * *", run: () => dailyDueDates() },
-  { name: "daily-summary", cron: "0 8 * * *", run: () => dailySummary() },
+  // Avisos: resúmenes a la hora de cada persona (cada hora), vencimientos agendados, tareas con hora,
+  // pospuestos que vuelven y lo que quedó en pausa por el horario de descanso.
+  { name: "notify-digests", cron: "1 * * * *", run: () => digests() },
+  { name: "notify-reminders", cron: "5 9 * * *", run: () => reminderAlerts() },
+  { name: "notify-task-time", cron: "*/5 * * * *", run: () => taskTimeReminders(), quiet: true },
+  { name: "notify-wake", cron: "*/5 * * * *", run: async () => ({ woke: await wakeSnoozed(), flushed: await flushDeferred() }), quiet: true },
+  { name: "notify-purge", cron: "50 4 * * *", run: () => purgeNotifications() },
   { name: "trash-purge", cron: "30 4 * * *", run: () => purge() },
   { name: "rate-limit-purge", cron: "40 4 * * *", run: () => purgeRateLimits() },
   // — módulos de la segunda vuelta: agregar debajo —
