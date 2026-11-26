@@ -56,7 +56,12 @@ test("centro de avisos: sin leer, urgente, posponer, archivar, todo leído con d
   await expect(page.getByText(`Cobro vencido ${tag}`)).toBeHidden();
   await page.goto("/notificaciones?ver=pospuestas");
   await expect(page.getByText(`Cobro vencido ${tag}`)).toBeVisible();
-  await expect(page.getByText(/vuelve /).first()).toBeVisible();
+  await expect(
+    page
+      .locator("[data-notification]")
+      .filter({ hasText: `Cobro vencido ${tag}` })
+      .getByText(/vuelve /),
+  ).toBeVisible();
 
   // Archivar
   await page.goto("/notificaciones?ver=sin-leer");

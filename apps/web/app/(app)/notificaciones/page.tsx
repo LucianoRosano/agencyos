@@ -136,32 +136,33 @@ export default async function NotificationsPage({ searchParams }: { searchParams
               </h2>
               <Card className="overflow-hidden">
                 <ul className="divide-y divide-border">
-                  {bundle(items.filter((n) => dayOf(n) === d)).map((x) =>
-                    "group" in x ? (
-                      <li key={`g-${x.items[0]?.id}`}>
-                        <details className="group/b">
-                          <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-3 hover:bg-surface-2 md:px-4 [&::-webkit-details-marker]:hidden">
-                            <span
-                              className={cn("grid size-9 shrink-0 place-items-center rounded-full [&>svg]:size-[17px]", notificationKind(x.type).tone)}
-                              aria-hidden
-                            >
-                              {notificationKind(x.type).icon}
-                            </span>
-                            <span className="flex min-w-0 flex-1 flex-col">
-                              <span className="text-[15px] font-medium text-text">
-                                {x.items.length} avisos de {notificationKind(x.type).label.toLowerCase()}
+                  {(view === "pospuestas" || view === "archivadas" ? items.filter((n) => dayOf(n) === d) : bundle(items.filter((n) => dayOf(n) === d))).map(
+                    (x) =>
+                      "group" in x ? (
+                        <li key={`g-${x.items[0]?.id}`}>
+                          <details className="group/b">
+                            <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-3 hover:bg-surface-2 md:px-4 [&::-webkit-details-marker]:hidden">
+                              <span
+                                className={cn("grid size-9 shrink-0 place-items-center rounded-full [&>svg]:size-[17px]", notificationKind(x.type).tone)}
+                                aria-hidden
+                              >
+                                {notificationKind(x.type).icon}
                               </span>
-                              <span className="truncate text-[13px] text-text-muted">{x.items.map((i) => i.title).join(" · ")}</span>
-                            </span>
-                            <span className="text-[13px] text-accent-text group-open/b:hidden">Ver</span>
-                            <span className="hidden text-[13px] text-accent-text group-open/b:inline">Ocultar</span>
-                          </summary>
-                          <ul className="divide-y divide-border border-t border-border bg-surface-2/40">{x.items.map(row)}</ul>
-                        </details>
-                      </li>
-                    ) : (
-                      row(x)
-                    ),
+                              <span className="flex min-w-0 flex-1 flex-col">
+                                <span className="text-[15px] font-medium text-text">
+                                  {x.items.length} avisos de {notificationKind(x.type).label.toLowerCase()}
+                                </span>
+                                <span className="truncate text-[13px] text-text-muted">{x.items.map((i) => i.title).join(" · ")}</span>
+                              </span>
+                              <span className="text-[13px] text-accent-text group-open/b:hidden">Ver</span>
+                              <span className="hidden text-[13px] text-accent-text group-open/b:inline">Ocultar</span>
+                            </summary>
+                            <ul className="divide-y divide-border border-t border-border bg-surface-2/40">{x.items.map(row)}</ul>
+                          </details>
+                        </li>
+                      ) : (
+                        row(x)
+                      ),
                   )}
                 </ul>
               </Card>

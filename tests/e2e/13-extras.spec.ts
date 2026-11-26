@@ -157,8 +157,12 @@ test("CRM: etapas editables, servicios de interés → presupuesto e importar ch
 
   // Importar chat de WhatsApp en la ficha del cliente
   await page.goto(`${clientUrl}/interacciones`);
-  await page.getByRole("button", { name: "Importar chat de WhatsApp" }).click();
   const wd = page.getByRole("dialog", { name: "Importar chat de WhatsApp" });
+  // La hoja se descarga aparte: si el clic llega antes de hidratar, se reintenta.
+  await expect(async () => {
+    if (!(await wd.isVisible())) await page.getByRole("button", { name: "Importar chat de WhatsApp" }).click();
+    await expect(wd.locator("#wa-text")).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
   const chat = [
     "12/03/24, 09:15 - Los mensajes y las llamadas están cifrados de extremo a extremo.",
     "12/03/24, 09:16 - Juan Pérez: Hola! ¿Arrancamos con la web?",
