@@ -8,9 +8,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { EntitySide } from "@/components/collab/entity-side";
-import { PublicLinkSheet } from "@/components/quotes/public-link";
-import { AcceptSheet, NewVersionButton, PdfButton, QuoteMenu, RejectSheet, SendSheet } from "@/components/quotes/quote-actions";
-import { QuoteEditor } from "@/components/quotes/quote-editor";
+import {
+  LazyAcceptSheet as AcceptSheet,
+  LazyPublicLinkSheet as PublicLinkSheet,
+  LazyQuoteEditor as QuoteEditor,
+  LazyRejectSheet as RejectSheet,
+  LazySendSheet as SendSheet,
+} from "@/components/quotes/lazy";
+import { NewVersionButton, PdfButton, QuoteMenu } from "@/components/quotes/quote-actions";
 import { QuotePreviewFrame } from "@/components/quotes/quote-preview-frame";
 import { QuoteStatusBadge } from "@/components/quotes/status-badge";
 import { requireCtx } from "@/lib/session";

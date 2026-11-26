@@ -85,7 +85,7 @@ test("centro de avisos: sin leer, urgente, posponer, archivar, todo leído con d
   await seed(`${tag}-live`, [{ type: "presupuesto.aceptado", title: `Aceptaron el presupuesto ${tag}` }]);
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByText(`Aceptaron el presupuesto ${tag}`)).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "Ver" })).toBeVisible();
+  await expect(page.locator("[data-sonner-toast]").getByRole("button", { name: "Ver", exact: true }).first()).toBeVisible();
 
   // Vista rápida desde la campana (solo en la PC): resolver sin salir de la pantalla
   if (!info.project.name.startsWith("mobile")) {
